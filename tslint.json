@@ -45,7 +45,7 @@
       }
     ],
     "no-arg": true,
-    "no-bitwise": true,
+    "no-bitwise": false,
     "no-console": [
       true,
       "debug",
@@ -85,7 +85,7 @@
     ],
     "prefer-const": true,
     "quotemark": [
-      true,
+      false,
       "single"
     ],
     "radix": true,
