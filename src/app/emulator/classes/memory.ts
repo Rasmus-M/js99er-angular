@@ -3,13 +3,14 @@ import {VDP} from '../interfaces/vdp';
 import {TMS9919} from './tms9919';
 import {TMS5220} from './tms5220';
 import {AMS} from './ams';
-import {DiskDrive} from './diskdrive';
+import {DiskDrive} from './disk';
 import {GoogleDrive} from './googledrive';
 import {System} from './system';
 import {Util} from '../util';
 import {CPU} from '../interfaces/cpu';
+import {State} from '../interfaces/state';
 
-export class Memory {
+export class Memory implements State {
 
     static SOUND = 0x8400;  // Sound write data
     static VDPRD = 0x8800;  // VDP read data
@@ -648,6 +649,18 @@ export class Memory {
 
     getGROMs(): Uint8Array[] {
         return this.groms;
+    }
+
+    isAMSEnabled(): boolean {
+        return this.enableAMS;
+    }
+
+    getAMS(): AMS {
+        return this.ams;
+    }
+
+    setVDP(vdp: VDP) {
+        this.vdp = vdp;
     }
 
     getState(): object {

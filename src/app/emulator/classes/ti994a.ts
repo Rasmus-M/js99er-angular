@@ -1,0 +1,380 @@
+///<reference path="tms5220.ts"/>
+import {State} from '../interfaces/state';
+import {DiskDrive, DiskImage} from './disk';
+import {TMS9919} from './tms9919';
+import {CRU} from './cru';
+import {Tape} from './tape';
+import {Keyboard} from './keyboard';
+import {TMS5220} from './tms5220';
+import {Memory} from './memory';
+import {TMS9900} from './tms9900';
+import {Log} from '../../log';
+import {F18A} from './f18a';
+import {GoogleDrive} from './googledrive';
+import {VDP} from '../interfaces/vdp';
+import {CPU} from '../interfaces/cpu';
+import {TMS9918A} from './tms9918a';
+import {F18AGPU} from './f18agpu';
+import {System} from './system';
+import {Software} from '../../software';
+import {Settings} from '../../settings';
+import {PSG} from '../interfaces/psg';
+
+export class TI994A implements State {
+
+    static FRAMES_TO_RUN = Number.MAX_VALUE;
+    static FRAME_MS = 17;
+    static FPS_MS = 4000;
+
+    private canvas: HTMLCanvasElement;
+    private onBreakpoint: (cpu: CPU) => void;
+
+    private cpu: CPU;
+    private vdp: VDP;
+    private psg: PSG;
+    private tms5220: TMS5220;
+    private cru: CRU;
+    private memory: Memory;
+    private keyboard: Keyboard;
+    private diskDrives: DiskDrive[];
+    private googleDrives: GoogleDrive[];
+    private tape: Tape;
+
+    private cpuSpeed: number;
+    private frameCount: number;
+    private lastFpsTime: number;
+    private fpsFrameCount: number;
+    private running: boolean;
+    private cpuFlag: boolean;
+
+    private log: Log;
+    private frameInterval: number;
+    private fpsInterval: number;
+
+    constructor(canvas: HTMLCanvasElement, diskImages: {FLOPPY1: DiskImage, FLOPPY2: DiskImage, FLOPPY3: DiskImage}, settings: Settings, onBreakpoint: () => void) {
+        this.canvas = canvas;
+        this.onBreakpoint = onBreakpoint;
+
+        // Assemble the console
+        this.keyboard = new Keyboard(document, settings && settings.isPCKeyboardEnabled(), settings && settings.isMapArrowKeysToFctnSDEXEnabled());
+        this.tape = new Tape();
+        this.cru = new CRU(this.keyboard, this.tape);
+        this.psg = new TMS9919();
+        this.setVDP(settings);
+        const vdpRAM = this.vdp.getRAM();
+        this.diskDrives = [
+            new DiskDrive("DSK1", vdpRAM, diskImages ? diskImages.FLOPPY1 : null),
+            new DiskDrive("DSK2", vdpRAM, diskImages ? diskImages.FLOPPY2 : null),
+            new DiskDrive("DSK3", vdpRAM, diskImages ? diskImages.FLOPPY3 : null)
+        ];
+        this.setGoogleDrive(settings);
+        this.tms5220 = new TMS5220(settings.isSpeechEnabled());
+        this.memory = new Memory(this.vdp, this.psg, this.tms5220, settings);
+        this.cpu = new TMS9900(this.memory, this.cru, this.keyboard, this.diskDrives, this.googleDrives);
+        this.cru.setMemory(this.memory);
+        this.tms5220.setTMS9900(this.cpu);
+
+        this.cpuSpeed = 1;
+        this.frameCount = 0;
+        this.lastFpsTime = null;
+        this.fpsFrameCount = 0;
+        this.running = false;
+        this.cpuFlag = true;
+        this.log = Log.getLog();
+
+        this.reset(false);
+    }
+
+    setVDP(settings) {
+        if (settings && settings.isF18AEnabled()) {
+            this.vdp = new F18A(this.canvas.getContext('2d'), this.cru, this.psg, settings.isFlickerEnabled());
+        } else {
+            this.vdp = new TMS9918A(this.canvas.getContext('2d'), this.cru, settings.isFlickerEnabled());
+        }
+        if (this.memory) {
+            this.memory.setVDP(this.vdp);
+        }
+        if (this.diskDrives) {
+            for (let i = 0; i < this.diskDrives.length; i++) {
+                this.diskDrives[i].setRAM(this.vdp.getRAM());
+            }
+        }
+        if (settings && settings.isGoogleDriveEnabled() && this.googleDrives) {
+            for (let j = 0; j < this.googleDrives.length; j++) {
+                this.googleDrives[j].setRAM(this.vdp.getRAM());
+            }
+        }
+    }
+
+    setGoogleDrive(settings) {
+        if (settings && settings.isGoogleDriveEnabled()) {
+            const vdpRAM = this.vdp.getRAM();
+            this.googleDrives = [
+                new GoogleDrive("GDR1", vdpRAM, "Js99erDrives/GDR1"),
+                new GoogleDrive("GDR2", vdpRAM, "Js99erDrives/GDR2"),
+                new GoogleDrive("GDR3", vdpRAM, "Js99erDrives/GDR3")
+            ];
+        } else {
+            this.googleDrives = [];
+        }
+    }
+
+    isRunning() {
+        return this.running;
+    }
+
+    reset(keepCart) {
+        this.vdp.reset();
+        this.psg.reset();
+        this.tms5220.reset();
+        this.keyboard.reset();
+        this.memory.reset(keepCart);
+        this.cru.reset();
+        this.cpu.reset();
+        this.tape.reset();
+        this.resetFps();
+        this.cpuSpeed = 1;
+    }
+
+    start(fast) {
+        if (!this.isRunning()) {
+            this.cpuSpeed = fast ? 2 : 1;
+            this.log.info("Start");
+            this.cpu.setSuspended(false);
+            this.tape.setPaused(false);
+            this.keyboard.start();
+            const self = this;
+            this.frameInterval = window.setInterval(
+                function () {
+                    if (self.frameCount < TI994A.FRAMES_TO_RUN) {
+                        // self.frame();
+                        self.frame();
+                    } else {
+                        self.stop();
+                    }
+                },
+                TI994A.FRAME_MS
+            );
+            this.resetFps();
+            this.printFps();
+            this.fpsInterval = window.setInterval(
+                function () {
+                    self.printFps();
+                },
+                TI994A.FPS_MS
+            );
+        }
+        this.running = true;
+    }
+
+    frame() {
+        const cpuSpeed = this.cpuSpeed;
+        let cyclesToRun = TMS9900.CYCLES_PER_FRAME * cpuSpeed;
+        const cyclesPerScanline = TMS9900.CYCLES_PER_SCANLINE * cpuSpeed;
+        const f18ACyclesPerScanline = F18AGPU.CYCLES_PER_SCANLINE;
+        let extraCycles = 0;
+        let cruTimerDecrementFrame = CRU.TIMER_DECREMENT_PER_FRAME;
+        const cruTimerDecrementScanline = CRU.TIMER_DECREMENT_PER_SCANLINE;
+        let y = 0;
+        this.vdp.initFrame(window.performance ? window.performance.now() : new Date().getTime());
+        while (cyclesToRun > 0) {
+            if (y < 240) {
+                this.vdp.drawScanline(y);
+            }
+            y = y + 1;
+            if (!this.cpu.isSuspended()) {
+                extraCycles = this.cpu.run(cyclesPerScanline - extraCycles);
+                if (this.cpu.atBreakpoint()) {
+                    this.cpu.setOtherBreakpoint(null);
+                    if (this.onBreakpoint) {
+                        this.onBreakpoint(this.cpu);
+                    }
+                    return;
+                }
+            }
+            // F18A GPU
+            const gpu: CPU = this.vdp.getGPU();
+            if (gpu && !gpu.isIdle()) {
+                gpu.run(f18ACyclesPerScanline);
+                if (gpu.atBreakpoint()) {
+                    gpu.setOtherBreakpoint(null);
+                    if (this.onBreakpoint) {
+                        this.onBreakpoint(gpu);
+                    }
+                    return;
+                }
+            }
+            this.cru.decrementTimer(cruTimerDecrementScanline);
+            cruTimerDecrementFrame -= cruTimerDecrementScanline;
+            cyclesToRun -= cyclesPerScanline;
+        }
+        if (cruTimerDecrementFrame >= 1) {
+            this.cru.decrementTimer(cruTimerDecrementFrame);
+        }
+        this.fpsFrameCount++;
+        this.frameCount++;
+        this.vdp.updateCanvas();
+    }
+
+    step() {
+        const gpu: CPU = this.vdp.getGPU();
+        if (gpu && !gpu.isIdle()) {
+            gpu.run(1);
+        } else {
+            this.cpu.run(1);
+        }
+    }
+
+    stepOver() {
+        if (this.vdp.getGPU() && !this.vdp.getGPU().isIdle()) {
+            this.vdp.getGPU().setOtherBreakpoint(this.vdp.getGPU().getPC() + 4);
+        } else {
+            this.cpu.setOtherBreakpoint(this.cpu.getPC() + 4);
+        }
+        this.start(false);
+    }
+
+    stop() {
+        this.log.info("Stop");
+        window.clearInterval(this.frameInterval);
+        window.clearInterval(this.fpsInterval);
+        this.psg.mute();
+        this.tape.setPaused(true);
+        this.keyboard.stop();
+        this.vdp.updateCanvas();
+        this.running = false;
+        this.cpu.dumpProfile();
+    }
+
+    drawFrame() {
+        const timestamp = window.performance ? window.performance.now() : new Date().getTime();
+        this.vdp.drawFrame(timestamp);
+        this.fpsFrameCount++;
+    }
+
+    resetFps() {
+        this.lastFpsTime = null;
+        this.fpsFrameCount = 0;
+    }
+
+    printFps() {
+        const now = +new Date();
+        let s = 'Frame ' + this.frameCount + ' running';
+        if (this.lastFpsTime) {
+            s += ': '
+                + (this.fpsFrameCount / ((now - this.lastFpsTime) / 1000)).toFixed(1)
+                + ' / '
+                + (1000 / TI994A.FRAME_MS).toFixed(1)
+                + ' FPS';
+        }
+        this.log.info(s);
+        this.fpsFrameCount = 0;
+        this.lastFpsTime = now;
+    }
+
+    getPC() {
+        const gpu: CPU = this.vdp.getGPU();
+        if (gpu && !gpu.isIdle()) {
+            return gpu.getPC();
+        } else {
+            return this.cpu.getPC();
+        }
+    }
+
+    getStatusString() {
+        const gpu: CPU = this.vdp.getGPU();
+        return (
+            gpu && !gpu.isIdle() ?
+                gpu.getInternalRegsString() + " F18A GPU " + this.cru.getStatusString() + "\n" + gpu.getRegsStringFormatted() :
+                this.cpu.getInternalRegsString() + " " + this.cru.getStatusString() + "\n" + this.cpu.getRegsStringFormatted()
+        ) + this.vdp.getRegsString() + " " + this.memory.getStatusString();
+    }
+
+    getDiskDrives() {
+        return this.diskDrives;
+    }
+
+    loadSoftware(sw: any) {
+        const wasRunning = this.isRunning();
+        if (wasRunning) {
+            this.stop();
+        }
+        this.reset(sw.memoryBlocks);
+        if (sw.memoryBlocks) {
+            for (let i = 0; i < sw.memoryBlocks.length; i++) {
+                const memoryBlock = sw.memoryBlocks[i];
+                this.memory.loadRAM(memoryBlock.address, memoryBlock.data);
+            }
+        }
+        if (sw.rom) {
+            this.memory.setCartridgeImage(
+                sw.rom,
+                sw.type === Software.TYPE_INVERTED_CART,
+                sw.ramAt6000, sw.ramAt7000, sw.ramPaged
+            );
+        }
+        if (sw.grom) {
+            this.memory.loadGROM(sw.grom, 3, 0);
+        }
+        if (sw.groms) {
+            for (let g = 0; g < sw.groms.length; g++) {
+                this.memory.loadGROM(sw.groms[g], 3, g);
+            }
+        }
+        this.cpu.setWP(sw.workspaceAddress ? sw.workspaceAddress : (System.ROM[0] << 8 | System.ROM[1]));
+        this.cpu.setPC(sw.startAddress ? sw.startAddress : (System.ROM[2] << 8 | System.ROM[3]));
+        if (wasRunning) {
+            this.start(false);
+        }
+        if (sw.keyPresses) {
+            const that = this;
+            window.setTimeout(
+                function () {
+                    that.keyboard.simulateKeyPresses(sw.keyPresses, null);
+                },
+                1000
+            );
+        }
+    }
+
+    getState() {
+        return {
+            tms9900: this.cpu.getState(),
+            memory: this.memory.getState(),
+            cru: this.cru.getState(),
+            keyboard: this.keyboard.getState(),
+            vdp: this.vdp.getState(),
+            tms9919: this.psg.getState(),
+            tms5220: this.tms5220.getState(),
+            tape: this.tape.getState()
+        };
+    }
+
+    restoreState(state) {
+        if (state.cpu) {
+            this.cpu.restoreState(state.cpu);
+        }
+        if (state.memory) {
+            this.memory.restoreState(state.memory);
+        }
+        if (state.cru) {
+            this.cru.restoreState(state.cru);
+        }
+        if (state.keyboard) {
+            this.keyboard.restoreState(state.keyboard);
+        }
+        if (state.vdp) {
+            this.vdp.restoreState(state.vdp);
+        }
+        if (state.psg) {
+            this.psg.restoreState(state.psg);
+        }
+        if (state.tms5220) {
+            this.tms5220.restoreState(state.tms5220);
+        }
+        if (state.tape) {
+            this.tape.restoreState(state.tape);
+        }
+    }
+
+}

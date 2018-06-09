@@ -1,6 +1,8 @@
 import {CRU} from './cru';
 import {Util} from '../util';
 import {VDP} from '../interfaces/vdp';
+import {State} from '../interfaces/state';
+import {CPU} from '../interfaces/cpu';
 
 export enum ScreenMode {
     MODE_GRAPHICS = 0,
@@ -69,11 +71,10 @@ export class TMS9918A implements VDP {
     private width: number;
     private height: number;
 
-    constructor(canvas: HTMLCanvasElement, cru: CRU, enableFlicker: boolean) {
-        this.canvas = canvas;
+    constructor(canvasContext: CanvasRenderingContext2D, cru: CRU, enableFlicker: boolean) {
+        this.canvasContext = canvasContext;
         this.cru = cru;
         this.enableFlicker = enableFlicker;
-        this.canvasContext = canvas.getContext('2d');
         this.reset();
     }
 
@@ -586,6 +587,10 @@ export class TMS9918A implements VDP {
     setFlicker(value: boolean) {
         this.flicker = value;
         this.enableFlicker = value;
+    }
+
+    getGPU(): CPU {
+        return undefined;
     }
 
     getState(): object {

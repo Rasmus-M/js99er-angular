@@ -3,10 +3,11 @@ import {Util} from '../util';
 import {Keyboard} from './keyboard';
 import {Memory} from './memory';
 import {Log} from '../../log';
-import {DiskDrive} from './diskdrive';
+import {DiskDrive} from './disk';
 import {GoogleDrive} from './googledrive';
 import {Decoder} from '../../decoder';
 import {CPU} from '../interfaces/cpu';
+import {State} from '../interfaces/state';
 
 export class TMS9900 implements CPU {
 
@@ -295,6 +296,10 @@ export class TMS9900 implements CPU {
 
     addCycles(value) {
         this.cycles += value;
+    }
+
+    getCycles(): number {
+        return this.cycles;
     }
 
     decodeOperands(opcode, instr) {
@@ -1718,7 +1723,7 @@ export class TMS9900 implements CPU {
         return s;
     }
 
-    isSuspended() {
+    isSuspended(): boolean {
         return this.suspended;
     }
 
@@ -1726,7 +1731,11 @@ export class TMS9900 implements CPU {
         this.suspended = suspended;
     }
 
-    getBreakpoint() {
+    isIdle(): boolean {
+        return false;
+    }
+
+    getBreakpoint(): number {
         return this.breakpoint;
     }
 
@@ -1738,7 +1747,7 @@ export class TMS9900 implements CPU {
         this.otherBreakpoint = addr;
     }
 
-    atBreakpoint() {
+    atBreakpoint(): boolean {
         return this.PC === this.breakpoint || this.PC === this.otherBreakpoint;
     }
 

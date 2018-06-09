@@ -1,19 +1,21 @@
 import {VDP} from '../interfaces/vdp';
 import {CRU} from './cru';
+import {TMS9919} from './tms9919';
+import {CPU} from '../interfaces/cpu';
+import {PSG} from '../interfaces/psg';
 
 export class F18A implements VDP {
 
-    private canvas: HTMLCanvasElement;
+    private canvasContext: CanvasRenderingContext2D;
+    private psg: PSG;
     private cru: CRU;
     private enableFlicker: boolean;
 
-    private canvasContext: CanvasRenderingContext2D;
-
-    constructor(canvas: HTMLCanvasElement, cru: CRU, enableFlicker: boolean) {
-        this.canvas = canvas;
+    constructor(canvasContext: CanvasRenderingContext2D, cru: CRU, psg: PSG, enableFlicker: boolean) {
+        this.canvasContext = canvasContext;
         this.cru = cru;
+        this.psg = psg;
         this.enableFlicker = enableFlicker;
-        this.canvasContext = canvas.getContext('2d');
         this.reset();
     }
 
@@ -23,7 +25,8 @@ export class F18A implements VDP {
     drawScanline(y: number) {
     }
 
-    getCharAt(x: number, y: number) {
+    getCharAt(x: number, y: number): number {
+        return 0;
     }
 
     getRAM(): Uint8Array {
@@ -38,7 +41,8 @@ export class F18A implements VDP {
         return undefined;
     }
 
-    getWord(addr: number) {
+    getWord(addr: number): number {
+        return 0;
     }
 
     hexView(start, length, anchorAddr): object {
@@ -73,4 +77,10 @@ export class F18A implements VDP {
 
     writeData(i: number) {
     }
+
+    getGPU(): CPU {
+        return undefined;
+    }
+
+
 }
