@@ -1,13 +1,14 @@
 import {CRU} from './cru';
-import {Util} from './util';
+import {Util} from '../util';
 import {Keyboard} from './keyboard';
 import {Memory} from './memory';
-import {Log} from '../log';
+import {Log} from '../../log';
 import {DiskDrive} from './diskdrive';
 import {GoogleDrive} from './googledrive';
-import {Decoder} from '../decoder';
+import {Decoder} from '../../decoder';
+import {CPU} from '../interfaces/cpu';
 
-export class Tms9900 {
+export class TMS9900 implements CPU {
 
     static CYCLES_PER_FRAME = 50000;
     static CYCLES_PER_SCANLINE = 183;
@@ -164,7 +165,7 @@ export class Tms9900 {
             if (!atBreakpoint || this.PC === startPC) {
                 // Hook into disk DSR
                 if (this.PC >= 0x4000 && this.PC < 0x6000) {
-                    switch (this.memory.peripheralROMNumber) {
+                    switch (this.memory.getPeripheralROMNumber()) {
                         case 1:
                             if (this.PC >= DiskDrive.DSR_HOOK_START && this.PC <= DiskDrive.DSR_HOOK_END) {
                                 DiskDrive.execute(this.PC, this.diskDrives, this.memory);
@@ -194,8 +195,9 @@ export class Tms9900 {
                                 this.writeMemoryByte(this.WP, charCode); // Set R0
                                 this.writeMemoryByte(this.WP + 12, this.memory.getPADByte(0x837c) | 0x20); // Set R6 (status byte)
                                 // Detect Extended BASIC
-                                if (this.memory.groms && this.memory.groms.length) {
-                                    const grom = this.memory.groms[0];
+                                const groms = this.memory.getGROMs();
+                                if (groms && groms.length) {
+                                    const grom = groms[0];
                                     if (grom[0x6343] === 0x45 && grom[0x6344] === 0x58 && grom[0x6345] === 0x54) {
                                         this.memory.setPADByte(0x835F, 0x5d); // Max length for BASIC continuously set
                                     }
@@ -240,7 +242,7 @@ export class Tms9900 {
             } else {
                 this.log.info(Util.toHexWord((this.PC - 2) & 0xFFFF) + " " + instruction.toHexWord() + " " + opcode.id + ": Not implemented");
             }
-            if (Tms9900.PROFILE) {
+            if (TMS9900.PROFILE) {
                 this.profile[(this.PC - 2) & 0xFFFF] += cycles;
             }
             return cycles;
@@ -602,7 +604,7 @@ export class Tms9900 {
 
     // This sets A0-A2 to 010, and pulses CRUCLK until an interrupt is received.
     idle() {
-        return Tms9900.CYCLES_PER_FRAME - this.cycles % Tms9900.CYCLES_PER_FRAME;
+        return TMS9900.CYCLES_PER_FRAME - this.cycles % TMS9900.CYCLES_PER_FRAME;
     }
 
     // This will set A0-A2 to 011 and pulse CRUCLK (so not emulated)
@@ -1741,7 +1743,7 @@ export class Tms9900 {
     }
 
     dumpProfile() {
-        if (Tms9900.PROFILE) {
+        if (TMS9900.PROFILE) {
             const sortedProfile = [];
             for (let i = 0; i < 0x10000; i++) {
                 sortedProfile[i] = {addr: i, count: this.profile[i]};

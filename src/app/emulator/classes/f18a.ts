@@ -1,4 +1,4 @@
-import {VDP} from './vdp';
+import {VDP} from '../interfaces/vdp';
 import {CRU} from './cru';
 
 export class F18A implements VDP {

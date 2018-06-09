@@ -1,8 +1,8 @@
 import {CRU} from './cru';
-import {Util} from './util';
-import {VDP} from './vdp';
+import {Util} from '../util';
+import {VDP} from '../interfaces/vdp';
 
-enum ScreenMode {
+export enum ScreenMode {
     MODE_GRAPHICS = 0,
     MODE_TEXT = 1,
     MODE_BITMAP = 2,
