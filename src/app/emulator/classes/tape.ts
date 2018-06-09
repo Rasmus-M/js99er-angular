@@ -26,4 +26,8 @@ export class Tape {
     restoreState(tape: Tape | any) {
 
     }
+
+    updateSoundBuffer(out: any, bufferSize: number) {
+        
+    }
 }

@@ -73,7 +73,7 @@ export class TI994A implements State {
         this.memory = new Memory(this.vdp, this.psg, this.speech, settings);
         this.cpu = new TMS9900(this.memory, this.cru, this.keyboard, this.diskDrives, this.googleDrives);
         this.cru.setMemory(this.memory);
-        this.speech.setTMS9900(this.cpu);
+        this.speech.setCPU(this.cpu);
 
         this.cpuSpeed = 1;
         this.frameCount = 0;

@@ -69,33 +69,33 @@ export class Keyboard implements State {
         this.joystick2.start();
     }
 
-    attachListeners() {
+    private attachListeners() {
         const self = this;
         if (!this.pcKeyboardEnabled) {
-            this.document.addEventListener( "keydown", function (evt) {
+            this.document.addEventListener( "keydown", (evt: KeyboardEvent) => {
                 self.keyEvent(evt, true);
             });
-            this.document.addEventListener("keyup", function (evt) {
+            this.document.addEventListener("keyup", (evt: KeyboardEvent) => {
                 self.keyEvent(evt, false);
             });
         } else {
-            this.document.addEventListener("keydown", function (evt) {
+            this.document.addEventListener("keydown", (evt: KeyboardEvent) => {
                 self.keyEvent2(evt, true);
             });
-            this.document.addEventListener("keypress", function (evt) {
+            this.document.addEventListener("keypress", (evt: KeyboardEvent) => {
                 self.keyPressEvent(evt);
             });
-            this.document.addEventListener("keyup", function (evt) {
+            this.document.addEventListener("keyup", (evt: KeyboardEvent) => {
                 self.keyEvent2(evt, false);
             });
         }
-        this.document.addEventListener("paste", function (evt: ClipboardEvent) {
+        this.document.addEventListener("paste", (evt: ClipboardEvent) => {
             self.pasteBuffer = "\n" + evt.clipboardData.getData('text/plain') + "\n";
             self.pasteIndex = 0;
         });
     }
 
-    removeListeners() {
+    private removeListeners() {
         document.removeEventListener("keyup");
         document.removeEventListener("keypress");
         document.removeEventListener("keydown");
@@ -125,7 +125,7 @@ export class Keyboard implements State {
      >0014  10   11             X	C	V	B	Z
      */
 
-    keyEvent(evt: KeyboardEvent | any, down: boolean) {
+    private keyEvent(evt: KeyboardEvent | any, down: boolean) {
         switch (evt.keyCode) {
             // Column 0
             case 187: // + -> =
@@ -355,7 +355,7 @@ export class Keyboard implements State {
     }
 
     // For PC keyboard
-    keyPressEvent(evt: KeyboardEvent | any) {
+    private keyPressEvent(evt: KeyboardEvent | any) {
         let charCode;
         if (evt.which == null) {
             charCode = evt.keyCode; // IE
@@ -665,7 +665,7 @@ export class Keyboard implements State {
     }
 
     // For PC keyboard
-    keyPress(col: number, addr: number, shift: boolean, fctn: boolean) {
+    private keyPress(col: number, addr: number, shift: boolean, fctn: boolean) {
         this.columns[col][addr] = true;
         this.columns[0][7] = fctn;  // Fctn
         this.columns[0][8] = shift; // Shift
@@ -676,7 +676,7 @@ export class Keyboard implements State {
     }
 
     // For PC keyboard
-    keyEvent2(evt: KeyboardEvent | any, down: boolean) {
+    private keyEvent2(evt: KeyboardEvent | any, down: boolean) {
         // console.log("Keycode2: " + evt.keyCode);
         this.keyCode = 0;
         switch (evt.keyCode) {
@@ -839,7 +839,7 @@ export class Keyboard implements State {
         }
     }
 
-    doDefault(evt: KeyboardEvent, down: boolean) {
+    private doDefault(evt: KeyboardEvent, down: boolean) {
         if (down) {
             this.keyCode = evt.keyCode;
         } else {
@@ -857,7 +857,7 @@ export class Keyboard implements State {
         }
     }
 
-    isKeyDown(col: number, addr: number): boolean {
+    private isKeyDown(col: number, addr: number): boolean {
         // This is necessary in order for the Joystick in Donkey Kong to work
         if (col === 6 || col === 7) {
             this.joystickActive = 250;
@@ -879,13 +879,13 @@ export class Keyboard implements State {
             const that = this;
             if (!pause) {
                 const charCode = keyString.charCodeAt(0);
-                this.simulateKeyPress(charCode > 96 ? charCode - 32 : charCode, function () {
-                    window.setTimeout(function () {
+                this.simulateKeyPress(charCode > 96 ? charCode - 32 : charCode, () => {
+                    window.setTimeout(() => {
                         that.simulateKeyPresses(keyString.substr(1), callback);
                     }, Keyboard.KEYPRESS_DURATION);
                 });
             } else {
-                window.setTimeout(function () {
+                window.setTimeout(() => {
                     that.simulateKeyPresses(keyString.substr(1), callback);
                 }, 1000);
             }
@@ -898,7 +898,7 @@ export class Keyboard implements State {
         // this.log.info(keyCode);
         this.simulateKeyDown(keyCode);
         const that = this;
-        window.setTimeout(function () {
+        window.setTimeout(() => {
             that.simulateKeyUp(keyCode);
             if (callback) { callback(); }
         }, Keyboard.KEYPRESS_DURATION);
@@ -909,13 +909,13 @@ export class Keyboard implements State {
         this.virtualKeyDown(keyCode);
         if (keyCode !== 16 && keyCode !== 17 && keyCode !== 18) {
             const that = this;
-            window.setTimeout(function () {
+            window.setTimeout(() => {
                 that.virtualKeyUp(keyCode);
             }, Keyboard.KEYPRESS_DURATION);
         }
     }
 
-    virtualKeyDown(keyCode: number) {
+    private virtualKeyDown(keyCode: number) {
         this.simulateKeyDown(keyCode);
         const that = this;
         if (keyCode !== 16) {
@@ -929,24 +929,24 @@ export class Keyboard implements State {
         }
     }
 
-    virtualKeyUp(keyCode: number) {
+    private virtualKeyUp(keyCode: number) {
         this.simulateKeyUp(keyCode);
     }
 
-    simulateKeyDown(keyCode: number) {
+    private simulateKeyDown(keyCode: number) {
         this.keyEvent({keyCode: keyCode, preventDefault() {}}, true);
     }
 
-    simulateKeyUp(keyCode: number) {
+    private simulateKeyUp(keyCode: number) {
         this.keyEvent({keyCode: keyCode, preventDefault() {}}, false);
     }
 
-    simulateKeyDown2(keyCode: number) {
+    private simulateKeyDown2(keyCode: number) {
         this.keyEvent2({keyCode: keyCode, preventDefault() {}}, true);
         this.keyPressEvent({keyCode: keyCode, preventDefault() {}});
     }
 
-    simulateKeyUp2(keyCode: number) {
+    private simulateKeyUp2(keyCode: number) {
         this.keyEvent2({keyCode: keyCode, preventDefault() {}}, false);
     }
 
