@@ -19,6 +19,7 @@ import {System} from './system';
 import {Software} from '../../software';
 import {Settings} from '../../settings';
 import {PSG} from '../interfaces/psg';
+import {Speech} from '../interfaces/speech';
 
 export class TI994A implements State {
 
@@ -32,7 +33,7 @@ export class TI994A implements State {
     private cpu: CPU;
     private vdp: VDP;
     private psg: PSG;
-    private tms5220: TMS5220;
+    private speech: Speech;
     private cru: CRU;
     private memory: Memory;
     private keyboard: Keyboard;
@@ -68,11 +69,11 @@ export class TI994A implements State {
             new DiskDrive("DSK3", vdpRAM, diskImages ? diskImages.FLOPPY3 : null)
         ];
         this.setGoogleDrive(settings);
-        this.tms5220 = new TMS5220(settings.isSpeechEnabled());
-        this.memory = new Memory(this.vdp, this.psg, this.tms5220, settings);
+        this.speech = new TMS5220(settings.isSpeechEnabled());
+        this.memory = new Memory(this.vdp, this.psg, this.speech, settings);
         this.cpu = new TMS9900(this.memory, this.cru, this.keyboard, this.diskDrives, this.googleDrives);
         this.cru.setMemory(this.memory);
-        this.tms5220.setTMS9900(this.cpu);
+        this.speech.setTMS9900(this.cpu);
 
         this.cpuSpeed = 1;
         this.frameCount = 0;
@@ -126,7 +127,7 @@ export class TI994A implements State {
     reset(keepCart) {
         this.vdp.reset();
         this.psg.reset();
-        this.tms5220.reset();
+        this.speech.reset();
         this.keyboard.reset();
         this.memory.reset(keepCart);
         this.cru.reset();
@@ -345,7 +346,7 @@ export class TI994A implements State {
             keyboard: this.keyboard.getState(),
             vdp: this.vdp.getState(),
             tms9919: this.psg.getState(),
-            tms5220: this.tms5220.getState(),
+            tms5220: this.speech.getState(),
             tape: this.tape.getState()
         };
     }
@@ -369,8 +370,8 @@ export class TI994A implements State {
         if (state.psg) {
             this.psg.restoreState(state.psg);
         }
-        if (state.tms5220) {
-            this.tms5220.restoreState(state.tms5220);
+        if (state.speech) {
+            this.speech.restoreState(state.speech);
         }
         if (state.tape) {
             this.tape.restoreState(state.tape);
