@@ -1,5 +1,4 @@
 import {Memory} from './memory';
-import {DiskImage} from './disk';
 
 export class GoogleDrive {
 
@@ -7,7 +6,7 @@ export class GoogleDrive {
     static DSR_HOOK_END: number;
     static DSR_ROM: Uint8Array;
 
-    constructor(name: string, vdpRAM: Uint8Array, diskImage: DiskImage) {}
+    constructor(name: string, vdpRAM: Uint8Array, diskImage: string) {}
 
     static execute(PC: number, googleDrives: object, memory: Memory, bind: any) {
         return false;

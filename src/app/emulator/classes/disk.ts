@@ -1,5 +1,5 @@
 import {Memory} from './memory';
-import {Log} from '../../log';
+import {Log} from '../../classes/log';
 import {Util} from '../util';
 import {State} from '../interfaces/state';
 

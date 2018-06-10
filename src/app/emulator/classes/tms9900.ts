@@ -2,10 +2,10 @@ import {CRU} from './cru';
 import {Util} from '../util';
 import {Keyboard} from './keyboard';
 import {Memory} from './memory';
-import {Log} from '../../log';
+import {Log} from '../../classes/log';
 import {DiskDrive} from './disk';
 import {GoogleDrive} from './googledrive';
-import {Decoder} from '../../decoder';
+import {Decoder} from '../../classes/decoder';
 import {CPU} from '../interfaces/cpu';
 
 export class TMS9900 implements CPU {
@@ -17,8 +17,8 @@ export class TMS9900 implements CPU {
     private memory: Memory;
     private cru: CRU;
     private keyboard: Keyboard;
-    private diskDrives: object[];
-    private googleDrives: object;
+    private diskDrives: DiskDrive[];
+    private googleDrives: GoogleDrive[];
 
     // Internal registers
     private PC: number;
@@ -60,7 +60,7 @@ export class TMS9900 implements CPU {
 
 
     // Lookup tables
-    private _decoderTable = new Decoder().getDecoderTable();
+    private _decoderTable = Decoder.getDecoderTable();
     private wStatusLookup = this.buildWStatusLookupTable();
     private bStatusLookup = this.buildBStatusLookupTable();
 
@@ -75,7 +75,7 @@ export class TMS9900 implements CPU {
     private maxCount: number;
     private log = Log.getLog();
 
-    constructor(memory, cru, keyboard, diskDrives, googleDrives) {
+    constructor(memory: Memory, cru: CRU, keyboard: Keyboard, diskDrives: DiskDrive[], googleDrives: GoogleDrive[]) {
         this.memory = memory;
         this.cru = cru;
         this.keyboard = keyboard;
@@ -491,7 +491,7 @@ export class TMS9900 implements CPU {
         return (addr & 1) !== 0 ? w & 0x00FF : (w & 0xFF00) >> 8;
     }
 
-    readCruBit(addr): boolean {
+    readCruBit(addr: number): boolean {
         return this.cru.readBit(addr);
     }
 

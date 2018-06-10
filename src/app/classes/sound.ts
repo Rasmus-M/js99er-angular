@@ -1,8 +1,8 @@
 import {Log} from './log';
-import {Tape} from './emulator/classes/tape';
-import {Speech} from './emulator/interfaces/speech';
-import {PSG} from './emulator/interfaces/psg';
-import {TMS5220} from './emulator/classes/tms5220';
+import {Tape} from '../emulator/classes/tape';
+import {Speech} from '../emulator/interfaces/speech';
+import {PSG} from '../emulator/interfaces/psg';
+import {TMS5220} from '../emulator/classes/tms5220';
 
 export class Sound {
 
@@ -26,12 +26,18 @@ export class Sound {
     private tapeScriptProcessor: ScriptProcessorNode;
     private tapeFilter: BiquadFilterNode;
 
+    static resumeSound() {
+        if (Sound.audioContext && Sound.audioContext.state !== "running") {
+            Sound.audioContext.resume();
+        }
+    }
+
     constructor(enabled: boolean, psgDev: PSG, speechDev: Speech, tape: Tape) {
         this.psgDev = psgDev;
         this.speechDev = speechDev;
         this.tape = tape;
         this.log = Log.getLog();
-        if (Sound.audioContext == null) {
+        if (Sound.audioContext == null && AudioContext) {
             Sound.audioContext = new AudioContext();
         }
         if (Sound.audioContext != null) {
@@ -107,11 +113,11 @@ export class Sound {
 
     onTapeAudioProcess(event) {
         const out = event.outputBuffer.getChannelData(0);
-        this.tape.updateSoundBuffer(out, this.bufferSize);
+        this.tape.updateSoundBuffer(out);
     }
 
     setSoundEnabled(enabled) {
-        this.resumeSound();
+        Sound.resumeSound();
         const oldEnabled = this.enabled;
         if (Sound.audioContext) {
             if (enabled && !this.enabled) {
@@ -141,11 +147,5 @@ export class Sound {
         }
         this.enabled = enabled;
         return oldEnabled;
-    }
-
-    resumeSound() {
-        if (Sound.audioContext && Sound.audioContext.state !== "running") {
-            Sound.audioContext.resume();
-        }
     }
 }

@@ -1,5 +1,5 @@
 import {CPU} from '../interfaces/cpu';
-import {Log} from '../../log';
+import {Log} from '../../classes/log';
 import {Speech} from '../interfaces/speech';
 import {System} from './system';
 import {Util} from '../util';

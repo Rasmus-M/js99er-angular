@@ -1,5 +1,5 @@
 import {State} from '../interfaces/state';
-import {Log} from '../../log';
+import {Log} from '../../classes/log';
 
 export class Joystick implements State {
 

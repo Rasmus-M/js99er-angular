@@ -1,4 +1,4 @@
-import {Log} from '../../log';
+import {Log} from '../../classes/log';
 import {VDP} from '../interfaces/vdp';
 import {TMS9919} from './tms9919';
 import {TMS5220} from './tms5220';

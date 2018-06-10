@@ -1,4 +1,4 @@
-import {Log} from '../../log';
+import {Log} from '../../classes/log';
 import {State} from '../interfaces/state';
 import {Util} from '../util';
 

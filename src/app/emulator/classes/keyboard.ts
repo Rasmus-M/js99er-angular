@@ -1,4 +1,4 @@
-import {Log} from '../../log';
+import {Log} from '../../classes/log';
 import {Joystick} from './joystick';
 import {State} from '../interfaces/state';
 
@@ -857,7 +857,7 @@ export class Keyboard implements State {
         }
     }
 
-    private isKeyDown(col: number, addr: number): boolean {
+    isKeyDown(col: number, addr: number): boolean {
         // This is necessary in order for the Joystick in Donkey Kong to work
         if (col === 6 || col === 7) {
             this.joystickActive = 250;

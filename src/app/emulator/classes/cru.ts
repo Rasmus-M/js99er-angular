@@ -1,4 +1,4 @@
-import {Log} from '../../log';
+import {Log} from '../../classes/log';
 import {Keyboard} from './keyboard';
 import {Memory} from './memory';
 import {Tape} from './tape';
@@ -55,7 +55,7 @@ export class CRU implements State {
         this.cru[25] = false; // Output to cassette mike jack
     }
 
-    readBit(addr) {
+    readBit(addr: number): boolean {
         if (!this.timerMode) {
             // VDP interrupt
             if (addr === 2) {
@@ -83,12 +83,12 @@ export class CRU implements State {
         }
         // Cassette
         if (addr === 27) {
-            return this.tape.read();
+            return this.tape.read() === 1;
         }
         return this.cru[addr];
     }
 
-    writeBit(addr, value) {
+    writeBit(addr: number, value: boolean) {
         if (addr >= 0x800) {
             // DSR space
             addr <<= 1; // Convert to R12 space i.e. >= >1000
@@ -150,11 +150,11 @@ export class CRU implements State {
         }
     }
 
-    setVDPInterrupt(value) {
+    setVDPInterrupt(value: boolean) {
         this.vdpInterrupt = value;
     }
 
-    setTimerMode(value) {
+    setTimerMode(value: boolean) {
         if (value) {
             // this.log.info("9901 timer mode");
             this.timerMode = true;
@@ -169,7 +169,7 @@ export class CRU implements State {
         }
     }
 
-    decrementTimer(value) {
+    decrementTimer(value: number) {
         if (this.clockRegister !== 0) {
             this.decrementer -= value;
             if (this.decrementer <= 0) {
@@ -181,21 +181,21 @@ export class CRU implements State {
         }
     }
 
-    isVDPInterrupt() {
+    isVDPInterrupt(): boolean {
         return this.vdpInterrupt && this.cru[2];
     }
 
-    isTimerInterrupt() {
+    isTimerInterrupt(): boolean {
         return this.timerInterrupt && this.cru[3];
     }
 
-    getStatusString() {
+    getStatusString(): string {
         return "CRU: " + (this.cru[0] ? "1" : "0") + (this.cru[1] ? "1" : "0") + (this.cru[2] ? "1" : "0") + (this.cru[3] ? "1" : "0") + " " +
             "Timer: " + Util.toHexWord(Math.floor(this.decrementer)) + " " +
             (this.isTimerInterrupt() ? "Tint " : "    ")  + (this.isVDPInterrupt() ? "Vint" : "   ");
     }
 
-    getState() {
+    getState(): object {
         return {
             cru: this.cru,
             vdpInterrupt: this.vdpInterrupt,
@@ -208,7 +208,7 @@ export class CRU implements State {
         };
     }
 
-    restoreState(state) {
+    restoreState(state: any) {
         this.cru = state.cru;
         this.vdpInterrupt = state.vdpInterrupt;
         this.timerMode = state.timerMode;
