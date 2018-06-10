@@ -24,4 +24,11 @@ export class Util {
         return '>' + s;
     }
 
+    static toHexByteShort(number) {
+        let s = number.toString(16).toUpperCase();
+        if (s.length < 2) {
+            s = '0' + s;
+        }
+        return s;
+    }
 }

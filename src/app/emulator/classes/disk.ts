@@ -1,111 +1,60 @@
 import {Memory} from './memory';
 import {Log} from '../../log';
 import {Util} from '../util';
+import {State} from '../interfaces/state';
 
 export enum OpCode {
-    OP_CODE_OPEN = 0,
-    OP_CODE_CLOSE = 1,
-    OP_CODE_READ = 2,
-    OP_CODE_WRITE = 3,
-    OP_CODE_REWIND = 4,
-    OP_CODE_LOAD = 5,
-    OP_CODE_SAVE = 6,
-    OP_CODE_DELETE = 7,
-    OP_CODE_SCRATCH = 8,
-    OP_CODE_STATUS = 9
+    OPEN = 0,
+    CLOSE = 1,
+    READ = 2,
+    WRITE = 3,
+    REWIND = 4,
+    LOAD = 5,
+    SAVE = 6,
+    DELETE = 7,
+    SCRATCH = 8,
+    STATUS = 9
 }
 
 export enum FileType {
-    FILE_TYPE_DATA = 0,
-    FILE_TYPE_PROGRAM = 1
+    DATA = 0,
+    PROGRAM = 1
 }
 
 export enum AccessType {
-    ACCESS_TYPE_SEQUENTIAL = 0,
-    ACCESS_TYPE_RELATIVE = 1
+    SEQUENTIAL = 0,
+    RELATIVE = 1
 }
 
-export enum RecordTYpe {
-    RECORD_TYPE_FIXED = 0,
-    RECORD_TYPE_letIABLE = 1
+export enum RecordType {
+    FIXED = 0,
+    VARIABLE = 1
 }
 
 export enum DataType {
-    DATATYPE_DISPLAY = 0,
-    DATATYPE_INTERNAL = 1
+    DISPLAY = 0,
+    INTERNAL = 1
 }
 
 export enum OperationMode {
-    OPERATION_MODE_UPDATE = 0, // Read and write
-    OPERATION_MODE_OUTPUT = 1, // Create and write
-    OPERATION_MODE_INPUT = 2,  // Read only
-    OPERATION_MODE_APPEND = 3  // Add to end only
+    UPDATE = 0, // Read and write
+    OUTPUT = 1, // Create and write
+    INPUT = 2,  // Read only
+    APPEND = 3  // Add to end only
 }
 
 export enum DiskError {
-    ERROR_BAD_DEVICE_NAME = 0,
-    ERROR_WRITE_PROTECTED = 1,
-    ERROR_BAD_OPEN_ATTRIBUTE = 2,
-    ERROR_ILLEGAL_OPERATION = 3,
-    ERROR_OUT_OF_SPACE = 4,
-    ERROR_READ_PAST_END = 5,
-    ERROR_DEVICE_ERROR = 6,
-    ERROR_FILE_ERROR = 7
+    BAD_DEVICE_NAME = 0,
+    WRITE_PROTECTED = 1,
+    BAD_OPEN_ATTRIBUTE = 2,
+    ILLEGAL_OPERATION = 3,
+    OUT_OF_SPACE = 4,
+    READ_PAST_END = 5,
+    DEVICE_ERROR = 6,
+    FILE_ERROR = 7
 }
 
-export class TIFile {
-
-    static OP_CODE_OPEN = 0;
-    static OP_CODE_CLOSE = 1;
-    static OP_CODE_READ = 2;
-    static OP_CODE_WRITE = 3;
-    static OP_CODE_REWIND = 4;
-    static OP_CODE_LOAD = 5;
-    static OP_CODE_SAVE = 6;
-    static OP_CODE_DELETE = 7;
-    static OP_CODE_SCRATCH = 8;
-    static OP_CODE_STATUS = 9;
-
-    static FILE_TYPE_DATA = 0;
-    static FILE_TYPE_PROGRAM = 1;
-
-    static ACCESS_TYPE_SEQUENTIAL = 0;
-    static ACCESS_TYPE_RELATIVE = 1;
-
-    static RECORD_TYPE_FIXED = 0;
-    static RECORD_TYPE_letIABLE = 1;
-
-    static DATATYPE_DISPLAY = 0;
-    static DATATYPE_INTERNAL = 1;
-
-    static OPERATION_MODE_UPDATE = 0; // Read and write
-    static OPERATION_MODE_OUTPUT = 1; // Create and write
-    static OPERATION_MODE_INPUT = 2;  // Read only
-    static OPERATION_MODE_APPEND = 3; // Add to end only
-
-    static OPERATION_MODES = [
-        "UPDATE", "OUTPUT", "INPUT", "APPEND"
-    ];
-
-    static ERROR_BAD_DEVICE_NAME = 0;
-    static ERROR_WRITE_PROTECTED = 1;
-    static ERROR_BAD_OPEN_ATTRIBUTE = 2;
-    static ERROR_ILLEGAL_OPERATION = 3;
-    static ERROR_OUT_OF_SPACE = 4;
-    static ERROR_READ_PAST_END = 5;
-    static ERROR_DEVICE_ERROR = 6;
-    static ERROR_FILE_ERROR = 7;
-
-    static STATUS_NO_SUCH_FILE = 0x80;
-    static STATUS_PROTECTED = 0x40;
-    static STATUS_INTERNAL = 0x10;
-    static STATUS_PROGRAM = 0x08;
-    static STATUS_letIABLE = 0x04;
-    static STATUS_DISK_FULL = 0x02;
-    static STATUS_EOF = 0x01;
-}
-
-export class DiskDrive {
+export class DiskDrive implements State {
 
     static DSR_ROM: number[] = [
         0xAA,                           // >4000 Standard header
@@ -215,6 +164,18 @@ export class DiskDrive {
         0x04, 0x5B                      // >4092 B *R11
     ];
 
+    static OPERATION_MODES = [
+        "UPDATE", "OUTPUT", "INPUT", "APPEND"
+    ];
+
+    static STATUS_NO_SUCH_FILE = 0x80;
+    static STATUS_PROTECTED = 0x40;
+    static STATUS_INTERNAL = 0x10;
+    static STATUS_PROGRAM = 0x08;
+    static STATUS_VARIABLE = 0x04;
+    static STATUS_DISK_FULL = 0x02;
+    static STATUS_EOF = 0x01;
+
     static DSR_ROM_POWER_UP = 0x4066;
     static DSR_ROM_DSK1 = 0x4068;
     static DSR_ROM_DSK2 = 0x406C;
@@ -245,7 +206,7 @@ export class DiskDrive {
         this.log = Log.getLog();
     }
 
-    static execute = function (pc, diskDrives, memory) {
+    static execute(pc: number, diskDrives: DiskDrive[], memory: Memory) {
         let status = 0;
         switch (pc) {
             case DiskDrive.DSR_ROM_POWER_UP:
@@ -292,14 +253,14 @@ export class DiskDrive {
                 break;
         }
         memory.setPADByte(0x837C, memory.getPADByte(0x837C) | status);
-    };
+    }
 
-    static powerUp = function (memory: Memory) {
+    static powerUp(memory: Memory) {
         Log.getLog().info("Executing disk DSR power-up routine.");
         DiskDrive.setFiles(3, memory);
-    };
+    }
 
-    static setFiles = function (nFiles: number, memory: Memory) {
+    static setFiles(nFiles: number, memory: Memory) {
         if (nFiles === -1) {
             // Get parameter from BASIC (code from Classic99)
             let x = memory.getPADWord(0x832c);		// Get next basic token
@@ -325,14 +286,14 @@ export class DiskDrive {
         Log.getLog().info("Executing disk DSR FILES routine (n = " + nFiles + ").");
         memory.writeWord(0x8370, 0x4000 - nFiles * 0x2B8, null);
         memory.writeWord(0x8350, memory.readWord(0x8350, null) & 0x00FF, null);
-    };
+    }
 
-    getName() {
+    getName(): string {
         return this.name;
     }
 
-    dsrRoutine(pabAddr) {
-        this.log.info("Executing DSR routine for " + this.name + ", PAB in " + pabAddr.toHexWord() + ".");
+    dsrRoutine(pabAddr: number) {
+        this.log.info("Executing DSR routine for " + this.name + ", PAB in " + Util.toHexWord(pabAddr) + ".");
         let i;
         const opCode = this.ram[pabAddr];
         const flagStatus = this.ram[pabAddr + 1];
@@ -353,17 +314,17 @@ export class DiskDrive {
 
         this.log.info(
             fileName + ": " +
-            TIFile.OPERATION_MODES[operationMode] + ", " +
-            (accessType === TIFile.ACCESS_TYPE_RELATIVE ? "RELATIVE" : "SEQUENTIAL") + ", " +
-            (datatype === TIFile.DATATYPE_DISPLAY ? "DISPLAY" : "INTERNAL") + ", " +
-            (recordType === TIFile.RECORD_TYPE_FIXED ? "FIXED" : "letIABLE") + ", " +
+            DiskDrive.OPERATION_MODES[operationMode] + ", " +
+            (accessType === AccessType.RELATIVE ? "RELATIVE" : "SEQUENTIAL") + ", " +
+            (datatype === DataType.DISPLAY ? "DISPLAY" : "INTERNAL") + ", " +
+            (recordType === RecordType.FIXED ? "FIXED" : "VARIABLE") + ", " +
              recordLength
         );
         // this.log.info("File name: " + fileName);
-        // this.log.info("Operation mode: " + TIFile.OPERATION_MODES[operationMode]);
-        // this.log.info("Access type: " + (accessType == TIFile.ACCESS_TYPE_RELATIVE ? "RELATIVE" : "SEQUENTIAL"));
-        // this.log.info("Datatype: " + (datatype == TIFile.DATATYPE_DISPLAY ? "DISPLAY" : "INTERNAL"));
-        // this.log.info("Record type: " + (recordType == TIFile.RECORD_TYPE_FIXED ? "FIXED" : "letIABLE"));
+        // this.log.info("Operation mode: " + OperationMode.OPERATION_MODES[operationMode]);
+        // this.log.info("Access type: " + (accessType == AccessType.RELATIVE ? "RELATIVE" : "SEQUENTIAL"));
+        // this.log.info("Datatype: " + (datatype == DataType.DISPLAY ? "DISPLAY" : "INTERNAL"));
+        // this.log.info("Record type: " + (recordType == RecordType.FIXED ? "FIXED" : "VARIABLE"));
         // this.log.info("Record length: " + recordLength);
         // this.log.info("Character count: " + characterCount);
         // this.log.info("Record number: " + recordNumber);
@@ -375,11 +336,11 @@ export class DiskDrive {
                 fileName = fileName.substr(this.name.length + 1);
                 let file, record;
                 switch (opCode) {
-                    case TIFile.OP_CODE_OPEN:
+                    case OpCode.OPEN:
                         this.log.info("Op-code " + opCode + ": OPEN");
-                        if (operationMode === TIFile.OPERATION_MODE_OUTPUT ||
-                            operationMode === TIFile.OPERATION_MODE_APPEND ||
-                            operationMode === TIFile.OPERATION_MODE_UPDATE) {
+                        if (operationMode === OperationMode.OUTPUT ||
+                            operationMode === OperationMode.APPEND ||
+                            operationMode === OperationMode.UPDATE) {
                             // Create a new file
                             if (recordLength === 0) {
                                 recordLength = 80;
@@ -387,8 +348,8 @@ export class DiskDrive {
                                 this.ram[pabAddr + 4] = recordLength;
                             }
                             file = this.diskImage.getFile(fileName);
-                            if (file == null || operationMode === TIFile.OPERATION_MODE_OUTPUT) {
-                                file = new DiskFile(fileName, TIFile.FILE_TYPE_DATA, recordType, recordLength, datatype);
+                            if (file == null || operationMode === OperationMode.OUTPUT) {
+                                file = new DiskFile(fileName, FileType.DATA, recordType, recordLength, datatype);
                                 this.diskImage.putFile(file);
                             }
                         } else {
@@ -396,21 +357,21 @@ export class DiskDrive {
                                 // Open existing file
                                 file = this.diskImage.getFile(fileName);
                                 if (file == null) {
-                                    errorCode = TIFile.ERROR_FILE_ERROR;
+                                    errorCode = DiskError.FILE_ERROR;
                                     break;
                                 }
                                 if (file.getOperationMode() !== -1 ||
-                                    file.getFileType() === TIFile.FILE_TYPE_PROGRAM ||
+                                    file.getFileType() === FileType.PROGRAM ||
                                     file.getRecordType() !== recordType ||
                                     file.getRecordLength() !== recordLength && recordLength !== 0) {
-                                    errorCode = TIFile.ERROR_BAD_OPEN_ATTRIBUTE;
+                                    errorCode = DiskError.BAD_OPEN_ATTRIBUTE;
                                     break;
                                 }
                                 if (recordLength === 0) {
                                     recordLength = file.getRecordLength();
                                     this.ram[pabAddr + 4] = recordLength;
                                 }
-                            } else if (operationMode === TIFile.OPERATION_MODE_INPUT) {
+                            } else if (operationMode === OperationMode.INPUT) {
                                 // Catalog
                                 file = this.createCatalogFile();
                                 this.catalogFile = file;
@@ -419,34 +380,34 @@ export class DiskDrive {
                                     this.ram[pabAddr + 4] = recordLength;
                                 }
                             } else {
-                                errorCode = TIFile.ERROR_ILLEGAL_OPERATION;
+                                errorCode = DiskError.ILLEGAL_OPERATION;
                                 break;
                             }
                         }
                         file.open(operationMode, accessType);
                         break;
-                    case TIFile.OP_CODE_CLOSE:
+                    case OpCode.CLOSE:
                         this.log.info("Op-code " + opCode + ": CLOSE");
                         if (fileName.length > 0) {
                             file = this.diskImage.getFile(fileName);
                             if (file != null) {
-                                if (file.getFileType() === TIFile.FILE_TYPE_DATA) {
+                                if (file.getFileType() === FileType.DATA) {
                                     if (file.getOperationMode() === operationMode) {
                                         file.close();
                                     } else {
-                                        errorCode = TIFile.ERROR_ILLEGAL_OPERATION;
+                                        errorCode = DiskError.ILLEGAL_OPERATION;
                                     }
                                 } else {
-                                    errorCode = TIFile.ERROR_FILE_ERROR;
+                                    errorCode = DiskError.FILE_ERROR;
                                 }
                             } else {
-                                errorCode = TIFile.ERROR_FILE_ERROR;
+                                errorCode = DiskError.FILE_ERROR;
                             }
                         } else {
                             this.catalogFile = null;
                         }
                         break;
-                    case TIFile.OP_CODE_READ:
+                    case OpCode.READ:
                         this.log.info("Op-code " + opCode + ": READ");
                         if (fileName.length > 0) {
                             file = this.diskImage.getFile(fileName);
@@ -455,16 +416,16 @@ export class DiskDrive {
                             file = this.catalogFile;
                         }
                         if (file != null) {
-                            if (file.getFileType() === TIFile.FILE_TYPE_DATA) {
-                                if (fileName.length > 0 && file.getAccessType() === TIFile.ACCESS_TYPE_RELATIVE) {
+                            if (file.getFileType() === FileType.DATA) {
+                                if (fileName.length > 0 && file.getAccessType() === AccessType.RELATIVE) {
                                     file.setRecordPointer(recordNumber);
                                 }
                                 record = file.getRecord();
                                 if (record != null) {
                                     if (file.getOperationMode() === operationMode) {
                                         switch (file.getOperationMode()) {
-                                            case TIFile.OPERATION_MODE_UPDATE:
-                                            case TIFile.OPERATION_MODE_INPUT:
+                                            case OperationMode.UPDATE:
+                                            case OperationMode.INPUT:
                                                 const recordData = record.getData();
                                                 const bytesToRead = Math.min(recordData.length, recordLength);
                                                 for (i = 0; i < bytesToRead; i++) {
@@ -474,108 +435,108 @@ export class DiskDrive {
                                                 this.ram[pabAddr + 6] = (file.getRecordPointer() & 0xFF00) >> 8;
                                                 this.ram[pabAddr + 7] = file.getRecordPointer() & 0x00FF;
                                                 break;
-                                            case TIFile.OPERATION_MODE_OUTPUT:
-                                            case TIFile.OPERATION_MODE_APPEND:
-                                                errorCode = TIFile.ERROR_ILLEGAL_OPERATION;
+                                            case OperationMode.OUTPUT:
+                                            case OperationMode.APPEND:
+                                                errorCode = DiskError.ILLEGAL_OPERATION;
                                                 break;
                                         }
                                     } else {
-                                        errorCode = TIFile.ERROR_ILLEGAL_OPERATION;
+                                        errorCode = DiskError.ILLEGAL_OPERATION;
                                     }
                                 } else {
                                     this.log.info("EOF - close file.");
                                     file.close();
-                                    errorCode = TIFile.ERROR_READ_PAST_END;
+                                    errorCode = DiskError.READ_PAST_END;
                                 }
                             } else {
-                                errorCode = TIFile.ERROR_FILE_ERROR;
+                                errorCode = DiskError.FILE_ERROR;
                             }
                         } else {
-                            errorCode = TIFile.ERROR_FILE_ERROR;
+                            errorCode = DiskError.FILE_ERROR;
                         }
                         break;
-                    case TIFile.OP_CODE_WRITE:
+                    case OpCode.WRITE:
                         this.log.info("Op-code " + opCode + ": WRITE");
                         file = this.diskImage.getFile(fileName);
                         if (file != null) {
-                            if (file.getFileType() === TIFile.FILE_TYPE_DATA) {
+                            if (file.getFileType() === FileType.DATA) {
                                 if (file.getOperationMode() === operationMode) {
-                                    if (file.getAccessType() === TIFile.ACCESS_TYPE_RELATIVE) {
+                                    if (file.getAccessType() === AccessType.RELATIVE) {
                                         file.setRecordPointer(recordNumber);
                                     }
-                                    const bytesToWrite = recordType === TIFile.RECORD_TYPE_FIXED ? recordLength : characterCount;
+                                    const bytesToWrite = recordType === RecordType.FIXED ? recordLength : characterCount;
                                     const writeBuffer = [];
                                     for (i = 0; i < bytesToWrite; i++) {
                                         writeBuffer[i] = this.ram[dataBufferAddress + i];
                                     }
-                                    if (recordType === TIFile.RECORD_TYPE_FIXED) {
+                                    if (recordType === RecordType.FIXED) {
                                         record = new FixedRecord(writeBuffer, recordLength);
                                     } else {
                                         record = new VariableRecord(writeBuffer);
                                     }
                                     switch (file.getOperationMode()) {
-                                        case TIFile.OPERATION_MODE_UPDATE:
-                                        case TIFile.OPERATION_MODE_OUTPUT:
+                                        case OperationMode.UPDATE:
+                                        case OperationMode.OUTPUT:
                                             file.putRecord(record);
                                             break;
-                                        case TIFile.OPERATION_MODE_APPEND:
+                                        case OperationMode.APPEND:
                                             if (file.isEOF()) {
                                                 file.putRecord(record);
                                             } else {
-                                                errorCode = TIFile.ERROR_ILLEGAL_OPERATION;
+                                                errorCode = DiskError.ILLEGAL_OPERATION;
                                             }
                                             break;
-                                        case TIFile.OPERATION_MODE_INPUT:
-                                            errorCode = TIFile.ERROR_ILLEGAL_OPERATION;
+                                        case OperationMode.INPUT:
+                                            errorCode = DiskError.ILLEGAL_OPERATION;
                                             break;
                                     }
                                     this.ram[pabAddr + 6] = (file.getRecordPointer() & 0xFF00) >> 8;
                                     this.ram[pabAddr + 7] = file.getRecordPointer() & 0x00FF;
                                     this.diskImage.setBinaryImage(null); // Invalidate binary image on write
                                 } else {
-                                    errorCode = TIFile.ERROR_ILLEGAL_OPERATION;
+                                    errorCode = DiskError.ILLEGAL_OPERATION;
                                 }
                             } else {
-                                errorCode = TIFile.ERROR_FILE_ERROR;
+                                errorCode = DiskError.FILE_ERROR;
                             }
                         } else {
-                            errorCode = TIFile.ERROR_FILE_ERROR;
+                            errorCode = DiskError.FILE_ERROR;
                         }
                         break;
-                    case TIFile.OP_CODE_REWIND:
+                    case OpCode.REWIND:
                         this.log.info("Op-code " + opCode + ": REWIND");
                         file = this.diskImage.getFile(fileName);
                         if (file != null) {
                             if (file.getOperationMode() === operationMode) {
-                                if (file.getFileType() !== TIFile.FILE_TYPE_PROGRAM) {
+                                if (file.getFileType() !== FileType.PROGRAM) {
                                     file.rewind();
                                 } else {
-                                    errorCode = TIFile.ERROR_FILE_ERROR;
+                                    errorCode = DiskError.FILE_ERROR;
                                 }
                             } else {
-                                errorCode = TIFile.ERROR_ILLEGAL_OPERATION;
+                                errorCode = DiskError.ILLEGAL_OPERATION;
                             }
                         } else {
-                            errorCode = TIFile.ERROR_FILE_ERROR;
+                            errorCode = DiskError.FILE_ERROR;
                         }
                         break;
-                    case TIFile.OP_CODE_LOAD:
+                    case OpCode.LOAD:
                         this.log.info("Op-code " + opCode + ": LOAD");
                         file = this.diskImage.getFile(fileName);
                         if (file != null) {
-                            if (file.getFileType() === TIFile.FILE_TYPE_PROGRAM) {
+                            if (file.getFileType() === FileType.PROGRAM) {
                                 const loadBuffer = file.getProgram();
                                 for (i = 0; i < Math.min(recordNumber, loadBuffer.length); i++) {
                                     this.ram[dataBufferAddress + i] = loadBuffer[i];
                                 }
                             } else {
-                                errorCode = TIFile.ERROR_FILE_ERROR;
+                                errorCode = DiskError.FILE_ERROR;
                             }
                         } else {
-                            errorCode = TIFile.ERROR_FILE_ERROR;
+                            errorCode = DiskError.FILE_ERROR;
                         }
                         break;
-                    case TIFile.OP_CODE_SAVE:
+                    case OpCode.SAVE:
                         this.log.info("Op-code " + opCode + ": SAVE");
                         const saveBuffer = [];
                         for (i = 0; i < recordNumber; i++) {
@@ -583,7 +544,7 @@ export class DiskDrive {
                         }
                         file = this.diskImage.getFile(fileName);
                         if (file == null) {
-                            file = new DiskFile(fileName, TIFile.FILE_TYPE_PROGRAM, 0, 0, 0);
+                            file = new DiskFile(fileName, FileType.PROGRAM, 0, 0, 0);
                             file.setProgram(saveBuffer);
                             this.diskImage.putFile(file);
                         } else {
@@ -591,79 +552,79 @@ export class DiskDrive {
                         }
                         this.diskImage.setBinaryImage(null); // Invalidate binary image on write
                         break;
-                    case TIFile.OP_CODE_DELETE:
+                    case OpCode.DELETE:
                         this.log.info("Op-code " + opCode + ": DELETE");
                         file = this.diskImage.getFile(fileName);
                         if (file != null) {
                             this.diskImage.deleteFile(fileName);
                         } else {
-                            errorCode = TIFile.ERROR_FILE_ERROR;
+                            errorCode = DiskError.FILE_ERROR;
                         }
                         break;
-                    case TIFile.OP_CODE_SCRATCH:
+                    case OpCode.SCRATCH:
                         this.log.info("Op-code " + opCode + ": SCRATCH");
                         file = this.diskImage.getFile(fileName);
                         if (file != null) {
-                            if (file.getFileType() === TIFile.FILE_TYPE_DATA) {
-                                if (file.getOperationMode() === operationMode && file.getAccessType() === TIFile.ACCESS_TYPE_RELATIVE) {
+                            if (file.getFileType() === FileType.DATA) {
+                                if (file.getOperationMode() === operationMode && file.getAccessType() === AccessType.RELATIVE) {
                                     file.setRecordPointer(recordNumber);
                                     switch (file.getOperationMode()) {
-                                        case TIFile.OPERATION_MODE_UPDATE:
+                                        case OperationMode.UPDATE:
                                             if (file.getRecord() != null) {
                                                 file.deleteRecord();
                                                 this.diskImage.setBinaryImage(null); // Invalidate binary image on write
                                             } else {
-                                                errorCode = TIFile.ERROR_ILLEGAL_OPERATION;
+                                                errorCode = DiskError.ILLEGAL_OPERATION;
                                             }
                                             break;
-                                        case TIFile.OPERATION_MODE_OUTPUT:
-                                        case TIFile.OPERATION_MODE_INPUT:
-                                        case TIFile.OPERATION_MODE_APPEND:
-                                            errorCode = TIFile.ERROR_ILLEGAL_OPERATION;
+                                        case OperationMode.OUTPUT:
+                                        case OperationMode.INPUT:
+                                        case OperationMode.APPEND:
+                                            errorCode = DiskError.ILLEGAL_OPERATION;
                                             break;
                                     }
                                 } else {
-                                    errorCode = TIFile.ERROR_ILLEGAL_OPERATION;
+                                    errorCode = DiskError.ILLEGAL_OPERATION;
                                 }
                             } else {
-                                errorCode = TIFile.ERROR_FILE_ERROR;
+                                errorCode = DiskError.FILE_ERROR;
                             }
                         } else {
-                            errorCode = TIFile.ERROR_FILE_ERROR;
+                            errorCode = DiskError.FILE_ERROR;
                         }
                         break;
-                    case TIFile.OP_CODE_STATUS:
+                    case OpCode.STATUS:
                         this.log.info("Op-code " + opCode + ": STATUS");
                         let fileStatus = 0;
                         file = this.diskImage.getFile(fileName);
                         if (file != null) {
-                            if (file.getDatatype() === TIFile.DATATYPE_INTERNAL) {
-                                fileStatus |= TIFile.STATUS_INTERNAL;
+                            if (file.getDataType() === DataType.INTERNAL) {
+                                fileStatus |= DiskDrive.STATUS_INTERNAL;
                             }
-                            if (file.getFileType() === TIFile.FILE_TYPE_PROGRAM) {
-                                fileStatus |= TIFile.STATUS_PROGRAM;
+                            if (file.getFileType() === FileType.PROGRAM) {
+                                fileStatus |= DiskDrive.STATUS_PROGRAM;
                             }
-                            if (file.getRecordType() === TIFile.RECORD_TYPE_letIABLE) {
-                                fileStatus |= TIFile.STATUS_letIABLE;
+                            if (file.getRecordType() === RecordType.VARIABLE) {
+                                fileStatus |= DiskDrive.STATUS_VARIABLE;
                             }
                             if (file.isEOF()) {
-                                fileStatus |= TIFile.STATUS_EOF;
+                                fileStatus |= DiskDrive.STATUS_EOF;
                             }
 
                         } else {
-                            fileStatus |= TIFile.STATUS_NO_SUCH_FILE;
+                            fileStatus |= DiskDrive.STATUS_NO_SUCH_FILE;
                         }
                         this.ram[pabAddr + 8] = fileStatus;
                         break;
                     default:
                         this.log.error("Unknown DSR op-code: " + opCode);
-                        errorCode = TIFile.ERROR_ILLEGAL_OPERATION;
+                        errorCode = DiskError.ILLEGAL_OPERATION;
                 }
             } else {
                 status = 0x20;
             }
         } else {
-            errorCode = TIFile.ERROR_DEVICE_ERROR;
+            errorCode = DiskError.DEVICE_ERROR;
         }
         this.log.info("Returned error code: " + errorCode + "\n");
         this.ram[pabAddr + 1] = (this.ram[pabAddr + 1] | (errorCode << 5)) & 0xFF;
@@ -690,17 +651,17 @@ export class DiskDrive {
         }
     }
 
-    getDiskImage() {
+    getDiskImage(): DiskImage {
         return this.diskImage;
     }
 
-    setDiskImage(diskImage) {
+    setDiskImage(diskImage: DiskImage) {
         this.diskImage = diskImage;
     }
 
-    createCatalogFile() {
-        const catFile = new DiskFile("CATALOG", TIFile.FILE_TYPE_DATA, TIFile.RECORD_TYPE_FIXED, 38, TIFile.DATATYPE_INTERNAL);
-        catFile.open(TIFile.OPERATION_MODE_OUTPUT, TIFile.ACCESS_TYPE_SEQUENTIAL);
+    createCatalogFile(): DiskFile {
+        const catFile = new DiskFile("CATALOG", FileType.DATA, RecordType.FIXED, 38, DataType.INTERNAL);
+        catFile.open(OperationMode.OUTPUT, AccessType.SEQUENTIAL);
         const data = [];
         let n = 0;
         n = this.writeAsString(data, n, this.diskImage.getName());
@@ -713,14 +674,14 @@ export class DiskDrive {
             if (files.hasOwnProperty(fileName)) {
                 const file = files[fileName];
                 let type = 0;
-                if (file.getFileType() === TIFile.FILE_TYPE_PROGRAM) {
+                if (file.getFileType() === FileType.PROGRAM) {
                     type = 5;
                 } else {
                     type = 1; // DF
-                    if (file.getDatatype() === TIFile.DATATYPE_INTERNAL) {
+                    if (file.getDataType() === DataType.INTERNAL) {
                         type += 2;
                     }
-                    if (file.getRecordType() === TIFile.RECORD_TYPE_letIABLE) {
+                    if (file.getRecordType() === RecordType.VARIABLE) {
                         type += 1;
                     }
                 }
@@ -743,7 +704,7 @@ export class DiskDrive {
         return catFile;
     }
 
-    writeAsString(data, n, str) {
+    writeAsString(data: number[], n: number, str: string): number {
         data[n++] = str.length;
         for (let i = 0; i < str.length; i++) {
             data[n++] = str.charCodeAt(i);
@@ -752,7 +713,7 @@ export class DiskDrive {
     }
 
     // Translated from Classic99
-    writeAsFloat(data, n, val) {
+    writeAsFloat(data: number[], n: number, val: number): number {
         const word = [0, 0];
         // First write a size byte of 8
         data[n++] = 8;
@@ -786,7 +747,7 @@ export class DiskDrive {
         return n;
     }
 
-    loadDSKFromURL(url, onLoad) {
+    loadDSKFromURL(url: string, onLoad: () => void) {
         const xhr: XMLHttpRequest = new XMLHttpRequest();
         xhr.open('GET', url, true);
         xhr.responseType = 'arraybuffer';
@@ -800,7 +761,7 @@ export class DiskDrive {
         xhr.send();
     }
 
-    loadDSKFile(dskFileName, fileBuffer) {
+    loadDSKFile(dskFileName: string, fileBuffer: Uint8Array) {
         let volumeName = "";
         for (let i = 0; i < 10; i++) {
             const ch = fileBuffer[i];
@@ -839,23 +800,23 @@ export class DiskDrive {
                 // this.log.info("EOF offset: " + endOfFileOffset);
                 let recordLength = fileBuffer[fileDescriptorRecord + 0x11];
                 // this.log.info("Logical record length: " + recordLength);
-                const fileLength = fileType === TIFile.FILE_TYPE_PROGRAM ? (sectorsAllocated - 1) * 256 + (endOfFileOffset === 0 ? 256 : endOfFileOffset) : recordLength * sectorsAllocated * recordsPerSector;
+                const fileLength = fileType === FileType.PROGRAM ? (sectorsAllocated - 1) * 256 + (endOfFileOffset === 0 ? 256 : endOfFileOffset) : recordLength * sectorsAllocated * recordsPerSector;
                 this.log.info(
-                    (fileType === TIFile.FILE_TYPE_DATA ? "DATA" : "PROGRAM") + ": " +
-                    (fileType === TIFile.FILE_TYPE_DATA ?
-                        (datatype === TIFile.DATATYPE_DISPLAY ? "DISPLAY" : "INTERNAL") + ", " +
-                        (recordType === TIFile.RECORD_TYPE_FIXED ? "FIXED" : "letIABLE") + ", " +
+                    (fileType === FileType.DATA ? "DATA" : "PROGRAM") + ": " +
+                    (fileType === FileType.DATA ?
+                        (datatype === DataType.DISPLAY ? "DISPLAY" : "INTERNAL") + ", " +
+                        (recordType === RecordType.FIXED ? "FIXED" : "VARIABLE") + ", " +
                         recordLength + ", "
                         : ""
                     ) + "file length = " + fileLength
                 );
                 let diskFile;
-                if (fileType === TIFile.FILE_TYPE_DATA) {
+                if (fileType === FileType.DATA) {
                     diskFile = new DiskFile(fileName, fileType, recordType, recordLength, datatype);
                 } else {
                     diskFile = new DiskFile(fileName, fileType, 0, 0, 0);
                 }
-                diskFile.open(TIFile.OPERATION_MODE_OUTPUT, TIFile.ACCESS_TYPE_SEQUENTIAL);
+                diskFile.open(OperationMode.OUTPUT, AccessType.SEQUENTIAL);
                 const program = [];
                 let sectorsLeft = sectorsAllocated;
                 let nLast = -1;
@@ -875,9 +836,9 @@ export class DiskDrive {
                         nLast = n;
                         for (let sector = startSector; sector <= endSector; sector++) {
                             sectorsLeft--;
-                            if (fileType === TIFile.FILE_TYPE_DATA) {
+                            if (fileType === FileType.DATA) {
                                 // Data
-                                if (recordType === TIFile.RECORD_TYPE_FIXED) {
+                                if (recordType === RecordType.FIXED) {
                                     for (let record = 0; record < recordsPerSector; record++) {
                                         const data = [];
                                         for (let i = 0; i < recordLength; i++) {
@@ -911,7 +872,7 @@ export class DiskDrive {
                     }
                 }
                 diskFile.close();
-                if (fileType === TIFile.FILE_TYPE_PROGRAM) {
+                if (fileType === FileType.PROGRAM) {
                     diskFile.setProgram(program);
                 }
                 diskImage.putFile(diskFile);
@@ -922,24 +883,29 @@ export class DiskDrive {
         return diskImage;
     }
 
-    getState() {
+    setRAM(ram: Uint8Array) {
+        this.ram = ram;
+    }
+
+    getState(): object {
         return {
             name: this.name,
             diskImage: this.diskImage != null ? this.diskImage.getName() : null
         };
     }
 
-    setRAM(ram) {
-        this.ram = ram;
+    restoreState(state: any) {
+        this.name = state.name;
+        this.diskImage = state.diskImage;
     }
 }
 
 export class DiskImage {
 
     private name: string;
-    private files;
-    private binaryImage;
-    private eventHandler;
+    private files: {[name: string]: DiskFile};
+    private binaryImage: Uint8Array;
+    private eventHandler: (object) => void;
     private log: Log;
 
     constructor(name: string, eventHandler: (object) => void) {
@@ -950,25 +916,25 @@ export class DiskImage {
         this.log = Log.getLog();
     }
 
-    setEventHandler(eventHandler) {
+    setEventHandler(eventHandler: (object) => void) {
         this.eventHandler = eventHandler;
     }
 
-    fireEvent(event) {
+    fireEvent(event: {}) {
         if (typeof(this.eventHandler) === "function") {
             this.eventHandler(event);
         }
     }
 
-    getName() {
+    getName(): string {
         return this.name;
     }
 
-    getFiles() {
+    getFiles(): {[name: string]: DiskFile} {
         return this.files;
     }
 
-    getFilesArray() {
+    getFilesArray(): DiskFile[] {
         const filesArray = [];
         for (const fileName in this.files) {
             if (this.files.hasOwnProperty(fileName)) {
@@ -978,13 +944,13 @@ export class DiskImage {
         return filesArray;
     }
 
-    putFile(file) {
+    putFile(file: DiskFile) {
         this.files[file.getName()] = file;
         this.setBinaryImage(null); // Invalidate binary image on write
         this.fireEvent({type: "fileAdded", name: file.getName()});
     }
 
-    getFile(fileName) {
+    getFile(fileName): DiskFile {
         return this.files[fileName];
     }
 
@@ -994,7 +960,7 @@ export class DiskImage {
         this.fireEvent({type: "fileDeleted", name: fileName});
     }
 
-    loadTIFile(fileName, fileBuffer, ignoreTIFileName) {
+    loadTIFile(fileName: string, fileBuffer, ignoreTIFileName) {
         if (fileBuffer != null && fileBuffer.length > 0x80) {
             let sectors;
             let flags;
@@ -1067,9 +1033,9 @@ export class DiskImage {
                         tiFileName += fileName.charAt(i);
                     }
                 }
-                recordType = TIFile.RECORD_TYPE_FIXED;
-                datatype = TIFile.DATATYPE_DISPLAY;
-                fileType = TIFile.FILE_TYPE_DATA;
+                recordType = RecordType.FIXED;
+                datatype = DataType.DISPLAY;
+                fileType = FileType.DATA;
                 recsPerSector = 3;
                 sectors = Math.floor(fileBuffer.length / 256);
                 recordLength = 80;
@@ -1079,10 +1045,10 @@ export class DiskImage {
             }
             this.log.info("Loading '" + fileName + "' to " + this.name + " ...");
             this.log.info(
-                (fileType === TIFile.FILE_TYPE_DATA ? "DATA" : "PROGRAM") + ": " +
-                (fileType === TIFile.FILE_TYPE_DATA ?
-                    (datatype === TIFile.DATATYPE_DISPLAY ? "DISPLAY" : "INTERNAL") + ", " +
-                    (recordType === TIFile.RECORD_TYPE_FIXED ? "FIXED" : "letIABLE") + ", " +
+                (fileType === FileType.DATA ? "DATA" : "PROGRAM") + ": " +
+                (fileType === FileType.DATA ?
+                    (datatype === DataType.DISPLAY ? "DISPLAY" : "INTERNAL") + ", " +
+                    (recordType === RecordType.FIXED ? "FIXED" : "VARIABLE") + ", " +
                     recordLength + ", "
                     : ""
                 ) + "file length = " + fileLength
@@ -1090,11 +1056,11 @@ export class DiskImage {
             this.log.info("");
             if (fileBuffer.length >= sectorOffset + fileLength) {
                 let file;
-                if (fileType === TIFile.FILE_TYPE_DATA) {
+                if (fileType === FileType.DATA) {
                     file = new DiskFile(tiFileName, fileType, recordType, recordLength, datatype);
-                    file.open(TIFile.OPERATION_MODE_OUTPUT, TIFile.ACCESS_TYPE_SEQUENTIAL);
+                    file.open(OperationMode.OUTPUT, AccessType.SEQUENTIAL);
                     let sector, rec, data;
-                    if (recordType === TIFile.RECORD_TYPE_FIXED) {
+                    if (recordType === RecordType.FIXED) {
                         if (!pcFormat) {
                             for (sector = 0; sector < sectors; sector++) {
                                 for (rec = 0; rec < recsPerSector; rec++) {
@@ -1169,7 +1135,7 @@ export class DiskImage {
         return null;
     }
 
-    saveTIFile(fileName) {
+    saveTIFile(fileName: string): Uint8Array {
         const file = this.getFile(fileName);
         if (file != null) {
             const data = [];
@@ -1180,15 +1146,15 @@ export class DiskImage {
             // Total number of sectors
             n = this.writeWord(data, n, file.getSectorCount());
             // Flags
-            n = this.writeByte(data, n, (file.getRecordType() << 7) | (file.getDatatype() << 1) | file.getFileType());
+            n = this.writeByte(data, n, (file.getRecordType() << 7) | (file.getDataType() << 1) | file.getFileType());
             // #Rec/sect
-            n = this.writeByte(data, n, file.getFileType() === TIFile.FILE_TYPE_DATA && file.getRecordLength() > 0 ? Math.floor(256 / (file.getRecordLength() + (file.getRecordType() === TIFile.RECORD_TYPE_letIABLE ? 1 : 0))) : 0);
+            n = this.writeByte(data, n, file.getFileType() === FileType.DATA && file.getRecordLength() > 0 ? Math.floor(256 / (file.getRecordLength() + (file.getRecordType() === RecordType.VARIABLE ? 1 : 0))) : 0);
             // EOF offset
             n = this.writeByte(data, n, file.getEOFOffset());
             // Record length
             n = this.writeByte(data, n, file.getRecordLength());
             // #Level 3 records
-            n = this.writeLEWord(data, n, file.getFileType() === TIFile.FILE_TYPE_DATA ? (file.getRecordType() === TIFile.RECORD_TYPE_FIXED ? file.getRecordCount() : file.getSectorCount()) : 0);
+            n = this.writeLEWord(data, n, file.getFileType() === FileType.DATA ? (file.getRecordType() === RecordType.FIXED ? file.getRecordCount() : file.getSectorCount()) : 0);
             // File name
             n = this.writeString(data, n, fileName, 10);
             // Padding
@@ -1196,11 +1162,11 @@ export class DiskImage {
                 data[n] = 0;
             }
             // Content
-            if (file.getFileType() === TIFile.FILE_TYPE_DATA) {
+            if (file.getFileType() === FileType.DATA) {
                 const records = file.getRecords();
                 const recordCount = file.getRecordCount();
                 let recData;
-                if (file.getRecordType() === TIFile.RECORD_TYPE_FIXED) {
+                if (file.getRecordType() === RecordType.FIXED) {
                     const recordPerSector = Math.floor(256 / file.getRecordLength());
                     let recCnt = 0;
                     for (let i = 0; i < recordCount; i++) {
@@ -1260,7 +1226,7 @@ export class DiskImage {
         }
     }
 
-    readSector(sectorNo) {
+    readSector(sectorNo: number): Uint8Array {
         const sector = new Uint8Array(256);
         const tiDiskImage = this.getBinaryImage();
         const sectorOffset = 256 * sectorNo;
@@ -1270,18 +1236,18 @@ export class DiskImage {
         return sector;
     }
 
-    getBinaryImage() {
+    getBinaryImage(): Uint8Array {
         if (this.binaryImage == null) {
             this.binaryImage = this.createBinaryImage();
         }
         return this.binaryImage;
     }
 
-    setBinaryImage(binaryImage) {
+    setBinaryImage(binaryImage: Uint8Array) {
         this.binaryImage = binaryImage;
     }
 
-    createBinaryImage() {
+    createBinaryImage(): Uint8Array {
         let n, i, j;
         const dskImg = new Uint8Array(1440 * 256);
         // Volume Information Block
@@ -1314,26 +1280,26 @@ export class DiskImage {
             // Extended record length
             n = this.writeWord(dskImg, n, 0);
             // Status flags
-            n = this.writeByte(dskImg, n, (file.getRecordType() << 7) | (file.getDatatype() << 1) | file.getFileType());
+            n = this.writeByte(dskImg, n, (file.getRecordType() << 7) | (file.getDataType() << 1) | file.getFileType());
             // Records per sector
-            n = this.writeByte(dskImg, n, file.getFileType() === TIFile.FILE_TYPE_DATA ? Math.floor(256 / (file.getRecordLength() + (file.getRecordType() === TIFile.RECORD_TYPE_letIABLE ? 1 : 0))) : 0);
+            n = this.writeByte(dskImg, n, file.getFileType() === FileType.DATA ? Math.floor(256 / (file.getRecordLength() + (file.getRecordType() === RecordType.VARIABLE ? 1 : 0))) : 0);
             // Sectors allocated
             n = this.writeWord(dskImg, n, file.getSectorCount());
             // End of file offset
             n = this.writeByte(dskImg, n, file.getEOFOffset());
             // Record length
-            n = this.writeByte(dskImg, n, file.getFileType() === TIFile.FILE_TYPE_DATA ? file.getRecordLength() : 0);
+            n = this.writeByte(dskImg, n, file.getFileType() === FileType.DATA ? file.getRecordLength() : 0);
             // Number of level 3 records
-            n = this.writeLEWord(dskImg, n, file.getFileType() === TIFile.FILE_TYPE_DATA ? (file.getRecordType() === TIFile.RECORD_TYPE_FIXED ? file.getRecordCount() : file.getSectorCount()) : 0);
+            n = this.writeLEWord(dskImg, n, file.getFileType() === FileType.DATA ? (file.getRecordType() === RecordType.FIXED ? file.getRecordCount() : file.getSectorCount()) : 0);
             // Data sectors
             const startSectorNo = nextDataSectorNo;
             let sectorNo = startSectorNo;
             n = sectorNo * 256;
-            if (file.getFileType() === TIFile.FILE_TYPE_DATA) {
+            if (file.getFileType() === FileType.DATA) {
                 const records = file.getRecords();
                 const recordCount = file.getRecordCount();
                 let data;
-                if (file.getRecordType() === TIFile.RECORD_TYPE_FIXED) {
+                if (file.getRecordType() === RecordType.FIXED) {
                     const recordPerSector = Math.floor(256 / file.getRecordLength());
                     let recCnt = 0;
                     for (i = 0; i < recordCount; i++) {
@@ -1411,7 +1377,7 @@ export class DiskImage {
         return dskImg;
     }
 
-    writeString(data, n, str, padLen) {
+    writeString(data: number[] | Uint8Array, n: number, str: string, padLen: number) {
         for (let i = 0; i < str.length; i++) {
             data[n++] = str.charCodeAt(i);
         }
@@ -1421,24 +1387,24 @@ export class DiskImage {
         return n;
     }
 
-    writeByte(data, n, b) {
+    writeByte(data: number[] | Uint8Array, n: number, b: number) {
         data[n++] = b & 0x00FF;
         return n;
     }
 
-    writeWord(data, n, w) {
+    writeWord(data: number[] | Uint8Array, n: number, w: number) {
         data[n++] = (w & 0xFF00) >> 8;
         data[n++] = w & 0x00FF;
         return n;
     }
 
-    writeLEWord(data, n, w) {
+    writeLEWord(data: number[] | Uint8Array, n: number, w: number) {
         data[n++] = w & 0x00FF;
         data[n++] = (w & 0xFF00) >> 8;
         return n;
     }
 
-    getState() {
+    getState(): object {
         const files = {};
         for (const fileName in this.files) {
             if (this.files.hasOwnProperty(fileName)) {
@@ -1451,13 +1417,13 @@ export class DiskImage {
         };
     }
 
-    setState(state) {
+    restoreState(state: any) {
         this.name = state.name;
         const files = {};
         for (const fileName in state.files) {
             if (state.files.hasOwnProperty(fileName)) {
-                const file = new DiskFile(fileName, TIFile.FILE_TYPE_DATA, TIFile.RECORD_TYPE_FIXED, 80, TIFile.DATATYPE_INTERNAL);
-                file.setState(state.files[fileName]);
+                const file = new DiskFile(fileName, FileType.DATA, RecordType.FIXED, 80, DataType.INTERNAL);
+                file.restoreState(state.files[fileName]);
                 files[fileName] = file;
             }
         }
@@ -1467,49 +1433,49 @@ export class DiskImage {
 
 export class DiskFile {
 
-    private name;
-    private fileType;
-    private recordType;
-    private recordLength;
-    private datatype;
-    private operationMode;
-    private recordPointer;
-    private records;
-    private program;
-    private accessType: any;
+    private name: string;
+    private fileType: FileType;
+    private recordType: RecordType;
+    private recordLength: number;
+    private dataType: DataType;
+    private operationMode: OperationMode;
+    private recordPointer: number;
+    private records: Record[];
+    private program: Uint8Array;
+    private accessType: AccessType;
 
-    constructor(name, fileType, recordType, recordLength, datatype) {
+    constructor(name, fileType: FileType, recordType: RecordType, recordLength, dataType: DataType) {
         this.name = name;
         this.fileType = fileType;
         this.recordType = recordType;
         this.recordLength = recordLength;
-        this.datatype = datatype;
+        this.dataType = dataType;
         this.operationMode = -1;
         this.recordPointer = -1;
         this.records = [];
         this.program = null;
     }
 
-    getName() {
+    getName(): string {
         return this.name;
     }
 
-    getFileType() {
+    getFileType(): FileType {
         return this.fileType;
     }
 
-    getRecordType() {
+    getRecordType(): RecordType {
         return this.recordType;
     }
 
-    getRecordLength() {
+    getRecordLength(): number {
         return this.recordLength;
     }
 
-    getSectorCount() {
+    getSectorCount(): number {
         let sectors = 0;
-        if (this.getFileType() === TIFile.FILE_TYPE_DATA) {
-            if (this.getRecordType() === TIFile.RECORD_TYPE_FIXED) {
+        if (this.getFileType() === FileType.DATA) {
+            if (this.getRecordType() === RecordType.FIXED) {
                 const recsPerSector = Math.floor(256 / this.recordLength);
                 sectors = Math.floor(this.records.length / recsPerSector) + (this.records.length % recsPerSector === 0 ? 0 : 1);
             } else {
@@ -1531,10 +1497,10 @@ export class DiskFile {
         return sectors;
     }
 
-    getEOFOffset() {
+    getEOFOffset(): number {
         let eofOffset = 0;
-        if (this.getFileType() === TIFile.FILE_TYPE_DATA) {
-            if (this.getRecordType() === TIFile.RECORD_TYPE_FIXED) {
+        if (this.getFileType() === FileType.DATA) {
+            if (this.getRecordType() === RecordType.FIXED) {
                 const recsPerSector = Math.floor(256 / this.recordLength);
                 eofOffset = (this.getRecordCount() % recsPerSector) * this.recordLength;
             } else {
@@ -1555,9 +1521,9 @@ export class DiskFile {
         return eofOffset;
     }
 
-    getFileSize() {
-        if (this.fileType === TIFile.FILE_TYPE_DATA) {
-            if (this.recordType === TIFile.RECORD_TYPE_FIXED) {
+    getFileSize(): number {
+        if (this.fileType === FileType.DATA) {
+            if (this.recordType === RecordType.FIXED) {
                 return this.recordLength * this.records.length;
             } else {
                 let length = 0;
@@ -1571,23 +1537,23 @@ export class DiskFile {
         }
     }
 
-    getDatatype() {
-        return this.datatype;
+    getDataType(): DataType {
+        return this.dataType;
     }
 
-    getOperationMode() {
+    getOperationMode(): OperationMode {
         return this.operationMode;
     }
 
-    getAccessType() {
+    getAccessType(): AccessType {
         return this.accessType;
     }
 
-    getRecordPointer() {
+    getRecordPointer(): number {
         return this.recordPointer;
     }
 
-    setRecordPointer(recordPointer) {
+    setRecordPointer(recordPointer: number) {
         this.recordPointer = recordPointer;
     }
 
@@ -1595,17 +1561,17 @@ export class DiskFile {
         this.recordPointer = 0;
     }
 
-    open(operationMode, accessType) {
+    open(operationMode: OperationMode, accessType: AccessType) {
         this.operationMode = operationMode;
         this.recordPointer = 0;
         this.accessType = accessType;
     }
 
-    getRecord() {
+    getRecord(): Record {
         return this.records[this.recordPointer++];
     }
 
-    putRecord(record) {
+    putRecord(record: Record) {
         return this.records[this.recordPointer++] = record;
     }
 
@@ -1613,11 +1579,11 @@ export class DiskFile {
         delete this.records[this.recordPointer];
     }
 
-    setProgram(program) {
+    setProgram(program: Uint8Array) {
         this.program = program;
     }
 
-    getProgram() {
+    getProgram(): Uint8Array {
         return this.program;
     }
 
@@ -1626,20 +1592,20 @@ export class DiskFile {
         this.recordPointer = -1;
     }
 
-    getRecords() {
+    getRecords(): Record[] {
         return this.records;
     }
 
-    getRecordCount() {
+    getRecordCount(): number {
         return this.records.length;
     }
 
-    isEOF() {
+    isEOF(): boolean {
         return this.recordPointer >= this.getRecordCount();
     }
 
-    getState() {
-        if (this.fileType === TIFile.FILE_TYPE_DATA) {
+    getState(): object {
+        if (this.fileType === FileType.DATA) {
             const records = [];
             for (let i = 0; i < this.records.length; i++) {
                 records[i] = this.records[i].getState();
@@ -1649,7 +1615,7 @@ export class DiskFile {
                 fileType: this.fileType,
                 recordType: this.recordType,
                 recordLength: this.recordLength,
-                datatype: this.datatype,
+                datatype: this.dataType,
                 records: records
 
             };
@@ -1662,22 +1628,22 @@ export class DiskFile {
         }
     }
 
-    setState(state) {
+    restoreState(state: any) {
         this.name = state.name;
         this.fileType = state.fileType;
-        if (state.fileType === TIFile.FILE_TYPE_DATA) {
+        if (state.fileType === FileType.DATA) {
             this.recordType = state.recordType;
             this.recordLength = state.recordLength;
-            this.datatype = state.datatype;
+            this.dataType = state.dataType;
             const records = [];
             for (let i = 0; i < state.records.length; i++) {
                 let record;
-                if (this.recordType === TIFile.RECORD_TYPE_FIXED) {
+                if (this.recordType === RecordType.FIXED) {
                     record = new FixedRecord(null, 0);
                 } else {
                     record = new VariableRecord(state.records[i].data);
                 }
-                record.setState(state.records[i]);
+                record.restoreState(state.records[i]);
                 records[i] = record;
             }
             this.records = records;
@@ -1685,19 +1651,19 @@ export class DiskFile {
             this.program = state.program;
             this.recordType = 0;
             this.recordLength = 0;
-            this.datatype = 0;
+            this.dataType = 0;
         }
     }
 
-    toString() {
+    toString(): string {
         let s = "";
         let i;
-        if (this.fileType === TIFile.FILE_TYPE_DATA) {
+        if (this.fileType === FileType.DATA) {
             for (i = 0; i < this.records.length; i++) {
                 s += "Record " + i + ": ";
                 const data = this.records[i].getData();
                 for (let j = 0; j < data.length; j++) {
-                    s += data[j].toHexByteShort();
+                    s += Util.toHexByteShort(data[j]);
                 }
                 s += "\n";
             }
@@ -1706,7 +1672,7 @@ export class DiskFile {
                 if (i % 32 === 0) {
                     s += i.toHexWord() + " ";
                 }
-                s += this.program[i].toHexByteShort();
+                s += Util.toHexByteShort(this.program[i]);
                 if (i % 8 === 7) {
                     s += " ";
                 }
@@ -1719,7 +1685,7 @@ export class DiskFile {
     }
 }
 
-class Record {
+class Record implements State {
 
     protected data: number[];
 
@@ -1727,24 +1693,24 @@ class Record {
         this.data = [];
     }
 
-    getData() {
+    getData(): number[] {
         return this.data;
     }
 
-    getState() {
+    getState(): object {
         return {
             data: this.data
         };
     }
 
-    setState(state) {
+    restoreState(state: any) {
         this.data = state.data;
     }
 }
 
 class FixedRecord extends Record {
 
-    constructor(data, length) {
+    constructor(data: string | number[], length: number) {
         super();
         let i;
         if (typeof(data) === "string") {
@@ -1761,7 +1727,7 @@ class FixedRecord extends Record {
 
 class VariableRecord extends Record {
 
-    constructor(data) {
+    constructor(data: string | number[]) {
         super();
     }
 }
