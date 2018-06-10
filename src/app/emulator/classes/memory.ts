@@ -104,7 +104,7 @@ export class Memory implements State {
         this.peripheralROMs = [];
         this.peripheralROMEnabled = false;
         this.peripheralROMNumber = 0;
-        this.loadPeripheralROM(DiskDrive.DSR_ROM, 1);
+        this.loadPeripheralROM(new Uint8Array(DiskDrive.DSR_ROM), 1);
         if (settings && settings.isGoogleDriveEnabled()) {
             this.loadPeripheralROM(GoogleDrive.DSR_ROM, 2);
         }
@@ -657,6 +657,10 @@ export class Memory implements State {
 
     getAMS(): AMS {
         return this.ams;
+    }
+
+    getVDP(): VDP {
+        return this.vdp;
     }
 
     setVDP(vdp: VDP) {

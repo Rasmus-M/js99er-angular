@@ -7,7 +7,6 @@ import {DiskDrive} from './disk';
 import {GoogleDrive} from './googledrive';
 import {Decoder} from '../../decoder';
 import {CPU} from '../interfaces/cpu';
-import {State} from '../interfaces/state';
 
 export class TMS9900 implements CPU {
 
