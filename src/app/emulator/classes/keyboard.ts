@@ -25,7 +25,7 @@ export class Keyboard implements State {
     private keypressListener: EventListener;
     private pasteListener: EventListener;
 
-    private log = Log.getLog();
+    private log: Log;
 
     constructor(document: Document, pcKeyboardEnabled: boolean, mapArrowKeysToFctnSDEX: boolean) {
         this.document = document;

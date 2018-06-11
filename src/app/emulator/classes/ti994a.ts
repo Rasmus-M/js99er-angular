@@ -37,9 +37,9 @@ export class TI994A implements State {
     private cru: CRU;
     private memory: Memory;
     private keyboard: Keyboard;
+    private tape: Tape;
     private diskDrives: DiskDrive[];
     private googleDrives: GoogleDrive[];
-    private tape: Tape;
 
     private cpuSpeed: number;
     private frameCount: number;
@@ -86,6 +86,37 @@ export class TI994A implements State {
         this.reset(false);
     }
 
+    getCPU(): CPU {
+        return this.cpu;
+    }
+    getVDP(): VDP {
+        return this.vdp;
+    }
+    getPSG(): PSG {
+        return this.psg;
+    }
+    getSpeech(): Speech {
+        return this.speech;
+    }
+    getCRU(): CRU {
+        return this.cru;
+    }
+    getMemory(): Memory {
+        return this.memory;
+    }
+    getKeyboard(): Keyboard {
+        return this.keyboard;
+    }
+    getTape(): Tape {
+        return this.tape;
+    }
+    getDiskDrives(): DiskDrive[] {
+        return this.diskDrives;
+    }
+    getGoogleDrives(): GoogleDrive[] {
+        return this.googleDrives;
+    }
+
     setVDP(settings) {
         if (settings && settings.isF18AEnabled()) {
             this.vdp = new F18A(this.canvas, this.cru, this.psg, settings.isFlickerEnabled());
@@ -125,14 +156,16 @@ export class TI994A implements State {
     }
 
     reset(keepCart) {
+        // Components
+        this.cpu.reset();
         this.vdp.reset();
         this.psg.reset();
         this.speech.reset();
-        this.keyboard.reset();
-        this.memory.reset(keepCart);
         this.cru.reset();
-        this.cpu.reset();
+        this.memory.reset(keepCart);
+        this.keyboard.reset();
         this.tape.reset();
+        // Other
         this.resetFps();
         this.cpuSpeed = 1;
     }
@@ -289,10 +322,6 @@ export class TI994A implements State {
                 gpu.getInternalRegsString() + " F18A GPU " + this.cru.getStatusString() + "\n" + gpu.getRegsStringFormatted() :
                 this.cpu.getInternalRegsString() + " " + this.cru.getStatusString() + "\n" + this.cpu.getRegsStringFormatted()
         ) + this.vdp.getRegsString() + " " + this.memory.getStatusString();
-    }
-
-    getDiskDrives() {
-        return this.diskDrives;
     }
 
     loadSoftware(sw: any) {
