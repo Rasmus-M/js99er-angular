@@ -1,6 +1,7 @@
 import {Log} from '../../classes/log';
 import {Joystick} from './joystick';
 import {State} from '../interfaces/state';
+import {Settings} from '../../classes/settings';
 
 export class Keyboard implements State {
 
@@ -25,53 +26,48 @@ export class Keyboard implements State {
     private keypressListener: EventListener;
     private pasteListener: EventListener;
 
-    private log: Log;
+    private log: Log = Log.getLog();
 
-    constructor(document: Document, pcKeyboardEnabled: boolean, mapArrowKeysToFctnSDEX: boolean) {
+    constructor(document: Document, settings: Settings) {
         this.document = document;
-        this.pcKeyboardEnabled = pcKeyboardEnabled;
-        this.mapArrowKeysToFctnSDEX = mapArrowKeysToFctnSDEX;
+        this.pcKeyboardEnabled = settings.isPCKeyboardEnabled();
+        this.mapArrowKeysToFctnSDEX = settings.isMapArrowKeysToFctnSDEXEnabled();
         this.columns = new Array(9);
         for (let col = 0; col < 8; col++) {
             this.columns[col] = [];
         }
         this.joystick1 = new Joystick(this.columns[6], 0);
         this.joystick2 = new Joystick(this.columns[7], 1);
-        this.joystickActive = 250;
-        this.keyCode = 0;
-        this.keyMap = {};
-        this.log = Log.getLog();
-        this.reset();
     }
 
     reset() {
-
         for (let col = 0; col < 8; col++) {
             for (let addr = 3; addr <= 10; addr++) {
                 this.columns[col][addr] = false;
             }
         }
 
-        // Remove keyboard listeners
-        this.removeListeners();
-
-        // Attach keyboard listeners
-        this.attachListeners();
-
+        this.joystickActive = 250;
+        this.keyCode = 0;
+        this.keyMap = {};
         this.alphaLock = true;
-
         this.pasteBuffer = null;
         this.pasteIndex = 0;
+
+        // Remove keyboard listeners
+        this.removeListeners();
+        // Attach keyboard listeners
+        this.attachListeners();
     }
 
     start() {
-        this.joystick1.stop();
-        this.joystick2.stop();
+        this.joystick1.start();
+        this.joystick2.start();
     }
 
     stop() {
-        this.joystick1.start();
-        this.joystick2.start();
+        this.joystick1.stop();
+        this.joystick2.stop();
     }
 
     private attachListeners() {

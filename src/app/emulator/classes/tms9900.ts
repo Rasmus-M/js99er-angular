@@ -7,6 +7,7 @@ import {DiskDrive} from './disk';
 import {GoogleDrive} from './googledrive';
 import {Decoder} from '../../classes/decoder';
 import {CPU} from '../interfaces/cpu';
+import {TI994A} from './ti994a';
 
 export class TMS9900 implements CPU {
 
@@ -14,6 +15,7 @@ export class TMS9900 implements CPU {
     static CYCLES_PER_SCANLINE = 183;
     static PROFILE = false;
 
+    private console: TI994A;
     private memory: Memory;
     private cru: CRU;
     private keyboard: Keyboard;
@@ -75,15 +77,17 @@ export class TMS9900 implements CPU {
     private maxCount: number;
     private log = Log.getLog();
 
-    constructor(memory: Memory, cru: CRU, keyboard: Keyboard, diskDrives: DiskDrive[], googleDrives: GoogleDrive[]) {
-        this.memory = memory;
-        this.cru = cru;
-        this.keyboard = keyboard;
-        this.diskDrives = diskDrives;
-        this.googleDrives = googleDrives;
+    constructor(console: TI994A) {
+        this.console = console;
     }
 
     reset() {
+        this.memory = this.console.getMemory();
+        this.cru = this.console.getCRU();
+        this.keyboard = this.console.getKeyboard();
+        this.diskDrives = this.console.getDiskDrives();
+        this.googleDrives = this.console.getGoogleDrives();
+
         this.PC = 0;
         this.WP = 0;
         this.ST = 0x01C0;

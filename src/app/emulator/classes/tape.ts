@@ -46,19 +46,17 @@ export class Tape implements State {
     private out: string;
     private outByte: number;
     private outByteCount: number;
-    private log: Log;
+    private log: Log = Log.getLog();
 
     constructor() {
         if (AudioContext) {
             this.audioContext = new AudioContext();
         }
-        this.sampleRate = this.audioContext ? this.audioContext.sampleRate : 0;
-        this.samplesPerBit = Math.floor(Tape.LEVEL_CHANGE_DURATION * this.sampleRate);
-        this.log = Log.getLog();
-        this.reset();
     }
 
     reset() {
+        this.sampleRate = this.audioContext ? this.audioContext.sampleRate : 0;
+        this.samplesPerBit = Math.floor(Tape.LEVEL_CHANGE_DURATION * this.sampleRate);
         if (this.sampleRate !== 0 && this.sampleRate !== 48000) {
             // TODO: Resample ZERO and ONE
         }

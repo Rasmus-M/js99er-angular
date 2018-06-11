@@ -14,7 +14,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit {
   private canvas: HTMLCanvasElement;
   private diskImages: {[key: string]: DiskImage};
   private settings: Settings;
-  private ti994a: TI994A;
+  private console: TI994A;
   private sound: Sound;
 
   constructor(private element: ElementRef) { }
@@ -30,8 +30,8 @@ export class ConsoleComponent implements OnInit, AfterViewInit {
           FLOPPY3: new DiskImage("Floppy 3", null)
       };
       this.settings = new Settings(true);
-      this.ti994a = new TI994A(document, this.canvas, this.diskImages, this.settings, null);
-      this.sound = new Sound(true, this.ti994a.getPSG(), this.ti994a.getSpeech(), this.ti994a.getTape());
-      this.ti994a.start(false);
+      this.console = new TI994A(document, this.canvas, this.diskImages, this.settings, null);
+      this.sound = new Sound(true, this.console.getPSG(), this.console.getSpeech(), this.console.getTape());
+      this.console.start(false);
   }
 }

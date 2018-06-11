@@ -28,14 +28,16 @@ export class TI994A implements State {
     static FPS_MS = 4000;
 
     private canvas: HTMLCanvasElement;
+    private document: HTMLDocument;
+    private settings: Settings;
     private onBreakpoint: (cpu: CPU) => void;
 
+    private memory: Memory;
     private cpu: CPU;
     private vdp: VDP;
     private psg: PSG;
     private speech: Speech;
     private cru: CRU;
-    private memory: Memory;
     private keyboard: Keyboard;
     private tape: Tape;
     private diskDrives: DiskDrive[];
@@ -53,27 +55,12 @@ export class TI994A implements State {
     private fpsInterval: number;
 
     constructor(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: {[key: string]: DiskImage}, settings: Settings, onBreakpoint: () => void) {
+        this.document = document;
         this.canvas = canvas;
+        this.settings = settings;
         this.onBreakpoint = onBreakpoint;
 
-        // Assemble the console
-        this.keyboard = new Keyboard(document, settings && settings.isPCKeyboardEnabled(), settings && settings.isMapArrowKeysToFctnSDEXEnabled());
-        this.tape = new Tape();
-        this.cru = new CRU(this.keyboard, this.tape);
-        this.psg = new TMS9919();
-        this.setVDP(settings);
-        const vdpRAM = this.vdp.getRAM();
-        this.diskDrives = [
-            new DiskDrive("DSK1", vdpRAM, diskImages ? diskImages.FLOPPY1 : null),
-            new DiskDrive("DSK2", vdpRAM, diskImages ? diskImages.FLOPPY2 : null),
-            new DiskDrive("DSK3", vdpRAM, diskImages ? diskImages.FLOPPY3 : null)
-        ];
-        this.setGoogleDrive(settings);
-        this.speech = new TMS5220(settings.isSpeechEnabled());
-        this.memory = new Memory(this.vdp, this.psg, this.speech, settings);
-        this.cpu = new TMS9900(this.memory, this.cru, this.keyboard, this.diskDrives, this.googleDrives);
-        this.cru.setMemory(this.memory);
-        this.speech.setCPU(this.cpu);
+        this.assemble(diskImages);
 
         this.cpuSpeed = 1;
         this.frameCount = 0;
@@ -84,6 +71,44 @@ export class TI994A implements State {
         this.log = Log.getLog();
 
         this.reset(false);
+    }
+
+    assemble(diskImages: {[key: string]: DiskImage}) {
+        this.memory = new Memory(this, this.settings);
+        this.cpu = new TMS9900(this);
+        this.setVDP();
+        this.psg = new TMS9919();
+        this.speech = new TMS5220(this, this.settings);
+        this.cru = new CRU(this);
+        this.keyboard = new Keyboard(this.document, this.settings);
+        this.tape = new Tape();
+        this.diskDrives = [
+            new DiskDrive("DSK1", diskImages.FLOPPY1, this),
+            new DiskDrive("DSK2", diskImages.FLOPPY2, this),
+            new DiskDrive("DSK3", diskImages.FLOPPY3, this)
+        ];
+        this.setGoogleDrive();
+        this.speech.setCPU(this.cpu);
+    }
+
+    setVDP() {
+        if (this.settings.isF18AEnabled()) {
+            this.vdp = new F18A(this.canvas, this, this.settings);
+        } else {
+            this.vdp = new TMS9918A(this.canvas, this, this.settings);
+        }
+    }
+
+    setGoogleDrive() {
+        if (this.settings.isGoogleDriveEnabled()) {
+            this.googleDrives = [
+                new GoogleDrive("GDR1", "Js99erDrives/GDR1", this),
+                new GoogleDrive("GDR2", "Js99erDrives/GDR2", this),
+                new GoogleDrive("GDR3", "Js99erDrives/GDR3", this)
+            ];
+        } else {
+            this.googleDrives = [];
+        }
     }
 
     getCPU(): CPU {
@@ -117,54 +142,26 @@ export class TI994A implements State {
         return this.googleDrives;
     }
 
-    setVDP(settings) {
-        if (settings && settings.isF18AEnabled()) {
-            this.vdp = new F18A(this.canvas, this.cru, this.psg, settings.isFlickerEnabled());
-        } else {
-            this.vdp = new TMS9918A(this.canvas, this.cru, settings.isFlickerEnabled());
-        }
-        if (this.memory) {
-            this.memory.setVDP(this.vdp);
-        }
-        if (this.diskDrives) {
-            for (let i = 0; i < this.diskDrives.length; i++) {
-                this.diskDrives[i].setRAM(this.vdp.getRAM());
-            }
-        }
-        if (settings && settings.isGoogleDriveEnabled() && this.googleDrives) {
-            for (let j = 0; j < this.googleDrives.length; j++) {
-                this.googleDrives[j].setRAM(this.vdp.getRAM());
-            }
-        }
-    }
-
-    setGoogleDrive(settings) {
-        if (settings && settings.isGoogleDriveEnabled()) {
-            const vdpRAM = this.vdp.getRAM();
-            this.googleDrives = [
-                new GoogleDrive("GDR1", vdpRAM, "Js99erDrives/GDR1"),
-                new GoogleDrive("GDR2", vdpRAM, "Js99erDrives/GDR2"),
-                new GoogleDrive("GDR3", vdpRAM, "Js99erDrives/GDR3")
-            ];
-        } else {
-            this.googleDrives = [];
-        }
-    }
-
     isRunning() {
         return this.running;
     }
 
-    reset(keepCart) {
+    reset(keepCart: boolean) {
         // Components
+        this.memory.reset(keepCart);
         this.cpu.reset();
         this.vdp.reset();
         this.psg.reset();
         this.speech.reset();
         this.cru.reset();
-        this.memory.reset(keepCart);
         this.keyboard.reset();
         this.tape.reset();
+        for (let i = 0; i < this.diskDrives.length; i++) {
+            this.diskDrives[i].reset();
+        }
+        for (let i = 0; i < this.googleDrives.length; i++) {
+            this.googleDrives[i].reset();
+        }
         // Other
         this.resetFps();
         this.cpuSpeed = 1;

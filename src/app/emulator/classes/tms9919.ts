@@ -3,6 +3,7 @@ import {SN76489} from './sn76489';
 import {State} from '../interfaces/state';
 import {Util} from '../util';
 import {PSG} from '../interfaces/psg';
+import {TI994A} from './ti994a';
 
 export class TMS9919 implements PSG {
 

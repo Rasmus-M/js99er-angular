@@ -9,6 +9,10 @@ import {System} from './system';
 import {Util} from '../util';
 import {CPU} from '../interfaces/cpu';
 import {State} from '../interfaces/state';
+import {TI994A} from './ti994a';
+import {Settings} from '../../classes/settings';
+import {PSG} from '../interfaces/psg';
+import {Speech} from '../interfaces/speech';
 
 export class Memory implements State {
 
@@ -24,9 +28,11 @@ export class Memory implements State {
 
     static GROM_BASES = 16;
 
+    private console: TI994A;
     private vdp: VDP;
-    private tms9919: TMS9919;
-    private tms5220: TMS5220;
+    private psg: PSG;
+    private speech: Speech;
+    private settings: Settings;
 
     private enable32KRAM: boolean;
     private enableAMS: boolean;
@@ -60,63 +66,78 @@ export class Memory implements State {
 
     private memoryMap: Function[][];
 
-    private log = Log.getLog();
+    private log: Log = Log.getLog();
 
-    constructor(vdp, tms9919, tms5220, settings) {
-        this.vdp = vdp;
-        this.tms9919 = tms9919;
-        this.tms5220 = tms5220;
+    constructor(console: TI994A, settings: Settings) {
+        this.console = console;
+        this.settings = settings;
+    }
 
-        this.enable32KRAM = settings && settings.is32KRAMEnabled();
-        this.enableAMS = settings && settings.isAMSEnabled();
-        this.enableGRAM = settings && settings.isGRAMEnabled();
+    reset(keepCart: boolean) {
+
+        this.vdp = this.console.getVDP();
+        this.psg = this.console.getPSG();
+        this.speech = this.console.getSpeech();
+
+        // RAM
+        this.enable32KRAM = this.settings.is32KRAMEnabled();
+        this.enableAMS = this.settings.isAMSEnabled();
+        this.enableGRAM = this.settings.isGRAMEnabled();
         this.ramAt6000 = false;
         this.ramAt7000 = false;
-
         this.ram = new Uint8Array(0x10000);
-        this.rom = new Uint8Array(System.ROM);
+        if (this.enableAMS) {
+            if (this.ams) {
+                this.ams.reset();
+            } else {
+                this.ams = new AMS(1024);
+            }
+        } else {
+            this.ams = null;
+        }
 
+        // ROM
+        this.rom = new Uint8Array(System.ROM);
         this.rom[0x14a7] = 0x03; // Fix cassette sync (LI instead of CI)
         this.rom[0x14a9] = 0x37; // Cassette read time (original 0x1f)
         this.rom[0x1353] = 0x1f; // Cassette write time (original 0x23)
 
-        this.groms = [];
-        for (let i = 0; i < Memory.GROM_BASES; i++) {
-            this.groms[i] = new Uint8Array(0x10000);
+        if (!keepCart) {
+            // GROM
+            this.groms = [];
+            for (let i = 0; i < Memory.GROM_BASES; i++) {
+                this.groms[i] = new Uint8Array(0x10000);
+            }
+            this.loadGROM(System.GROM, 0, 0);
+            this.gromAddress = 0;
+            this.gromAccess = 2;
+            this.gromPrefetch = new Uint8Array(Memory.GROM_BASES);
+            this.multiGROMBases = false;
+
+            // Cartridge
+            this.cartImage = null;
+            this.cartInverted = false;
+            this.cartBankCount = 0;
+            this.currentCartBank = 0;
+            this.cartAddrOffset = -0x6000;
+            this.cartRAMPaged = false;
+            this.currentCartRAMBank = 0;
+            this.cartAddrRAMOffset = -0x6000;
         }
-        this.ams = this.enableAMS ? new AMS(1024) : null;
 
-        this.loadGROM(System.GROM, 0, 0);
-        this.gromAddress = 0;
-        this.gromAccess = 2;
-        this.gromPrefetch = new Uint8Array(Memory.GROM_BASES);
-        this.multiGROMBases = false;
-
-        this.cartImage = null;
-        this.cartInverted = false;
-        this.cartBankCount = 0;
-        this.currentCartBank = 0;
-        this.cartAddrOffset = -0x6000;
-        this.cartRAMPaged = false;
-        this.currentCartRAMBank = 0;
-        this.cartAddrRAMOffset = -0x6000;
-
+        // Peripheral ROM
         this.peripheralROMs = [];
         this.peripheralROMEnabled = false;
         this.peripheralROMNumber = 0;
         this.loadPeripheralROM(new Uint8Array(DiskDrive.DSR_ROM), 1);
-        if (settings && settings.isGoogleDriveEnabled()) {
+        if (this.settings.isGoogleDriveEnabled()) {
             this.loadPeripheralROM(GoogleDrive.DSR_ROM, 2);
         }
 
         this.buildMemoryMap();
-
-        this.log = Log.getLog();
-        this.reset(false);
     }
 
     private buildMemoryMap() {
-        let i;
         this.memoryMap = [];
         const romAccessors = [this.readROM, this.writeROM];
         const ramAccessors = [this.readRAM, this.writeRAM];
@@ -132,6 +153,7 @@ export class Memory implements State {
         const gromReadAccessors = [this.readGROM, this.writeNull];
         const gromWriteAccessors = [this.readNull, this.writeGROM];
         const nullAccessors = [this.readNull, this.writeNull];
+        let i;
         for (i = 0; i < 0x2000; i++) {
             this.memoryMap[i] = romAccessors;
         }
@@ -177,33 +199,6 @@ export class Memory implements State {
         for (i = 0xA000; i < 0x10000; i++) {
             this.memoryMap[i] = ramAccessors;
         }
-    }
-
-    reset(keepCart: boolean) {
-        let i;
-        for (i = 0; i < this.ram.length; i++) {
-            this.ram[i] = 0;
-        }
-        if (!keepCart) {
-            const grom = this.groms[0];
-            for (i = 0x6000; i < grom.length; i++) {
-                grom[i] = 0;
-            }
-            for (i = 1; i < Memory.GROM_BASES; i++) {
-                this.groms[i] = new Uint8Array(0x10000);
-            }
-            this.gromPrefetch = new Uint8Array(Memory.GROM_BASES);
-            this.multiGROMBases = false;
-            this.cartImage = null;
-        }
-        if (this.enableAMS) {
-            if (this.ams) {
-                this.ams.reset();
-            } else {
-                this.ams = new AMS(1024);
-            }
-        }
-        this.gromAccess = 2;
     }
 
     loadRAM(addr: number, byteArray: number[]) {
@@ -379,7 +374,7 @@ export class Memory implements State {
 
     private writeSound(addr: number, w: number, cpu: CPU) {
         cpu.addCycles(4);
-        this.tms9919.writeData(w >> 8);
+        this.psg.writeData(w >> 8);
     }
 
     private readVDP(addr: number, cpu: CPU): number {
@@ -405,12 +400,12 @@ export class Memory implements State {
 
     private readSpeech(addr: number, cpu: CPU): number {
         cpu.addCycles(4);
-        return this.tms5220.readSpeechData() << 8;
+        return this.speech.readSpeechData() << 8;
     }
 
     private writeSpeech(addr: number, w: number, cpu: CPU) {
         cpu.addCycles(4);
-        this.tms5220.writeSpeechData(w >> 8);
+        this.speech.writeSpeechData(w >> 8);
     }
 
     private readGROM(addr: number, cpu: CPU): number {

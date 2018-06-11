@@ -3,22 +3,28 @@ import {CRU} from './cru';
 import {TMS9919} from './tms9919';
 import {CPU} from '../interfaces/cpu';
 import {PSG} from '../interfaces/psg';
+import {Settings} from '../../classes/settings';
+import {TI994A} from './ti994a';
 
 export class F18A implements VDP {
 
     private canvas: HTMLCanvasElement;
     private canvasContext: CanvasRenderingContext2D;
+    private console: TI994A;
     private psg: PSG;
     private cru: CRU;
     private enableFlicker: boolean;
 
-    constructor(canvas: HTMLCanvasElement, cru: CRU, psg: PSG, enableFlicker: boolean) {
+    constructor(canvas: HTMLCanvasElement, console: TI994A, settings: Settings) {
         this.canvas = canvas;
         this.canvasContext = canvas.getContext('2d');
-        this.cru = cru;
-        this.psg = psg;
-        this.enableFlicker = enableFlicker;
-        this.reset();
+        this.console = console;
+        this.enableFlicker = settings.isFlickerEnabled();
+    }
+
+    reset() {
+        this.cru = this.console.getCRU();
+        this.psg = this.console.getPSG();
     }
 
     drawFrame(timestamp: number) {
@@ -60,9 +66,6 @@ export class F18A implements VDP {
 
     readStatus(): number {
         return 0;
-    }
-
-    reset() {
     }
 
     restoreState(state: object) {

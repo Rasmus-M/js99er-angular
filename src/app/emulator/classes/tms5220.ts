@@ -3,6 +3,8 @@ import {Log} from '../../classes/log';
 import {Speech} from '../interfaces/speech';
 import {System} from './system';
 import {Util} from '../util';
+import {Settings} from '../../classes/settings';
+import {TI994A} from './ti994a';
 
 /**********************************************************************************************
 
@@ -267,6 +269,7 @@ in MCU code). Look for a 16-pin chip at U6 labeled "ECHO-3 SN".
 export class TMS5220 implements Speech {
 
     static ROM = System.SPEECH_ROM;
+    static ROM_LENGTH = 0x8000;
 
     /* HACK?: if defined, outputs the low 4 bits of the lattice filter to the i/o
      * or clip logic, even though the real hardware doesn't do this, partially verified by decap */
@@ -376,7 +379,10 @@ export class TMS5220 implements Speech {
         interp_coeff: [ 0, 3, 3, 3, 2, 2, 1, 1 ]
     };
 
+    private console: TI994A;
+    private cpu: CPU;
     private enabled: boolean;
+
     private m_coeff: any = TMS5220.coeff;
     private m_speak_external: boolean;
     private m_talk_status: boolean;
@@ -412,13 +418,10 @@ export class TMS5220 implements Speech {
     private m_speechROMaddr: number;
     private m_load_pointer: number;
     private m_ROM_bits_count: number;
-    private readonly m_speechROMlen: number;
     private m_irq_pin: number;
     private m_io_ready: boolean;
     private m_irq_handler: (object) => void;
     private m_readyq_handler: (object) => void;
-    private cpu: CPU;
-    private log: Log;
     private m_fifo_bits_taken: number;
     private m_fifo_head: number;
     private m_pitch_count: number;
@@ -427,49 +430,11 @@ export class TMS5220 implements Speech {
     private m_current_energy: number;
     private m_ready_pin: boolean;
 
-    constructor(enabled: boolean) {
-        this.enabled = enabled;
-        this.m_coeff = TMS5220.coeff;
-        this.m_speak_external = false;
-        this.m_talk_status = false;
-        this.m_speaking_now = false;
-        this.m_buffer_low = true;
-        this.m_buffer_empty = true;
-        this.m_schedule_dummy_read = false;
-        this.m_fifo_count = 0;
-        this.m_fifo_tail = 0;
-        this.m_fifo = new Uint8Array(TMS5220.FIFO_SIZE);
-        this.m_subcycle = 0;
-        this.m_subc_reload = 0;
-        this.m_c_letiant_rate = 0;
-        this.m_PC = 0;
-        this.m_IP = 0;
-        this.m_new_frame_energy_idx = 0;
-        this.m_new_frame_pitch_idx = 0;
-        this.m_new_frame_k_idx = new Uint8Array(10);
-        this.m_RDB_flag = false;
-        this.m_data_register = 0;
-        this.m_OLDE = false;
-        this.m_OLDP = false;
-        this.m_inhibit = false;
-        this.m_target_energy = 0;
-        this.m_target_pitch = 0;
-        this.m_target_k = new Int16Array(10);
-        this.m_current_k = new Int16Array(10);
-        this.m_RNG = 0;
-        this.m_excitation_data = 0;
-        this.m_u = new Int32Array(11);
-        this.m_x = new Int32Array(10);
-        this.m_digital_select = false;
-        this.m_speechROMaddr = 0;
-        this.m_load_pointer = 0;
-        this.m_ROM_bits_count = 0;
-        this.m_speechROMlen = 0x8000;
-        this.m_irq_pin = 0;
-        this.m_io_ready = true;
-        this.m_irq_handler = null;
-        this.m_readyq_handler = null;
-        this.log = Log.getLog();
+    private log: Log = Log.getLog();
+
+    constructor(console: TI994A, settings: Settings) {
+        this.console = console;
+        this.enabled = settings.isSpeechEnabled();
     }
 
     /**********************************************************************************************
@@ -483,6 +448,46 @@ export class TMS5220 implements Speech {
     }
 
     reset() {
+        this.cpu = this.console.getCPU();
+        this.m_coeff = TMS5220.coeff;
+        // this.m_speak_external = false;
+        // this.m_talk_status = false;
+        // this.m_speaking_now = false;
+        // this.m_buffer_low = true;
+        // this.m_buffer_empty = true;
+        // this.m_schedule_dummy_read = false;
+        // this.m_fifo_count = 0;
+        // this.m_fifo_tail = 0;
+        // this.m_fifo = new Uint8Array(TMS5220.FIFO_SIZE);
+        // this.m_subcycle = 0;
+        // this.m_subc_reload = 0;
+        // this.m_c_letiant_rate = 0;
+        // this.m_PC = 0;
+        // this.m_IP = 0;
+        // this.m_new_frame_energy_idx = 0;
+        // this.m_new_frame_pitch_idx = 0;
+        // this.m_new_frame_k_idx = new Uint8Array(10);
+        // this.m_RDB_flag = false;
+        // this.m_data_register = 0;
+        // this.m_OLDE = false;
+        // this.m_OLDP = false;
+        // this.m_inhibit = false;
+        // this.m_target_energy = 0;
+        // this.m_target_pitch = 0;
+        // this.m_target_k = new Int16Array(10);
+        // this.m_current_k = new Int16Array(10);
+        // this.m_RNG = 0;
+        // this.m_excitation_data = 0;
+        // this.m_u = new Int32Array(11);
+        // this.m_x = new Int32Array(10);
+        // this.m_digital_select = false;
+        // this.m_speechROMaddr = 0;
+        // this.m_load_pointer = 0;
+        // this.m_ROM_bits_count = 0;
+        // this.m_irq_pin = 0;
+        // this.m_io_ready = true;
+        // this.m_irq_handler = null;
+        // this.m_readyq_handler = null;
         this.device_reset();
     }
 
@@ -1388,16 +1393,16 @@ export class TMS5220 implements Speech {
             count--;
         }
 
-        if (this.m_speechROMaddr < this.m_speechROMlen) {
+        if (this.m_speechROMaddr < TMS5220.ROM_LENGTH) {
             if (count < this.m_ROM_bits_count) {
                 this.m_ROM_bits_count -= count;
                 val = (TMS5220.ROM[this.m_speechROMaddr] >> this.m_ROM_bits_count) & (0xFF >> (8 - count));
             } else {
                 val = TMS5220.ROM[this.m_speechROMaddr] << 8;
 
-                this.m_speechROMaddr = (this.m_speechROMaddr + 1) & (this.m_speechROMlen - 1);
+                this.m_speechROMaddr = (this.m_speechROMaddr + 1) & (TMS5220.ROM_LENGTH - 1);
 
-                if (this.m_speechROMaddr < this.m_speechROMlen) {
+                if (this.m_speechROMaddr < TMS5220.ROM_LENGTH) {
                     val |= TMS5220.ROM[this.m_speechROMaddr];
                 }
 
@@ -1419,7 +1424,7 @@ export class TMS5220 implements Speech {
         /* tms5220 data sheet says that if we load only one 4-bit nibble, it won't work.
          This code does not care about this. */
         this.m_speechROMaddr = ( (this.m_speechROMaddr & ~(0xf << this.m_load_pointer))
-            | (((data & 0xf)) << this.m_load_pointer) ) & (this.m_speechROMlen - 1);
+            | (((data & 0xf)) << this.m_load_pointer) ) & (TMS5220.ROM_LENGTH - 1);
         this.m_load_pointer += 4;
         this.m_ROM_bits_count = 8;
     }
@@ -1430,11 +1435,11 @@ export class TMS5220 implements Speech {
     private rom_read_and_branch() {
         /* tms5220 data sheet says that if more than one speech ROM (tms6100) is present,
          there is a bus contention.  This code does not care about this. */
-        if (this.m_speechROMaddr < this.m_speechROMlen - 1) {
+        if (this.m_speechROMaddr < TMS5220.ROM_LENGTH - 1) {
             this.m_speechROMaddr = (this.m_speechROMaddr & 0x3c000)
                 | ((((TMS5220.ROM[this.m_speechROMaddr]) << 8)
                 | TMS5220.ROM[this.m_speechROMaddr + 1]) & 0x3fff);
-        } else if (this.m_speechROMaddr === this.m_speechROMlen - 1) {
+        } else if (this.m_speechROMaddr === TMS5220.ROM_LENGTH - 1) {
             this.m_speechROMaddr = (this.m_speechROMaddr & 0x3c000)
                 | (((TMS5220.ROM[this.m_speechROMaddr]) << 8) & 0x3fff);
         } else {

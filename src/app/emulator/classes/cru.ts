@@ -7,12 +7,14 @@ import {TMS9900} from './tms9900';
 import {AMS} from './ams';
 import {Util} from '../util';
 import {CPU} from '../interfaces/cpu';
+import {TI994A} from './ti994a';
 
 export class CRU implements State {
 
     static TIMER_DECREMENT_PER_FRAME = 781; // 50000 / 64;
     static TIMER_DECREMENT_PER_SCANLINE = 2.8503;
 
+    private console: TI994A;
     private keyboard: Keyboard;
     private tape: Tape;
     private memory: Memory;
@@ -26,21 +28,17 @@ export class CRU implements State {
     private timerInterrupt: boolean;
     private timerInterruptCount: number;
 
-    private log: Log;
+    private log: Log = Log.getLog();
 
-    constructor(keyboard: Keyboard, tape: Tape) {
-        this.keyboard = keyboard;
-        this.tape = tape;
-        this.cru = [];
-        this.log = Log.getLog();
-        this.reset();
-    }
-
-    setMemory(memory: Memory) {
-        this.memory = memory;
+    constructor(console: TI994A) {
+        this.console = console;
     }
 
     reset() {
+        this.memory = this.console.getMemory();
+        this.keyboard = this.console.getKeyboard();
+        this.tape = this.console.getTape();
+
         this.vdpInterrupt = false;
         this.timerMode = false;
         this.clockRegister = 0;
@@ -48,6 +46,7 @@ export class CRU implements State {
         this.decrementer = 0;
         this.timerInterrupt = false;
         this.timerInterruptCount = 0;
+        this.cru = [];
         for (let i = 0; i < 4096; i++) {
             this.cru[i] = i > 3;
         }

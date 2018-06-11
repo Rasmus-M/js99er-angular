@@ -2,6 +2,7 @@ import {Memory} from './memory';
 import {Log} from '../../classes/log';
 import {Util} from '../util';
 import {State} from '../interfaces/state';
+import {TI994A} from './ti994a';
 
 export enum OpCode {
     OPEN = 0,
@@ -193,17 +194,17 @@ export class DiskDrive implements State {
     static DSR_HOOK_END = DiskDrive.DSR_ROM_FILES_16;
 
     private name: string;
-    private ram: Uint8Array;
     private diskImage: DiskImage;
+    private console: TI994A;
+    private ram: Uint8Array;
     private catalogFile: DiskFile;
-    private log: Log;
 
-    constructor(name: string, ram: Uint8Array, diskImage: DiskImage) {
+    private log: Log = Log.getLog();
+
+    constructor(name: string, diskImage: DiskImage, console: TI994A) {
         this.name = name;
-        this.ram = ram;
         this.diskImage = diskImage;
-        this.catalogFile = null;
-        this.log = Log.getLog();
+        this.console = console;
     }
 
     static execute(pc: number, diskDrives: DiskDrive[], memory: Memory) {
@@ -286,6 +287,11 @@ export class DiskDrive implements State {
         Log.getLog().info("Executing disk DSR FILES routine (n = " + nFiles + ").");
         memory.writeWord(0x8370, 0x4000 - nFiles * 0x2B8, null);
         memory.writeWord(0x8350, memory.readWord(0x8350, null) & 0x00FF, null);
+    }
+
+    reset() {
+        this.ram = this.console.getVDP().getRAM();
+        this.catalogFile = null;
     }
 
     getName(): string {

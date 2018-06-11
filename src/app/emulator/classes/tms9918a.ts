@@ -3,6 +3,9 @@ import {Util} from '../util';
 import {VDP} from '../interfaces/vdp';
 import {State} from '../interfaces/state';
 import {CPU} from '../interfaces/cpu';
+import {TI994A} from './ti994a';
+import {Settings} from '../../classes/settings';
+import {Log} from '../../classes/log';
 
 export enum ScreenMode {
     MODE_GRAPHICS = 0,
@@ -17,6 +20,7 @@ export enum ScreenMode {
 export class TMS9918A implements VDP {
 
     private canvas: HTMLCanvasElement;
+    private console: TI994A;
     private cru: CRU;
     private enableFlicker: boolean;
 
@@ -71,20 +75,21 @@ export class TMS9918A implements VDP {
     private width: number;
     private height: number;
 
-    constructor(canvas: HTMLCanvasElement, cru: CRU, enableFlicker: boolean) {
+    private log: Log = Log.getLog();
+
+    constructor(canvas: HTMLCanvasElement, console: TI994A, settings: Settings) {
         this.canvas = canvas;
         this.canvasContext = canvas.getContext('2d');
-        this.cru = cru;
-        this.enableFlicker = enableFlicker;
-        this.reset();
+        this.console = console;
+        this.enableFlicker = settings.isFlickerEnabled();
     }
 
     reset() {
-        let i;
-        for (i = 0; i < this.ram.length; i++) {
+        this.cru = this.console.getCRU();
+        for (let i = 0; i < this.ram.length; i++) {
             this.ram[i] = 0;
         }
-        for (i = 0; i < this.registers.length; i++) {
+        for (let i = 0; i < this.registers.length; i++) {
             this.registers[i] = 0;
         }
         this.addressRegister = 0;
