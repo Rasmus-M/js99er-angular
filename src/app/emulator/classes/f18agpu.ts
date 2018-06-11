@@ -1,9 +1,13 @@
 import {State} from '../interfaces/state';
 import {CPU} from '../interfaces/cpu';
+import {F18A} from './f18a';
 
 export class F18AGPU implements CPU {
 
     static CYCLES_PER_SCANLINE: number;
+
+    constructor(f18a: F18A) {
+    }
 
     addCycles(cycles: number): void {
     }
@@ -64,5 +68,15 @@ export class F18AGPU implements CPU {
     }
 
 
+    setIdle(b: boolean) {
 
+    }
+
+    resume() {
+
+    }
+
+    intReset() {
+
+    }
 }

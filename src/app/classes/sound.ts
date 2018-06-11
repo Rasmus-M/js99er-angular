@@ -14,7 +14,6 @@ export class Sound {
     private psgDev: PSG;
     private speechDev: Speech;
     private tape: Tape;
-    private log: Log;
     private sampleRate: number;
     private bufferSize: number;
     private vdpSampleBuffer: Int8Array;
@@ -26,6 +25,8 @@ export class Sound {
     private tapeScriptProcessor: ScriptProcessorNode;
     private tapeFilter: BiquadFilterNode;
 
+    private log: Log = Log.getLog();
+
     static resumeSound() {
         if (Sound.audioContext && Sound.audioContext.state !== "running") {
             Sound.audioContext.resume();
@@ -36,11 +37,10 @@ export class Sound {
         this.psgDev = psgDev;
         this.speechDev = speechDev;
         this.tape = tape;
-        this.log = Log.getLog();
-        if (Sound.audioContext == null && AudioContext) {
+        if (!Sound.audioContext && AudioContext) {
             Sound.audioContext = new AudioContext();
         }
-        if (Sound.audioContext != null) {
+        if (Sound.audioContext) {
             this.log.info("Web Audio API detected");
             this.sampleRate = Sound.audioContext.sampleRate;
             this.log.info('AudioContext: sample rate is ' + this.sampleRate);
@@ -50,7 +50,7 @@ export class Sound {
                 psgDev.setSampleRate(this.sampleRate);
                 this.vdpSampleBuffer = new Int8Array(this.bufferSize);
                 this.vdpScriptProcessor = Sound.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
-                this.vdpScriptProcessor.onaudioprocess = function (event) { that.onVDPAudioProcess(event); };
+                this.vdpScriptProcessor.onaudioprocess = function (event) { that.onPSGAudioProcess(event); };
             }
             if (speechDev) {
                 const speechSampleRate = TMS5220.SAMPLE_RATE;
@@ -70,13 +70,12 @@ export class Sound {
                 this.tapeFilter.frequency.value = 4000;
             }
             this.setSoundEnabled(enabled);
-            // this.iOSLoadInitSound();
         } else {
             this.log.warn("Web Audio API not supported by this browser.");
         }
     }
 
-    onVDPAudioProcess(event) {
+    onPSGAudioProcess(event) {
         // Get Float32Array output buffer
         const out = event.outputBuffer.getChannelData(0);
         // Get Int8Array input buffer

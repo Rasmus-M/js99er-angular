@@ -1,16 +1,16 @@
-export enum Level {
-    LEVEL_DEBUG = 0,
-    LEVEL_INFO = 1,
-    LEVEL_WARNING = 2,
-    LEVEL_ERROR = 3,
-    LEVEL_NONE = 4
+export enum LogLevel {
+    DEBUG = 0,
+    INFO = 1,
+    WARNING = 2,
+    ERROR = 3,
+    NONE = 4
 }
 
 export class Log {
 
     private static instance: Log;
 
-    private minLevel = Level.LEVEL_INFO;
+    private minLevel = LogLevel.INFO;
     private id;
     private buffer = '';
     private bufferCount = 0;
@@ -99,7 +99,7 @@ export class Log {
      * Set minimum log level.
      * @param level Log level to set
      */
-    setMinLevel(level: Level) {
+    setMinLevel(level: LogLevel) {
         this.minLevel = level;
     }
 
@@ -108,7 +108,7 @@ export class Log {
      * @param message error message
      */
     error(message: string) {
-        if (Level.LEVEL_ERROR >= this.minLevel) {
+        if (LogLevel.ERROR >= this.minLevel) {
             alert(message);
         }
     }
@@ -118,7 +118,7 @@ export class Log {
      * @param message warning message
      */
     warn(message) {
-        if (Level.LEVEL_WARNING >= this.minLevel) {
+        if (LogLevel.WARNING >= this.minLevel) {
             this.print('*** Warning *** ' + message);
         }
     }
@@ -128,7 +128,7 @@ export class Log {
      * @param message information message
      */
     info(message) {
-        if (Level.LEVEL_INFO >= this.minLevel) {
+        if (LogLevel.INFO >= this.minLevel) {
             let count = this.msgMap[message];
             if (count == null) {
                 count = 1;
@@ -149,7 +149,7 @@ export class Log {
      * @param message fatal message
      */
     debug(message) {
-        if (Level.LEVEL_DEBUG >= this.minLevel) {
+        if (LogLevel.DEBUG >= this.minLevel) {
             this.print('Debug: ' + message);
         }
     }

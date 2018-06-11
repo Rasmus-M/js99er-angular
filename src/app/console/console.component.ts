@@ -30,6 +30,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit {
           FLOPPY3: new DiskImage("Floppy 3", null)
       };
       this.settings = new Settings(true);
+      this.settings.setF18AEnabled(true);
       this.console = new TI994A(document, this.canvas, this.diskImages, this.settings, null);
       this.sound = new Sound(true, this.console.getPSG(), this.console.getSpeech(), this.console.getTape());
       this.console.start(false);

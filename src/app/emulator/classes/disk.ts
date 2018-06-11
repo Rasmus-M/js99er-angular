@@ -1159,7 +1159,7 @@ export class DiskImage {
             n = this.writeByte(data, n, file.getEOFOffset());
             // Record length
             n = this.writeByte(data, n, file.getRecordLength());
-            // #Level 3 records
+            // #LogLevel 3 records
             n = this.writeLEWord(data, n, file.getFileType() === FileType.DATA ? (file.getRecordType() === RecordType.FIXED ? file.getRecordCount() : file.getSectorCount()) : 0);
             // File name
             n = this.writeString(data, n, fileName, 10);
