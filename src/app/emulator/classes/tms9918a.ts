@@ -71,8 +71,9 @@ export class TMS9918A implements VDP {
     private width: number;
     private height: number;
 
-    constructor(canvasContext: CanvasRenderingContext2D, cru: CRU, enableFlicker: boolean) {
-        this.canvasContext = canvasContext;
+    constructor(canvas: HTMLCanvasElement, cru: CRU, enableFlicker: boolean) {
+        this.canvas = canvas;
+        this.canvasContext = canvas.getContext('2d');
         this.cru = cru;
         this.enableFlicker = enableFlicker;
         this.reset();

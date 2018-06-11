@@ -6,13 +6,15 @@ import {PSG} from '../interfaces/psg';
 
 export class F18A implements VDP {
 
+    private canvas: HTMLCanvasElement;
     private canvasContext: CanvasRenderingContext2D;
     private psg: PSG;
     private cru: CRU;
     private enableFlicker: boolean;
 
-    constructor(canvasContext: CanvasRenderingContext2D, cru: CRU, psg: PSG, enableFlicker: boolean) {
-        this.canvasContext = canvasContext;
+    constructor(canvas: HTMLCanvasElement, cru: CRU, psg: PSG, enableFlicker: boolean) {
+        this.canvas = canvas;
+        this.canvasContext = canvas.getContext('2d');
         this.cru = cru;
         this.psg = psg;
         this.enableFlicker = enableFlicker;

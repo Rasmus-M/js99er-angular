@@ -52,7 +52,7 @@ export class TI994A implements State {
     private frameInterval: number;
     private fpsInterval: number;
 
-    constructor(canvas: HTMLCanvasElement, diskImages: {FLOPPY1: DiskImage, FLOPPY2: DiskImage, FLOPPY3: DiskImage}, settings: Settings, onBreakpoint: () => void) {
+    constructor(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: {[key: string]: DiskImage}, settings: Settings, onBreakpoint: () => void) {
         this.canvas = canvas;
         this.onBreakpoint = onBreakpoint;
 
@@ -88,9 +88,9 @@ export class TI994A implements State {
 
     setVDP(settings) {
         if (settings && settings.isF18AEnabled()) {
-            this.vdp = new F18A(this.canvas.getContext('2d'), this.cru, this.psg, settings.isFlickerEnabled());
+            this.vdp = new F18A(this.canvas, this.cru, this.psg, settings.isFlickerEnabled());
         } else {
-            this.vdp = new TMS9918A(this.canvas.getContext('2d'), this.cru, settings.isFlickerEnabled());
+            this.vdp = new TMS9918A(this.canvas, this.cru, settings.isFlickerEnabled());
         }
         if (this.memory) {
             this.memory.setVDP(this.vdp);

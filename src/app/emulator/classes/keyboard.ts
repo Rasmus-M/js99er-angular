@@ -20,6 +20,11 @@ export class Keyboard implements State {
     private pasteBuffer: string;
     private pasteIndex: number;
 
+    private keydownListener: EventListener;
+    private keyupListener: EventListener;
+    private keypressListener: EventListener;
+    private pasteListener: EventListener;
+
     private log = Log.getLog();
 
     constructor(document: Document, pcKeyboardEnabled: boolean, mapArrowKeysToFctnSDEX: boolean) {
@@ -35,8 +40,8 @@ export class Keyboard implements State {
         this.joystickActive = 250;
         this.keyCode = 0;
         this.keyMap = {};
-        this.reset();
         this.log = Log.getLog();
+        this.reset();
     }
 
     reset() {
@@ -72,34 +77,40 @@ export class Keyboard implements State {
     private attachListeners() {
         const self = this;
         if (!this.pcKeyboardEnabled) {
-            this.document.addEventListener( "keydown", (evt: KeyboardEvent) => {
+            this.keydownListener = (evt: KeyboardEvent) => {
                 self.keyEvent(evt, true);
-            });
-            this.document.addEventListener("keyup", (evt: KeyboardEvent) => {
+            };
+            this.document.addEventListener( "keydown", this.keydownListener);
+            this.keyupListener = (evt: KeyboardEvent) => {
                 self.keyEvent(evt, false);
-            });
+            };
+            this.document.addEventListener("keyup", this.keyupListener);
         } else {
-            this.document.addEventListener("keydown", (evt: KeyboardEvent) => {
+            this.keydownListener = (evt: KeyboardEvent) => {
                 self.keyEvent2(evt, true);
-            });
-            this.document.addEventListener("keypress", (evt: KeyboardEvent) => {
+            };
+            this.document.addEventListener("keydown", this.keydownListener);
+            this.keypressListener = (evt: KeyboardEvent) => {
                 self.keyPressEvent(evt);
-            });
-            this.document.addEventListener("keyup", (evt: KeyboardEvent) => {
+            };
+            this.document.addEventListener("keypress", this.keypressListener);
+            this.keyupListener = (evt: KeyboardEvent) => {
                 self.keyEvent2(evt, false);
-            });
+            };
+            this.document.addEventListener("keyup", this.keyupListener);
         }
-        this.document.addEventListener("paste", (evt: ClipboardEvent) => {
+        this.pasteListener = (evt: ClipboardEvent) => {
             self.pasteBuffer = "\n" + evt.clipboardData.getData('text/plain') + "\n";
             self.pasteIndex = 0;
-        });
+        };
+        this.document.addEventListener("paste", this.pasteListener);
     }
 
     private removeListeners() {
-        document.removeEventListener("keyup");
-        document.removeEventListener("keypress");
-        document.removeEventListener("keydown");
-        document.removeEventListener("paste");
+        this.document.removeEventListener("keyup", this.keyupListener);
+        this.document.removeEventListener("keypress", this.keypressListener);
+        this.document.removeEventListener("keydown", this.keydownListener);
+        this.document.removeEventListener("paste", this.pasteListener);
     }
 
     setPCKeyboardEnabled(enabled: boolean) {
