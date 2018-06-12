@@ -1,6 +1,6 @@
 import {Log} from '../../classes/log';
 import {State} from '../interfaces/state';
-import {Util} from '../util';
+import {Util} from '../../classes/util';
 
 export class AMS implements State {
 

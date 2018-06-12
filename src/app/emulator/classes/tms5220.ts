@@ -2,7 +2,7 @@ import {CPU} from '../interfaces/cpu';
 import {Log} from '../../classes/log';
 import {Speech} from '../interfaces/speech';
 import {System} from './system';
-import {Util} from '../util';
+import {Util} from '../../classes/util';
 import {Settings} from '../../classes/settings';
 import {TI994A} from './ti994a';
 

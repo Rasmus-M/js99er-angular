@@ -1,22 +1,26 @@
-import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import {BrowserModule} from '@angular/platform-browser';
+import {NgModule} from '@angular/core';
 
 
-import { AppComponent } from './app.component';
-import { DebuggerComponent } from './debugger/debugger.component';
-import { ConsoleComponent } from './console/console.component';
-
+import {AppComponent} from './app.component';
+import {DebuggerComponent} from './debugger/debugger.component';
+import {BsDropdownModule, ModalModule, TooltipModule} from 'ngx-bootstrap';
+import {EmulatorModule} from './emulator/emulator.module';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    DebuggerComponent,
-    ConsoleComponent
-  ],
-  imports: [
-    BrowserModule
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
+    declarations: [
+        AppComponent,
+        DebuggerComponent
+    ],
+    imports: [
+        BrowserModule,
+        BsDropdownModule.forRoot(),
+        TooltipModule.forRoot(),
+        ModalModule.forRoot(),
+        EmulatorModule
+    ],
+    providers: [],
+    bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {
+}

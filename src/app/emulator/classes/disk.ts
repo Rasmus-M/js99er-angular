@@ -1,6 +1,6 @@
 import {Memory} from './memory';
 import {Log} from '../../classes/log';
-import {Util} from '../util';
+import {Util} from '../../classes/util';
 import {State} from '../interfaces/state';
 import {TI994A} from './ti994a';
 

@@ -1,5 +1,5 @@
 import {Log} from '../../classes/log';
-import {Util} from '../util';
+import {Util} from '../../classes/util';
 import {State} from '../interfaces/state';
 import {AudioBufferToWav} from '../../classes/audio-buffer-to-wav';
 

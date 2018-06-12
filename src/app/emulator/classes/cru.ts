@@ -5,7 +5,7 @@ import {Tape} from './tape';
 import {State} from '../interfaces/state';
 import {TMS9900} from './tms9900';
 import {AMS} from './ams';
-import {Util} from '../util';
+import {Util} from '../../classes/util';
 import {CPU} from '../interfaces/cpu';
 import {TI994A} from './ti994a';
 

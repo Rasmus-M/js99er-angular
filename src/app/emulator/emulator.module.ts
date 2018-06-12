@@ -1,14 +1,17 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-
-import { Ti994aComponent } from './ti994a/ti994a.component';
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {ConsoleComponent} from './console/console.component';
 
 @NgModule({
-  imports: [
-    CommonModule
-  ],
-  declarations: [
-    Ti994aComponent
-  ]
+    imports: [
+        CommonModule
+    ],
+    declarations: [
+        ConsoleComponent
+    ],
+    exports: [
+        ConsoleComponent
+    ]
 })
-export class EmulatorModule { }
+export class EmulatorModule {
+}

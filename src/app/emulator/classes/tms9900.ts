@@ -1,5 +1,5 @@
 import {CRU} from './cru';
-import {Util} from '../util';
+import {Util} from '../../classes/util';
 import {Keyboard} from './keyboard';
 import {Memory} from './memory';
 import {Log} from '../../classes/log';

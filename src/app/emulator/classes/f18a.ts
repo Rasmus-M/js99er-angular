@@ -5,7 +5,7 @@ import {Settings} from '../../classes/settings';
 import {TI994A} from './ti994a';
 import {F18AGPU} from './f18agpu';
 import {Log, LogLevel} from '../../classes/log';
-import {Util} from '../util';
+import {Util} from '../../classes/util';
 
 export class F18A implements VDP {
 

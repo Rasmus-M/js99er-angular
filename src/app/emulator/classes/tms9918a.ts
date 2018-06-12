@@ -1,5 +1,5 @@
 import {CRU} from './cru';
-import {Util} from '../util';
+import {Util} from '../../classes/util';
 import {VDP} from '../interfaces/vdp';
 import {State} from '../interfaces/state';
 import {CPU} from '../interfaces/cpu';

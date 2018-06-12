@@ -6,7 +6,7 @@ import {AMS} from './ams';
 import {DiskDrive} from './disk';
 import {GoogleDrive} from './googledrive';
 import {System} from './system';
-import {Util} from '../util';
+import {Util} from '../../classes/util';
 import {CPU} from '../interfaces/cpu';
 import {State} from '../interfaces/state';
 import {TI994A} from './ti994a';

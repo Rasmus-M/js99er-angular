@@ -1,8 +1,8 @@
-import {AfterViewInit, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {TI994A} from '../emulator/classes/ti994a';
-import {DiskImage} from '../emulator/classes/disk';
-import {Settings} from '../classes/settings';
-import {Sound} from '../classes/sound';
+import {AfterViewInit, Component, ElementRef, OnInit} from '@angular/core';
+import {TI994A} from '../classes/ti994a';
+import {DiskImage} from '../classes/disk';
+import {Settings} from '../../classes/settings';
+import {Sound} from '../../classes/sound';
 
 @Component({
   selector: 'app-console',
