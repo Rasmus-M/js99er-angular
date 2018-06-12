@@ -40,37 +40,35 @@ export class TMS9900 implements CPU {
     private cycles: number;
 
     // Constants
-    private SRC             = 0;
-    private DST             = 1;
-    private POSTINC2        = 0x80;
-    private POSTINC1        = 0x40;
-    private BIT_LGT         = 0x8000;
-    private BIT_AGT         = 0x4000;
-    private BIT_EQ          = 0x2000;
-    private BIT_C           = 0x1000;
-    private BIT_OV          = 0x0800;
-    private BIT_OP          = 0x0400;
-    private BIT_X           = 0x0200;
+    private readonly SRC           = 0;
+    private readonly DST           = 1;
+    private readonly POSTINC2      = 0x80;
+    private readonly POSTINC1      = 0x40;
+    private readonly BIT_LGT       = 0x8000;
+    private readonly BIT_AGT       = 0x4000;
+    private readonly BIT_EQ        = 0x2000;
+    private readonly BIT_C         = 0x1000;
+    private readonly BIT_OV        = 0x0800;
+    private readonly BIT_OP        = 0x0400;
+    private readonly BIT_X         = 0x0200;
 
     // Assignment masks
-    // private maskEQ_LGT            = this.BIT_EQ | this.BIT_LGT;
-    private maskLGT_AGT_EQ        = this.BIT_LGT | this.BIT_AGT | this.BIT_EQ;
-    private maskLGT_AGT_EQ_OP     = this.BIT_LGT | this.BIT_AGT | this.BIT_EQ | this.BIT_OP;
-    private maskLGT_AGT_EQ_OV     = this.BIT_LGT | this.BIT_AGT | this.BIT_EQ | this.BIT_OV;
+    private maskLGT_AGT_EQ         = this.BIT_LGT | this.BIT_AGT | this.BIT_EQ;
+    private maskLGT_AGT_EQ_OP      = this.BIT_LGT | this.BIT_AGT | this.BIT_EQ | this.BIT_OP;
+    private maskLGT_AGT_EQ_OV      = this.BIT_LGT | this.BIT_AGT | this.BIT_EQ | this.BIT_OV;
     // carry here used for INC and NEG only
-    private maskLGT_AGT_EQ_OV_C  = this.BIT_LGT | this.BIT_AGT | this.BIT_EQ | this.BIT_OV | this.BIT_C;
-
+    private maskLGT_AGT_EQ_OV_C    = this.BIT_LGT | this.BIT_AGT | this.BIT_EQ | this.BIT_OV | this.BIT_C;
 
     // Lookup tables
-    private _decoderTable = Decoder.getDecoderTable();
+    private decoderTable = Decoder.getDecoderTable();
     private wStatusLookup = this.buildWStatusLookupTable();
     private bStatusLookup = this.buildBStatusLookupTable();
 
     // Misc
-    private suspended = false;
-    private breakpoint = null;
-    private otherBreakpoint = null;
-    private illegalCount = 0;
+    private suspended: boolean;
+    private breakpoint: number;
+    private otherBreakpoint: number;
+    private illegalCount: number;
     private profile: Uint32Array;
     private pasteToggle: boolean;
     private countStart: number;
@@ -163,7 +161,7 @@ export class TMS9900 implements CPU {
             // Handle breakpoint
             const atBreakpoint = this.atBreakpoint();
             if (atBreakpoint) {
-                this.log.info("At breakpoint " + this.breakpoint.toHexWord());
+                this.log.info("At breakpoint " + Util.toHexWord(this.breakpoint));
                 cyclesToRun = -1;
             }
             if (!atBreakpoint || this.PC === startPC) {
@@ -237,7 +235,7 @@ export class TMS9900 implements CPU {
     }
 
     execute(instruction) {
-        const opcode = this._decoderTable[instruction];
+        const opcode = this.decoderTable[instruction];
         if (opcode && opcode.original) {
             let cycles = this.decodeOperands(opcode, instruction);
             const cycles2 = this[opcode.id.toLowerCase()].call(this);
@@ -1667,19 +1665,19 @@ export class TMS9900 implements CPU {
 
     getLGT() { return (this.ST & this.BIT_LGT); }	// Logical Greater Than
     getAGT() { return (this.ST & this.BIT_AGT); }	// Arithmetic Greater Than
-    getEQ() { return (this.ST & this.BIT_EQ); }	// Equal
-    getC() { return (this.ST & this.BIT_C); }	// Carry
-    getOV() { return (this.ST & this.BIT_OV); }	// Overflow
-    getOP() { return (this.ST & this.BIT_OP); }	// Odd Parity
-    getX() { return (this.ST & this.BIT_X); }	// Set during an XOP instruction
+    getEQ() { return (this.ST & this.BIT_EQ); }	    // Equal
+    getC() { return (this.ST & this.BIT_C); }	    // Carry
+    getOV() { return (this.ST & this.BIT_OV); }	    // Overflow
+    getOP() { return (this.ST & this.BIT_OP); }	    // Odd Parity
+    getX() { return (this.ST & this.BIT_X); }	    // Set during an XOP instruction
 
-    setLGT() { this.ST |= 0x8000; }       		// Logical Greater than: >0x0000
-    setAGT() { this.ST |= 0x4000; }		        // Arithmetic Greater than: >0x0000 and <0x8000
-    setEQ() { this.ST |= 0x2000; }       		// Equal: ==0x0000
-    setC() { this.ST |= 0x1000; }		        // Carry: carry occurred during operation
-    setOV() { this.ST |= 0x0800; }       		// Overflow: overflow occurred during operation
-    setOP() { this.ST |= 0x0400; }	            // Odd parity: word has odd number of '1' bits
-    setX() { this.ST |= 0x0200; }		        // Executing 'X' statement
+    setLGT() { this.ST |= 0x8000; }       		    // Logical Greater than: >0x0000
+    setAGT() { this.ST |= 0x4000; }		            // Arithmetic Greater than: >0x0000 and <0x8000
+    setEQ() { this.ST |= 0x2000; }       		    // Equal: ==0x0000
+    setC() { this.ST |= 0x1000; }		            // Carry: carry occurred during operation
+    setOV() { this.ST |= 0x0800; }       		    // Overflow: overflow occurred during operation
+    setOP() { this.ST |= 0x0400; }	                // Odd parity: word has odd number of '1' bits
+    setX() { this.ST |= 0x0200; }		            // Executing 'X' statement
 
     resetLGT() { this.ST &= 0x7fff; }               // Clear the flags
     resetAGT() { this.ST &= 0xbfff; }

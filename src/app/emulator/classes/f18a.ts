@@ -107,104 +107,104 @@ export class F18A implements VDP {
     // + 32 bytes for GPU registers
     private ram = new Uint8Array(0x10000);
     private registers = new Uint8Array(64);
-    private addressRegister = null;
-    private statusRegister = null;
-    private palette = null;
+    private addressRegister: number;
+    private statusRegister: number;
+    private palette: number[][];
 
-    private latch = null;
-    private prefetchByte = null;
-    private addressIncrement = null;
+    private latch: boolean;
+    private prefetchByte: number;
+    private addressIncrement: number;
 
-    private unlocked = null;
-    private statusRegisterNo = null;
-    private dataPortMode = null;
-    private autoIncPaletteReg = null;
-    private paletteRegisterNo = null;
-    private paletteRegisterData = null;
-    private gpuAddressLatch = null;
-    private currentScanline = null;
-    private fakeScanline = null;
-    private blanking = null;
+    private unlocked: boolean;
+    private statusRegisterNo: number;
+    private dataPortMode: boolean;
+    private autoIncPaletteReg: boolean;
+    private paletteRegisterNo: number;
+    private paletteRegisterData: number;
+    private gpuAddressLatch: boolean;
+    private currentScanline: number;
+    private fakeScanline: number;
+    private blanking: number;
 
-    private displayOn = null;
-    private interruptsOn = null;
-    private screenMode = null;
-    private colorTable = null;
-    private nameTable = null;
-    private charPatternTable = null;
-    private spriteAttributeTable = null;
-    private spritePatternTable = null;
-    private colorTableMask = null;
-    private patternTableMask = null;
-    private fgColor = null;
-    private bgColor = null;
-    private spriteSize = null;
-    private spriteMag = null;
+    private displayOn: boolean;
+    private interruptsOn: boolean;
+    private screenMode: number;
+    private colorTable: number;
+    private nameTable: number;
+    private charPatternTable: number;
+    private spriteAttributeTable: number;
+    private spritePatternTable: number;
+    private colorTableMask: number;
+    private patternTableMask: number;
+    private fgColor: number;
+    private bgColor: number;
+    private spriteSize: number;
+    private spriteMag: number;
 
-    private tileColorMode = null;
-    private tilePaletteSelect = null;
-    private tilePaletteSelect2 = null;
-    private spriteColorMode = null;
-    private spritePaletteSelect = null;
-    private realSpriteYCoord = null;
-    private colorTable2 = null;
-    private nameTable2 = null;
-    private tileLayer1Enabled = null;
-    private tileLayer2Enabled = null;
-    private row30Enabled = null;
-    private spriteLinkingEnabled = null;
-    private hScroll1 = null;
-    private vScroll1 = null;
-    private hScroll2 = null;
-    private vScroll2 = null;
-    private hPageSize1 = null;
-    private vPageSize1 = null;
-    private hPageSize2 = null;
-    private vPageSize2 = null;
-    private bitmapEnable = null;
-    private bitmapPriority = null;
-    private bitmapTransparent = null;
-    private bitmapFat = null;
-    private bitmapPaletteSelect = null;
-    private bitmapBaseAddr = null;
-    private bitmapX = null;
-    private bitmapY = null;
-    private bitmapWidth = null;
-    private bitmapHeight = null;
-    private interruptScanline = null;
-    private maxScanlineSprites = null;
-    private maxSprites = null;
-    private tileMap2AlwaysOnTop = null;
-    private ecmPositionAttributes = null;
-    private reportMax = null;
-    private scanLines = null;
-    private gpuHsyncTrigger = null;
-    private gpuVsyncTrigger = null;
-    private spritePlaneOffset = null;
-    private tilePlaneOffset = null;
-    private counterElapsed = null;
-    private counterStart = null;
-    private counterSnap = null;
+    private tileColorMode: number;
+    private tilePaletteSelect: number;
+    private tilePaletteSelect2: number;
+    private spriteColorMode: number;
+    private spritePaletteSelect: number;
+    private realSpriteYCoord: boolean;
+    private colorTable2: number;
+    private nameTable2: number;
+    private tileLayer1Enabled: boolean;
+    private tileLayer2Enabled: boolean;
+    private row30Enabled: boolean;
+    private spriteLinkingEnabled: boolean;
+    private hScroll1: number;
+    private vScroll1: number;
+    private hScroll2: number;
+    private vScroll2: number;
+    private hPageSize1: number;
+    private vPageSize1: number;
+    private hPageSize2: number;
+    private vPageSize2: number;
+    private bitmapEnable: boolean;
+    private bitmapPriority: boolean;
+    private bitmapTransparent: boolean;
+    private bitmapFat: boolean;
+    private bitmapPaletteSelect: number;
+    private bitmapBaseAddr: number;
+    private bitmapX: number;
+    private bitmapY: number;
+    private bitmapWidth: number;
+    private bitmapHeight: number;
+    private interruptScanline: number;
+    private maxScanlineSprites: number;
+    private maxSprites: number;
+    private tileMap2AlwaysOnTop: boolean;
+    private ecmPositionAttributes: boolean;
+    private reportMax: boolean;
+    private scanLines: boolean;
+    private gpuHsyncTrigger: boolean;
+    private gpuVsyncTrigger: boolean;
+    private spritePlaneOffset: number;
+    private tilePlaneOffset: number;
+    private counterElapsed: number;
+    private counterStart: number;
+    private counterSnap: number;
 
-    private collision = null;
-    private fifthSprite = null;
-    private fifthSpriteIndex = null;
+    private collision: boolean;
+    private fifthSprite: boolean;
+    private fifthSpriteIndex: number;
 
-    private redrawRequired = null;
+    private redrawRequired: boolean;
 
-    private canvasWidth = null;
-    private canvasHeight = null;
-    private drawWidth = null;
-    private drawHeight = null;
-    private leftBorder = null;
-    private topBorder = null;
-    private imagedata = null;
-    private imagedataAddr = null;
-    private imagedataData = null;
-    private frameCounter = null;
-    private lastTime = null;
+    private canvasWidth: number;
+    private canvasHeight: number;
+    private drawWidth: number;
+    private drawHeight: number;
+    private leftBorder: number;
+    private topBorder: number;
+    private imagedata: ImageData;
+    private imagedataAddr: number;
+    private imagedataData: Uint8ClampedArray;
+    private frameCounter: number;
+    private lastTime: number;
 
-    private splashImage = null;
+    private splashImage: HTMLImageElement;
 
     private gpu: F18AGPU;
 
@@ -288,7 +288,7 @@ export class F18A implements VDP {
         this.tilePaletteSelect2 = 0;
         this.spriteColorMode = 0;
         this.spritePaletteSelect = 0;
-        this.realSpriteYCoord = 0;
+        this.realSpriteYCoord = false;
         this.colorTable2 = 0;
         this.nameTable2 = 0;
         this.tileLayer1Enabled = true;
@@ -1350,11 +1350,11 @@ export class F18A implements VDP {
                     return;
                 }
                 this.gpuHsyncTrigger = (this.registers[50] & 0x40) !== 0;
-                if (this.gpuHsyncTrigger !== 0) {
+                if (this.gpuHsyncTrigger) {
                     this.log.info("F18A Hsync trigger set");
                 }
                 this.gpuVsyncTrigger = (this.registers[50] & 0x20) !== 0;
-                if (this.gpuVsyncTrigger !== 0) {
+                if (this.gpuVsyncTrigger) {
                     this.log.info("F18A Vsync trigger set");
                 }
                 // 0 = normal, 1 = disable GM1, GM2, MCM, T40, T80
@@ -1711,6 +1711,26 @@ export class F18A implements VDP {
         this.enableFlicker = value;
         this.maxScanlineSprites = F18A.MAX_SCANLINE_SPRITES_JUMPER && !this.enableFlicker ? 32 : 4;
         this.log.info("Max scanline sprites: " + this.maxScanlineSprites);
+    }
+
+    setRedrawRequires(value: boolean) {
+        this.redrawRequired = value;
+    }
+
+    getPalette(): number[][] {
+        return this.palette;
+    }
+
+    getRegister(n): number {
+        return this.registers[n];
+    }
+
+    getBitmapWidth(): number {
+        return this.bitmapWidth;
+    }
+
+    getBitmapBaseAddr(): number {
+        return this.bitmapBaseAddr;
     }
 
     getState() {
