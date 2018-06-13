@@ -222,8 +222,6 @@ export class F18A implements VDP {
         };
         imageObj.src = '../images/f18a_bitmap_v1.8.png';
 
-        this.gpu = new F18AGPU(this);
-
         this.log.info("F18A emulation enabled");
     }
 
@@ -340,6 +338,9 @@ export class F18A implements VDP {
         this.frameCounter = 0;
         this.lastTime = 0;
 
+        if (!this.gpu) {
+            this.gpu = new F18AGPU(this);
+        }
         this.gpu.reset();
     }
 
@@ -1731,6 +1732,10 @@ export class F18A implements VDP {
 
     getBitmapBaseAddr(): number {
         return this.bitmapBaseAddr;
+    }
+
+    getVersion() {
+        return F18A.VERSION;
     }
 
     getState() {

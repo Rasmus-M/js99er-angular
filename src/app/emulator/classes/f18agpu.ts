@@ -1,6 +1,6 @@
 import {CPU} from '../interfaces/cpu';
 import {F18A} from './f18a';
-import {Decoder} from '../../classes/decoder';
+import {Decoder, Opcode} from '../../classes/decoder';
 import {Log} from '../../classes/log';
 import {F18AFlash} from './f18aflash';
 import {Util} from '../../classes/util';
@@ -66,11 +66,80 @@ export class F18AGPU implements CPU {
     // carry here used for INC and NEG only
     private maskLGT_AGT_EQ_OV_C    = this.BIT_LGT | this.BIT_AGT | this.BIT_EQ | this.BIT_OV | this.BIT_C;
 
-
     // Lookup tables
     private decoderTable = Decoder.getDecoderTable();
     private wStatusLookup = this.buildWStatusLookupTable();
     private bStatusLookup = this.buildBStatusLookupTable();
+
+    private instructions: {[key: string]: () => number } = {
+        LI: this.li,
+        AI: this.ai,
+        ANDI: this.andi,
+        ORI: this.ori,
+        CI: this.ci,
+        STST: this.stst,
+        IDLE: this.idle,
+        RTWP: this.rtwp,
+        CKON: this.ckon,
+        CKOF: this.ckof,
+        B: this.b,
+        X: this.x,
+        CLR: this.clr,
+        NEG: this.neg,
+        INV: this.inv,
+        INC: this.inc,
+        INCT: this.inct,
+        DEC: this.dec,
+        DECT: this.dect,
+        BL: this.bl,
+        SWPB: this.swpb,
+        SETO: this.seto,
+        ABS: this.abs,
+        SRA: this.sra,
+        SRL: this.srl,
+        SLA: this.sla,
+        SRC: this.src,
+        // New F18A opcodes
+        RET: this.ret,
+        CALL: this.call,
+        PUSH: this.push,
+        SLC: this.slc,
+        POP: this.pop,
+        // ...
+        JMP: this.jmp,
+        JLT: this.jlt,
+        JLE: this.jle,
+        JEQ: this.jeq,
+        JHE: this.jhe,
+        JGT: this.jgt,
+        JNE: this.jne,
+        JNC: this.jnc,
+        JOC: this.joc,
+        JNO: this.jno,
+        JL: this.jl,
+        JH: this.jh,
+        JOP: this.jop,
+        COC: this.coc,
+        CZC: this.czc,
+        XOR: this.xor,
+        XOP: this.xop,
+        LDCR: this.ldcr,
+        STCR: this.stcr,
+        MPY: this.mpy,
+        DIV: this.div,
+        SZC: this.szc,
+        SZCB: this.szcb,
+        S: this.s,
+        SB: this.sb,
+        C: this.c,
+        CB: this.cb,
+        A: this.a,
+        AB: this.ab,
+        MOV: this.mov,
+        MOVB: this.movb,
+        SOC: this.soc,
+        SOCB: this.socb
+    };
 
     // Misc
     private breakpoint: number;
@@ -81,11 +150,11 @@ export class F18AGPU implements CPU {
 
     constructor(f18a) {
         this.f18a = f18a;
-        this.vdpRAM = f18a.getRAM();
     }
 
     reset() {
         this.cpuIdle = true;
+        this.vdpRAM = this.f18a.getRAM();
         this.WP = 0xF000; // Place workspace in an unused part of the memory space
         for (let i = 0; i < 32; i++) {
             this.vdpRAM[this.WP + i] = 0;
@@ -191,7 +260,7 @@ export class F18AGPU implements CPU {
         return bStatusLookup;
     }
 
-    run(cyclesToRun): number {
+    run(cyclesToRun: number): number {
         const startPC = this.PC;
         const startCycles = this.cycles;
         while (!this.cpuIdle && this.cycles - startCycles < cyclesToRun) {
@@ -217,13 +286,13 @@ export class F18AGPU implements CPU {
         this.run(this.cyclesRemaining);
     }
 
-    execute(instruction) {
-        const opcode = this.decoderTable[instruction];
+    execute(instruction: number): number {
+        const opcode: Opcode = this.decoderTable[instruction];
         if (opcode) {
             let cycles = this.decodeOperands(opcode, instruction);
-            const cycles2 = this[opcode.id.toLowerCase()].call(this);
-            if (cycles2 !== null) {
-                cycles += cycles2;
+            const f = this.instructions[opcode.id];
+            if (f) {
+                cycles += f.call(this);
             } else {
                 this.log.info(Util.toHexWord((this.PC - 2) & 0xFFFF) + " " + Util.toHexWord(instruction) + " " + opcode.id + ": GPU Not implemented");
             }
@@ -245,7 +314,7 @@ export class F18AGPU implements CPU {
         this.cpuIdle = idle;
     }
 
-    getPC() {
+    getPC(): number {
         return this.PC;
     }
 
@@ -266,15 +335,11 @@ export class F18AGPU implements CPU {
         this.PC = (this.PC + value) & 0xFFFF;
     }
 
-    getST() {
-        return this.ST;
-    }
-
     addCycles(value) {
         this.cycles += value;
     }
 
-    decodeOperands(opcode, instr) {
+    decodeOperands(opcode: Opcode, instr) {
         let cycles = 0;
         switch (opcode.format) {
             case 1:
@@ -353,7 +418,7 @@ export class F18AGPU implements CPU {
     // '4' in order to skip unneeded processing of the Destination address
     //////////////////////////////////////////////////////////////////////////
 
-    fixS() {
+    fixS(): number {
         let cycles = 0;
         let temp, t2;
         // source type
@@ -392,7 +457,7 @@ export class F18AGPU implements CPU {
         return cycles;
     }
 
-    fixD() {
+    fixD(): number {
         let cycles = 0;
         let temp, t2;
         // destination type
@@ -429,9 +494,10 @@ export class F18AGPU implements CPU {
                 cycles += this.B === 1 ? 6 : 8;
                 break;
         }
+        return cycles;
     }
 
-    postIncrement(nWhich) {
+    postIncrement(nWhich: number) {
         if (this.nPostInc[nWhich]) {
             const i = this.nPostInc[nWhich] & 0xf;
             const t2 = this.WP + (i << 1);
@@ -445,12 +511,12 @@ export class F18AGPU implements CPU {
         }
     }
 
-    writeMemoryWord(addr, w) {
+    writeMemoryWord(addr: number, w: number) {
         this.writeMemoryByte(addr, (w & 0xFF00) >> 8);
         this.writeMemoryByte(addr + 1, w & 0x00FF);
     }
 
-    writeMemoryByte(addr, b) {
+    writeMemoryByte(addr: number, b: number) {
         // GPU register
         if (addr >= this.WP) {
             this.vdpRAM[addr] = b;
@@ -533,11 +599,11 @@ export class F18AGPU implements CPU {
         }
     }
 
-    readMemoryWord(addr) {
+    readMemoryWord(addr: number): number {
         return (this.readMemoryByte(addr) << 8) | this.readMemoryByte(addr + 1);
     }
 
-    readMemoryByte(addr) {
+    readMemoryByte(addr: number): number {
         // GPU register
         if (addr >= this.WP) {
             return this.vdpRAM[addr];
@@ -582,7 +648,7 @@ export class F18AGPU implements CPU {
         } else if (addr < 0xA000) {
             return 0;
         } else if (addr < 0xB000) {
-            return F18A.VERSION;
+            return this.f18a.getVersion();
         } else if (addr < 0xC000) {
             // Write only
             return 0;
@@ -591,7 +657,7 @@ export class F18AGPU implements CPU {
     }
 
     // Load Immediate: LI src, imm
-    li() {
+    li(): number {
         this.writeMemoryWord(this.D, this.S);
         this.resetLGT_AGT_EQ();
         this.ST |= this.wStatusLookup[this.S] & this.maskLGT_AGT_EQ;
@@ -599,7 +665,7 @@ export class F18AGPU implements CPU {
     }
 
     // Add Immediate: AI src, imm
-    ai() {
+    ai(): number {
         const x1 = this.readMemoryWord(this.D);
 
         const x3 = (x1 + this.S) & 0xFFFF;
@@ -615,7 +681,7 @@ export class F18AGPU implements CPU {
     }
 
     // AND Immediate: ANDI src, imm
-    andi() {
+    andi(): number {
         const x1 = this.readMemoryWord(this.D);
         const x2 = x1 & this.S;
         this.writeMemoryWord(this.D, x2);
@@ -627,7 +693,7 @@ export class F18AGPU implements CPU {
     }
 
     // OR Immediate: ORI src, imm
-    ori() {
+    ori(): number {
         const x1 = this.readMemoryWord(this.D);
         const x2 = x1 | this.S;
         this.writeMemoryWord(this.D, x2);
@@ -639,7 +705,7 @@ export class F18AGPU implements CPU {
     }
 
     // Compare Immediate: CI src, imm
-    ci() {
+    ci(): number {
         const x3 = this.readMemoryWord(this.D);
 
         this.resetLGT_AGT_EQ();
@@ -654,89 +720,43 @@ export class F18AGPU implements CPU {
         return 14;
     }
 
-    // STore Workspace Pointer: STWP src
-    // Copy the workspace pointer to memory
-    stwp() {
-        // Not implemented
-        return null;
-    }
-
     // STore STatus: STST src
     // Copy the status register to memory
-    stst() {
+    stst(): number {
         this.writeMemoryWord(this.D, this.ST);
         return 8;
     }
 
-    // Load Workspace Pointer Immediate: LWPI imm
-    // changes the Workspace Pointer
-    lwpi() {
-        // Not implemented
-        return null;
-    }
-
-    // Load Interrupt Mask Immediate: LIMI imm
-    // Sets the CPU interrupt mask
-    limi() {
-        return null;
-        // Not implemented
-    }
-
     // This sets A0-A2 to 010, and pulses CRUCLK until an interrupt is received.
-    idle() {
+    idle(): number {
         this.setIdle(true);
         return 10;
-    }
-
-    // This will set A0-A2 to 011 and pulse CRUCLK (so not emulated)
-    // However, it does have an effect, it zeros the interrupt mask
-    rset() {
-        // Not implemented
-        return null;
     }
 
     // ReTurn with Workspace Pointer: RTWP
     // The matching return for BLWP, see BLWP for description
     // F18A Modified, does not use R13, only performs R14->PC, R15->status flags
-    rtwp() {
+    rtwp(): number {
         this.ST = this.readMemoryWord(this.WP + 30); // R15
         this.PC = this.readMemoryWord(this.WP + 28); // R14
         return 14;
     }
 
     // This is the SPI_EN instruction of the F18A GPU
-    ckon() {
+    ckon(): number {
         this.flash.enable();
         return 10;
     }
 
     // This is the SPI_DS instruction of the F18A GPU
-    ckof() {
+    ckof(): number {
         this.flash.disable();
         return 10;
     }
 
-    // This will set A0-A2 to 111 and pulse CRUCLK
-    lrex() {
-        // Not implemented
-        return null;
-    }
-
-    // Branch and Load Workspace Pointer: BLWP src
-    // A context switch. The src address points to a 2 word table.
-    // the first word is the new workspace address, the second is
-    // the address to branch to. The current Workspace Pointer,
-    // Program Counter (return address), and Status register are
-    // stored in the new R13, R14 and R15, respectively
-    // Return is performed with RTWP
-    blwp() {
-        // Not implemented
-        return null;
-    }
-
     // Branch: B src
     // Unconditional absolute branch
-    b() {
+    b(): number {
         this.PC = this.S;
         this.postIncrement(this.SRC);
         return 8;
@@ -744,7 +764,7 @@ export class F18AGPU implements CPU {
 
     // eXecute: X src
     // The argument is interpreted as an instruction and executed
-    x() {
+    x(): number {
         if (this.flagX !== 0) {
             this.log.info("Recursive X instruction!");
         }
@@ -763,14 +783,14 @@ export class F18AGPU implements CPU {
 
     // CLeaR: CLR src
     // sets word to 0
-    clr() {
+    clr(): number {
         this.writeMemoryWord(this.S, 0);
         this.postIncrement(this.SRC);
         return 10;
     }
 
     // NEGate: NEG src
-    neg() {
+    neg(): number {
         let x1 = this.readMemoryWord(this.S);
 
         x1 = ((~x1) + 1) & 0xFFFF;
@@ -784,7 +804,7 @@ export class F18AGPU implements CPU {
     }
 
     // INVert: INV src
-    inv() {
+    inv(): number {
         let x1 = this.readMemoryWord(this.S);
         x1 = (~x1) & 0xFFFF;
         this.writeMemoryWord(this.S, x1);
@@ -797,7 +817,7 @@ export class F18AGPU implements CPU {
     }
 
     // INCrement: INC src
-    inc() {
+    inc(): number {
         let x1 = this.readMemoryWord(this.S);
 
         x1 = (x1 + 1) & 0xFFFF;
@@ -811,7 +831,7 @@ export class F18AGPU implements CPU {
     }
 
     // INCrement by Two: INCT src
-    inct() {
+    inct(): number {
         let x1 = this.readMemoryWord(this.S);
 
         x1 = (x1 + 2) & 0xFFFF;
@@ -828,7 +848,7 @@ export class F18AGPU implements CPU {
     }
 
     // DECrement: DEC src
-    dec() {
+    dec(): number {
         let x1 = this.readMemoryWord(this.S);
 
         x1 = (x1 - 1) & 0xFFFF;
@@ -845,7 +865,7 @@ export class F18AGPU implements CPU {
     }
 
     // DECrement by Two: DECT src
-    dect() {
+    dect(): number {
         let x1 = this.readMemoryWord(this.S);
 
         x1 = (x1 - 2) & 0xFFFF;
@@ -862,7 +882,7 @@ export class F18AGPU implements CPU {
         return 10;
     }
 
-    bl() {
+    bl(): number {
         // Branch and Link: BL src
         // Essentially a subroutine jump - return address is stored in R11
         // Note there is no stack, and no official return function.
@@ -877,7 +897,7 @@ export class F18AGPU implements CPU {
 
     // SWaP Bytes: SWPB src
     // swap the high and low bytes of a word
-    swpb() {
+    swpb(): number {
         const x1 = this.readMemoryWord(this.S);
 
         const x2 = ((x1 & 0xff) << 8) | (x1 >> 8);
@@ -889,7 +909,7 @@ export class F18AGPU implements CPU {
 
     // SET to One: SETO src
     // sets word to 0xffff
-    seto() {
+    seto(): number {
         this.writeMemoryWord(this.S, 0xffff);
         this.postIncrement(this.SRC);
 
@@ -897,7 +917,7 @@ export class F18AGPU implements CPU {
     }
 
     // ABSolute value: ABS src
-    abs() {
+    abs(): number {
         let cycles = 0;
         const x1 = this.readMemoryWord(this.S);
 
@@ -918,7 +938,7 @@ export class F18AGPU implements CPU {
     // For the shift instructions, a count of '0' means use the
     // value in register 0. If THAT is zero, the count is 16.
     // The arithmetic operations preserve the sign bit
-    sra() {
+    sra(): number {
         let cycles = 0;
         if (this.D === 0) {
             this.D = this.readMemoryWord(this.WP) & 0xf;
@@ -946,7 +966,7 @@ export class F18AGPU implements CPU {
 
     // Shift Right Logical: SRL src, dst
     // The logical shifts do not preserve the sign
-    srl() {
+    srl(): number {
         let cycles = 0;
         if (this.D === 0) {
             this.D = this.readMemoryWord(this.WP) & 0xf;
@@ -971,7 +991,7 @@ export class F18AGPU implements CPU {
     }
 
     // Shift Left Arithmetic: SLA src, dst
-    sla() {
+    sla(): number {
         let cycles = 0;
         if (this.D === 0) {
             this.D = this.readMemoryWord(this.WP) & 0xf;
@@ -1002,7 +1022,7 @@ export class F18AGPU implements CPU {
     // Circular shifts pop bits off one end and onto the other
     // The carry bit is not a part of these shifts, but it set
     // as appropriate
-    src() {
+    src(): number {
         let cycles = 0;
         if (this.D === 0) {
             this.D = this.readMemoryWord(this.WP) & 0xf;
@@ -1030,7 +1050,7 @@ export class F18AGPU implements CPU {
 
     // JuMP: JMP dsp
     // (unconditional)
-    jmp() {
+    jmp(): number {
         if (this.flagX !== 0) {
             this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
         }
@@ -1044,7 +1064,7 @@ export class F18AGPU implements CPU {
     }
 
     // Jump if Less Than: JLT dsp
-    jlt() {
+    jlt(): number {
         if (this.getAGT() === 0 && this.getEQ() === 0) {
             if (this.flagX !== 0) {
                 this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
@@ -1063,7 +1083,7 @@ export class F18AGPU implements CPU {
     }
 
     // Jump if Low or Equal: JLE dsp
-    jle() {
+    jle(): number {
         if ((this.getLGT() === 0) || (this.getEQ() !== 0)) {
             if (this.flagX !== 0) {
                 this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
@@ -1084,7 +1104,7 @@ export class F18AGPU implements CPU {
     // Jump if equal: JEQ dsp
     // Conditional relative branch. The displacement is a signed byte representing
     // the number of words to branch
-    jeq() {
+    jeq(): number {
         if (this.getEQ() !== 0) {
             if (this.flagX !== 0) {
                 this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
@@ -1103,7 +1123,7 @@ export class F18AGPU implements CPU {
     }
 
     // Jump if High or Equal: JHE dsp
-    jhe() {
+    jhe(): number {
         if ((this.getLGT() !== 0) || (this.getEQ() !== 0)) {
             if (this.flagX !== 0) {
                 this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
@@ -1122,7 +1142,7 @@ export class F18AGPU implements CPU {
     }
 
     // Jump if Greater Than: JGT dsp
-    jgt() {
+    jgt(): number {
         if (this.getAGT() !== 0) {
             if (this.flagX !== 0) {
                 this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
@@ -1141,7 +1161,7 @@ export class F18AGPU implements CPU {
    }
 
     // Jump if Not Equal: JNE dsp
-    jne() {
+    jne(): number {
         if (this.getEQ() === 0) {
             if (this.flagX !== 0) {
                 this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
@@ -1159,7 +1179,7 @@ export class F18AGPU implements CPU {
     }
 
     // Jump if No Carry: JNC dsp
-    jnc() {
+    jnc(): number {
         if (this.getC() === 0) {
             if (this.flagX !== 0) {
                 this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
@@ -1178,7 +1198,7 @@ export class F18AGPU implements CPU {
     }
 
     // Jump On Carry: JOC dsp
-    joc() {
+    joc(): number {
         if (this.getC() !== 0) {
             if (this.flagX !== 0) {
                 this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
@@ -1197,7 +1217,7 @@ export class F18AGPU implements CPU {
     }
 
     // Jump if No Overflow: JNO dsp
-    jno() {
+    jno(): number {
         if (this.getOV() === 0) {
             if (this.flagX !== 0) {
                 this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
@@ -1215,7 +1235,7 @@ export class F18AGPU implements CPU {
         }
     }
 
-    jl() {
+    jl(): number {
         if ((this.getLGT() === 0) && (this.getEQ() === 0)) {
             if (this.flagX !== 0) {
                 this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
@@ -1234,7 +1254,7 @@ export class F18AGPU implements CPU {
     }
 
     // Jump if High: JH dsp
-    jh() {
+    jh(): number {
         if ((this.getLGT() !== 0) && (this.getEQ() === 0)) {
             if (this.flagX !== 0) {
                 this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
@@ -1253,7 +1273,7 @@ export class F18AGPU implements CPU {
     }
 
     // Jump on Odd Parity: JOP dsp
-    jop() {
+    jop(): number {
         if (this.getOP() !== 0) {
             if (this.flagX !== 0) {
                 this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
@@ -1271,64 +1291,46 @@ export class F18AGPU implements CPU {
         }
     }
 
-    // Set Bit On: SBO src
-    // Sets a bit in the CRU
-    sbo() {
-        return null;
-    }
-
-    // Set Bit Zero: SBZ src
-    // Zeros a bit in the CRU
-    sbz() {
-        return null;
-    }
-
-    // Test Bit: TB src
-    // Tests a CRU bit
-    tb() {
-        return null;
-    }
-
     // Compare Ones Corresponding: COC src, dst
     // Basically comparing against a mask, if all set bits in the src match
     // set bits in the dest (mask), the equal bit is set
-    coc() {
+    coc(): number {
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD()();
         const x2 = this.readMemoryWord(this.D);
 
         const x3 = x1 & x2;
 
         if (x3 === x1) { this.setEQ(); } else { this.resetEQ(); }
 
-        return 14;
+        return cycles + 14;
     }
 
     // Compare Zeros Corresponding: CZC src, dst
     // The opposite of COC. Each set bit in the dst (mask) must
     // match up with a zero bit in the src to set the equals flag
-    czc() {
+    czc(): number {
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
 
         const x3 = x1 & x2;
 
         if (x3 === 0) { this.setEQ(); } else { this.resetEQ(); }
 
-        return 14;
+        return cycles + 14;
     }
 
     // eXclusive OR: XOR src, dst
-    xor() {
+    xor(): number {
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
 
         const x3 = (x1 ^ x2) & 0xFFFF;
@@ -1337,7 +1339,7 @@ export class F18AGPU implements CPU {
         this.resetLGT_AGT_EQ();
         this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
 
-        return 14;
+        return cycles + 14;
     }
 
     // eXtended OPeration: XOP src ???
@@ -1362,7 +1364,7 @@ export class F18AGPU implements CPU {
     //     0 = only write PP if current pixel is not equal to OO
     // OO - pixel to compare to existing pixel
     // PP - new pixel to write, and previous pixel when reading
-    xop() {
+    xop(): number {
         this.D = this.WP + (this.D << 1);
         const x1 = this.readMemoryWord(this.S);
         let x2 = this.readMemoryWord(this.D);
@@ -1433,14 +1435,14 @@ export class F18AGPU implements CPU {
     }
 
     // This is the SPI_OUT instruction of the F18A GPU
-    ldcr() {
+    ldcr(): number {
         this.flash.writeByte(this.readMemoryByte(this.S));
         this.postIncrement(this.SRC);
         return 10;
     }
 
     // This is the SPI_IN instruction of the F18A GPU
-    stcr() {
+    stcr(): number {
         this.writeMemoryByte(this.S, this.flash.readByte());
         this.postIncrement(this.SRC);
         return 10;
@@ -1449,7 +1451,7 @@ export class F18AGPU implements CPU {
     // MultiPlY: MPY src, dst
     // Multiply src by dest and store 32-bit result
     // Note: src and dest are unsigned.
-    mpy() {
+    mpy(): number {
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
@@ -1465,7 +1467,7 @@ export class F18AGPU implements CPU {
     // DIVide: DIV src, dst
     // Dest, a 2 word number, is divided by src. The result is stored as two words at the dst:
     // the first is the whole number result, the second is the remainder
-    div() {
+    div(): number {
         const x2 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
@@ -1488,11 +1490,11 @@ export class F18AGPU implements CPU {
 
     // Set Zeros Corresponding: SZC src, dst
     // Zero all bits in dest that are zeroed in src
-    szc() {
+    szc(): number {
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
         const x3 = (~x1) & x2;
         this.writeMemoryWord(this.D, x3);
@@ -1501,15 +1503,15 @@ export class F18AGPU implements CPU {
         this.resetLGT_AGT_EQ();
         this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
 
-        return 14;
+        return cycles + 14;
     }
 
     // Set Zeros Corresponding, Byte: SZCB src, dst
-    szcb() {
+    szcb(): number {
         const x1 = this.readMemoryByte(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryByte(this.D);
         const x3 = (~x1) & x2;
         this.writeMemoryByte(this.D, x3);
@@ -1518,15 +1520,15 @@ export class F18AGPU implements CPU {
         this.resetLGT_AGT_EQ_OP();
         this.ST |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;
 
-        return 14;
+        return cycles + 14;
     }
 
     // Subtract: S src, dst
-    s() {
+    s(): number {
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
         const x3 = (x2 - x1) & 0xFFFF;
         this.writeMemoryWord(this.D, x3);
@@ -1540,15 +1542,15 @@ export class F18AGPU implements CPU {
         if ((x3 < x2) || (x1 === 0)) { this.setC(); }
         if (((x1 & 0x8000) !== (x2 & 0x8000)) && ((x3 & 0x8000) !== (x2 & 0x8000))) { this.setOV(); }
 
-        return 14;
+        return cycles + 14;
     }
 
     // Subtract Byte: SB src, dst
-    sb() {
+    sb(): number {
         const x1 = this.readMemoryByte(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryByte(this.D);
         const x3 = (x2 - x1) & 0xFF;
         this.writeMemoryByte(this.D, x3);
@@ -1562,15 +1564,15 @@ export class F18AGPU implements CPU {
         if ((x3 < x2) || (x1 === 0)) { this.setC(); }
         if (((x1 & 0x80) !== (x2 & 0x80)) && ((x3 & 0x80) !== (x2 & 0x80))) { this.setOV(); }
 
-        return 14;
+        return cycles + 14;
     }
 
     // Compare words: C src, dst
-    c() {
+    c(): number {
         const x3 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x4 = this.readMemoryWord(this.D);
         this.postIncrement(this.DST);
 
@@ -1582,15 +1584,15 @@ export class F18AGPU implements CPU {
         } else {
             if ((x4 & 0x8000) !== 0) { this.setAGT(); }
         }
-        return 14;
+        return cycles + 14;
     }
 
     // CompareBytes: CB src, dst
-    cb() {
+    cb(): number {
         const x3 = this.readMemoryByte(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x4 = this.readMemoryByte(this.D);
         this.postIncrement(this.DST);
 
@@ -1604,15 +1606,15 @@ export class F18AGPU implements CPU {
         }
         this.ST |= this.bStatusLookup[x3] & this.BIT_OP;
 
-        return 14;
+        return cycles + 14;
     }
 
     // Add words: A src, dst
-    a() {
+    a(): number {
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
         const x3 = (x2 + x1) & 0xFFFF;
         this.writeMemoryWord(this.D, x3);
@@ -1624,15 +1626,15 @@ export class F18AGPU implements CPU {
         if (x3 < x2) { this.setC(); }	// if it wrapped around, set carry
         if (((x1 & 0x8000) === (x2 & 0x8000)) && ((x3 & 0x8000) !== (x2 & 0x8000))) { this.setOV(); } // if it overflowed or underflowed (signed math), set overflow
 
-        return 14;
+        return cycles + 14;
     }
 
     // Add bytes: A src, dst
-    ab() {
+    ab(): number {
         const x1 = this.readMemoryByte(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryByte(this.D);
         const x3 = (x2 + x1) & 0xFF;
         this.writeMemoryByte(this.D, x3);
@@ -1644,14 +1646,14 @@ export class F18AGPU implements CPU {
         if (x3 < x2) { this.setC(); }	// if it wrapped around, set carry
         if (((x1 & 0x80) === (x2 & 0x80)) && ((x3 & 0x80) !== (x2 & 0x80))) { this.setOV(); }  // if it overflowed or underflowed (signed math), set overflow
 
-        return 14;
+        return cycles + 14;
     }
 
     // MOVe words: MOV src, dst
-    mov() {
+    mov(): number {
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
-        this.fixD();
+        const cycles = this.fixD();
 
         this.writeMemoryWord(this.D, x1);
         this.postIncrement(this.DST);
@@ -1659,32 +1661,32 @@ export class F18AGPU implements CPU {
         this.resetLGT_AGT_EQ();
         this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
 
-        return 14;
+        return cycles + 14;
     }
 
     // MOVe Bytes: MOVB src, dst
-    movb() {
+    movb(): number {
         const x1 = this.readMemoryByte(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         this.writeMemoryByte(this.D, x1);
         this.postIncrement(this.DST);
 
         this.resetLGT_AGT_EQ_OP();
         this.ST |= this.bStatusLookup[x1] & this.maskLGT_AGT_EQ_OP;
 
-        return 14;
+        return cycles + 14;
     }
 
     // Set Ones Corresponding: SOC src, dst
     // Essentially performs an OR - setting all the bits in dst that
     // are set in src
-    soc() {
+    soc(): number {
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
         const x3 = x1 | x2;
         this.writeMemoryWord(this.D, x3);
@@ -1693,14 +1695,14 @@ export class F18AGPU implements CPU {
         this.resetLGT_AGT_EQ();
         this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
 
-        return 14;
+        return cycles + 14;
     }
 
-    socb() {
+    socb(): number {
         const x1 = this.readMemoryByte(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryByte(this.D);
         const x3 = x1 | x2;
         this.writeMemoryByte(this.D, x3);
@@ -1709,12 +1711,12 @@ export class F18AGPU implements CPU {
         this.resetLGT_AGT_EQ_OP();
         this.ST |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;
 
-        return 14;
+        return cycles + 14;
     }
 
     // F18A specific opcodes
 
-    call() {
+    call(): number {
         let x2 = this.readMemoryWord(this.WP + 30);	// get R15
         this.writeMemoryWord(x2, this.PC);
         this.PC = this.S;
@@ -1724,7 +1726,7 @@ export class F18AGPU implements CPU {
         return 8;
     }
 
-    ret() {
+    ret(): number {
         let x1 = this.readMemoryWord(this.WP + 30); // get R15
         x1 += 2;
         this.PC = this.readMemoryWord(x1);          // get PC
@@ -1732,7 +1734,7 @@ export class F18AGPU implements CPU {
         return 8;
     }
 
-    push() {
+    push(): number {
         const x1 = this.readMemoryWord(this.S);
         let x2 = this.readMemoryWord(this.WP + 30); // get R15
         this.writeMemoryWord(x2, x1);               // Push the word on the stack
@@ -1742,7 +1744,7 @@ export class F18AGPU implements CPU {
         return 8;
     }
 
-    slc() {
+    slc(): number {
         let cycles = 0;
         if (this.D === 0) {
             this.D = this.readMemoryWord(this.WP) & 0xf;
@@ -1768,7 +1770,7 @@ export class F18AGPU implements CPU {
         return cycles + 12 + 2 * this.D;
     }
 
-    pop() {
+    pop(): number {
         let x2 = this.readMemoryWord(this.WP + 30);	// get R15
         // POP the word from the stack
         // the stack pointer post-decrements (per Matthew)
@@ -1817,11 +1819,11 @@ export class F18AGPU implements CPU {
         this.log.info(this.getRegsString() + this.getInternalRegsString());
     }
 
-    getInternalRegsString() {
+    getInternalRegsString(): string {
         return "PC: " + Util.toHexWord(this.PC) + " ST: " + Util.toHexWord(this.ST);
     }
 
-    getRegsString() {
+    getRegsString(): string {
         let s = "";
         for (let i = 0; i < 16; i++) {
             s += "R" + i + ":" + Util.toHexWord(this.readMemoryWord(this.WP + 2 * i)) + " ";
@@ -1829,7 +1831,7 @@ export class F18AGPU implements CPU {
         return s;
     }
 
-    getRegsStringFormatted() {
+    getRegsStringFormatted(): string {
         let s = "";
         for (let i = 0; i < 16; i++) {
             s += "R" + i + (i < 10 ? " " : "") + ":" + Util.toHexWord(this.readMemoryWord(this.WP + 2 * i)) + (i % 4 === 3 ? "\n" : " ");
@@ -1837,15 +1839,15 @@ export class F18AGPU implements CPU {
         return s;
     }
 
-    getBreakpoint() {
+    getBreakpoint(): number {
         return this.breakpoint;
     }
 
-    setBreakpoint(addr) {
+    setBreakpoint(addr: number) {
         this.breakpoint = addr;
     }
 
-    setOtherBreakpoint(addr) {
+    setOtherBreakpoint(addr: number) {
         this.otherBreakpoint = addr;
     }
 
@@ -1865,7 +1867,7 @@ export class F18AGPU implements CPU {
         return binArray;
     }
 
-    getState() {
+    getState(): object {
         return {
             cpuIdle: this.cpuIdle,
             PC: this.PC,
@@ -1881,7 +1883,7 @@ export class F18AGPU implements CPU {
         };
     }
 
-    restoreState(state) {
+    restoreState(state: any) {
         this.vdpRAM = this.f18a.getRAM();
         this.cpuIdle = state.cpuIdle;
         this.PC = state.PC;

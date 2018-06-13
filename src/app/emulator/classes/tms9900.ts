@@ -5,7 +5,7 @@ import {Memory} from './memory';
 import {Log} from '../../classes/log';
 import {DiskDrive} from './disk';
 import {GoogleDrive} from './googledrive';
-import {Decoder} from '../../classes/decoder';
+import {Decoder, Opcode} from '../../classes/decoder';
 import {CPU} from '../interfaces/cpu';
 import {TI994A} from './ti994a';
 
@@ -63,6 +63,78 @@ export class TMS9900 implements CPU {
     private decoderTable = Decoder.getDecoderTable();
     private wStatusLookup = this.buildWStatusLookupTable();
     private bStatusLookup = this.buildBStatusLookupTable();
+
+    private instructions: {[key: string]: () => number } = {
+        LI: this.li,
+        AI: this.ai,
+        ANDI: this.andi,
+        ORI: this.ori,
+        CI: this.ci,
+        STWP: this.stwp,
+        STST: this.stst,
+        LWPI: this.lwpi,
+        LIMI: this.limi,
+        IDLE: this.idle,
+        RSET: this.rset,
+        RTWP: this.rtwp,
+        CKON: undefined,
+        CKOF: undefined,
+        LREX: undefined,
+        BLWP: this.blwp,
+        B: this.b,
+        X: this.x,
+        CLR: this.clr,
+        NEG: this.neg,
+        INV: this.inv,
+        INC: this.inc,
+        INCT: this.inct,
+        DEC: this.dec,
+        DECT: this.dect,
+        BL: this.bl,
+        SWPB: this.swpb,
+        SETO: this.seto,
+        ABS: this.abs,
+        SRA: this.sra,
+        SRL: this.srl,
+        SLA: this.sla,
+        SRC: this.src,
+        JMP: this.jmp,
+        JLT: this.jlt,
+        JLE: this.jle,
+        JEQ: this.jeq,
+        JHE: this.jhe,
+        JGT: this.jgt,
+        JNE: this.jne,
+        JNC: this.jnc,
+        JOC: this.joc,
+        JNO: this.jno,
+        JL: this.jl,
+        JH: this.jh,
+        JOP: this.jop,
+        SBO: this.sbo,
+        SBZ: this.sbz,
+        TB: this.tb,
+        COC: this.coc,
+        CZC: this.czc,
+        XOR: this.xor,
+        XOP: this.xop,
+        LDCR: this.ldcr,
+        STCR: this.stcr,
+        MPY: this.mpy,
+        DIV: this.div,
+        SZC: this.szc,
+        SZCB: this.szcb,
+        S: this.s,
+        SB: this.sb,
+        C: this.c,
+        CB: this.cb,
+        A: this.a,
+        AB: this.ab,
+        MOV: this.mov,
+        MOVB: this.movb,
+        SOC: this.soc,
+        SOCB: this.socb
+    };
 
     // Misc
     private suspended: boolean;
@@ -152,7 +224,7 @@ export class TMS9900 implements CPU {
         return bStatusLookup;
     }
 
-    run(cyclesToRun) {
+    run(cyclesToRun: number): number {
         const startPC = this.PC;
         const startCycles = this.cycles;
         const countStartPC = -1; // 0xA086;
@@ -234,30 +306,30 @@ export class TMS9900 implements CPU {
         return (this.cycles - startCycles) - cyclesToRun;
     }
 
-    execute(instruction) {
-        const opcode = this.decoderTable[instruction];
+    execute(instruction: number): number {
+        const opcode: Opcode = this.decoderTable[instruction];
         if (opcode && opcode.original) {
             let cycles = this.decodeOperands(opcode, instruction);
-            const cycles2 = this[opcode.id.toLowerCase()].call(this);
-            if (cycles2 !== null) {
-                cycles += cycles2;
+            const f: () => number = this.instructions[opcode.id];
+            if (f) {
+                cycles += f.call(this);
+                if (TMS9900.PROFILE) {
+                    this.profile[(this.PC - 2) & 0xFFFF] += cycles;
+                }
             } else {
-                this.log.info(Util.toHexWord((this.PC - 2) & 0xFFFF) + " " + instruction.toHexWord() + " " + opcode.id + ": Not implemented");
-            }
-            if (TMS9900.PROFILE) {
-                this.profile[(this.PC - 2) & 0xFFFF] += cycles;
+                this.log.info(Util.toHexWord((this.PC - 2) & 0xFFFF) + " " + Util.toHexWord(instruction) + " " + opcode.id + ": Not implemented");
             }
             return cycles;
         } else {
             if (this.illegalCount < 256) {
-                this.log.info(Util.toHexWord((this.PC - 2) & 0xFFFF) + " " + instruction.toHexWord() + ": Illegal" + (this.illegalCount === 255 ? " (suppressing further messages)" : ""));
+                this.log.info(Util.toHexWord((this.PC - 2) & 0xFFFF) + " " + Util.toHexWord(instruction) + ": Illegal" + (this.illegalCount === 255 ? " (suppressing further messages)" : ""));
             }
             this.illegalCount++;
             return 10;
         }
     }
 
-    getPC() {
+    getPC(): number {
         return this.PC;
     }
 
@@ -279,7 +351,7 @@ export class TMS9900 implements CPU {
         this.setPC(this.PC + value);
     }
 
-    getWP() {
+    getWP(): number {
         return this.WP;
     }
 
@@ -287,11 +359,7 @@ export class TMS9900 implements CPU {
         this.WP = value & 0xFFFE;
     }
 
-    getST() {
-        return this.ST;
-    }
-
-    getInterruptMask() {
+    getInterruptMask(): number {
         return this.ST & 0x000F;
     }
 
@@ -303,7 +371,7 @@ export class TMS9900 implements CPU {
         return this.cycles;
     }
 
-    decodeOperands(opcode, instr) {
+    decodeOperands(opcode: Opcode, instr) {
         let cycles = 0;
         switch (opcode.format) {
             case 1:
@@ -382,7 +450,7 @@ export class TMS9900 implements CPU {
     // '4' in order to skip unneeded processing of the Destination address
     //////////////////////////////////////////////////////////////////////////
 
-    fixS() {
+    fixS(): number {
         let cycles = 0;
         let temp, t2;
         // source type
@@ -421,7 +489,7 @@ export class TMS9900 implements CPU {
         return cycles;
     }
 
-    fixD() {
+    fixD(): number {
         let cycles = 0;
         let temp, t2;
         // destination type
@@ -458,9 +526,10 @@ export class TMS9900 implements CPU {
                 cycles += this.B === 1 ? 6 : 8;
                 break;
         }
+        return cycles;
     }
 
-    postIncrement(nWhich) {
+    postIncrement(nWhich: number) {
         if (this.nPostInc[nWhich]) {
             const i = this.nPostInc[nWhich] & 0xf;
             const t2 = this.WP + (i << 1);
@@ -474,21 +543,21 @@ export class TMS9900 implements CPU {
         }
     }
 
-    writeMemoryWord(addr, w) {
+    writeMemoryWord(addr: number, w: number) {
         this.memory.readWord(addr, this); // Read before write
         this.memory.writeWord(addr, w, this);
     }
 
-    writeMemoryByte(addr, b) {
+    writeMemoryByte(addr: number, b: number) {
         const w = this.memory.readWord(addr, this); // Read before write
         this.memory.writeWord(addr, (addr & 1) !== 0 ? (w & 0xFF00) | b : (w & 0x00FF) | (b << 8), this);
     }
 
-    readMemoryWord(addr): number {
+    readMemoryWord(addr: number): number {
         return this.memory.readWord(addr, this);
     }
 
-    readMemoryByte(addr): number {
+    readMemoryByte(addr: number): number {
         const w = this.memory.readWord(addr, this);
         return (addr & 1) !== 0 ? w & 0x00FF : (w & 0xFF00) >> 8;
     }
@@ -497,11 +566,11 @@ export class TMS9900 implements CPU {
         return this.cru.readBit(addr);
     }
 
-    writeCruBit(addr, bool) {
+    writeCruBit(addr: number, bool: boolean) {
         this.cru.writeBit(addr, bool);
     }
 
-    doInterrupt(vector) {
+    doInterrupt(vector: number): number {
         const newWP = this.readMemoryWord(vector);
         const newPC = this.readMemoryWord(vector + 2);
 
@@ -517,7 +586,7 @@ export class TMS9900 implements CPU {
     }
 
     // Load Immediate: LI src, imm
-    li() {
+    li(): number {
         this.writeMemoryWord(this.D, this.S);
         this.resetLGT_AGT_EQ();
         this.ST |= this.wStatusLookup[this.S] & this.maskLGT_AGT_EQ;
@@ -525,7 +594,7 @@ export class TMS9900 implements CPU {
     }
 
     // Add Immediate: AI src, imm
-    ai() {
+    ai(): number {
         const x1 = this.readMemoryWord(this.D);
 
         const x3 = (x1 + this.S) & 0xFFFF;
@@ -541,7 +610,7 @@ export class TMS9900 implements CPU {
     }
 
     // AND Immediate: ANDI src, imm
-    andi() {
+    andi(): number {
         const x1 = this.readMemoryWord(this.D);
         const x2 = x1 & this.S;
         this.writeMemoryWord(this.D, x2);
@@ -553,7 +622,7 @@ export class TMS9900 implements CPU {
     }
 
     // OR Immediate: ORI src, imm
-    ori() {
+    ori(): number {
         const x1 = this.readMemoryWord(this.D);
         const x2 = x1 | this.S;
         this.writeMemoryWord(this.D, x2);
@@ -565,7 +634,7 @@ export class TMS9900 implements CPU {
     }
 
     // Compare Immediate: CI src, imm
-    ci() {
+    ci(): number {
         const x3 = this.readMemoryWord(this.D);
 
         this.resetLGT_AGT_EQ();
@@ -582,69 +651,51 @@ export class TMS9900 implements CPU {
 
     // STore Workspace Pointer: STWP src
     // Copy the workspace pointer to memory
-    stwp() {
+    stwp(): number {
         this.writeMemoryWord(this.D, this.WP);
         return 8;
     }
 
     // STore STatus: STST src
     // Copy the status register to memory
-    stst() {
+    stst(): number {
         this.writeMemoryWord(this.D, this.ST);
         return 8;
     }
 
     // Load Workspace Pointer Immediate: LWPI imm
     // changes the Workspace Pointer
-    lwpi() {
+    lwpi(): number {
         this.setWP(this.S);
         return 10;
     }
 
     // Load Interrupt Mask Immediate: LIMI imm
     // Sets the CPU interrupt mask
-    limi() {
+    limi(): number {
         this.ST = (this.ST & 0xfff0) | (this.S & 0xf);
         return 16;
     }
 
     // This sets A0-A2 to 010, and pulses CRUCLK until an interrupt is received.
-    idle() {
+    idle(): number {
         return TMS9900.CYCLES_PER_FRAME - this.cycles % TMS9900.CYCLES_PER_FRAME;
     }
 
     // This will set A0-A2 to 011 and pulse CRUCLK (so not emulated)
     // However, it does have an effect, it zeros the interrupt mask
-    rset() {
+    rset(): number {
         this.ST &= 0xfff0;
         return 12;
     }
 
     // ReTurn with Workspace Pointer: RTWP
     // The matching return for BLWP, see BLWP for description
-    rtwp() {
+    rtwp(): number {
         this.ST = this.readMemoryWord(this.WP + 30); // R15
         this.setPC(this.readMemoryWord(this.WP + 28)); // R14
         this.setWP(this.readMemoryWord(this.WP + 26)); // R13
         return 14;
-    }
-
-    // This will set A0-A2 to 101 and pulse CRUCLK
-    ckon() {
-        // Not implemented
-        return null;
-    }
-
-    // This will set A0-A2 to 110 and pulse CRUCLK
-    ckof() {
-        // Not implemented
-        return null;
-    }
-
-    // This will set A0-A2 to 111 and pulse CRUCLK
-    lrex() {
-        // Not implemented
-        return null;
     }
 
     // Branch and Load Workspace Pointer: BLWP src
@@ -654,7 +705,7 @@ export class TMS9900 implements CPU {
     // Program Counter (return address), and Status register are
     // stored in the new R13, R14 and R15, respectively
     // Return is performed with RTWP
-    blwp() {
+    blwp(): number {
         const x1 = this.WP;
         this.setWP(this.readMemoryWord(this.S));
         this.writeMemoryWord(this.WP + 26, x1);
@@ -670,7 +721,7 @@ export class TMS9900 implements CPU {
 
     // Branch: B src
     // Unconditional absolute branch
-    b() {
+    b(): number {
         this.setPC(this.S);
         this.postIncrement(this.SRC);
         return 8;
@@ -678,7 +729,7 @@ export class TMS9900 implements CPU {
 
     // eXecute: X src
     // The argument is interpreted as an instruction and executed
-    x() {
+    x(): number {
         if (this.flagX !== 0) {
             this.log.info("Recursive X instruction!");
         }
@@ -697,14 +748,14 @@ export class TMS9900 implements CPU {
 
     // CLeaR: CLR src
     // sets word to 0
-    clr() {
+    clr(): number {
         this.writeMemoryWord(this.S, 0);
         this.postIncrement(this.SRC);
         return 10;
     }
 
     // NEGate: NEG src
-    neg() {
+    neg(): number {
         let x1 = this.readMemoryWord(this.S);
 
         x1 = ((~x1) + 1) & 0xFFFF;
@@ -718,7 +769,7 @@ export class TMS9900 implements CPU {
     }
 
     // INVert: INV src
-    inv() {
+    inv(): number {
         let x1 = this.readMemoryWord(this.S);
         x1 = (~x1) & 0xFFFF;
         this.writeMemoryWord(this.S, x1);
@@ -731,7 +782,7 @@ export class TMS9900 implements CPU {
     }
 
     // INCrement: INC src
-    inc() {
+    inc(): number {
         let x1 = this.readMemoryWord(this.S);
 
         x1 = (x1 + 1) & 0xFFFF;
@@ -745,7 +796,7 @@ export class TMS9900 implements CPU {
     }
 
     // INCrement by Two: INCT src
-    inct() {
+    inct(): number {
         let x1 = this.readMemoryWord(this.S);
 
         x1 = (x1 + 2) & 0xFFFF;
@@ -762,7 +813,7 @@ export class TMS9900 implements CPU {
     }
 
     // DECrement: DEC src
-    dec() {
+    dec(): number {
         let x1 = this.readMemoryWord(this.S);
 
         x1 = (x1 - 1) & 0xFFFF;
@@ -779,7 +830,7 @@ export class TMS9900 implements CPU {
     }
 
     // DECrement by Two: DECT src
-    dect() {
+    dect(): number {
         let x1 = this.readMemoryWord(this.S);
 
         x1 = (x1 - 2) & 0xFFFF;
@@ -796,7 +847,7 @@ export class TMS9900 implements CPU {
         return 10;
     }
 
-    bl() {
+    bl(): number {
         // Branch and Link: BL src
         // Essentially a subroutine jump - return address is stored in R11
         // Note there is no stack, and no official return function.
@@ -811,7 +862,7 @@ export class TMS9900 implements CPU {
 
     // SWaP Bytes: SWPB src
     // swap the high and low bytes of a word
-    swpb() {
+    swpb(): number {
         const x1 = this.readMemoryWord(this.S);
 
         const x2 = ((x1 & 0xff) << 8) | (x1 >> 8);
@@ -823,7 +874,7 @@ export class TMS9900 implements CPU {
 
     // SET to One: SETO src
     // sets word to 0xffff
-    seto() {
+    seto(): number {
         this.writeMemoryWord(this.S, 0xffff);
         this.postIncrement(this.SRC);
 
@@ -831,7 +882,7 @@ export class TMS9900 implements CPU {
     }
 
     // ABSolute value: ABS src
-    abs() {
+    abs(): number {
         let cycles = 0;
         const x1 = this.readMemoryWord(this.S);
 
@@ -852,7 +903,7 @@ export class TMS9900 implements CPU {
     // For the shift instructions, a count of '0' means use the
     // value in register 0. If THAT is zero, the count is 16.
     // The arithmetic operations preserve the sign bit
-    sra() {
+    sra(): number {
         let cycles = 0;
         if (this.D === 0) {
             this.D = this.readMemoryWord(this.WP) & 0xf;
@@ -880,7 +931,7 @@ export class TMS9900 implements CPU {
 
     // Shift Right Logical: SRL src, dst
     // The logical shifts do not preserve the sign
-    srl() {
+    srl(): number {
         let cycles = 0;
         if (this.D === 0) {
             this.D = this.readMemoryWord(this.WP) & 0xf;
@@ -905,7 +956,7 @@ export class TMS9900 implements CPU {
     }
 
     // Shift Left Arithmetic: SLA src, dst
-    sla() {
+    sla(): number {
         let cycles = 0;
         if (this.D === 0) {
             this.D = this.readMemoryWord(this.WP) & 0xf;
@@ -936,7 +987,7 @@ export class TMS9900 implements CPU {
     // Circular shifts pop bits off one end and onto the other
     // The carry bit is not a part of these shifts, but it set
     // as appropriate
-    src() {
+    src(): number {
         let cycles = 0;
         if (this.D === 0) {
             this.D = this.readMemoryWord(this.WP) & 0xf;
@@ -964,7 +1015,7 @@ export class TMS9900 implements CPU {
 
     // JuMP: JMP dsp
     // (unconditional)
-    jmp() {
+    jmp(): number {
         if (this.flagX !== 0) {
             this.setPC(this.flagX);	// Update offset - it's relative to the X, not the opcode
         }
@@ -997,7 +1048,7 @@ export class TMS9900 implements CPU {
     }
 
     // Jump if Low or Equal: JLE dsp
-    jle() {
+    jle(): number {
         if ((this.getLGT() === 0) || (this.getEQ() !== 0)) {
             if (this.flagX !== 0) {
                 this.setPC(this.flagX);	// Update offset - it's relative to the X, not the opcode
@@ -1018,7 +1069,7 @@ export class TMS9900 implements CPU {
     // Jump if equal: JEQ dsp
     // Conditional relative branch. The displacement is a signed byte representing
     // the number of words to branch
-    jeq() {
+    jeq(): number {
         if (this.getEQ() !== 0) {
             if (this.flagX !== 0) {
                 this.setPC(this.flagX);	// Update offset - it's relative to the X, not the opcode
@@ -1037,7 +1088,7 @@ export class TMS9900 implements CPU {
     }
 
     // Jump if High or Equal: JHE dsp
-    jhe() {
+    jhe(): number {
         if ((this.getLGT() !== 0) || (this.getEQ() !== 0)) {
             if (this.flagX !== 0) {
                 this.setPC(this.flagX);	// Update offset - it's relative to the X, not the opcode
@@ -1056,7 +1107,7 @@ export class TMS9900 implements CPU {
     }
 
     // Jump if Greater Than: JGT dsp
-    jgt() {
+    jgt(): number {
         if (this.getAGT() !== 0) {
             if (this.flagX !== 0) {
                 this.setPC(this.flagX);	// Update offset - it's relative to the X, not the opcode
@@ -1075,7 +1126,7 @@ export class TMS9900 implements CPU {
    }
 
     // Jump if Not Equal: JNE dsp
-    jne() {
+    jne(): number {
         if (this.getEQ() === 0) {
             if (this.flagX !== 0) {
                 this.setPC(this.flagX);	// Update offset - it's relative to the X, not the opcode
@@ -1093,7 +1144,7 @@ export class TMS9900 implements CPU {
     }
 
     // Jump if No Carry: JNC dsp
-    jnc() {
+    jnc(): number {
         if (this.getC() === 0) {
             if (this.flagX !== 0) {
                 this.setPC(this.flagX);	// Update offset - it's relative to the X, not the opcode
@@ -1112,7 +1163,7 @@ export class TMS9900 implements CPU {
     }
 
     // Jump On Carry: JOC dsp
-    joc() {
+    joc(): number {
         if (this.getC() !== 0) {
             if (this.flagX !== 0) {
                 this.setPC(this.flagX);	// Update offset - it's relative to the X, not the opcode
@@ -1131,7 +1182,7 @@ export class TMS9900 implements CPU {
     }
 
     // Jump if No Overflow: JNO dsp
-    jno() {
+    jno(): number {
         if (this.getOV() === 0) {
             if (this.flagX !== 0) {
                 this.setPC(this.flagX);	// Update offset - it's relative to the X, not the opcode
@@ -1149,7 +1200,7 @@ export class TMS9900 implements CPU {
         }
     }
 
-    jl() {
+    jl(): number {
         if ((this.getLGT() === 0) && (this.getEQ() === 0)) {
             if (this.flagX !== 0) {
                 this.setPC(this.flagX);	// Update offset - it's relative to the X, not the opcode
@@ -1168,7 +1219,7 @@ export class TMS9900 implements CPU {
     }
 
     // Jump if High: JH dsp
-    jh() {
+    jh(): number {
         if ((this.getLGT() !== 0) && (this.getEQ() === 0)) {
             if (this.flagX !== 0) {
                 this.setPC(this.flagX);	// Update offset - it's relative to the X, not the opcode
@@ -1187,7 +1238,7 @@ export class TMS9900 implements CPU {
     }
 
     // Jump on Odd Parity: JOP dsp
-    jop() {
+    jop(): number {
         if (this.getOP() !== 0) {
             if (this.flagX !== 0) {
                 this.setPC(this.flagX);	// Update offset - it's relative to the X, not the opcode
@@ -1207,7 +1258,7 @@ export class TMS9900 implements CPU {
 
     // Set Bit On: SBO src
     // Sets a bit in the CRU
-    sbo() {
+    sbo(): number {
         let addr = (this.readMemoryWord(this.WP + 24) >> 1) & 0xfff;
         if ((this.D & 0x80) !== 0) {
             addr -= 128 - (this.D & 0x7f);
@@ -1221,7 +1272,7 @@ export class TMS9900 implements CPU {
 
     // Set Bit Zero: SBZ src
     // Zeros a bit in the CRU
-    sbz() {
+    sbz(): number {
         let addr = (this.readMemoryWord(this.WP + 24) >> 1) & 0xfff;
         if ((this.D & 0x80) !== 0) {
             addr -= 128 - (this.D & 0x7f);
@@ -1235,7 +1286,7 @@ export class TMS9900 implements CPU {
 
     // Test Bit: TB src
     // Tests a CRU bit
-    tb() {
+    tb(): number {
         let add = (this.readMemoryWord(this.WP + 24) >> 1) & 0xfff;
         if ((this.D & 0x80) !== 0) {
             add -= 128 - (this.D & 0x7f);
@@ -1250,43 +1301,43 @@ export class TMS9900 implements CPU {
     // Compare Ones Corresponding: COC src, dst
     // Basically comparing against a mask, if all set bits in the src match
     // set bits in the dest (mask), the equal bit is set
-    coc() {
+    coc(): number {
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
 
         const x3 = x1 & x2;
 
         if (x3 === x1) { this.setEQ(); } else { this.resetEQ(); }
 
-        return 14;
+        return cycles + 14;
     }
 
     // Compare Zeros Corresponding: CZC src, dst
     // The opposite of COC. Each set bit in the dst (mask) must
     // match up with a zero bit in the src to set the equals flag
-    czc() {
+    czc(): number {
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
 
         const x3 = x1 & x2;
 
         if (x3 === 0) { this.setEQ(); } else { this.resetEQ(); }
 
-        return 14;
+        return cycles + 14;
     }
 
     // eXclusive OR: XOR src, dst
-    xor() {
+    xor(): number {
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
 
         const x3 = (x1 ^ x2) & 0xFFFF;
@@ -1304,7 +1355,7 @@ export class TMS9900 implements CPU {
     // the source operand.
     // Apparently not all consoles supported both XOP 1 and 2 (depends on the ROM?)
     // so it is probably rarely, if ever, used on the TI99.
-    xop() {
+    xop(): number {
         this.D &= 0xf;
 
         const x1 = this.WP;
@@ -1328,7 +1379,7 @@ export class TMS9900 implements CPU {
     // It's serially accessed and has 4096 single bit IO registers.
     // It's stupid and thinks 0 is true and 1 is false.
     // All addresses are offsets from the value in R12, which is divided by 2
-    ldcr() {
+    ldcr(): number {
         if (this.D === 0) { this.D = 16; }
         const x1 = (this.D < 9 ? this.readMemoryByte(this.S) : this.readMemoryWord(this.S));
         this.postIncrement(this.SRC);
@@ -1353,7 +1404,7 @@ export class TMS9900 implements CPU {
 
     // STore CRU: STCR src, dst
     // Stores dst bits from the CRU into src
-    stcr() {
+    stcr(): number {
         if (this.D === 0) { this.D = 16; }
         let x1 = 0;
         let x3 = 1;
@@ -1398,7 +1449,7 @@ export class TMS9900 implements CPU {
     // MultiPlY: MPY src, dst
     // Multiply src by dest and store 32-bit result
     // Note: src and dest are unsigned.
-    mpy() {
+    mpy(): number {
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
@@ -1414,7 +1465,7 @@ export class TMS9900 implements CPU {
     // DIVide: DIV src, dst
     // Dest, a 2 word number, is divided by src. The result is stored as two words at the dst:
     // the first is the whole number result, the second is the remainder
-    div() {
+    div(): number {
         const x2 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
@@ -1437,11 +1488,11 @@ export class TMS9900 implements CPU {
 
     // Set Zeros Corresponding: SZC src, dst
     // Zero all bits in dest that are zeroed in src
-    szc() {
+    szc(): number {
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
         const x3 = (~x1) & x2;
         this.writeMemoryWord(this.D, x3);
@@ -1450,15 +1501,15 @@ export class TMS9900 implements CPU {
         this.resetLGT_AGT_EQ();
         this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
 
-        return 14;
+        return cycles + 14;
     }
 
     // Set Zeros Corresponding, Byte: SZCB src, dst
-    szcb() {
+    szcb(): number {
         const x1 = this.readMemoryByte(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryByte(this.D);
         const x3 = (~x1) & x2;
         this.writeMemoryByte(this.D, x3);
@@ -1467,15 +1518,15 @@ export class TMS9900 implements CPU {
         this.resetLGT_AGT_EQ_OP();
         this.ST |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;
 
-        return 14;
+        return cycles + 14;
     }
 
     // Subtract: S src, dst
-    s() {
+    s(): number {
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
         const x3 = (x2 - x1) & 0xFFFF;
         this.writeMemoryWord(this.D, x3);
@@ -1489,15 +1540,15 @@ export class TMS9900 implements CPU {
         if ((x3 < x2) || (x1 === 0)) { this.setC(); }
         if (((x1 & 0x8000) !== (x2 & 0x8000)) && ((x3 & 0x8000) !== (x2 & 0x8000))) { this.setOV(); }
 
-        return 14;
+        return cycles + 14;
     }
 
     // Subtract Byte: SB src, dst
-    sb() {
+    sb(): number {
         const x1 = this.readMemoryByte(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryByte(this.D);
         const x3 = (x2 - x1) & 0xFF;
         this.writeMemoryByte(this.D, x3);
@@ -1511,15 +1562,15 @@ export class TMS9900 implements CPU {
         if ((x3 < x2) || (x1 === 0)) { this.setC(); }
         if (((x1 & 0x80) !== (x2 & 0x80)) && ((x3 & 0x80) !== (x2 & 0x80))) { this.setOV(); }
 
-        return 14;
+        return cycles + 14;
     }
 
     // Compare words: C src, dst
-    c() {
+    c(): number {
         const x3 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x4 = this.readMemoryWord(this.D);
         this.postIncrement(this.DST);
 
@@ -1531,15 +1582,15 @@ export class TMS9900 implements CPU {
         } else {
             if ((x4 & 0x8000) !== 0) { this.setAGT(); }
         }
-        return 14;
+        return cycles + 14;
     }
 
     // CompareBytes: CB src, dst
-    cb() {
+    cb(): number {
         const x3 = this.readMemoryByte(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x4 = this.readMemoryByte(this.D);
         this.postIncrement(this.DST);
 
@@ -1553,15 +1604,15 @@ export class TMS9900 implements CPU {
         }
         this.ST |= this.bStatusLookup[x3] & this.BIT_OP;
 
-        return 14;
+        return cycles + 14;
     }
 
     // Add words: A src, dst
-    a() {
+    a(): number {
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
         const x3 = (x2 + x1) & 0xFFFF;
         this.writeMemoryWord(this.D, x3);
@@ -1574,15 +1625,15 @@ export class TMS9900 implements CPU {
         // if it overflowed or underflowed (signed math), set overflow
         if (((x1 & 0x8000) === (x2 & 0x8000)) && ((x3 & 0x8000) !== (x2 & 0x8000))) { this.setOV(); }
 
-        return 14;
+        return cycles + 14;
     }
 
     // Add bytes: A src, dst
-    ab() {
+    ab(): number {
         const x1 = this.readMemoryByte(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryByte(this.D);
         const x3 = (x2 + x1) & 0xFF;
         this.writeMemoryByte(this.D, x3);
@@ -1595,14 +1646,14 @@ export class TMS9900 implements CPU {
         // if it overflowed or underflowed (signed math), set overflow
         if (((x1 & 0x80) === (x2 & 0x80)) && ((x3 & 0x80) !== (x2 & 0x80))) { this.setOV(); }
 
-        return 14;
+        return cycles + 14;
     }
 
     // MOVe words: MOV src, dst
-    mov() {
+    mov(): number {
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
-        this.fixD();
+        const cycles = this.fixD();
 
         this.writeMemoryWord(this.D, x1);
         this.postIncrement(this.DST);
@@ -1610,32 +1661,32 @@ export class TMS9900 implements CPU {
         this.resetLGT_AGT_EQ();
         this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
 
-        return 14;
+        return cycles + 14;
     }
 
     // MOVe Bytes: MOVB src, dst
-    movb() {
+    movb(): number {
         const x1 = this.readMemoryByte(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         this.writeMemoryByte(this.D, x1);
         this.postIncrement(this.DST);
 
         this.resetLGT_AGT_EQ_OP();
         this.ST |= this.bStatusLookup[x1] & this.maskLGT_AGT_EQ_OP;
 
-        return 14;
+        return cycles + 14;
     }
 
     // Set Ones Corresponding: SOC src, dst
     // Essentially performs an OR - setting all the bits in dst that
     // are set in src
-    soc() {
+    soc(): number {
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
         const x3 = x1 | x2;
         this.writeMemoryWord(this.D, x3);
@@ -1644,14 +1695,14 @@ export class TMS9900 implements CPU {
         this.resetLGT_AGT_EQ();
         this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
 
-        return 14;
+        return cycles + 14;
     }
 
-    socb() {
+    socb(): number {
         const x1 = this.readMemoryByte(this.S);
         this.postIncrement(this.SRC);
 
-        this.fixD();
+        const cycles = this.fixD();
         const x2 = this.readMemoryByte(this.D);
         const x3 = x1 | x2;
         this.writeMemoryByte(this.D, x3);
@@ -1660,7 +1711,7 @@ export class TMS9900 implements CPU {
         this.resetLGT_AGT_EQ_OP();
         this.ST |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;
 
-        return 14;
+        return cycles + 14;
     }
 
     getLGT() { return (this.ST & this.BIT_LGT); }	// Logical Greater Than
@@ -1700,11 +1751,11 @@ export class TMS9900 implements CPU {
         this.log.info(this.getRegsString() + this.getInternalRegsString());
     }
 
-    getInternalRegsString() {
+    getInternalRegsString(): string {
         return "PC :" + Util.toHexWord(this.PC) + " WP :" + Util.toHexWord(this.WP) + " ST :" + Util.toHexWord(this.ST);
     }
 
-    getRegsString() {
+    getRegsString(): string {
         let s = "";
         for (let i = 0; i < 16; i++) {
             s += "R" + i + ":" + Util.toHexWord(this.getReg(i)) + " ";
@@ -1712,11 +1763,11 @@ export class TMS9900 implements CPU {
         return s;
     }
 
-    getReg(i) {
+    getReg(i): number {
         return this.memory.getWord(this.WP + 2 * i);
     }
 
-    getRegsStringFormatted() {
+    getRegsStringFormatted(): string {
         let s = "";
         for (let i = 0; i < 16; i++) {
             s += "R" + i + (i < 10 ? " " : "") + ":" + Util.toHexWord(this.memory.getWord(this.WP + 2 * i)) + (i % 4 === 3 ? "\n" : " ");
@@ -1770,7 +1821,7 @@ export class TMS9900 implements CPU {
         }
     }
 
-    getState() {
+    getState(): object {
         return {
             PC: this.PC,
             WP: this.WP,
@@ -1784,7 +1835,7 @@ export class TMS9900 implements CPU {
         };
     }
 
-    restoreState(state) {
+    restoreState(state: any) {
         this.PC = state.PC;
         this.WP = state.WP;
         this.ST = state.ST;

@@ -36,8 +36,6 @@ export class Keyboard implements State {
         for (let col = 0; col < 8; col++) {
             this.columns[col] = [];
         }
-        this.joystick1 = new Joystick(this.columns[6], 0);
-        this.joystick2 = new Joystick(this.columns[7], 1);
     }
 
     reset() {
@@ -45,6 +43,13 @@ export class Keyboard implements State {
             for (let addr = 3; addr <= 10; addr++) {
                 this.columns[col][addr] = false;
             }
+        }
+
+        if (!this.joystick1) {
+            this.joystick1 = new Joystick(this.columns[6], 0);
+        }
+        if (!this.joystick2) {
+            this.joystick2 = new Joystick(this.columns[7], 1);
         }
 
         this.joystickActive = 250;
