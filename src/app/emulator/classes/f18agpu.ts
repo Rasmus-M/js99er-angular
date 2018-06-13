@@ -1298,7 +1298,7 @@ export class F18AGPU implements CPU {
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
-        const cycles = this.fixD()();
+        const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
 
         const x3 = x1 & x2;
