@@ -28,8 +28,6 @@ export class F18AFlash {
     constructor(callback) {
         this.flashRAM = null;
         this.updated = false;
-        this.log = Log.getLog();
-        this.reset();
         const that = this;
         this.database = new Database( function (success) {
             if (success) {
@@ -204,9 +202,9 @@ export class F18AFlash {
                     }
                     that.log.info("F18A flash RAM restored");
                 } else {
-                    that.log.debug("F18A flash RAM restore failed");
+                    that.log.info("F18A flash RAM restore failed");
                 }
-                if (callback) { callback(file != null); }
+                if (callback) { callback(file && true); }
             });
         }
     }

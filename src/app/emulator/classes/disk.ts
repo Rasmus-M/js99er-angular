@@ -906,7 +906,7 @@ export class DiskDrive implements State {
     }
 }
 
-export class DiskImage {
+export class DiskImage implements State {
 
     private name: string;
     private files: {[name: string]: DiskFile};
@@ -1437,7 +1437,7 @@ export class DiskImage {
     }
 }
 
-export class DiskFile {
+export class DiskFile implements State {
 
     private name: string;
     private fileType: FileType;

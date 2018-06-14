@@ -25,7 +25,6 @@ export class F18AGPU implements CPU {
     private f18a: F18A;
     private vdpRAM: Uint8Array;
     private flash: F18AFlash;
-    private flashLoaded: boolean;
 
     private cpuIdle: boolean;
     private WP = 0xF000; // Place workspace in an unused part of the memory space
@@ -182,23 +181,18 @@ export class F18AGPU implements CPU {
         this.illegalCount = 0;
 
         // Flash RAM
-        const that = this;
+        const gpu = this;
         this.flash = new F18AFlash(function (restored) {
-            that.flashLoaded = restored;
-            that.reset();
+            if (restored) {
+                const preload = gpu.hexArrayToBin(F18AGPU.PRELOAD);
+                for (let a = 0; a < preload.length; a++) {
+                    gpu.vdpRAM[0x4000 + a] = preload[a];
+                }
+                gpu.setPC(0x4000);
+            }
         });
 
-
         this.intReset();
-        this.flash.reset();
-        // Load and execute GPU code
-        if (this.flashLoaded) {
-            const preload = this.hexArrayToBin(F18AGPU.PRELOAD);
-            for (let a = 0; a < preload.length; a++) {
-                this.vdpRAM[0x4000 + a] = preload[a];
-            }
-            this.setPC(0x4000);
-        }
     }
 
     intReset() {
