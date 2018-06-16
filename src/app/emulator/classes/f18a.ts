@@ -220,7 +220,7 @@ export class F18A implements VDP {
         imageObj.onload = () => {
             this.splashImage = imageObj;
         };
-        imageObj.src = '../images/f18a_bitmap_v1.8.png';
+        imageObj.src = 'assets/images/f18a_bitmap_v1.8.png';
 
         this.log.info("F18A emulation enabled");
     }
