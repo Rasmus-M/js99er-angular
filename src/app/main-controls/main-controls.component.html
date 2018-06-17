@@ -12,10 +12,10 @@
     </div>
     <div class="btn-group">
         <div class="btn btn-primary navbar-btn btn-file"><fa name="floppy-o"></fa> Open Disk/File<input type="file" #fileInputDisk multiple="multiple" (change)="openDisk(fileInputDisk.files)"></div>
-        <select class="selectpicker navbar-btn" data-width="100px" [(ngModel)]="diskDrive" title="Drive">
-            <option data-icon="fa-hdd-o" [ngValue]="1" selected>DSK1</option>
-            <option data-icon="fa-hdd-o" [ngValue]="2">DSK2</option>
-            <option data-icon="fa-hdd-o" [ngValue]="3">DSK3</option>
+        <select class="selectpicker navbar-btn" data-width="100px" [(ngModel)]="driveIndex" title="Drive">
+            <option data-icon="fa-hdd-o" [ngValue]="0" selected>DSK1</option>
+            <option data-icon="fa-hdd-o" [ngValue]="1">DSK2</option>
+            <option data-icon="fa-hdd-o" [ngValue]="2">DSK3</option>
         </select>
     </div>
 </div>

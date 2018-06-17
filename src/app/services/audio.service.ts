@@ -1,10 +1,12 @@
-import {Log} from './log';
+import { Injectable } from '@angular/core';
 import {Tape} from '../emulator/classes/tape';
-import {Speech} from '../emulator/interfaces/speech';
-import {PSG} from '../emulator/interfaces/psg';
 import {TMS5220} from '../emulator/classes/tms5220';
+import {PSG} from '../emulator/interfaces/psg';
+import {Speech} from '../emulator/interfaces/speech';
+import {Log} from '../classes/log';
 
-export class Sound {
+@Injectable()
+export class AudioService {
 
     static USE_SPEECH_SAMPLE_INTERPOLATION = true;
 
@@ -28,44 +30,46 @@ export class Sound {
     private log: Log = Log.getLog();
 
     static resumeSound() {
-        if (Sound.audioContext && Sound.audioContext.state !== "running") {
-            Sound.audioContext.resume();
+        if (AudioService.audioContext && AudioService.audioContext.state !== "running") {
+            AudioService.audioContext.resume();
         }
     }
 
-    constructor(enabled: boolean, psgDev: PSG, speechDev: Speech, tape: Tape) {
+    constructor() { }
+
+    init(enabled: boolean, psgDev: PSG, speechDev: Speech, tape: Tape) {
         this.psgDev = psgDev;
         this.speechDev = speechDev;
         this.tape = tape;
-        if (!Sound.audioContext && AudioContext) {
-            Sound.audioContext = new AudioContext();
+        if (!AudioService.audioContext && AudioContext) {
+            AudioService.audioContext = new AudioContext();
         }
-        if (Sound.audioContext) {
+        if (AudioService.audioContext) {
             this.log.info("Web Audio API detected");
-            this.sampleRate = Sound.audioContext.sampleRate;
+            this.sampleRate = AudioService.audioContext.sampleRate;
             this.log.info('AudioContext: sample rate is ' + this.sampleRate);
             this.bufferSize = 1024;
             const that = this;
             if (psgDev) {
                 psgDev.setSampleRate(this.sampleRate);
                 this.vdpSampleBuffer = new Int8Array(this.bufferSize);
-                this.vdpScriptProcessor = Sound.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
+                this.vdpScriptProcessor = AudioService.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
                 this.vdpScriptProcessor.onaudioprocess = function (event) { that.onPSGAudioProcess(event); };
             }
             if (speechDev) {
                 const speechSampleRate = TMS5220.SAMPLE_RATE;
                 this.speechScale = this.sampleRate / speechSampleRate;
                 this.speechSampleBuffer = new Int16Array(Math.floor(this.bufferSize / this.speechScale) + 1);
-                this.speechScriptProcessor = Sound.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
+                this.speechScriptProcessor = AudioService.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
                 this.speechScriptProcessor.onaudioprocess = function (event) { that.onSpeechAudioProcess(event); };
-                this.speechFilter = Sound.audioContext.createBiquadFilter();
+                this.speechFilter = AudioService.audioContext.createBiquadFilter();
                 this.speechFilter.type = "lowpass";
                 this.speechFilter.frequency.value = speechSampleRate / 2;
             }
             if (tape) {
-                this.tapeScriptProcessor = Sound.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
+                this.tapeScriptProcessor = AudioService.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
                 this.tapeScriptProcessor.onaudioprocess = function (event) { that.onTapeAudioProcess(event); };
-                this.tapeFilter = Sound.audioContext.createBiquadFilter();
+                this.tapeFilter = AudioService.audioContext.createBiquadFilter();
                 this.tapeFilter.type = "lowpass";
                 this.tapeFilter.frequency.value = 4000;
             }
@@ -98,7 +102,7 @@ export class Sound {
             r += this.speechScale;
             let sample = this.speechSampleBuffer[i] / 32768.0;
             let step = 0;
-            if (Sound.USE_SPEECH_SAMPLE_INTERPOLATION) {
+            if (AudioService.USE_SPEECH_SAMPLE_INTERPOLATION) {
                 const nextSample = i < this.speechSampleBuffer.length - 1 ? this.speechSampleBuffer[i + 1] / 32768.0 : sample;
                 step = (nextSample - sample) / r;
             }
@@ -116,20 +120,20 @@ export class Sound {
     }
 
     setSoundEnabled(enabled) {
-        Sound.resumeSound();
+        AudioService.resumeSound();
         const oldEnabled = this.enabled;
-        if (Sound.audioContext) {
+        if (AudioService.audioContext) {
             if (enabled && !this.enabled) {
                 if (this.vdpScriptProcessor) {
-                    this.vdpScriptProcessor.connect(Sound.audioContext.destination);
+                    this.vdpScriptProcessor.connect(AudioService.audioContext.destination);
                 }
                 if (this.speechScriptProcessor) {
                     this.speechScriptProcessor.connect(this.speechFilter);
-                    this.speechFilter.connect(Sound.audioContext.destination);
+                    this.speechFilter.connect(AudioService.audioContext.destination);
                 }
                 if (this.tapeScriptProcessor) {
                     this.tapeScriptProcessor.connect(this.tapeFilter);
-                    this.tapeFilter.connect(Sound.audioContext.destination);
+                    this.tapeFilter.connect(AudioService.audioContext.destination);
                 }
             } else if (!enabled && this.enabled) {
                 if (this.vdpScriptProcessor) {

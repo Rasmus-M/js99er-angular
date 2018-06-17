@@ -1,5 +1,8 @@
-import {Component} from '@angular/core';
-import {CommandDispatcherService} from './command-dispatcher.service';
+import {Component, OnInit} from '@angular/core';
+import {CommandDispatcherService} from './services/command-dispatcher.service';
+import {Settings} from './classes/settings';
+import {DiskImage} from './emulator/classes/disk';
+import {AudioService} from './services/audio.service';
 
 @Component({
     selector: 'app-root',
@@ -7,6 +10,26 @@ import {CommandDispatcherService} from './command-dispatcher.service';
     styleUrls: ['./app.component.css'],
     providers: [CommandDispatcherService]
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
+
     title = "JS99'er";
+
+    diskImages: {[key: string]: DiskImage};
+    settings: Settings;
+
+    constructor(private audioService: AudioService) {
+    }
+
+    ngOnInit() {
+      this.diskImages = {
+          FLOPPY1: new DiskImage("Floppy 1", null),
+          FLOPPY2: new DiskImage("Floppy 2", null),
+          FLOPPY3: new DiskImage("Floppy 3", null)
+      };
+      this.settings = new Settings(true);
+    }
+
+    onConsoleReady(ti994A) {
+        this.audioService.init(this.settings.isSoundEnabled(), ti994A.getPSG(), ti994A.getSpeech(), ti994A.getTape());
+    }
 }

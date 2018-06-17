@@ -9,7 +9,8 @@ import {EmulatorModule} from './emulator/emulator.module';
 import {AppComponent} from './app.component';
 import {DebuggerComponent} from './debugger/debugger.component';
 import {MainControlsComponent} from './main-controls/main-controls.component';
-import {SoftwareService} from './software.service';
+import {SoftwareService} from './services/software.service';
+import {AudioService} from './services/audio.service';
 
 @NgModule({
     declarations: [
@@ -28,7 +29,8 @@ import {SoftwareService} from './software.service';
         FormsModule
     ],
     providers: [
-        SoftwareService
+        SoftwareService,
+        AudioService
     ],
     bootstrap: [
         AppComponent

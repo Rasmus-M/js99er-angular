@@ -1,5 +1,5 @@
-import {MemoryBlock, Software, SoftwareType} from './classes/software';
-import {Log} from './classes/log';
+import {MemoryBlock, Software, SoftwareType} from '../classes/software';
+import {Log} from '../classes/log';
 import {HttpClient} from '@angular/common/http';
 import { zip } from 'beta-dev-zip';
 import {Injectable} from '@angular/core';

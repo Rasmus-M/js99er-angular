@@ -1,12 +1,11 @@
-import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {TI994A} from '../classes/ti994a';
 import {DiskImage} from '../classes/disk';
 import {Settings} from '../../classes/settings';
-import {Sound} from '../../classes/sound';
-import {CommandDispatcherService} from '../../command-dispatcher.service';
+import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {Subscription} from 'rxjs/Subscription';
 import {Command, CommandType} from '../../classes/command';
-import {SoftwareService} from '../../software.service';
+import {SoftwareService} from '../../services/software.service';
 import {Log} from '../../classes/log';
 
 @Component({
@@ -16,36 +15,29 @@ import {Log} from '../../classes/log';
 })
 export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  private canvas: HTMLCanvasElement;
-  private diskImages: {[key: string]: DiskImage};
-  private settings: Settings;
+  @Input() diskImages: {[key: string]: DiskImage};
+  @Input() settings: Settings;
+  @Output() consoleReady: EventEmitter<TI994A> = new EventEmitter<TI994A>();
   private ti994A: TI994A;
-  private sound: Sound;
-  private commandDispatcherService: CommandDispatcherService;
+  private canvas: HTMLCanvasElement;
   private subscription: Subscription;
-  private softwareService: SoftwareService;
   private log: Log = Log.getLog();
 
-  constructor(private element: ElementRef, commandDispatcherService: CommandDispatcherService, softwareService: SoftwareService) {
-      this.commandDispatcherService = commandDispatcherService;
-      this.softwareService = softwareService;
-  }
+  constructor(
+      private element: ElementRef,
+      private commandDispatcherService: CommandDispatcherService,
+      private softwareService: SoftwareService
+  ) {}
 
   ngOnInit() {
       this.subscription = this.commandDispatcherService.subscribe(this.onCommand.bind(this));
   }
 
   ngAfterViewInit() {
+      console.log(this.settings);
       this.canvas = this.element.nativeElement.querySelector('canvas');
-      this.diskImages = {
-          FLOPPY1: new DiskImage("Floppy 1", null),
-          FLOPPY2: new DiskImage("Floppy 2", null),
-          FLOPPY3: new DiskImage("Floppy 3", null)
-      };
-      this.settings = new Settings(true);
-      this.settings.setF18AEnabled(false);
       this.ti994A = new TI994A(document, this.canvas, this.diskImages, this.settings, null);
-      this.sound = new Sound(true, this.ti994A.getPSG(), this.ti994A.getSpeech(), this.ti994A.getTape());
+      this.consoleReady.emit(this.ti994A);
       // this.ti994A.start(false);
   }
 

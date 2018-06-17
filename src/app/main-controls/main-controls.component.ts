@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, ElementRef, OnInit} from '@angular/core';
-import {CommandDispatcherService} from '../command-dispatcher.service';
+import {CommandDispatcherService} from '../services/command-dispatcher.service';
 import * as $ from 'jquery';
 import 'bootstrap';
 import 'bootstrap-select';
@@ -14,7 +14,7 @@ import 'bootstrap-select';
 export class MainControlsComponent implements OnInit, AfterViewInit {
 
     private commandDispatcherService: CommandDispatcherService;
-    diskDrive = 1;
+    private _driveIndex = 0;
 
     constructor(private element: ElementRef, commandDispatcherService: CommandDispatcherService) {
         this.commandDispatcherService = commandDispatcherService;
@@ -27,6 +27,14 @@ export class MainControlsComponent implements OnInit, AfterViewInit {
     ngAfterViewInit() {
         const select = this.element.nativeElement.querySelector(".selectpicker");
         $(select).selectpicker({iconBase: 'fa'});
+    }
+
+    get driveIndex(): number {
+        return this._driveIndex;
+    }
+
+    set driveIndex(value: number) {
+        this._driveIndex = value;
     }
 
     start() {
@@ -61,7 +69,7 @@ export class MainControlsComponent implements OnInit, AfterViewInit {
 
     openDisk(files: FileList) {
         if (files.length) {
-            this.commandDispatcherService.openDisk(files);
+            this.commandDispatcherService.openDisk(files, this._driveIndex);
         }
     }
 }

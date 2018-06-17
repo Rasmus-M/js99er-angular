@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {Subject} from 'rxjs/Subject';
 import {Observable} from 'rxjs/Observable';
-import {Command, CommandType} from './classes/command';
+import {Command, CommandType} from '../classes/command';
 import {Subscription} from 'rxjs/Subscription';
 
 
@@ -47,7 +47,7 @@ export class CommandDispatcherService {
       this.commandSource.next(new Command(CommandType.OPEN_MODULE, file));
   }
 
-  openDisk(files: FileList) {
-      this.commandSource.next(new Command(CommandType.OPEN_DISK, files));
+  openDisk(files: FileList, driveIndex: number) {
+      this.commandSource.next(new Command(CommandType.OPEN_DISK, {files: files, driveIndex: driveIndex}));
   }
 }
