@@ -9,11 +9,12 @@ import 'bootstrap-select';
 @Component({
     selector: 'app-main-controls',
     templateUrl: './main-controls.component.html',
-    styleUrls: ['./main-controls.component.css']
+    styleUrls: ['./main-controls.component.css'],
 })
 export class MainControlsComponent implements OnInit, AfterViewInit {
 
-    commandDispatcherService: CommandDispatcherService;
+    private commandDispatcherService: CommandDispatcherService;
+    diskDrive = 1;
 
     constructor(private element: ElementRef, commandDispatcherService: CommandDispatcherService) {
         this.commandDispatcherService = commandDispatcherService;

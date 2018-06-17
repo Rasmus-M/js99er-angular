@@ -3,6 +3,7 @@ import {BrowserModule} from '@angular/platform-browser';
 import {BsDropdownModule, ModalModule, TooltipModule} from 'ngx-bootstrap';
 import {AngularFontAwesomeModule} from 'angular-font-awesome';
 import {HttpClientModule} from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
 
 import {EmulatorModule} from './emulator/emulator.module';
 import {AppComponent} from './app.component';
@@ -23,7 +24,8 @@ import {SoftwareService} from './software.service';
         TooltipModule.forRoot(),
         AngularFontAwesomeModule,
         HttpClientModule,
-        EmulatorModule
+        EmulatorModule,
+        FormsModule
     ],
     providers: [
         SoftwareService

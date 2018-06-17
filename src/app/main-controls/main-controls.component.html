@@ -1,21 +1,21 @@
 <div class="navbar navbar-default">
     <div class="btn-group">
-        <button id="btnStart" class="btn btn-primary navbar-btn" (click)="start()"><fa name="play"></fa> Start</button>
-        <button id="btnFast" class="btn btn-default navbar-btn" (click)="fast()"><fa name="forward"></fa> Fast</button>
-        <button id="btnFrame" class="btn btn-default navbar-btn" (click)="frame()"><fa name="fast-forward"></fa> Frame</button>
-        <button id="btnStep" class="btn btn-default navbar-btn" (click)="step()"><fa name="step-forward"></fa> Step</button>
-        <button id="btnStop" class="btn btn-warning navbar-btn" (click)="pause()"><fa name="pause"></fa> Pause</button>
-        <button id="btnReset" class="btn btn-danger navbar-btn" (click)="reset()"><fa name="refresh"></fa> Reset</button>
+        <button class="btn btn-primary navbar-btn" (click)="start()"><fa name="play"></fa> Start</button>
+        <button class="btn btn-default navbar-btn" (click)="fast()"><fa name="forward"></fa> Fast</button>
+        <button class="btn btn-default navbar-btn" (click)="frame()"><fa name="fast-forward"></fa> Frame</button>
+        <button class="btn btn-default navbar-btn" (click)="step()"><fa name="step-forward"></fa> Step</button>
+        <button class="btn btn-warning navbar-btn" (click)="pause()"><fa name="pause"></fa> Pause</button>
+        <button class="btn btn-danger navbar-btn" (click)="reset()"><fa name="refresh"></fa> Reset</button>
     </div>
     <div class="btn-group">
         <div class="btn btn-primary navbar-btn btn-file"><fa name="credit-card"></fa> Open Cartridge<input type="file" #fileInputModule (change)="openModule(fileInputModule.files)"></div>
     </div>
     <div class="btn-group">
         <div class="btn btn-primary navbar-btn btn-file"><fa name="floppy-o"></fa> Open Disk/File<input type="file" #fileInputDisk multiple="multiple" (change)="openDisk(fileInputDisk.files)"></div>
-        <select id="diskDrive" class="selectpicker navbar-btn" data-width="100px" title="Disk Drive">
-            <option data-icon="fa-hdd-o" value="0">DSK1</option>
-            <option data-icon="fa-hdd-o" value="1">DSK2</option>
-            <option data-icon="fa-hdd-o" value="2">DSK3</option>
+        <select class="selectpicker navbar-btn" data-width="100px" [(ngModel)]="diskDrive" title="Drive">
+            <option data-icon="fa-hdd-o" [ngValue]="1" selected>DSK1</option>
+            <option data-icon="fa-hdd-o" [ngValue]="2">DSK2</option>
+            <option data-icon="fa-hdd-o" [ngValue]="3">DSK3</option>
         </select>
     </div>
 </div>
