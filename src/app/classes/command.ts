@@ -14,7 +14,6 @@ export class Command {
     private _type: CommandType;
     private _data: any;
 
-
     constructor(type: CommandType, data: any) {
         this._type = type;
         this._data = data;

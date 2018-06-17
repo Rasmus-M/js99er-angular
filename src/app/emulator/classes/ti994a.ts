@@ -16,7 +16,7 @@ import {CPU} from '../interfaces/cpu';
 import {TMS9918A} from './tms9918a';
 import {F18AGPU} from './f18agpu';
 import {System} from './system';
-import {Software} from '../../classes/software';
+import {Software, SoftwareType} from '../../classes/software';
 import {Settings} from '../../classes/settings';
 import {PSG} from '../interfaces/psg';
 import {Speech} from '../interfaces/speech';
@@ -336,7 +336,7 @@ export class TI994A implements State {
         if (sw.rom) {
             this.memory.setCartridgeImage(
                 sw.rom,
-                sw.type === Software.TYPE_INVERTED_CART,
+                sw.type === SoftwareType.INVERTED_CART,
                 sw.ramAt6000, sw.ramAt7000, sw.ramPaged
             );
         }

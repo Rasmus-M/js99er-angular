@@ -1,7 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import {MainControlsComponent} from './main-controls.component';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import {CommandService} from '../command.service';
+import {CommandDispatcherService} from '../command-dispatcher.service';
 
 describe('MainControlsComponent', () => {
   let component: MainControlsComponent;
@@ -11,7 +11,7 @@ describe('MainControlsComponent', () => {
     TestBed.configureTestingModule({
       schemas: [ NO_ERRORS_SCHEMA ],
       declarations: [ MainControlsComponent ],
-        providers: [CommandService]
+        providers: [CommandDispatcherService]
     })
     .compileComponents();
   }));

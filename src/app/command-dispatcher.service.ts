@@ -2,11 +2,12 @@ import { Injectable } from '@angular/core';
 import {Subject} from 'rxjs/Subject';
 import {Observable} from 'rxjs/Observable';
 import {Command, CommandType} from './classes/command';
+import {Subscription} from 'rxjs/Subscription';
 
 
 
 @Injectable()
-export class CommandService {
+export class CommandDispatcherService {
 
   private commandSource: Subject<Command> = new Subject<Command>();
 
@@ -14,8 +15,8 @@ export class CommandService {
 
   constructor() { }
 
-  getCommandObservable() {
-      return this.commandObservable;
+  subscribe(handler: (command: Command) => void): Subscription {
+      return this.commandObservable.subscribe(handler);
   }
 
   start() {

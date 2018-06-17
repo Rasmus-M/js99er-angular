@@ -1,7 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ConsoleComponent } from './console.component';
-import {CommandService} from '../../command.service';
+import {CommandDispatcherService} from '../../command-dispatcher.service';
 
 describe('ConsoleComponent', () => {
   let component: ConsoleComponent;
@@ -10,7 +10,7 @@ describe('ConsoleComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [ ConsoleComponent ],
-        providers: [CommandService]
+        providers: [CommandDispatcherService]
     })
     .compileComponents();
   }));

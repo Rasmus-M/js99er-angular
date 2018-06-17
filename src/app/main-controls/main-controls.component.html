@@ -11,11 +11,11 @@
         <div class="btn btn-primary navbar-btn btn-file"><fa name="credit-card"></fa> Open Cartridge<input type="file" #fileInputModule (change)="openModule(fileInputModule.files)"></div>
     </div>
     <div class="btn-group">
-        <div class="btn btn-primary navbar-btn btn-file"><fa name="floppy-disk"></fa> Open Disk/File<input type="file" #fileInputDisk multiple="multiple" (change)="openDisk(fileInputDisk.files)"></div>
+        <div class="btn btn-primary navbar-btn btn-file"><fa name="floppy-o"></fa> Open Disk/File<input type="file" #fileInputDisk multiple="multiple" (change)="openDisk(fileInputDisk.files)"></div>
         <select id="diskDrive" class="selectpicker navbar-btn" data-width="100px" title="Disk Drive">
-            <option data-icon="glyphicon-floppy-open" value="0">DSK1</option>
-            <option data-icon="glyphicon-floppy-open" value="1">DSK2</option>
-            <option data-icon="glyphicon-floppy-open" value="2">DSK3</option>
+            <option data-icon="fa-hdd-o" value="0">DSK1</option>
+            <option data-icon="fa-hdd-o" value="1">DSK2</option>
+            <option data-icon="fa-hdd-o" value="2">DSK3</option>
         </select>
     </div>
 </div>
