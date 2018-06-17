@@ -383,7 +383,9 @@ export class Software {
     private _ramAt7000: boolean;
     private _ramPaged: boolean;
     private _startAddress: number;
+    private _workspaceAddress: number;
     private _memoryBlocks: MemoryBlock[];
+    private _keyPresses: string;
 
     constructor(data: any) {
         this._name = data.name;
@@ -479,11 +481,27 @@ export class Software {
         this._startAddress = value;
     }
 
+    get workspaceAddress(): number {
+        return this._workspaceAddress;
+    }
+
+    set workspaceAddress(value: number) {
+        this._workspaceAddress = value;
+    }
+
     get memoryBlocks(): MemoryBlock[] {
         return this._memoryBlocks;
     }
 
     set memoryBlocks(value: MemoryBlock[]) {
         this._memoryBlocks = value;
+    }
+
+    get keyPresses(): string {
+        return this._keyPresses;
+    }
+
+    set keyPresses(value: string) {
+        this._keyPresses = value;
     }
 }

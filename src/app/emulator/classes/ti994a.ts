@@ -321,12 +321,12 @@ export class TI994A implements State {
         ) + this.vdp.getRegsString() + " " + this.memory.getStatusString();
     }
 
-    loadSoftware(sw: any) {
+    loadSoftware(sw: Software) {
         const wasRunning = this.isRunning();
         if (wasRunning) {
             this.stop();
         }
-        this.reset(sw.memoryBlocks);
+        this.reset(sw.memoryBlocks !== null);
         if (sw.memoryBlocks) {
             for (let i = 0; i < sw.memoryBlocks.length; i++) {
                 const memoryBlock = sw.memoryBlocks[i];

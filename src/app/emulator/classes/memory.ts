@@ -108,7 +108,7 @@ export class Memory implements State {
             for (let i = 0; i < Memory.GROM_BASES; i++) {
                 this.groms[i] = new Uint8Array(0x10000);
             }
-            this.loadGROM(System.GROM, 0, 0);
+            this.loadGROM(new Uint8Array(System.GROM), 0, 0);
             this.gromAddress = 0;
             this.gromAccess = 2;
             this.gromPrefetch = new Uint8Array(Memory.GROM_BASES);
@@ -201,7 +201,7 @@ export class Memory implements State {
         }
     }
 
-    loadRAM(addr: number, byteArray: number[]) {
+    loadRAM(addr: number, byteArray: Uint8Array) {
         for (let i = 0; i < byteArray.length; i++) {
             const a = addr + i;
             if (this.enableAMS && (a >= 0x2000 && a < 0x4000 || a >= 0xa000 && a < 0x10000)) {
@@ -214,7 +214,7 @@ export class Memory implements State {
         }
     }
 
-    loadGROM(byteArray: number[], bank: number, base: number) {
+    loadGROM(byteArray: Uint8Array, bank: number, base: number) {
         const grom = this.groms[base];
         const addr = bank * 0x2000;
         for (let i = 0; i < byteArray.length; i++) {
@@ -225,7 +225,7 @@ export class Memory implements State {
         }
     }
 
-    setCartridgeImage(byteArray: number[], inverted: boolean, ramAt6000: boolean, ramAt7000: boolean, ramPaged: boolean) {
+    setCartridgeImage(byteArray: Uint8Array, inverted: boolean, ramAt6000: boolean, ramAt7000: boolean, ramPaged: boolean) {
         let i;
         const length = ((byteArray.length / 0x2000) + (byteArray.length % 0x2000 === 0 ? 0 : 1)) * 0x2000;
         this.log.info('Cartridge size: ' + Util.toHexWord(length));
