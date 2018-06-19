@@ -5,7 +5,6 @@ import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {ZipService} from './zip.service';
-import {concat} from 'rxjs/operators';
 
 @Injectable()
 export class ModuleService {
