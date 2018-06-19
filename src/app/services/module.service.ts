@@ -18,7 +18,7 @@ export class ModuleService {
         this.zipService = zipService;
     }
 
-    loadModuleFromMenu(path): Observable<Software> {
+    loadModuleFromMenu(path: string): Observable<Software> {
         const subject = new Subject<Software>();
         const pathParts = path.split('.');
         let programs = Software.MENU;
