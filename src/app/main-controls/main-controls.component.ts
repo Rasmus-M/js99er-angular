@@ -13,12 +13,13 @@ import 'bootstrap-select';
 })
 export class MainControlsComponent implements OnInit, AfterViewInit {
 
-    private commandDispatcherService: CommandDispatcherService;
-    private _driveIndex = 0;
+    running = false;
+    driveIndex = 0;
 
-    constructor(private element: ElementRef, commandDispatcherService: CommandDispatcherService) {
-        this.commandDispatcherService = commandDispatcherService;
-    }
+    constructor(
+        private element: ElementRef,
+        private commandDispatcherService: CommandDispatcherService
+    ) {}
 
     ngOnInit() {
         console.log("Init");
@@ -29,19 +30,13 @@ export class MainControlsComponent implements OnInit, AfterViewInit {
         $(select).selectpicker({iconBase: 'fa'});
     }
 
-    get driveIndex(): number {
-        return this._driveIndex;
-    }
-
-    set driveIndex(value: number) {
-        this._driveIndex = value;
-    }
-
     start() {
+        this.running = true;
         this.commandDispatcherService.start();
     }
 
     fast() {
+        this.running = true;
         this.commandDispatcherService.fast();
     }
 
@@ -54,10 +49,12 @@ export class MainControlsComponent implements OnInit, AfterViewInit {
     }
 
     pause() {
+        this.running = false;
         this.commandDispatcherService.pause();
     }
 
     reset() {
+        this.running = true;
         this.commandDispatcherService.reset();
     }
 
@@ -69,7 +66,7 @@ export class MainControlsComponent implements OnInit, AfterViewInit {
 
     openDisk(files: FileList) {
         if (files.length) {
-            this.commandDispatcherService.openDisk(files, this._driveIndex);
+            this.commandDispatcherService.openDisk(files, this.driveIndex);
         }
     }
 }

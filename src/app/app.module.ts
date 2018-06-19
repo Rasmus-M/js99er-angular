@@ -14,6 +14,7 @@ import {AudioService} from './services/audio.service';
 import {ZipService} from './services/zip.service';
 import {DiskService} from './services/disk.service';
 import {CommandDispatcherService} from './services/command-dispatcher.service';
+import {ObjectLoaderService} from './services/object-loader.service';
 
 @NgModule({
     declarations: [
@@ -36,7 +37,8 @@ import {CommandDispatcherService} from './services/command-dispatcher.service';
         DiskService,
         AudioService,
         ZipService,
-        CommandDispatcherService
+        CommandDispatcherService,
+        ObjectLoaderService
     ],
     bootstrap: [
         AppComponent

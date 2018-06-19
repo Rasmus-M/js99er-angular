@@ -62,6 +62,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
               break;
           case CommandType.RESET:
               this.ti994A.reset(true);
+              this.ti994A.start(false);
               break;
             case CommandType.OPEN_MODULE:
                 this.softwareService.loadModuleFromFile(command.data).subscribe(

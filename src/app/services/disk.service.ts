@@ -1,11 +1,11 @@
 import {Injectable} from '@angular/core';
 import {Log} from '../classes/log';
 import {DiskDrive, DiskImage} from '../emulator/classes/disk';
-import {ObjLoader} from '../classes/obj-loader';
 import {ZipService} from './zip.service';
 import {CommandDispatcherService} from './command-dispatcher.service';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
+import {ObjectLoaderService} from './object-loader.service';
 
 @Injectable()
 export class DiskService {
@@ -14,7 +14,8 @@ export class DiskService {
 
     constructor(
         private zipService: ZipService,
-        private commandDispatcherService: CommandDispatcherService) {
+        private commandDispatcherService: CommandDispatcherService,
+        private objectLoaderService: ObjectLoaderService) {
     }
 
     loadDiskFiles(files: FileList, diskDrive: DiskDrive): Observable<DiskImage> {
@@ -47,9 +48,10 @@ export class DiskService {
                     log.info('Loading object file.');
                     const reader = new FileReader();
                     reader.onload = function () {
-                        const objLoader = new ObjLoader();
-                        objLoader.loadObjFile(this.result);
-                        service.commandDispatcherService.openSoftware(objLoader.getSoftware());
+                        service.objectLoaderService.loadObjFile(reader.result);
+                        service.commandDispatcherService.openSoftware(
+                            service.objectLoaderService.getSoftware()
+                        );
                         subject.next();
                     };
                     reader.onerror = function () {

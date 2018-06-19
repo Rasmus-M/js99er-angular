@@ -1,7 +1,8 @@
-import {MemoryBlock, Software, SoftwareType} from './software';
-import {Util} from './util';
+import { Injectable } from '@angular/core';
+import {Util} from '../classes/util';
+import {MemoryBlock, Software, SoftwareType} from '../classes/software';
 
-export enum LoaderAction  {
+enum LoaderAction  {
     EA5,
     MEMORY_DUMP,
     CARTRIDGE
@@ -83,7 +84,10 @@ class LineReader {
     }
 }
 
-export class ObjLoader {
+@Injectable()
+export class ObjectLoaderService {
+
+    constructor() { }
 
     private lowRAMStartAddress: number;
     private lowRAMEndAddress: number;

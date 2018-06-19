@@ -1,16 +1,15 @@
 /* You can add global styles to this file, and also import other style files */
 
 // set the variables you wish to change
-$enable-gradients: true;
+$enable-gradients: false;
 $enable-shadows: true;
 $enable-rounded: true;
 
-/*
 .btn {
     background-image: linear-gradient(to bottom, rgba(255,255,255,0.5), rgba(255,255,255,0.2) 49%, rgba(0,0,0,0.15) 51%, rgba(0,0,0,0.05));
     background-repeat: repeat-x;
 }
-*/
+
 
 // import in the bootstrap SASS file
 @import '../node_modules/bootstrap/scss/bootstrap';
