@@ -25,6 +25,9 @@
                 "../node_modules/bootstrap-select/dist/css/bootstrap-select.css"
             ],
             "scripts": [
+                "../node_modules/beta-dev-zip/lib/zip.js",
+                "../node_modules/beta-dev-zip/lib/zip-ext.js"
+
             ],
             "environmentSource": "environments/environment.ts",
             "environments": {

@@ -9,8 +9,9 @@ import {EmulatorModule} from './emulator/emulator.module';
 import {AppComponent} from './app.component';
 import {DebuggerComponent} from './debugger/debugger.component';
 import {MainControlsComponent} from './main-controls/main-controls.component';
-import {SoftwareService} from './services/software.service';
+import {ModuleService} from './services/module.service';
 import {AudioService} from './services/audio.service';
+import {ZipService} from './services/zip.service';
 
 @NgModule({
     declarations: [
@@ -29,8 +30,9 @@ import {AudioService} from './services/audio.service';
         FormsModule
     ],
     providers: [
-        SoftwareService,
-        AudioService
+        ModuleService,
+        AudioService,
+        ZipService
     ],
     bootstrap: [
         AppComponent

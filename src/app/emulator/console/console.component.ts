@@ -5,7 +5,7 @@ import {Settings} from '../../classes/settings';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {Subscription} from 'rxjs/Subscription';
 import {Command, CommandType} from '../../classes/command';
-import {SoftwareService} from '../../services/software.service';
+import {ModuleService} from '../../services/module.service';
 import {Log} from '../../classes/log';
 
 @Component({
@@ -26,7 +26,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
       private element: ElementRef,
       private commandDispatcherService: CommandDispatcherService,
-      private softwareService: SoftwareService
+      private softwareService: ModuleService
   ) {}
 
   ngOnInit() {
@@ -62,8 +62,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
               this.ti994A.reset(true);
               break;
           case CommandType.OPEN_MODULE:
-              this.softwareService.loadModuleFromBinFile(
-                  command.data,
+              this.softwareService.loadModuleFromFile(command.data).subscribe(
                   (software) => {
                       this.ti994A.loadSoftware(software);
                   } ,

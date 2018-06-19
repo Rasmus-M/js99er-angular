@@ -37,7 +37,7 @@ export class MemoryBlock {
 
 export class Software {
 
-    static PROGRAMS: any = [
+    static MENU: any = [
         {
             name: "TI Basic",
             type: SoftwareType.SYSTEM
@@ -379,8 +379,8 @@ export class Software {
     private _rom: Uint8Array;
     private _grom: Uint8Array;
     private _groms: Uint8Array[];
-    private _ramAt6000: boolean;
-    private _ramAt7000: boolean;
+    private _ramAt6000 = false;
+    private _ramAt7000 = false;
     private _ramPaged: boolean;
     private _startAddress: number;
     private _workspaceAddress: number;

@@ -7,3 +7,7 @@ interface NodeModule {
 interface JQuery {
    selectpicker(options: any): any;
 }
+
+interface Window {
+    zip: any;
+}

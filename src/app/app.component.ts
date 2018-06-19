@@ -27,6 +27,7 @@ export class AppComponent implements OnInit {
           FLOPPY3: new DiskImage("Floppy 3", null)
       };
       this.settings = new Settings(true);
+      this.settings.setF18AEnabled(true);
     }
 
     onConsoleReady(ti994A) {
