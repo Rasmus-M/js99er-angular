@@ -7,6 +7,7 @@ import {Subscription} from 'rxjs/Subscription';
 import {Command, CommandType} from '../../classes/command';
 import {ModuleService} from '../../services/module.service';
 import {Log} from '../../classes/log';
+import {DiskService} from '../../services/disk.service';
 
 @Component({
   selector: 'app-console',
@@ -26,7 +27,8 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
       private element: ElementRef,
       private commandDispatcherService: CommandDispatcherService,
-      private softwareService: ModuleService
+      private softwareService: ModuleService,
+      private diskService: DiskService
   ) {}
 
   ngOnInit() {
@@ -61,15 +63,33 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
           case CommandType.RESET:
               this.ti994A.reset(true);
               break;
-          case CommandType.OPEN_MODULE:
-              this.softwareService.loadModuleFromFile(command.data).subscribe(
-                  (software) => {
-                      this.ti994A.loadSoftware(software);
-                  } ,
-                  (error) => {
-                      this.log.error(error);
-                  }
-              );
+            case CommandType.OPEN_MODULE:
+                this.softwareService.loadModuleFromFile(command.data).subscribe(
+                    (software) => {
+                        this.ti994A.loadSoftware(software);
+                    },
+                    (error) => {
+                        this.log.error(error);
+                    }
+                );
+                break;
+            case CommandType.OPEN_DISK:
+                const data = command.data;
+                this.diskService.loadDiskFiles(data.files, this.ti994A.getDiskDrives()[data.driveIndex]).subscribe(
+                    (diskImage: DiskImage) => {
+                        if (diskImage) {
+                            this.log.info(diskImage.getName());
+                        }
+                    },
+                    (error) => {
+                        this.log.error(error);
+                    }
+                );
+                break;
+          case CommandType.OPEN_SOFTWARE:
+                this.ti994A.loadSoftware(command.data);
+                this.ti994A.getMemory().setPADWord(0x83C0, Math.floor(Math.random() * 0xFFFF));
+                break;
       }
   }
 

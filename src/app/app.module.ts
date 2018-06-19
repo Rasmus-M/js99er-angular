@@ -12,6 +12,8 @@ import {MainControlsComponent} from './main-controls/main-controls.component';
 import {ModuleService} from './services/module.service';
 import {AudioService} from './services/audio.service';
 import {ZipService} from './services/zip.service';
+import {DiskService} from './services/disk.service';
+import {CommandDispatcherService} from './services/command-dispatcher.service';
 
 @NgModule({
     declarations: [
@@ -31,8 +33,10 @@ import {ZipService} from './services/zip.service';
     ],
     providers: [
         ModuleService,
+        DiskService,
         AudioService,
-        ZipService
+        ZipService,
+        CommandDispatcherService
     ],
     bootstrap: [
         AppComponent

@@ -151,7 +151,7 @@ export class ObjLoader {
                     case '4':
                         address = lineReader.readWord();
                         label = lineReader.readString(6).trim();
-                        console.log("REF " + label + ": " + address.toHexWord());
+                        console.log("REF " + label + ": " + Util.toHexWord(address));
                         break;
                     // DEF label in PSEG
                     case '5':
@@ -169,7 +169,7 @@ export class ObjLoader {
                         if (autoStartAddress === -1) {
                             autoStartAddress = address;
                         }
-                        console.log("DEF " + label + ": " + address.toHexWord());
+                        console.log("DEF " + label + ": " + Util.toHexWord(address));
                         break;
                     // Checksum
                     case '7':
@@ -271,7 +271,7 @@ export class ObjLoader {
                     // CSEG
                     case 'P':
                         offset = lineReader.readWord();
-                        console.log("CSEG: " + offset.toHexWord());
+                        console.log("CSEG: " + Util.toHexWord(offset));
                         action = LoaderAction.CARTRIDGE;
                         if (action === LoaderAction.CARTRIDGE) {
                             romBank++;

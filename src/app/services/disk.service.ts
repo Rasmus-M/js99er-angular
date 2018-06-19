@@ -1,18 +1,24 @@
 import {Injectable} from '@angular/core';
 import {Log} from '../classes/log';
-import { zip } from 'beta-dev-zip';
-import {DiskDrive} from '../emulator/classes/disk';
+import {DiskDrive, DiskImage} from '../emulator/classes/disk';
 import {ObjLoader} from '../classes/obj-loader';
+import {ZipService} from './zip.service';
+import {CommandDispatcherService} from './command-dispatcher.service';
+import {Observable} from 'rxjs/Observable';
+import {Subject} from 'rxjs/Subject';
 
 @Injectable()
 export class DiskService {
 
     private log: Log = Log.getLog();
 
-    constructor() {
+    constructor(
+        private zipService: ZipService,
+        private commandDispatcherService: CommandDispatcherService) {
     }
 
-    loadDiskFiles(files, diskDrive: DiskDrive) {
+    loadDiskFiles(files: FileList, diskDrive: DiskDrive): Observable<DiskImage> {
+        const subject = new Subject<DiskImage>();
         const log = this.log;
         const service = this;
         for (let i = 0; i < files.length; i++) {
@@ -20,46 +26,47 @@ export class DiskService {
             if (file != null) {
                 const extension = file.name.split('.').pop();
                 if (extension != null && extension.toLowerCase() === 'zip') {
-                    zip.createReader(new zip.BlobReader(file), function (zipReader) {
+                    // Zip file
+                    this.zipService.createReader(this.zipService.createBlobReader(file), function (zipReader) {
                         zipReader.getEntries(function (entries) {
-                            entries.forEach(function (entry) {
+                            entries.forEach(entry => {
                                 if (!entry.directory) {
-                                    loadFile(entry);
+                                    const blobWriter = service.zipService.createBlobWriter();
+                                    entry.getData(blobWriter, function (blob) {
+                                        service.loadDiskFile(entry.filename, blob, diskDrive).subscribe(subject);
+                                    });
                                 }
                             });
-
-                            function loadFile(entry) {
-                                const blobWriter = new zip.BlobWriter();
-                                entry.getData(blobWriter, function (blob) {
-                                    service.loadTIFile(entry.filename, blob, diskDrive);
-                                });
-                            }
                         });
                     }, function (message) {
                         log.error(message);
+                        subject.error(message);
                     });
                 } else if (extension != null && extension.toLowerCase() === 'obj') {
+                    // Object file
                     log.info('Loading object file.');
                     const reader = new FileReader();
                     reader.onload = function () {
                         const objLoader = new ObjLoader();
                         objLoader.loadObjFile(this.result);
-                        // ti994a.loadSoftware(objLoader.getSoftware());
-                        // ti994a.memory.setPADWord(0x83C0, Math.floor(Math.random() * 0xFFFF));
+                        service.commandDispatcherService.openSoftware(objLoader.getSoftware());
+                        subject.next();
                     };
                     reader.onerror = function () {
-                        alert(reader.error.name);
+                        subject.error(reader.error.name);
                     };
                     reader.readAsText(file);
                 } else {
-                    service.loadTIFile(file.name, file, diskDrive);
+                    // Single file
+                    service.loadDiskFile(file.name, file, diskDrive).subscribe(subject);
                 }
             }
         }
-        // updateDiskImageList();
+        return subject.asObservable();
     }
 
-    loadTIFile(filename, file, diskDrive: DiskDrive) {
+    loadDiskFile(filename, file: File, diskDrive: DiskDrive): Observable<DiskImage> {
+        const subject = new Subject<DiskImage>();
         const reader = new FileReader();
         reader.onload = function () {
             // reader.result contains the contents of blob as a typed array
@@ -67,25 +74,18 @@ export class DiskService {
             let diskImage;
             if (fileBuffer.length >= 16 && fileBuffer[0x0D] === 0x44 && fileBuffer[0x0E] === 0x53 && fileBuffer[0x0F] === 0x4B) {
                 diskImage = diskDrive.loadDSKFile(filename, fileBuffer);
-                if (diskImage) {
-                    // diskImages[diskImage.getName()] = diskImage;
-                    // updateDiskImageList(diskImage.getName());
-                    diskImage.setEventHandler(
-                        function (event) {
-                            // updateDiskImageList(diskImage.getName());
-                        }
-                    );
-                }
             } else {
                 diskImage = diskDrive.getDiskImage();
                 if (diskImage != null) {
                     diskImage.loadTIFile(filename, fileBuffer, false);
                 }
             }
+            subject.next(diskImage);
         };
         reader.onerror = function () {
-            alert(reader.error.name);
+            subject.error(reader.error.name);
         };
         reader.readAsArrayBuffer(file);
+        return subject.asObservable();
     }
 }

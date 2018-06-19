@@ -3,6 +3,7 @@ import {Subject} from 'rxjs/Subject';
 import {Observable} from 'rxjs/Observable';
 import {Command, CommandType} from '../classes/command';
 import {Subscription} from 'rxjs/Subscription';
+import {Software} from '../classes/software';
 
 
 
@@ -49,5 +50,9 @@ export class CommandDispatcherService {
 
   openDisk(files: FileList, driveIndex: number) {
       this.commandSubject.next(new Command(CommandType.OPEN_DISK, {files: files, driveIndex: driveIndex}));
+  }
+
+  openSoftware(software: Software) {
+      this.commandSubject.next(new Command(CommandType.OPEN_SOFTWARE, software));
   }
 }
