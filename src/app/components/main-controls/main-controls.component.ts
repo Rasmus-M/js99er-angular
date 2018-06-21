@@ -1,9 +1,9 @@
 import {AfterViewInit, Component, ElementRef, OnInit} from '@angular/core';
-import {CommandDispatcherService} from '../services/command-dispatcher.service';
+import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import * as $ from 'jquery';
 import 'bootstrap';
 import 'bootstrap-select';
-import {Software} from '../classes/software';
+import {SoftwareMenuService} from '../../services/software-menu.service';
 
 // declare var jQuery: JQuery;
 
@@ -16,7 +16,7 @@ export class MainControlsComponent implements AfterViewInit {
 
     running = false;
     driveIndex = 0;
-    menu = Software.MENU;
+    menu = SoftwareMenuService.MENU;
 
     constructor(
         private element: ElementRef,

@@ -1,4 +1,4 @@
-import {MemoryBlock, Software, SoftwareType} from '../classes/software';
+import {MemoryBlock, Software} from '../classes/software';
 import {Log} from '../classes/log';
 import {HttpClient} from '@angular/common/http';
 import {Injectable} from '@angular/core';
@@ -16,39 +16,6 @@ export class ModuleService {
     constructor(httpClient: HttpClient, zipService: ZipService) {
         this.httpClient = httpClient;
         this.zipService = zipService;
-    }
-
-    loadModuleFromMenu(path: string): Observable<Software> {
-        const subject = new Subject<Software>();
-        const pathParts = path.split('.');
-        let programs = Software.MENU;
-        for (let i = 0; i < pathParts.length && programs != null; i++) {
-            if (i < pathParts.length - 1) {
-                programs = programs[pathParts[i]].programs;
-            } else {
-                const program = programs[pathParts[i]];
-                if (program != null) {
-                    if (program.url != null) {
-                        if (program.url.substr(program.url.length - 3).toLowerCase() === 'rpk') {
-                            this.loadRPKModuleFromURL(program.url).subscribe(subject.next, subject.error);
-                        } else if (program.url.substr(program.url.length - 3).toLowerCase() === 'bin') {
-                            this.loadBinModuleFromURL(program.url).subscribe(subject.next, subject.error);
-                        } else {
-                            this.loadJSONModule(program.url, program).subscribe(function (prg) {
-                                program.url = null; // Mark as loaded
-                                subject.next(prg);
-                            });
-                        }
-                    } else {
-                        subject.next(program);
-                    }
-                }
-            }
-        }
-        if (programs === null) {
-            subject.error("Invalid path: " + path);
-        }
-        return subject.asObservable();
     }
 
     loadModuleFromFile(file): Observable<Software> {
@@ -77,7 +44,7 @@ export class ModuleService {
     loadRPKOrZipModule(reader): Observable<Software> {
         const subject = new Subject<Software>();
         const self = this;
-        this.zipService.createReader(reader, function (zipReader) {
+        this.zipService.createReader(reader, (zipReader) => {
             zipReader.getEntries(function (entries) {
                 let layoutEntry = null;
                 entries.forEach(function (entry) {
@@ -93,7 +60,9 @@ export class ModuleService {
                     self.loadZipModule(entries, subject);
                 }
             });
-        }, subject.error);
+        }, (error) => {
+            subject.error(error);
+        });
         return subject.asObservable();
     }
 
@@ -107,7 +76,7 @@ export class ModuleService {
             const module: Software = new Software();
             const pcb = xmlDoc.getElementsByTagName('pcb')[0];
             const pcbType = pcb.getAttribute('type').toLowerCase();
-            module.type = pcbType === 'paged379i' ? SoftwareType.INVERTED_CART : SoftwareType.CART;
+            module.inverted = pcbType === 'paged379i';
             const roms = xmlDoc.getElementsByTagName('rom');
             const sockets = xmlDoc.getElementsByTagName('socket');
             let filesToLoad = roms.length;
@@ -179,8 +148,7 @@ export class ModuleService {
             if (extension === 'bin') {
                 filesToLoad++;
                 const grom = baseFileName && baseFileName.charAt(baseFileName.length - 1) === 'g';
-                const inverted = baseFileName && baseFileName.charAt(baseFileName.length - 1) === '3';
-                module.type = inverted ? SoftwareType.INVERTED_CART : SoftwareType.CART;
+                module.inverted = baseFileName && baseFileName.charAt(baseFileName.length - 1) === '3';
                 const blobWriter = zipService.createBlobWriter();
                 entry.getData(blobWriter, function (blob) {
                     const reader2 = new FileReader();
@@ -213,11 +181,10 @@ export class ModuleService {
             const byteArray = new Uint8Array(this.result);
             const module: Software = new Software();
             if (grom) {
-                module.type = SoftwareType.CART;
                 module.grom = byteArray;
             } else {
                 const ramPaged = (byteArray[3] === 0x52);
-                module.type = inverted ? SoftwareType.INVERTED_CART : SoftwareType.CART;
+                module.inverted = inverted;
                 module.rom = byteArray;
                 module.ramAt7000 = ramPaged;
                 module.ramPaged = ramPaged;
@@ -239,57 +206,54 @@ export class ModuleService {
             (data: ArrayBuffer) => {
                 const byteArray = new Uint8Array(data);
                 const module = new Software();
-                module.type = inverted ? SoftwareType.INVERTED_CART : SoftwareType.CART;
+                module.inverted = inverted;
                 module.rom = byteArray;
                 subject.next(module);
             },
-            subject.error
+            (error) => {
+                subject.error(error);
+            }
         );
         return subject.asObservable();
     }
 
-    loadJSONModule(url, program: Software): Observable<Software> {
+    loadJSONModuleFromURL(url): Observable<Software> {
         const subject = new Subject<Software>();
-        const log = this.log;
         const self = this;
         this.httpClient.get(url, {responseType: 'json'}).subscribe(
             (data: any) => {
-                if (program == null) {
-                    program = new Software();
-                }
-                if (program.type == null) {
-                    program.type = (data.inverted === 'true' ? SoftwareType.INVERTED_CART : SoftwareType.CART);
-                } else if (program.type === SoftwareType.MEMORY_DUMP) {
-                    program.startAddress = data.startAddress ? parseInt(data.startAddress, 10) : 0xA000;
+                const software = new Software();
+                software.inverted = data.inverted;
+                if (data.startAddress) {
+                    software.startAddress = parseInt(data.startAddress, 10);
                 }
                 if (data.rom != null) {
-                    program.rom = self.hexArrayToByteArray(data.rom);
+                    software.rom = self.hexArrayToByteArray(data.rom);
                 }
                 if (data.grom != null) {
-                    program.grom = self.hexArrayToByteArray(data.grom);
+                    software.grom = self.hexArrayToByteArray(data.grom);
                 }
                 if (data.groms != null) {
-                    program.groms = [];
+                    software.groms = [];
                     for (let g = 0; g < data.groms.length; g++) {
-                        program.groms[g] = self.hexArrayToByteArray(data.groms[g]);
+                        software.groms[g] = self.hexArrayToByteArray(data.groms[g]);
                     }
                 }
                 if (data.memoryBlocks != null) {
-                    program.memoryBlocks = [];
+                    software.memoryBlocks = [];
                     for (let i = 0; i < data.memoryBlocks.length; i++) {
-                        program.memoryBlocks[i] = new MemoryBlock(
+                        software.memoryBlocks[i] = new MemoryBlock(
                             parseInt(data.memoryBlocks[i].address, 10),
                             self.hexArrayToByteArray(data.memoryBlocks[i].data)
                         );
                     }
                 }
-                program.ramAt6000 = data.ramAt6000 === 'true';
-                program.ramAt7000 = data.ramAt7000 === 'true';
-                subject.next(program);
+                software.ramAt6000 = data.ramAt6000 === 'true';
+                software.ramAt7000 = data.ramAt7000 === 'true';
+                subject.next(software);
             },
             (error) => {
-                log.error(error);
-                subject.error(error);
+                subject.error(error.error);
             }
         );
         return subject.asObservable();

@@ -16,7 +16,7 @@ import {CPU} from '../interfaces/cpu';
 import {TMS9918A} from './tms9918a';
 import {F18AGPU} from './f18agpu';
 import {System} from './system';
-import {Software, SoftwareType} from '../../classes/software';
+import {Software} from '../../classes/software';
 import {Settings} from '../../classes/settings';
 import {PSG} from '../interfaces/psg';
 import {Speech} from '../interfaces/speech';
@@ -326,7 +326,7 @@ export class TI994A implements State {
         if (wasRunning) {
             this.stop();
         }
-        this.reset(sw.memoryBlocks !== null);
+        this.reset(!!sw.memoryBlocks);
         if (sw.memoryBlocks) {
             for (let i = 0; i < sw.memoryBlocks.length; i++) {
                 const memoryBlock = sw.memoryBlocks[i];
@@ -336,8 +336,10 @@ export class TI994A implements State {
         if (sw.rom) {
             this.memory.setCartridgeImage(
                 sw.rom,
-                sw.type === SoftwareType.INVERTED_CART,
-                sw.ramAt6000, sw.ramAt7000, sw.ramPaged
+                sw.inverted,
+                sw.ramAt6000,
+                sw.ramAt7000,
+                sw.ramPaged
             );
         }
         if (sw.grom) {

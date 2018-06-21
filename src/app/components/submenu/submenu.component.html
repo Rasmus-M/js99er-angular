@@ -1,0 +1,6 @@
+<ul class="dropdown-menu">
+    <li *ngFor="let item of structure; index as i" [ngClass]="{'dropdown-item': item.type==='ITEM' || item.type==='MORE', 'dropdown-divider': item.type==='DIVIDER', 'dropdown-submenu': item.type==='SUBMENU'}">
+        <a *ngIf="item.type!=='DIVIDER'" [ngClass]="{'dropdown-item': item.type==='SUBMENU'}" href="#" tabindex="-1" (click)="item.type==='ITEM' && openSoftware(getPath(i))">{{item.name}}</a>
+        <app-submenu *ngIf="item.type==='SUBMENU'" [structure]="item.items" [path]="getPath(i)"></app-submenu>
+    </li>
+</ul>

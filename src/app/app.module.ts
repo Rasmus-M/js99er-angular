@@ -3,27 +3,26 @@ import {BrowserModule} from '@angular/platform-browser';
 import {BsDropdownModule, ModalModule, TooltipModule} from 'ngx-bootstrap';
 import {AngularFontAwesomeModule} from 'angular-font-awesome';
 import {HttpClientModule} from '@angular/common/http';
-import { FormsModule } from '@angular/forms';
+import {FormsModule} from '@angular/forms';
 
 import {EmulatorModule} from './emulator/emulator.module';
 import {AppComponent} from './app.component';
-import {DebuggerComponent} from './debugger/debugger.component';
-import {MainControlsComponent} from './main-controls/main-controls.component';
+import {DebuggerComponent} from './components/debugger/debugger.component';
+import {MainControlsComponent} from './components/main-controls/main-controls.component';
 import {ModuleService} from './services/module.service';
 import {AudioService} from './services/audio.service';
 import {ZipService} from './services/zip.service';
 import {DiskService} from './services/disk.service';
 import {CommandDispatcherService} from './services/command-dispatcher.service';
 import {ObjectLoaderService} from './services/object-loader.service';
-import { MenuComponent } from './menu/menu.component';
-import { SubmenuComponent } from './submenu/submenu.component';
+import {SubmenuComponent} from './components/submenu/submenu.component';
+import {SoftwareMenuService} from './services/software-menu.service';
 
 @NgModule({
     declarations: [
         AppComponent,
         DebuggerComponent,
         MainControlsComponent,
-        MenuComponent,
         SubmenuComponent
     ],
     imports: [
@@ -42,7 +41,8 @@ import { SubmenuComponent } from './submenu/submenu.component';
         AudioService,
         ZipService,
         CommandDispatcherService,
-        ObjectLoaderService
+        ObjectLoaderService,
+        SoftwareMenuService
     ],
     bootstrap: [
         AppComponent
