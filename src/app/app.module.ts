@@ -15,12 +15,16 @@ import {ZipService} from './services/zip.service';
 import {DiskService} from './services/disk.service';
 import {CommandDispatcherService} from './services/command-dispatcher.service';
 import {ObjectLoaderService} from './services/object-loader.service';
+import { MenuComponent } from './menu/menu.component';
+import { SubmenuComponent } from './submenu/submenu.component';
 
 @NgModule({
     declarations: [
         AppComponent,
         DebuggerComponent,
-        MainControlsComponent
+        MainControlsComponent,
+        MenuComponent,
+        SubmenuComponent
     ],
     imports: [
         BrowserModule,

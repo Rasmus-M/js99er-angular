@@ -3,6 +3,7 @@ import {CommandDispatcherService} from '../services/command-dispatcher.service';
 import * as $ from 'jquery';
 import 'bootstrap';
 import 'bootstrap-select';
+import {Software} from '../classes/software';
 
 // declare var jQuery: JQuery;
 
@@ -11,19 +12,16 @@ import 'bootstrap-select';
     templateUrl: './main-controls.component.html',
     styleUrls: ['./main-controls.component.css'],
 })
-export class MainControlsComponent implements OnInit, AfterViewInit {
+export class MainControlsComponent implements AfterViewInit {
 
     running = false;
     driveIndex = 0;
+    menu = Software.MENU;
 
     constructor(
         private element: ElementRef,
         private commandDispatcherService: CommandDispatcherService
     ) {}
-
-    ngOnInit() {
-        console.log("Init");
-    }
 
     ngAfterViewInit() {
         const select = this.element.nativeElement.querySelector(".selectpicker");

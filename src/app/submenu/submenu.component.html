@@ -1,0 +1,6 @@
+<ul class="dropdown-menu">
+    <li *ngFor="let item of structure" [ngClass]="{'dropdown-item': item.type==='ITEM' || item.type==='MORE', 'dropdown-divider': item.type==='DIVIDER', 'dropdown-submenu': item.type==='SUBMENU'}">
+        <a *ngIf="item.type!=='DIVIDER'" [ngClass]="{'dropdown-item': item.type==='SUBMENU'}" href="#" tabindex="-1">{{item.name}}</a>
+        <app-submenu *ngIf="item.type==='SUBMENU'" [structure]="item.items"></app-submenu>
+    </li>
+</ul>

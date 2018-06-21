@@ -1,0 +1,5 @@
+@media screen and (orientation:landscape) {
+    #console-row {
+        height: calc(100vh - 64px);
+    }
+}

@@ -39,336 +39,336 @@ export class Software {
 
     static MENU: any = [
         {
-            name: "TI Basic",
-            type: SoftwareType.SYSTEM
+            type: "ITEM",
+            name: "TI Basic"
         },
         {
+            type: "ITEM",
             name: "TI Extended Basic",
-            type: SoftwareType.CART,
             url: "software/xb.json"
         },
         {
+            type: "ITEM",
             name: "Editor/Assembler",
-            type: SoftwareType.CART,
             url: "software/editor-assembler.json"
         },
         {
-            type: SoftwareType.DIVIDER
+            type: "DIVIDER"
         },
         {
+            type: "SUBMENU",
             name: "Apps",
-            type: SoftwareType.GROUP,
-            programs: [
+            items: [
                 {
+                    type: "ITEM",
                     name: "Mini Memory",
-                    type: SoftwareType.CART,
                     url: "software/minimem.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Supercart",
-                    type: SoftwareType.CART,
                     url: "software/supercart.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Editor Assembler II",
-                    type: SoftwareType.CART,
                     url: "software/ea2.json"
                 },
                 {
+                    type: "ITEM",
                     name: "RXB 2015",
-                    type: SoftwareType.CART,
                     url: "software/RXB2015.rpk"
                 },
                 {
+                    type: "ITEM",
                     name: "Cortex Basic",
-                    type: SoftwareType.INVERTED_CART,
                     url: "software/cortexbasic.rpk"
                 },
                 {
+                    type: "ITEM",
                     name: "Cortex Basic 80",
-                    type: SoftwareType.INVERTED_CART,
                     url: "software/cortex_basic_80.rpk"
                 },
                 {
+                    type: "ITEM",
                     name: "TurboForth",
-                    type: SoftwareType.CART,
                     url: "software/turboforth.rpk"
                 },
                 {
+                    type: "ITEM",
                     name: "fbForth",
-                    type: SoftwareType.INVERTED_CART,
                     url: "software/fbForth200.rpk"
                 },
                 {
+                    type: "ITEM",
                     name: "TI Workshop",
-                    type: SoftwareType.INVERTED_CART,
                     url: "software/ti-workshop.json"
                 },
                 {
+                    type: "ITEM",
                     name: "XB 2.7 Suite",
-                    type: SoftwareType.CART,
                     url: "software/xb27suite2.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Jumpstart for xas99",
-                    type: SoftwareType.CART,
                     url: "software/jumpstart.rpk"
                 }
             ]
         },
         {
-            type: SoftwareType.DIVIDER
+            type: "DIVIDER"
         },
         {
+            type: "SUBMENU",
             name: "Games",
-            type: SoftwareType.GROUP,
-            programs: [
+            items: [
                 {
+                    type: "ITEM",
                     name: "Parsec",
-                    type: SoftwareType.CART,
                     url: "software/parsec.json"
                 },
                 {
+                    type: "ITEM",
                     name: "TI Invaders",
-                    type: SoftwareType.CART,
                     url: "software/ti-invaders.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Q-Bert",
-                    type: SoftwareType.CART,
                     url: "software/qbert.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Atarisoft compilation",
-                    type: SoftwareType.CART,
                     url: "software/atarisoft-multicart.rpk"
                 },
                 {
+                    type: "ITEM",
                     name: "Game cart 1 (512K)",
-                    type: SoftwareType.CART,
                     url: "software/gamecart.rpk"
                 },
                 {
+                    type: "ITEM",
                     name: "Game cart 2 (512K)",
-                    type: SoftwareType.CART,
                     url: "software/gamecart2.rpk"
                 },
                 {
+                    type: "ITEM",
                     name: "Game cart 3 (512K)",
-                    type: SoftwareType.CART,
                     url: "software/gamecart3.rpk"
                 },
                 {
+                    type: "ITEM",
                     name: "Rasmus 8-in-1 game cart",
-                    type: SoftwareType.CART,
                     url: "software/rasmus-8in1-cart.rpk"
                 },
                 {
+                    type: "ITEM",
                     name: "Road Hunter/TI Scramble/Titanium",
-                    type: SoftwareType.INVERTED_CART,
                     url: "software/scrolling-trilogy.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Flappy Bird",
-                    type: SoftwareType.INVERTED_CART,
                     url: "software/flappybird.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Sabre Wulf",
-                    type: SoftwareType.INVERTED_CART,
                     url: "software/sabrewulf.rpk"
                 },
                 {
+                    type: "ITEM",
                     name: "Sports",
-                    type: SoftwareType.INVERTED_CART,
                     url: "software/sports.rpk"
                 },
                 {
+                    type: "ITEM",
                     name: "Jet Set Willy",
-                    type: SoftwareType.INVERTED_CART,
                     url: "software/jsw.rpk"
                 },
                 {
+                    type: "ITEM",
                     name: "Bouncy",
-                    type: SoftwareType.INVERTED_CART,
                     url: "software/bouncy.rpk"
                 },
                 {
+                    type: "ITEM",
                     name: "Knight Lore",
-                    type: SoftwareType.CART,
                     url: "software/knightlore8.bin"
                 },
                 {
+                    type: "ITEM",
                     name: "Skyway",
-                    type: SoftwareType.CART,
                     url: "software/skyway8.bin"
                 },
                 {
+                    type: "ITEM",
                     name: "JetPac",
-                    type: SoftwareType.INVERTED_CART,
                     url: "software/JetPac3.bin"
                 },
                 {
+                    type: "ITEM",
                     name: "Pitfall!",
-                    type: SoftwareType.INVERTED_CART,
                     url: "software/pitfall.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Break Free",
-                    type: SoftwareType.CART,
                     url: "software/brkfree.rpk"
                 },
                 {
+                    type: "ITEM",
                     name: "Flying Shark",
-                    type: SoftwareType.CART,
                     url: "software/flying-shark-v1.2.rpk"
                 }
             ]
         },
         {
-            type: SoftwareType.DIVIDER
+            type: "DIVIDER"
         },
         {
+            type: "SUBMENU",
             name: "Demos",
-            type: SoftwareType.GROUP,
-            programs: [
+            items: [
                 {
+                    type: "ITEM",
                     name: "Megademo",
-                    type: SoftwareType.CART,
                     url: "software/ti99demo.rpk"
                 },
                 {
+                    type: "ITEM",
                     name: "Horizontal scrolling demo",
-                    type: SoftwareType.MEMORY_DUMP,
                     url: "software/hscroll.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Platform 2D scrolling demo",
-                    type: SoftwareType.MEMORY_DUMP,
                     url: "software/platform.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Isometric scrolling demo",
-                    type: SoftwareType.MEMORY_DUMP,
                     url: "software/isoscroll.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Dungeon demo",
-                    type: SoftwareType.MEMORY_DUMP,
                     url: "software/dungeon.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Light-year demo",
-                    type: SoftwareType.MEMORY_DUMP,
                     url: "software/light-year.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Lines demo",
-                    type: SoftwareType.MEMORY_DUMP,
                     url: "software/lines.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Multicolor demo",
-                    type: SoftwareType.MEMORY_DUMP,
                     url: "software/multicolor.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Scrolling Text demo",
-                    type: SoftwareType.MEMORY_DUMP,
                     url: "software/scrolltxt.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Happy 2015 demo",
-                    type: SoftwareType.MEMORY_DUMP,
                     url: "software/happy2015.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Another scrolling demo",
-                    type: SoftwareType.MEMORY_DUMP,
                     url: "software/platform2.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Animated hat demo",
-                    type: SoftwareType.CART,
                     url: "software/hat.rpk"
                 },
                 {
+                    type: "ITEM",
                     name: "Monkey Island demo",
-                    type: SoftwareType.CART,
                     url: "software/monkey8.rpk"
                 }
             ]
         },
         {
-            type: SoftwareType.DIVIDER
+            type: "DIVIDER"
         },
         {
+            type: "SUBMENU",
             name: "F18A specific",
-            type: SoftwareType.GROUP,
-            programs: [
+            items: [
                 {
+                    type: "ITEM",
                     name: "F18A scrolling demo",
-                    type: SoftwareType.MEMORY_DUMP,
                     url: "software/ecm3scroll.json"
                 },
                 {
+                    type: "ITEM",
                     name: "F18A bitmap demo",
-                    type: SoftwareType.MEMORY_DUMP,
                     url: "software/bitmap.json"
                 },
                 {
+                    type: "ITEM",
                     name: "GPU image rotation",
-                    type: SoftwareType.MEMORY_DUMP,
                     url: "software/gpu-rotate.json"
                 },
                 {
+                    type: "ITEM",
                     name: "GPU lines demo",
-                    type: SoftwareType.MEMORY_DUMP,
                     url: "software/gpu-lines.json"
                 },
                 {
+                    type: "ITEM",
                     name: "GPU PIX lines demo",
-                    type: SoftwareType.MEMORY_DUMP,
                     url: "software/gpu-pixlines.json"
                 },
                 {
+                    type: "ITEM",
                     name: "GPU Mandelbrot (Tursi)",
-                    type: SoftwareType.MEMORY_DUMP,
                     url: "software/gpu-mandelbrot.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Power Strike demo",
-                    type: SoftwareType.MEMORY_DUMP,
                     url: "software/powerstrike.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Poly 3D demo",
-                    type: SoftwareType.MEMORY_DUMP,
                     url: "software/poly3d.json"
                 },
                 {
+                    type: "ITEM",
                     name: "Position attributes demo",
-                    type: SoftwareType.MEMORY_DUMP,
                     url: "software/posattr.json"
                 },
                 {
+                    type: "ITEM",
                     name: "TI-99 Mario Bros",
-                    type: SoftwareType.INVERTED_CART,
                     url: "software/Mario3.bin"
                 },
                 {
+                    type: "ITEM",
                     name: "Monkey Island Demo",
-                    type: SoftwareType.CART,
                     url: "software/f18a-monkey8.bin"
                 }
             ]
         },
         {
-            type: SoftwareType.DIVIDER
+            type: "DIVIDER"
         },
         {
-            name: "More...",
-            type: SoftwareType.MORE
+            type: "MORE",
+            name: "More..."
         }
     ];
 
@@ -387,11 +387,7 @@ export class Software {
     private _memoryBlocks: MemoryBlock[];
     private _keyPresses: string;
 
-    constructor(data: any) {
-        this._name = data.name;
-        this._type = data.type;
-        this._url = data.url;
-    }
+    constructor() {}
 
     get name(): string {
         return this._name;

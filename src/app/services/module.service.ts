@@ -104,7 +104,7 @@ export class ModuleService {
         layoutEntry.getData(writer, function (txt) {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(txt, 'text/xml');
-            const module: Software = new Software({});
+            const module: Software = new Software();
             const pcb = xmlDoc.getElementsByTagName('pcb')[0];
             const pcbType = pcb.getAttribute('type').toLowerCase();
             module.type = pcbType === 'paged379i' ? SoftwareType.INVERTED_CART : SoftwareType.CART;
@@ -170,7 +170,7 @@ export class ModuleService {
     loadZipModule(entries: any[], subject: Subject<Software>) {
         const log = Log.getLog();
         const zipService = this.zipService;
-        const module: Software = new Software({});
+        const module: Software = new Software();
         let filesToLoad = 0;
         entries.forEach(function (entry) {
             log.info(entry.filename);
@@ -211,7 +211,7 @@ export class ModuleService {
         const reader = new FileReader();
         reader.onload = function () {
             const byteArray = new Uint8Array(this.result);
-            const module: Software = new Software({});
+            const module: Software = new Software();
             if (grom) {
                 module.type = SoftwareType.CART;
                 module.grom = byteArray;
@@ -238,7 +238,7 @@ export class ModuleService {
         this.httpClient.get(url, {responseType: 'arraybuffer'}).subscribe(
             (data: ArrayBuffer) => {
                 const byteArray = new Uint8Array(data);
-                const module = new Software({});
+                const module = new Software();
                 module.type = inverted ? SoftwareType.INVERTED_CART : SoftwareType.CART;
                 module.rom = byteArray;
                 subject.next(module);
@@ -255,7 +255,7 @@ export class ModuleService {
         this.httpClient.get(url, {responseType: 'json'}).subscribe(
             (data: any) => {
                 if (program == null) {
-                    program = new Software({});
+                    program = new Software();
                 }
                 if (program.type == null) {
                     program.type = (data.inverted === 'true' ? SoftwareType.INVERTED_CART : SoftwareType.CART);

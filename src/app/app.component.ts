@@ -4,8 +4,6 @@ import {Settings} from './classes/settings';
 import {DiskImage} from './emulator/classes/disk';
 import {AudioService} from './services/audio.service';
 import {Command, CommandType} from './classes/command';
-import {ModuleService} from './services/module.service';
-import {DiskService} from './services/disk.service';
 import {TI994A} from './emulator/classes/ti994a';
 import {Log} from './classes/log';
 
