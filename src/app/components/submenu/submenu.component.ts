@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {Software, SoftwareType} from '../../classes/software';
+import {Software} from '../../classes/software';
 import {SoftwareMenuService} from '../../services/software-menu.service';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {Log} from '../../classes/log';

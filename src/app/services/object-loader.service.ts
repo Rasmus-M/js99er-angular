@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {Util} from '../classes/util';
-import {MemoryBlock, Software, SoftwareType} from '../classes/software';
+import {MemoryBlock, Software} from '../classes/software';
 
 enum LoaderAction  {
     EA5,
@@ -329,7 +329,7 @@ export class ObjectLoaderService {
     }
 
     getSoftware(): Software {
-        const software = new Software({});
+        const software = new Software();
         if (this.action === LoaderAction.EA5) {
             software.memoryBlocks = [];
             software.startAddress = this.autoStartAddress;
@@ -361,7 +361,7 @@ export class ObjectLoaderService {
             }
         } else {
             software.rom = this.rom;
-            software.type = SoftwareType.INVERTED_CART;
+            software.inverted = true;
         }
         return software;
     }
