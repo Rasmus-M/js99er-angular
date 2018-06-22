@@ -24,8 +24,8 @@
                 "../node_modules/bootstrap-select/dist/css/bootstrap-select.css"
             ],
             "scripts": [
-                "../node_modules/beta-dev-zip/lib/zip.js",
-                "../node_modules/beta-dev-zip/lib/zip-ext.js"
+                "../node_modules/zip-js/WebContent/zip.js",
+                "../node_modules/zip-js/WebContent/zip-ext.js"
 
             ],
             "environmentSource": "environments/environment.ts",
