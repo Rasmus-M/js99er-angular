@@ -24,13 +24,13 @@
             </div>
             <div class="form-check">
                 <input type="checkbox" class="form-check-input" name="enableSpeech" id="enableGRAM"
-                       [ngModel]="enableSpeech" (ngModelChange)="onEnableSpeechChanged($event)">
-                <label class="form-check-label" for="enableSpeech">GRAM</label>
+                       [ngModel]="enableGRAM" (ngModelChange)="onEnableGRAMChanged($event)">
+                <label class="form-check-label" for="enableGRAM">GRAM</label>
             </div>
             <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="enableGRAM" id="enableF18A"
-                       [ngModel]="enableGRAM" (ngModelChange)="onEnableGRAMChanged($event)">
-                <label class="form-check-label" for="enableGRAM">F18A</label>
+                <input type="checkbox" class="form-check-input" name="enableF18A" id="enableF18A"
+                       [ngModel]="enableF18A" (ngModelChange)="onEnableF18AChanged($event)">
+                <label class="form-check-label" for="enableF18A">F18A</label>
             </div>
             <div class="form-check">
                 <input type="checkbox" class="form-check-input" name="enableFlicker" id="enableFlicker"
@@ -48,9 +48,9 @@
                 <label class="form-check-label" for="enableMapArrowKeys">Map arrow keys to Fctn+SDEX</label>
             </div>
             <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="enableGoogleDrives" id="enableGoogleDrives"
+                <input type="checkbox" class="form-check-input" name="enableGoogleDrive" id="enableGoogleDrive"
                        [ngModel]="enableGoogleDrive" (ngModelChange)="onEnableGoogleDriveChanged($event)">
-                <label class="form-check-label" for="enableGoogleDrives">Google drives (GDR1, GDR2, GDR3)</label>
+                <label class="form-check-label" for="enableGoogleDrive">Google drives (GDR1, GDR2, GDR3)</label>
             </div>
             <div class="form-check">
                 <input type="checkbox" class="form-check-input" name="enablePixelated" id="enablePixelated"

@@ -1,3 +1,7 @@
 canvas {
     height: 100%;
 }
+
+.pixelated {
+    image-rendering: pixelated;
+}

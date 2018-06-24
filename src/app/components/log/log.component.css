@@ -1,0 +1,11 @@
+.card-body {
+    height: 100%;
+}
+
+#log {
+    height: 100%;
+    white-space: pre;
+    overflow-x: scroll;
+    overflow-y: scroll;
+    word-wrap: normal;
+}

@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {CommandDispatcherService} from './services/command-dispatcher.service';
-import {Settings} from './classes/settings';
+import {Setting, Settings} from './classes/settings';
 import {DiskImage} from './emulator/classes/disk';
 import {AudioService} from './services/audio.service';
 import {Command, CommandType} from './classes/command';
@@ -36,7 +36,7 @@ export class AppComponent implements OnInit {
             FLOPPY3: new DiskImage('Floppy 3', null)
         };
         this.settings = this.settingsService.getSettings();
-        this.commandDispatcherService.subscribe(this.onCommand);
+        this.commandDispatcherService.subscribe(this.onCommand.bind(this));
     }
 
     onConsoleReady(ti994A) {
@@ -47,6 +47,13 @@ export class AppComponent implements OnInit {
     onCommand(command: Command) {
         console.log(command);
         switch (command.type) {
+            case CommandType.CHANGE_SETTING:
+                const setting: Setting = command.data.setting;
+                if (setting === Setting.SOUND) {
+                    const value: boolean = command.data.value;
+                    this.audioService.setSoundEnabled(value);
+                }
+                break;
         }
     }
 }

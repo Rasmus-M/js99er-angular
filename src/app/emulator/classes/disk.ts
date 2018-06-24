@@ -966,7 +966,7 @@ export class DiskImage implements State {
         this.fireEvent({type: "fileDeleted", name: fileName});
     }
 
-    loadTIFile(fileName: string, fileBuffer, ignoreTIFileName) {
+    loadTIFile(fileName: string, fileBuffer: Uint8Array, ignoreTIFileName: boolean) {
         if (fileBuffer != null && fileBuffer.length > 0x80) {
             let sectors;
             let flags;
@@ -1714,7 +1714,7 @@ class Record implements State {
     }
 }
 
-class FixedRecord extends Record {
+export class FixedRecord extends Record {
 
     constructor(data: string | number[], length: number) {
         super();
@@ -1731,7 +1731,7 @@ class FixedRecord extends Record {
     }
 }
 
-class VariableRecord extends Record {
+export class VariableRecord extends Record {
 
     constructor(data: string | number[]) {
         super();
