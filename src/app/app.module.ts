@@ -1,6 +1,6 @@
 import {NgModule} from '@angular/core';
 import {BrowserModule} from '@angular/platform-browser';
-import {BsDropdownModule, ModalModule, TooltipModule} from 'ngx-bootstrap';
+import {TabsModule} from 'ngx-bootstrap';
 import {AngularFontAwesomeModule} from 'angular-font-awesome';
 import {HttpClientModule} from '@angular/common/http';
 import {FormsModule} from '@angular/forms';
@@ -17,19 +17,22 @@ import {CommandDispatcherService} from './services/command-dispatcher.service';
 import {ObjectLoaderService} from './services/object-loader.service';
 import {SubmenuComponent} from './components/submenu/submenu.component';
 import {SoftwareMenuService} from './services/software-menu.service';
+import {SettingsService} from './services/settings.service';
+import {SettingsComponent} from './components/settings/settings.component';
+import { LogComponent } from './components/log/log.component';
 
 @NgModule({
     declarations: [
         AppComponent,
         DebuggerComponent,
         MainControlsComponent,
-        SubmenuComponent
+        SubmenuComponent,
+        SettingsComponent,
+        LogComponent
     ],
     imports: [
         BrowserModule,
-        BsDropdownModule.forRoot(),
-        ModalModule.forRoot(),
-        TooltipModule.forRoot(),
+        TabsModule.forRoot(),
         AngularFontAwesomeModule,
         HttpClientModule,
         EmulatorModule,
@@ -42,7 +45,9 @@ import {SoftwareMenuService} from './services/software-menu.service';
         ZipService,
         CommandDispatcherService,
         ObjectLoaderService,
-        SoftwareMenuService
+        SoftwareMenuService,
+        SettingsService
+
     ],
     bootstrap: [
         AppComponent

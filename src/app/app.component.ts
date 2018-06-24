@@ -6,6 +6,7 @@ import {AudioService} from './services/audio.service';
 import {Command, CommandType} from './classes/command';
 import {TI994A} from './emulator/classes/ti994a';
 import {Log} from './classes/log';
+import {SettingsService} from './services/settings.service';
 
 @Component({
     selector: 'app-root',
@@ -24,7 +25,8 @@ export class AppComponent implements OnInit {
 
     constructor(
         private audioService: AudioService,
-        private commandDispatcherService: CommandDispatcherService
+        private commandDispatcherService: CommandDispatcherService,
+        private settingsService: SettingsService
     ) {}
 
     ngOnInit() {
@@ -33,7 +35,7 @@ export class AppComponent implements OnInit {
             FLOPPY2: new DiskImage('Floppy 2', null),
             FLOPPY3: new DiskImage('Floppy 3', null)
         };
-        this.settings = new Settings(true);
+        this.settings = this.settingsService.getSettings();
         this.commandDispatcherService.subscribe(this.onCommand);
     }
 

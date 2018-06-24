@@ -7,7 +7,8 @@ export enum CommandType {
     RESET,
     OPEN_MODULE,
     OPEN_DISK,
-    OPEN_SOFTWARE
+    OPEN_SOFTWARE,
+    CHANGE_SETTING
 }
 
 export class Command {

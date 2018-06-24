@@ -1,12 +1,56 @@
 <div class="container-fluid">
-    <div class="row" id="console-row">
-        <div class="col-md-7 offset-md-0">
-            <app-console [diskImages]="diskImages" [settings]="settings" (consoleReady)="onConsoleReady($event)"></app-console>
-        </div>
-    </div>
     <div class="row">
-        <div class="col-md-7 offset-md-0">
-            <app-main-controls></app-main-controls>
+        <div class="col-md-7">
+            <div class="row" id="console-row">
+                <div class="col-md-12">
+                    <app-console [diskImages]="diskImages" (consoleReady)="onConsoleReady($event)"></app-console>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <app-main-controls></app-main-controls>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div>
+                <tabset>
+                    <tab heading="Log">
+                        <app-log></app-log>
+                    </tab>
+                    <tab heading="Disk">
+                        <div class="card">
+                            <div class="card-body">
+                                <p>Nothing here yet</p>
+                            </div>
+                        </div>
+                    </tab>
+                    <tab heading="Tape">
+                        <div class="card">
+                            <div class="card-body">
+                                <p>Nothing here yet</p>
+                            </div>
+                        </div>
+                    </tab>
+                    <tab heading="Keyboard">
+                        <div class="card">
+                            <div class="card-body">
+                                <p>Nothing here yet</p>
+                            </div>
+                        </div>
+                    </tab>
+                    <tab heading="Debugger">
+                        <div class="card">
+                            <div class="card-body">
+                                <p>Nothing here yet</p>
+                            </div>
+                        </div>
+                    </tab>
+                    <tab heading="Options">
+                        <app-settings></app-settings>
+                    </tab>
+                </tabset>
+            </div>
         </div>
     </div>
 </div>

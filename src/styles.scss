@@ -10,6 +10,10 @@ $enable-rounded: true;
     background-repeat: repeat-x;
 }
 
-
 // import in the bootstrap SASS file
 @import '../node_modules/bootstrap/scss/bootstrap';
+
+
+.tab-height {
+    height: calc(100vh - 104px);
+}

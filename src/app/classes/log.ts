@@ -11,82 +11,44 @@ export class Log {
     private static instance: Log;
 
     private minLevel = LogLevel.INFO;
-    private id;
+    private element: HTMLElement;
     private buffer = '';
     private bufferCount = 0;
     private bufferSize = 20;
-    private print;
-
     private msgMap = {};
 
-    static getLog() {
+    static getLog(): Log {
         if (!this.instance) {
-            this.instance = new Log('default');
+            this.instance = new Log();
         }
         return this.instance;
     }
 
-    static setLog(newLog) {
-        this.instance = newLog;
+    constructor() {
     }
 
-    constructor(id) {
-        this.id = id;
-        this.init(id);
+    init(element: HTMLElement) {
+        this.element = element;
+        const that = this;
+        setInterval(function () {
+            that.flushBuffer();
+        }, 1000);
     }
 
-    private init(id) {
-        // Set default log scheme.
-        this.print = function (object) { /* Do nothing. */
-        };
-
-        if (this.id === undefined) {
-            // Try to use native console.
-            if (console) {
-                this.print = function (object) {
-                    console.log(object);
-                };
-            }
-        } else if (id != null) {
-            const log = this;
-            // Try to output under specified DOM object.
-            const framePre = typeof(document) === 'object' ? document.getElementById(id) : null;
-            if (framePre == null || framePre === undefined) {
-                if (console) {
-                    this.print = function (object) {
-                        console.log(object);
-                    };
-                }
-                return;
+    print(obj) {
+        if (obj != null) {
+            this.buffer += obj + '\n';
+            this.bufferCount++;
+        }
+        if (this.bufferCount >= this.bufferSize && this.buffer.length > 0) {
+            if (this.element) {
+                this.element.appendChild(document.createTextNode(this.buffer));
+                this.element.scrollTop = this.element.scrollHeight;
             } else {
-                this.print = function (object) {
-                    if (object != null) {
-                        log.buffer += object + '\n';
-                        log.bufferCount++;
-                    }
-                    if (log.bufferCount >= log.bufferSize && log.buffer.length > 0) {
-                        const buffer = log.buffer;
-                        window.setTimeout(
-                            function () {
-                                framePre.appendChild(document.createTextNode(buffer));
-                                framePre.scrollTop = framePre.scrollHeight;
-                            },
-                            10
-                        );
-                        log.buffer = '';
-                        log.bufferCount = 0;
-                        this.framePre.appendChild(document.createTextNode(log.buffer));
-                        this.framePre.scrollTop = this.framePre.scrollHeight;
-                        // this.framePre.innerHTML = this.buffer;
-                        log.buffer = '';
-                        log.bufferCount = 0;
-                    }
-                };
-                const that = this;
-                setInterval(function () {
-                    that.flushBuffer();
-                }, 1000);
+                console.log(this.buffer);
             }
+            this.buffer = '';
+            this.bufferCount = 0;
         }
     }
 

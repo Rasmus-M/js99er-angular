@@ -4,6 +4,7 @@ import {Observable} from 'rxjs/Observable';
 import {Command, CommandType} from '../classes/command';
 import {Subscription} from 'rxjs/Subscription';
 import {Software} from '../classes/software';
+import {Setting} from '../classes/settings';
 
 
 
@@ -54,5 +55,9 @@ export class CommandDispatcherService {
 
   openSoftware(software: Software) {
       this.commandSubject.next(new Command(CommandType.OPEN_SOFTWARE, software));
+  }
+
+  changeSetting(setting: Setting, value: boolean) {
+      this.commandSubject.next(new Command(CommandType.CHANGE_SETTING, {setting: setting, value: value}));
   }
 }

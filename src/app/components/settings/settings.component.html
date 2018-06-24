@@ -1,0 +1,63 @@
+<div class="card tab-height">
+    <div class="card-body">
+        <!-- <h5 class="card-title">Options</h5> -->
+        <form>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="enableSound" id="enableSound"
+                       [ngModel]="enableSound" (ngModelChange)="onEnableSoundChanged($event)">
+                <label class="form-check-label" for="enableSound">Sound enabled</label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="enableSpeech" id="enableSpeech"
+                       [ngModel]="enableSpeech" (ngModelChange)="onEnableSpeechChanged($event)">
+                <label class="form-check-label" for="enableSpeech">Speech enabled</label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="enableSpeech" id="enable32KRAM"
+                       [ngModel]="enable32KRAM" (ngModelChange)="onEnable32KRAMChanged($event)">
+                <label class="form-check-label" for="enable32KRAM">32K RAM</label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="enableAMS" id="enableAMS"
+                       [ngModel]="enableAMS" (ngModelChange)="onEnableAMSChanged($event)">
+                <label class="form-check-label" for="enableAMS">SAMS</label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="enableSpeech" id="enableGRAM"
+                       [ngModel]="enableSpeech" (ngModelChange)="onEnableSpeechChanged($event)">
+                <label class="form-check-label" for="enableSpeech">GRAM</label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="enableGRAM" id="enableF18A"
+                       [ngModel]="enableGRAM" (ngModelChange)="onEnableGRAMChanged($event)">
+                <label class="form-check-label" for="enableGRAM">F18A</label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="enableFlicker" id="enableFlicker"
+                       [ngModel]="enableFlicker" (ngModelChange)="onEnableFlickerChanged($event)">
+                <label class="form-check-label" for="enableFlicker">4 sprites per line limitation</label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="enablePCKeyboard" id="enablePCKeyboard"
+                       [ngModel]="enablePCKeyboard" (ngModelChange)="onEnablePCKeyboardChanged($event)">
+                <label class="form-check-label" for="enablePCKeyboard">PC keyboard</label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="enableMapArrawKeys" id="enableMapArrowKeys"
+                       [ngModel]="enableMapArrowKeys" (ngModelChange)="onEnableMapArrowKeysChanged($event)">
+                <label class="form-check-label" for="enableMapArrowKeys">Map arrow keys to Fctn+SDEX</label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="enableGoogleDrives" id="enableGoogleDrives"
+                       [ngModel]="enableGoogleDrive" (ngModelChange)="onEnableGoogleDriveChanged($event)">
+                <label class="form-check-label" for="enableGoogleDrives">Google drives (GDR1, GDR2, GDR3)</label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="enablePixelated" id="enablePixelated"
+                       [ngModel]="enablePixelated" (ngModelChange)="onEnablePixelatedChanged($event)">
+                <label class="form-check-label" for="enablePixelated">Pixelated image (if supported by browser)</label>
+            </div>
+        </form>
+    </div>
+</div>
+
