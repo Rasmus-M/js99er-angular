@@ -1,9 +1,12 @@
-import {AfterViewInit, Component, ElementRef, OnInit} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit} from '@angular/core';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import * as $ from 'jquery';
 import 'bootstrap';
 import 'bootstrap-select';
 import {SoftwareMenuService} from '../../services/software-menu.service';
+import {EventDispatcherService} from '../../services/event-dispatcher.service';
+import {Subscription} from 'rxjs/Subscription';
+import {ControlEvent, ControlEventType} from '../../classes/controlEvent';
 
 // declare var jQuery: JQuery;
 
@@ -12,16 +15,22 @@ import {SoftwareMenuService} from '../../services/software-menu.service';
     templateUrl: './main-controls.component.html',
     styleUrls: ['./main-controls.component.css'],
 })
-export class MainControlsComponent implements AfterViewInit {
+export class MainControlsComponent implements OnInit, AfterViewInit, OnDestroy {
 
     running = false;
     driveIndex = 0;
     menu = SoftwareMenuService.MENU;
+    private subscription: Subscription;
 
     constructor(
         private element: ElementRef,
-        private commandDispatcherService: CommandDispatcherService
+        private commandDispatcherService: CommandDispatcherService,
+        private eventDispatcherService: EventDispatcherService
     ) {}
+
+    ngOnInit(): void {
+        this.subscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
+    }
 
     ngAfterViewInit() {
         const select = this.element.nativeElement.querySelector(".selectpicker");
@@ -29,12 +38,10 @@ export class MainControlsComponent implements AfterViewInit {
     }
 
     start() {
-        this.running = true;
         this.commandDispatcherService.start();
     }
 
     fast() {
-        this.running = true;
         this.commandDispatcherService.fast();
     }
 
@@ -46,13 +53,11 @@ export class MainControlsComponent implements AfterViewInit {
         this.commandDispatcherService.step();
     }
 
-    pause() {
-        this.running = false;
-        this.commandDispatcherService.pause();
+    stop() {
+        this.commandDispatcherService.stop();
     }
 
     reset() {
-        this.running = true;
         this.commandDispatcherService.reset();
     }
 
@@ -66,5 +71,20 @@ export class MainControlsComponent implements AfterViewInit {
         if (files.length) {
             this.commandDispatcherService.openDisk(files, this.driveIndex);
         }
+    }
+
+    onEvent(event: ControlEvent) {
+        switch (event.type) {
+            case ControlEventType.STARTED:
+                this.running = true;
+                break;
+            case ControlEventType.STOPPED:
+                this.running = false;
+                break;
+        }
+    }
+
+    ngOnDestroy() {
+        this.subscription.unsubscribe();
     }
 }

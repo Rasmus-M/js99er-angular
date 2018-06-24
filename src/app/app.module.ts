@@ -19,7 +19,8 @@ import {SubmenuComponent} from './components/submenu/submenu.component';
 import {SoftwareMenuService} from './services/software-menu.service';
 import {SettingsService} from './services/settings.service';
 import {SettingsComponent} from './components/settings/settings.component';
-import { LogComponent } from './components/log/log.component';
+import {LogComponent} from './components/log/log.component';
+import {EventDispatcherService} from './services/event-dispatcher.service';
 
 @NgModule({
     declarations: [
@@ -44,6 +45,7 @@ import { LogComponent } from './components/log/log.component';
         AudioService,
         ZipService,
         CommandDispatcherService,
+        EventDispatcherService,
         ObjectLoaderService,
         SoftwareMenuService,
         SettingsService

@@ -131,7 +131,7 @@ export class Memory implements State {
         this.peripheralROMNumber = 0;
         this.loadPeripheralROM(new Uint8Array(DiskDrive.DSR_ROM), 1);
         if (this.settings.isGoogleDriveEnabled()) {
-            this.loadPeripheralROM(GoogleDrive.DSR_ROM, 2);
+            this.loadPeripheralROM(new Uint8Array(GoogleDrive.DSR_ROM), 2);
         }
 
         this.buildMemoryMap();

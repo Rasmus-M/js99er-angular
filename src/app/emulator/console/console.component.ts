@@ -10,6 +10,7 @@ import {Log} from '../../classes/log';
 import {DiskService} from '../../services/disk.service';
 import {SettingsService} from '../../services/settings.service';
 import * as $ from 'jquery';
+import {EventDispatcherService} from '../../services/event-dispatcher.service';
 
 @Component({
     selector: 'app-console',
@@ -28,6 +29,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
     constructor(
         private element: ElementRef,
         private commandDispatcherService: CommandDispatcherService,
+        private eventDispatcherService: EventDispatcherService,
         private softwareService: ModuleService,
         private diskService: DiskService,
         private settingsService: SettingsService
@@ -49,9 +51,11 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         switch (command.type) {
             case CommandType.START:
                 this.ti994A.start(false);
+                this.eventDispatcherService.started();
                 break;
             case CommandType.FAST:
                 this.ti994A.start(true);
+                this.eventDispatcherService.started();
                 break;
             case CommandType.FRAME:
                 this.ti994A.frame();
@@ -61,10 +65,10 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                 break;
             case CommandType.STOP:
                 this.ti994A.stop();
+                this.eventDispatcherService.stopped();
                 break;
             case CommandType.RESET:
-                this.ti994A.reset(true);
-                this.ti994A.start(false);
+                this.reset();
                 break;
             case CommandType.OPEN_MODULE:
                 this.softwareService.loadModuleFromFile(command.data).subscribe(
@@ -136,11 +140,16 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         break;
                 }
                 if (resetRequired) {
-                    this.ti994A.reset(true);
-                    this.ti994A.start(false);
+                    this.reset();
                 }
                 break;
         }
+    }
+
+    reset() {
+        this.ti994A.reset(true);
+        this.ti994A.start(false);
+        this.eventDispatcherService.started();
     }
 
     ngOnDestroy() {
