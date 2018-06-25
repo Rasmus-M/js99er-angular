@@ -8,7 +8,8 @@ export enum CommandType {
     OPEN_MODULE,
     OPEN_DISK,
     OPEN_SOFTWARE,
-    CHANGE_SETTING
+    CHANGE_SETTING,
+    PRESS_KEY
 }
 
 export class Command {

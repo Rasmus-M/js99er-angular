@@ -21,6 +21,7 @@ import {SettingsService} from './services/settings.service';
 import {SettingsComponent} from './components/settings/settings.component';
 import {LogComponent} from './components/log/log.component';
 import {EventDispatcherService} from './services/event-dispatcher.service';
+import { KeyboardComponent } from './components/keyboard/keyboard.component';
 
 @NgModule({
     declarations: [
@@ -29,7 +30,8 @@ import {EventDispatcherService} from './services/event-dispatcher.service';
         MainControlsComponent,
         SubmenuComponent,
         SettingsComponent,
-        LogComponent
+        LogComponent,
+        KeyboardComponent
     ],
     imports: [
         BrowserModule,

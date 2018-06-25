@@ -60,4 +60,8 @@ export class CommandDispatcherService {
     changeSetting(setting: Setting, value: boolean) {
         this.commandSubject.next(new Command(CommandType.CHANGE_SETTING, {setting: setting, value: value}));
     }
+
+    pressKey(keyCode: number) {
+        this.commandSubject.next(new Command(CommandType.PRESS_KEY, keyCode));
+    }
 }

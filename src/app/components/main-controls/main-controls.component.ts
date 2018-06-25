@@ -1,8 +1,8 @@
 import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit} from '@angular/core';
-import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import * as $ from 'jquery';
 import 'bootstrap';
 import 'bootstrap-select';
+import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {SoftwareMenuService} from '../../services/software-menu.service';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {Subscription} from 'rxjs/Subscription';

@@ -143,6 +143,9 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.reset();
                 }
                 break;
+            case CommandType.PRESS_KEY:
+                this.ti994A.getKeyboard().virtualKeyPress(command.data);
+                break;
         }
     }
 
