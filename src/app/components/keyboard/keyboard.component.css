@@ -1,4 +1,5 @@
 #keyboard, #strip {
     width: 100%;
+    user-select: none;
 }
 

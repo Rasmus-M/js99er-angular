@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, ElementRef, OnInit} from '@angular/core';
 import {CommandDispatcherService} from './services/command-dispatcher.service';
 import {Setting, Settings} from './classes/settings';
 import {DiskImage} from './emulator/classes/disk';
@@ -24,6 +24,7 @@ export class AppComponent implements OnInit {
     private log: Log = Log.getLog();
 
     constructor(
+        private element: ElementRef,
         private audioService: AudioService,
         private commandDispatcherService: CommandDispatcherService,
         private settingsService: SettingsService
@@ -55,5 +56,9 @@ export class AppComponent implements OnInit {
                 }
                 break;
         }
+    }
+
+    onKeyboardSelected() {
+        window.dispatchEvent(new Event('resize'));
     }
 }
