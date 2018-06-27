@@ -27,4 +27,8 @@ export class EventDispatcherService {
     stopped() {
         this.eventSubject.next(new ControlEvent(ControlEventType.STOPPED, {}));
     }
+
+    screenshot(dataURL: string) {
+        this.eventSubject.next(new ControlEvent(ControlEventType.SCREENSHOT, dataURL));
+    }
 }

@@ -9,7 +9,8 @@ export enum CommandType {
     OPEN_DISK,
     OPEN_SOFTWARE,
     CHANGE_SETTING,
-    PRESS_KEY
+    PRESS_KEY,
+    SCREENSHOT
 }
 
 export class Command {

@@ -146,6 +146,9 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
             case CommandType.PRESS_KEY:
                 this.ti994A.getKeyboard().virtualKeyPress(command.data);
                 break;
+            case CommandType.SCREENSHOT:
+                this.eventDispatcherService.screenshot(this.canvas.toDataURL());
+                break;
         }
     }
 
@@ -153,6 +156,19 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         this.ti994A.reset(true);
         this.ti994A.start(false);
         this.eventDispatcherService.started();
+    }
+
+    onCanvasClick(evt) {
+        const rect = this.canvas.getBoundingClientRect();
+        const scale = this.canvas.clientHeight / 240;
+        const tiX = Math.floor((evt.clientX - rect.left) / scale);
+        const tiY = Math.floor((evt.clientY - rect.top) / scale);
+        let charCode = this.ti994A.getVDP().getCharAt(tiX, tiY);
+        if (charCode > 0) {
+            charCode = charCode >= 128 ? charCode - 96 : charCode;
+            this.log.info("Click at (" + tiX + "," + tiY + "). Simulated keypress: " + String.fromCharCode(charCode));
+            this.ti994A.getKeyboard().simulateKeyPress(charCode, null);
+        }
     }
 
     ngOnDestroy() {

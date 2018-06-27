@@ -73,6 +73,10 @@ export class MainControlsComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
+    screenshot() {
+        this.commandDispatcherService.screenshot();
+    }
+
     onEvent(event: ControlEvent) {
         switch (event.type) {
             case ControlEventType.STARTED:
@@ -80,6 +84,10 @@ export class MainControlsComponent implements OnInit, AfterViewInit, OnDestroy {
                 break;
             case ControlEventType.STOPPED:
                 this.running = false;
+                break;
+            case ControlEventType.SCREENSHOT:
+                console.log(event.data);
+                this.element.nativeElement.querySelector("#btnScreenshot").href = event.data;
                 break;
         }
     }

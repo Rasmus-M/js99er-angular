@@ -2,7 +2,8 @@ import {CommandType} from './command';
 
 export enum ControlEventType {
     STARTED = 0,
-    STOPPED = 1
+    STOPPED = 1,
+    SCREENSHOT = 2
 }
 
 

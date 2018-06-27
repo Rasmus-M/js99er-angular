@@ -64,4 +64,8 @@ export class CommandDispatcherService {
     pressKey(keyCode: number) {
         this.commandSubject.next(new Command(CommandType.PRESS_KEY, keyCode));
     }
+
+    screenshot() {
+        this.commandSubject.next(new Command(CommandType.SCREENSHOT, null));
+    }
 }
