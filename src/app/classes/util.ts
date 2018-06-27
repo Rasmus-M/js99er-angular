@@ -31,4 +31,12 @@ export class Util {
         }
         return s;
     }
+
+    static parseNumber(s: string) {
+        if (s.startsWith("0x")) {
+            return parseInt(s.substring(2), 16);
+        } else {
+            return parseInt(s, 10);
+        }
+    }
 }

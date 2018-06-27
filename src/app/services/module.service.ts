@@ -5,6 +5,7 @@ import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {ZipService} from './zip.service';
+import {Util} from '../classes/util';
 
 @Injectable()
 export class ModuleService {
@@ -225,26 +226,26 @@ export class ModuleService {
                 const software = new Software();
                 software.inverted = data.inverted;
                 if (data.startAddress) {
-                    software.startAddress = parseInt(data.startAddress, 10);
+                    software.startAddress = Util.parseNumber(data.startAddress);
                 }
                 if (data.rom != null) {
-                    software.rom = self.hexArrayToByteArray(data.rom);
+                    software.rom = ModuleService.hexArrayToByteArray(data.rom);
                 }
                 if (data.grom != null) {
-                    software.grom = self.hexArrayToByteArray(data.grom);
+                    software.grom = ModuleService.hexArrayToByteArray(data.grom);
                 }
                 if (data.groms != null) {
                     software.groms = [];
                     for (let g = 0; g < data.groms.length; g++) {
-                        software.groms[g] = self.hexArrayToByteArray(data.groms[g]);
+                        software.groms[g] = ModuleService.hexArrayToByteArray(data.groms[g]);
                     }
                 }
                 if (data.memoryBlocks != null) {
                     software.memoryBlocks = [];
                     for (let i = 0; i < data.memoryBlocks.length; i++) {
                         software.memoryBlocks[i] = new MemoryBlock(
-                            parseInt(data.memoryBlocks[i].address, 10),
-                            self.hexArrayToByteArray(data.memoryBlocks[i].data)
+                            Util.parseNumber(data.memoryBlocks[i].address),
+                            ModuleService.hexArrayToByteArray(data.memoryBlocks[i].data)
                         );
                     }
                 }
@@ -259,7 +260,7 @@ export class ModuleService {
         return subject.asObservable();
     }
 
-    private hexArrayToByteArray(hexArray) {
+    private static hexArrayToByteArray(hexArray) {
         const binArray = [];
         let n = 0;
         for (let i = 0; i < hexArray.length; i++) {
