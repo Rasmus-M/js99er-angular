@@ -2,20 +2,27 @@
     position: relative;
 }
 
+/* Submenu layout */
 .dropdown-submenu app-submenu>.dropdown-menu {
     bottom: -10px;
-    left: 102%;
+    left: 101%;
     margin-top: -6px;
     margin-left: -1px;
-    -webkit-border-radius: 0 6px 6px 6px;
-    -moz-border-radius: 0 6px 6px;
-    border-radius: 0 6px 6px 6px;
+    border-radius: 6px 6px 6px 0;
 }
 
+/*
 .dropdown-submenu:hover app-submenu>.dropdown-menu {
     display: block;
 }
+*/
 
+/* Activation of submenu */
+.dropdown-menu-visible {
+    display: block;
+}
+
+/* Triangle after submenu items */
 .dropdown-submenu>a:after {
     display: block;
     content: " ";
@@ -30,6 +37,7 @@
     margin-right: -10px;
 }
 
+/* Triangle black on hover */
 .dropdown-submenu:hover>a:after {
     border-left-color: #000;
 }
@@ -41,11 +49,10 @@
 .dropdown-submenu.pull-left app-submenu>.dropdown-menu {
     left: -100%;
     margin-left: 10px;
-    -webkit-border-radius: 6px 0 6px 6px;
-    -moz-border-radius: 6px 0 6px 6px;
     border-radius: 6px 0 6px 6px;
 }
 
+/* Item link color */
 .dropdown-menu a {
     color: #000;
 }

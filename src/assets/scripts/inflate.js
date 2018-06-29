@@ -7,8 +7,8 @@
  1. Redistributions of source code must retain the above copyright notice,
  this list of conditions and the following disclaimer.
 
- 2. Redistributions in binary form must reproduce the above copyright 
- notice, this list of conditions and the following disclaimer in 
+ 2. Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions and the following disclaimer in
  the documentation and/or other materials provided with the distribution.
 
  3. The names of the authors may not be used to endorse or promote products
@@ -125,7 +125,7 @@
 		var hn; // hufts used in space
 		var v; // work area for huft_build
 		var c; // bit length count table
-		var r; // table entry for structure assignment
+		var r; // table entry for data assignment
 		var u; // table stack
 		var x; // bit offsets, then code stack
 

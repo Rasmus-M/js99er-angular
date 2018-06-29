@@ -365,7 +365,7 @@ export class GoogleDrive {
                                             callback(0, DiskError.ILLEGAL_OPERATION);
                                         }
                                     } else {
-                                        that.log.info("EOF - close file.");
+                                        that.log.info("EOF - closing file.");
                                         file.close();
                                         callback(0, DiskError.READ_PAST_END);
                                     }

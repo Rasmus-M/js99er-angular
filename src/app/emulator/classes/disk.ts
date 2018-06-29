@@ -450,7 +450,7 @@ export class DiskDrive implements State {
                                         errorCode = DiskError.ILLEGAL_OPERATION;
                                     }
                                 } else {
-                                    this.log.info("EOF - close file.");
+                                    this.log.info("EOF - closing file.");
                                     file.close();
                                     errorCode = DiskError.READ_PAST_END;
                                 }

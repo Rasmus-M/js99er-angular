@@ -1,8 +1,8 @@
 import {Injectable} from '@angular/core';
-import {Subject} from 'rxjs/Subject';
 import {Software} from '../classes/software';
 import {Observable} from 'rxjs/Observable';
 import {ModuleService} from './module.service';
+import {Subject} from 'rxjs/index';
 
 @Injectable()
 export class SoftwareMenuService {
@@ -346,28 +346,17 @@ export class SoftwareMenuService {
     constructor(private moduleService: ModuleService) {
     }
 
-    loadModuleFromMenu(path: string): Observable<Software> {
-        console.log("Path: " + path);
-        const pathParts = path.split('.');
-        let menu = SoftwareMenuService.MENU;
-        for (let i = 0; i < pathParts.length && menu != null; i++) {
-            if (i < pathParts.length - 1) {
-                menu = menu[pathParts[i]].items;
-            } else {
-                const item = menu[pathParts[i]];
-                if (item != null) {
-                    if (item.url.substr(item.url.length - 3).toLowerCase() === 'rpk') {
-                        return this.moduleService.loadRPKModuleFromURL('assets/' + item.url);
-                    } else if (item.url.substr(item.url.length - 3).toLowerCase() === 'bin') {
-                        return this.moduleService.loadBinModuleFromURL('assets/' + item.url);
-                    } else {
-                        return this.moduleService.loadJSONModuleFromURL('assets/' + item.url);
-                    }
-                }
-            }
+    loadModuleFromMenu(url: string): Observable<Software> {
+        if (url.substr(url.length - 3).toLowerCase() === 'rpk') {
+            return this.moduleService.loadRPKModuleFromURL('assets/' + url);
+        } else if (url.substr(url.length - 3).toLowerCase() === 'bin') {
+            return this.moduleService.loadBinModuleFromURL('assets/' + url);
+        } else if (url.substr(url.length - 4).toLowerCase() === 'json') {
+            return this.moduleService.loadJSONModuleFromURL('assets/' + url);
+        } else {
+            const subject = new Subject<Software>();
+            subject.error("Invalid url: " + url);
+            return subject.asObservable();
         }
-        const subject = new Subject<Software>();
-        subject.error("Invalid path: " + path);
-        return subject.asObservable();
     }
 }

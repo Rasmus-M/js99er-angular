@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {Software} from '../../classes/software';
 import {SoftwareMenuService} from '../../services/software-menu.service';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
@@ -9,27 +9,23 @@ import {Log} from '../../classes/log';
     templateUrl: './submenu.component.html',
     styleUrls: ['./submenu.component.css']
 })
-export class SubmenuComponent implements OnInit {
+export class SubmenuComponent {
 
-    @Input() structure: any;
-    @Input() path: string;
+    @Input() data: any;
+    @Output() closing: EventEmitter<boolean>;
 
     log: Log = Log.getLog();
 
     constructor(
         private softwareMenuService: SoftwareMenuService,
         private commandDispatcherService: CommandDispatcherService
-    ) {}
-
-    ngOnInit() {
+    ) {
+        this.closing = new EventEmitter<boolean>();
     }
 
-    getPath(index: number) {
-        return (this.path ? this.path + "." : "") + index;
-    }
-
-    openSoftware(path: string) {
-        this.softwareMenuService.loadModuleFromMenu(path).subscribe(
+    openSoftware(i: number) {
+        this.closing.emit(true);
+        this.softwareMenuService.loadModuleFromMenu(this.data[i].url).subscribe(
             (software: Software) => {
                 this.commandDispatcherService.openSoftware(software);
             },
@@ -38,5 +34,23 @@ export class SubmenuComponent implements OnInit {
                 this.log.error(error);
             }
         );
+    }
+
+    openSubmenu(i: number, evt: Event) {
+        for (let j = 0; j < this.data.length; j++) {
+            if (this.data[j].type === "SUBMENU") {
+                this.data[j].items.visible = i === j;
+            }
+        }
+        evt.stopPropagation();
+    }
+
+    onClose() {
+        for (let j = 0; j < this.data.length; j++) {
+            if (this.data[j].type === "SUBMENU") {
+                this.data[j].items.visible = false;
+            }
+        }
+        this.closing.emit(true);
     }
 }
