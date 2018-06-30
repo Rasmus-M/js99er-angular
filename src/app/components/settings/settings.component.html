@@ -1,63 +1,62 @@
 <div class="card tab-height">
     <div class="card-body">
-        <!-- <h5 class="card-title">Options</h5> -->
-        <form>
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="enableSound" id="enableSound"
+        <fieldset>
+            <div class="custom-control form-control-lg custom-checkbox">
+                <input type="checkbox" class="custom-control-input" name="enableSound" id="enableSound"
                        [ngModel]="enableSound" (ngModelChange)="onEnableSoundChanged($event)">
-                <label class="form-check-label" for="enableSound">Sound enabled</label>
+                <label class="custom-control-label" for="enableSound">Sound enabled</label>
             </div>
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="enableSpeech" id="enableSpeech"
+            <div class="custom-control form-control-lg custom-checkbox">
+                <input type="checkbox" class="custom-control-input" name="enableSpeech" id="enableSpeech"
                        [ngModel]="enableSpeech" (ngModelChange)="onEnableSpeechChanged($event)">
-                <label class="form-check-label" for="enableSpeech">Speech enabled</label>
+                <label class="custom-control-label" for="enableSpeech">Speech enabled</label>
             </div>
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="enableSpeech" id="enable32KRAM"
+            <div class="custom-control form-control-lg custom-checkbox">
+                <input type="checkbox" class="custom-control-input" name="enableSpeech" id="enable32KRAM"
                        [ngModel]="enable32KRAM" (ngModelChange)="onEnable32KRAMChanged($event)">
-                <label class="form-check-label" for="enable32KRAM">32K RAM</label>
+                <label class="custom-control-label" for="enable32KRAM">32K RAM</label>
             </div>
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="enableAMS" id="enableAMS"
+            <div class="custom-control form-control-lg custom-checkbox">
+                <input type="checkbox" class="custom-control-input" name="enableAMS" id="enableAMS"
                        [ngModel]="enableAMS" (ngModelChange)="onEnableAMSChanged($event)">
-                <label class="form-check-label" for="enableAMS">SAMS</label>
+                <label class="custom-control-label" for="enableAMS">SAMS</label>
             </div>
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="enableSpeech" id="enableGRAM"
+            <div class="custom-control form-control-lg custom-checkbox">
+                <input type="checkbox" class="custom-control-input" name="enableSpeech" id="enableGRAM"
                        [ngModel]="enableGRAM" (ngModelChange)="onEnableGRAMChanged($event)">
-                <label class="form-check-label" for="enableGRAM">GRAM</label>
+                <label class="custom-control-label" for="enableGRAM">GRAM</label>
             </div>
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="enableF18A" id="enableF18A"
+            <div class="custom-control form-control-lg custom-checkbox">
+                <input type="checkbox" class="custom-control-input" name="enableF18A" id="enableF18A"
                        [ngModel]="enableF18A" (ngModelChange)="onEnableF18AChanged($event)">
-                <label class="form-check-label" for="enableF18A">F18A</label>
+                <label class="custom-control-label" for="enableF18A">F18A</label>
             </div>
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="enableFlicker" id="enableFlicker"
+            <div class="custom-control form-control-lg custom-checkbox">
+                <input type="checkbox" class="custom-control-input" name="enableFlicker" id="enableFlicker"
                        [ngModel]="enableFlicker" (ngModelChange)="onEnableFlickerChanged($event)">
-                <label class="form-check-label" for="enableFlicker">4 sprites per line limitation</label>
+                <label class="custom-control-label" for="enableFlicker">4 sprites per line limitation</label>
             </div>
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="enablePCKeyboard" id="enablePCKeyboard"
+            <div class="custom-control form-control-lg custom-checkbox">
+                <input type="checkbox" class="custom-control-input" name="enablePCKeyboard" id="enablePCKeyboard"
                        [ngModel]="enablePCKeyboard" (ngModelChange)="onEnablePCKeyboardChanged($event)">
-                <label class="form-check-label" for="enablePCKeyboard">PC keyboard</label>
+                <label class="custom-control-label" for="enablePCKeyboard">PC keyboard</label>
             </div>
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="enableMapArrawKeys" id="enableMapArrowKeys"
+            <div class="custom-control form-control-lg custom-checkbox">
+                <input type="checkbox" class="custom-control-input" name="enableMapArrawKeys" id="enableMapArrowKeys"
                        [ngModel]="enableMapArrowKeys" (ngModelChange)="onEnableMapArrowKeysChanged($event)">
-                <label class="form-check-label" for="enableMapArrowKeys">Map arrow keys to Fctn+SDEX</label>
+                <label class="custom-control-label" for="enableMapArrowKeys">Map arrow keys to Fctn+SDEX</label>
             </div>
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="enableGoogleDrive" id="enableGoogleDrive"
+            <div class="custom-control form-control-lg custom-checkbox">
+                <input type="checkbox" class="custom-control-input" name="enableGoogleDrive" id="enableGoogleDrive"
                        [ngModel]="enableGoogleDrive" (ngModelChange)="onEnableGoogleDriveChanged($event)">
-                <label class="form-check-label" for="enableGoogleDrive">Google drives (GDR1, GDR2, GDR3)</label>
+                <label class="custom-control-label" for="enableGoogleDrive">Google drives (GDR1, GDR2, GDR3)</label>
             </div>
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="enablePixelated" id="enablePixelated"
+            <div class="custom-control form-control-lg custom-checkbox">
+                <input type="checkbox" class="custom-control-input" name="enablePixelated" id="enablePixelated"
                        [ngModel]="enablePixelated" (ngModelChange)="onEnablePixelatedChanged($event)">
-                <label class="form-check-label" for="enablePixelated">Pixelated image (if supported by browser)</label>
+                <label class="custom-control-label" for="enablePixelated">Pixelated image (if supported by browser)</label>
             </div>
-        </form>
+        </fieldset>
     </div>
 </div>
 
