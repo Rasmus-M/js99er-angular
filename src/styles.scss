@@ -13,7 +13,19 @@ $enable-rounded: true;
 // import in the bootstrap SASS file
 @import '../node_modules/bootstrap/scss/bootstrap';
 
-
-.tab-height {
-    height: calc(100vh - 104px);
+/* Outer */
+.tab-content {
+    height: calc(100% - 100px);
 }
+
+/* Middle */
+.tab-pane {
+    height: 100%;
+}
+
+/* Inner */
+.tab-card {
+    height: 100%;
+}
+
+

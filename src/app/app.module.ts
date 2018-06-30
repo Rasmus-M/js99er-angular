@@ -22,6 +22,8 @@ import {SettingsComponent} from './components/settings/settings.component';
 import {LogComponent} from './components/log/log.component';
 import {EventDispatcherService} from './services/event-dispatcher.service';
 import { KeyboardComponent } from './components/keyboard/keyboard.component';
+import { DiskComponent } from './components/disk/disk.component';
+import { TapeComponent } from './components/tape/tape.component';
 
 @NgModule({
     declarations: [
@@ -31,7 +33,9 @@ import { KeyboardComponent } from './components/keyboard/keyboard.component';
         SubmenuComponent,
         SettingsComponent,
         LogComponent,
-        KeyboardComponent
+        KeyboardComponent,
+        DiskComponent,
+        TapeComponent
     ],
     imports: [
         BrowserModule,

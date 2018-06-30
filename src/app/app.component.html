@@ -1,7 +1,7 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-7">
-            <div class="row" id="console-row">
+            <div class="row">
                 <div class="col-md-12">
                     <app-console [diskImages]="diskImages" (consoleReady)="onConsoleReady($event)"></app-console>
                 </div>
@@ -13,40 +13,50 @@
             </div>
         </div>
         <div class="col-md-5">
-            <div>
-                <tabset>
-                    <tab heading="Log">
-                        <app-log></app-log>
-                    </tab>
-                    <tab heading="Disk">
-                        <div class="card">
-                            <div class="card-body">
-                                <p>Nothing here yet</p>
-                            </div>
+            <tabset type="pills">
+                <tab heading="Log">
+                    <div class="card tab-card">
+                        <div class="card-body">
+                            <app-log></app-log>
                         </div>
-                    </tab>
-                    <tab heading="Tape">
-                        <div class="card">
-                            <div class="card-body">
-                                <p>Nothing here yet</p>
-                            </div>
+                    </div>
+                </tab>
+                <tab heading="Disk">
+                    <div class="card tab-card">
+                        <div class="card-body">
+                            <app-disk></app-disk>
                         </div>
-                    </tab>
-                    <tab heading="Keyboard" (select)="onKeyboardSelected()">
-                        <app-keyboard></app-keyboard>
-                    </tab>
-                    <tab heading="Debugger">
-                        <div class="card">
-                            <div class="card-body">
-                                <p>Nothing here yet</p>
-                            </div>
+                    </div>
+                </tab>
+                <tab heading="Tape">
+                    <div class="card tab-card">
+                        <div class="card-body">
+                            <app-tape></app-tape>
                         </div>
-                    </tab>
-                    <tab heading="Options">
-                        <app-settings></app-settings>
-                    </tab>
-                </tabset>
-            </div>
+                    </div>
+                </tab>
+                <tab heading="Keyboard" (select)="onKeyboardSelected()">
+                    <div class="card tab-card">
+                        <div class="card-body">
+                            <app-keyboard></app-keyboard>
+                        </div>
+                    </div>
+                </tab>
+                <tab heading="Debugger">
+                    <div class="card tab-card">
+                        <div class="card-body">
+                            <app-debugger></app-debugger>
+                        </div>
+                    </div>
+                </tab>
+                <tab heading="Options">
+                    <div class="card tab-card">
+                        <div class="card-body">
+                            <app-settings></app-settings>
+                        </div>
+                    </div>
+                </tab>
+            </tabset>
         </div>
     </div>
 </div>
