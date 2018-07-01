@@ -32,7 +32,15 @@ export class Util {
         return s;
     }
 
+    static parseHexNumber(s: string) {
+        return Util._parseNumber(s, 16);
+    }
+
     static parseNumber(s: string) {
+        return Util._parseNumber(s, 10);
+    }
+
+    static _parseNumber(s: string, defRadix: number) {
         if (!s) {
             return NaN;
         } else if (s.startsWith("0x")) {
@@ -40,7 +48,7 @@ export class Util {
         } else if (s.startsWith(">")) {
             return parseInt(s.substring(1), 16);
         } else {
-            return parseInt(s, 10);
+            return parseInt(s, defRadix);
         }
     }
 }

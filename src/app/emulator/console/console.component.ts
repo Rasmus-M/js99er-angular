@@ -59,6 +59,16 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         this.eventDispatcherService.started();
     }
 
+    frame() {
+        this.ti994A.frame();
+        this.eventDispatcherService.stopped();
+    }
+
+    step() {
+        this.ti994A.step();
+        this.eventDispatcherService.stopped();
+    }
+
     stop() {
         this.ti994A.stop();
         this.eventDispatcherService.stopped();
@@ -73,10 +83,10 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.start(true);
                 break;
             case CommandType.FRAME:
-                this.ti994A.frame();
+                this.frame();
                 break;
             case CommandType.STEP:
-                this.ti994A.step();
+                this.step();
                 break;
             case CommandType.STOP:
                 this.stop();
@@ -189,7 +199,6 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
 
     onBreakpoint(cpu: CPU) {
         this.stop();
-        this.eventDispatcherService.breakpoint(cpu);
     }
 
     ngOnDestroy() {

@@ -1,6 +1,9 @@
+#status {
+    width: 100%;
+}
+
 #memory {
-    height: calc(100vh - 460px);
-    max-height: calc(100vh - 460px);
+    height: calc(100vh - 540px);
     width: 100%;
 }
 

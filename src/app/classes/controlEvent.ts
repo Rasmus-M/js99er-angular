@@ -4,7 +4,6 @@ export enum ControlEventType {
     READY,
     STARTED,
     STOPPED,
-    BREAKPOINT,
     SCREENSHOT
 }
 

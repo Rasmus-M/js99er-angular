@@ -62,10 +62,6 @@ export class DebuggerComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.stopUpdate();
                 this.updateDebugger();
                 break;
-            case ControlEventType.BREAKPOINT:
-                this.stopUpdate();
-                this.updateDebugger();
-                break;
         }
     }
 
@@ -141,43 +137,31 @@ export class DebuggerComponent implements OnInit, AfterViewInit, OnDestroy {
         return isNaN(addr) ? defaultValue : addr;
     }
 
-    toHexAddress(value: string) {
-        if (value.substring(0, 1) === ">") {
-            value = value.substring(1);
-        }
-        while (value.length < 4) {
-            value = "0" + value;
-        }
-        value = ">" + value;
-        return value;
-    }
-
     onDebuggerAddressChanged(value) {
-        const addr = Util.parseNumber(value);
+        const addr = Util.parseHexNumber(value);
         if (isNaN(addr)) {
             this.debuggerAddress = "";
         } else {
-            this.debuggerAddress = this.toHexAddress(value);
+            this.debuggerAddress = Util.toHexWord(value);
         }
+        this.updateDebugger();
     }
 
     onBreakpointAddressChanged(value) {
-        const addr = Util.parseNumber(value);
+        const addr = Util.parseHexNumber(value);
         if (isNaN(addr)) {
             this.commandDispatcherService.setBreakpoint(null);
             this.breakpointAddress = "";
         } else {
             this.commandDispatcherService.setBreakpoint(addr);
-            this.breakpointAddress = this.toHexAddress(value);
+            this.breakpointAddress = Util.toHexWord(value);
         }
+        this.ti994A.getKeyboard().start();
+        this.updateDebugger();
     }
 
     onTextFocus() {
         this.ti994A.getKeyboard().stop();
-    }
-
-    onTextBlur() {
-        this.ti994A.getKeyboard().start();
     }
 
     ngOnDestroy() {

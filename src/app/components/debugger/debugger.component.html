@@ -1,6 +1,14 @@
 <div class="row">
-    <pre id="status">{{statusString}}</pre>
-    <pre id="memory">{{memoryViewText}}</pre>
+    <div class="card w-100">
+        <div class="card-body w-100">
+            <pre id="status">{{statusString}}</pre>
+        </div>
+    </div>
+    <div class="card w-100">
+        <div class="card-body w-100">
+            <pre id="memory">{{memoryViewText}}</pre>
+        </div>
+    </div>
 </div>
 <div class="row">
     <div id="debuggerTools" class="navbar navbar-expand-l">
@@ -14,9 +22,9 @@
                 <option [ngValue]="1">VDP memory</option>
             </select>
             <input class="form-control mr-2 address-entry" type="text" placeholder="Address" aria-label="Address" maxlength="5"
-                   [ngModel]="debuggerAddress" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onDebuggerAddressChanged($event)" (focus)="onTextFocus()" (blur)="onTextBlur()" name="debuggerAddress">
+                   [ngModel]="debuggerAddress" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onDebuggerAddressChanged($event)" (focus)="onTextFocus()" name="debuggerAddress">
             <input class="form-control address-entry" type="text" placeholder="Breakpoint" aria-label="Breakpoint" maxlength="5"
-                   [ngModel]="breakpointAddress" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onBreakpointAddressChanged($event)" (focus)="onTextFocus()"  (blur)="onTextBlur()" name="breakpointAddress">
+                   [ngModel]="breakpointAddress" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onBreakpointAddressChanged($event)" (focus)="onTextFocus()" name="breakpointAddress">
         </form>
     </div>
 </div>

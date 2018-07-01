@@ -80,33 +80,45 @@ export class Keyboard implements State {
     private attachListeners() {
         const self = this;
         if (!this.pcKeyboardEnabled) {
-            this.keydownListener = (evt: KeyboardEvent) => {
-                self.keyEvent(evt, true);
-            };
-            this.document.addEventListener( "keydown", this.keydownListener);
-            this.keyupListener = (evt: KeyboardEvent) => {
-                self.keyEvent(evt, false);
-            };
-            this.document.addEventListener("keyup", this.keyupListener);
+            if (!this.keydownListener) {
+                this.keydownListener = (evt: KeyboardEvent) => {
+                    self.keyEvent(evt, true);
+                };
+                this.document.addEventListener( "keydown", this.keydownListener);
+            }
+            if (!this.keyupListener) {
+                this.keyupListener = (evt: KeyboardEvent) => {
+                    self.keyEvent(evt, false);
+                };
+                this.document.addEventListener("keyup", this.keyupListener);
+            }
         } else {
-            this.keydownListener = (evt: KeyboardEvent) => {
-                self.keyEvent2(evt, true);
-            };
-            this.document.addEventListener("keydown", this.keydownListener);
-            this.keypressListener = (evt: KeyboardEvent) => {
-                self.keyPressEvent(evt);
-            };
-            this.document.addEventListener("keypress", this.keypressListener);
-            this.keyupListener = (evt: KeyboardEvent) => {
-                self.keyEvent2(evt, false);
-            };
-            this.document.addEventListener("keyup", this.keyupListener);
+            if (!this.keydownListener) {
+                this.keydownListener = (evt: KeyboardEvent) => {
+                    self.keyEvent2(evt, true);
+                };
+                this.document.addEventListener("keydown", this.keydownListener);
+            }
+            if (!this.keypressListener) {
+                this.keypressListener = (evt: KeyboardEvent) => {
+                    self.keyPressEvent(evt);
+                };
+                this.document.addEventListener("keypress", this.keypressListener);
+            }
+            if (!this.keyupListener) {
+                this.keyupListener = (evt: KeyboardEvent) => {
+                    self.keyEvent2(evt, false);
+                };
+                this.document.addEventListener("keyup", this.keyupListener);
+            }
         }
-        this.pasteListener = (evt: ClipboardEvent) => {
-            self.pasteBuffer = "\n" + evt.clipboardData.getData('text/plain') + "\n";
-            self.pasteIndex = 0;
-        };
-        this.document.addEventListener("paste", this.pasteListener);
+        if (!this.pasteListener) {
+            this.pasteListener = (evt: ClipboardEvent) => {
+                self.pasteBuffer = "\n" + evt.clipboardData.getData('text/plain') + "\n";
+                self.pasteIndex = 0;
+            };
+            this.document.addEventListener("paste", this.pasteListener);
+        }
     }
 
     private removeListeners() {
