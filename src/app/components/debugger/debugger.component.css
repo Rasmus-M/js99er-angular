@@ -1,4 +1,9 @@
 #memory {
     height: calc(100vh - 460px);
     max-height: calc(100vh - 460px);
+    width: 100%;
+}
+
+.address-entry {
+    width: 8em;
 }

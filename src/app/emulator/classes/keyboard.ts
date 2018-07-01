@@ -60,17 +60,19 @@ export class Keyboard implements State {
         this.pasteIndex = 0;
 
         // Remove keyboard listeners
-        this.removeListeners();
+        // this.removeListeners();
         // Attach keyboard listeners
-        this.attachListeners();
+        // this.attachListeners();
     }
 
     start() {
+        this.attachListeners();
         this.joystick1.start();
         this.joystick2.start();
     }
 
     stop() {
+        this.removeListeners();
         this.joystick1.stop();
         this.joystick2.stop();
     }
@@ -108,10 +110,22 @@ export class Keyboard implements State {
     }
 
     private removeListeners() {
-        this.document.removeEventListener("keyup", this.keyupListener);
-        this.document.removeEventListener("keypress", this.keypressListener);
-        this.document.removeEventListener("keydown", this.keydownListener);
-        this.document.removeEventListener("paste", this.pasteListener);
+        if (this.keyupListener) {
+            this.document.removeEventListener("keyup", this.keyupListener);
+            this.keyupListener = null;
+        }
+        if (this.keypressListener) {
+            this.document.removeEventListener("keypress", this.keypressListener);
+            this.keypressListener = null;
+        }
+        if (this.keydownListener) {
+            this.document.removeEventListener("keydown", this.keydownListener);
+            this.keydownListener = null;
+        }
+        if (this.pasteListener) {
+            this.document.removeEventListener("paste", this.pasteListener);
+            this.pasteListener = null;
+        }
     }
 
     setPCKeyboardEnabled(enabled: boolean) {

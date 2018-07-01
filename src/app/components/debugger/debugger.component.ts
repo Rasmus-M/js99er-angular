@@ -1,21 +1,22 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit} from '@angular/core';
 import {TI994A} from '../../emulator/classes/ti994a';
 import {DisassemblerService} from '../../services/disassembler.service';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {ControlEvent, ControlEventType} from '../../classes/controlEvent';
 import {Util} from '../../classes/util';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
+import * as $ from "jquery";
 
 @Component({
     selector: 'app-debugger',
     templateUrl: './debugger.component.html',
     styleUrls: ['./debugger.component.css']
 })
-export class DebuggerComponent implements OnInit, OnDestroy {
+export class DebuggerComponent implements OnInit, AfterViewInit, OnDestroy {
 
     private ti994A: TI994A;
-    memoryView: number;
-    memoryType: number;
+    memoryView = 0;
+    memoryType = 0;
     debuggerAddress: string;
     breakpointAddress: string;
     statusString: string;
@@ -24,6 +25,7 @@ export class DebuggerComponent implements OnInit, OnDestroy {
     private timerHandle: number;
 
     constructor(
+        private element: ElementRef,
         private disassemblerService: DisassemblerService,
         private eventDispatcherService: EventDispatcherService,
         private commandDispatcherService: CommandDispatcherService,
@@ -31,6 +33,10 @@ export class DebuggerComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.eventDispatcherService.subscribe(this.onEvent.bind(this));
+    }
+
+    ngAfterViewInit() {
+        $(this.element.nativeElement).find(".selectpicker").selectpicker({});
     }
 
     startUpdate() {
@@ -41,6 +47,25 @@ export class DebuggerComponent implements OnInit, OnDestroy {
         if (this.timerHandle) {
             window.clearInterval(this.timerHandle);
             this.timerHandle = 0;
+        }
+    }
+
+    private onEvent(event: ControlEvent) {
+        switch (event.type) {
+            case ControlEventType.READY:
+                this.ti994A = event.data;
+                break;
+            case ControlEventType.STARTED:
+                this.startUpdate();
+                break;
+            case ControlEventType.STOPPED:
+                this.stopUpdate();
+                this.updateDebugger();
+                break;
+            case ControlEventType.BREAKPOINT:
+                this.stopUpdate();
+                this.updateDebugger();
+                break;
         }
     }
 
@@ -99,14 +124,15 @@ export class DebuggerComponent implements OnInit, OnDestroy {
                 }
             }
             this.memoryViewText = viewObj.text;
-            // if (viewObj.anchorLine) {
-            //     window.setTimeout(
-            //         function () {
-            //             $memory.scrollTop(viewObj.anchorLine * ($memory.prop('scrollHeight') / viewObj.lineCount)); // 1.0326
-            //         },
-            //         100
-            //     );
-            // }
+            if (viewObj.anchorLine) {
+                const $memory = $(this.element.nativeElement).find("#memory");
+                window.setTimeout(
+                    function () {
+                        $memory.scrollTop(viewObj.anchorLine * ($memory.prop('scrollHeight') / viewObj.lineCount)); // 1.0326
+                    },
+                    100
+                );
+            }
         }
     }
 
@@ -115,25 +141,43 @@ export class DebuggerComponent implements OnInit, OnDestroy {
         return isNaN(addr) ? defaultValue : addr;
     }
 
-    setBreakpoint(addr) {
-        this.commandDispatcherService.setBreakpoint(addr);
+    toHexAddress(value: string) {
+        if (value.substring(0, 1) === ">") {
+            value = value.substring(1);
+        }
+        while (value.length < 4) {
+            value = "0" + value;
+        }
+        value = ">" + value;
+        return value;
     }
 
-    private onEvent(event: ControlEvent) {
-        switch (event.type) {
-            case ControlEventType.READY:
-                this.ti994A = event.data;
-                break;
-            case ControlEventType.STARTED:
-                this.startUpdate();
-                break;
-            case ControlEventType.STOPPED:
-                this.stopUpdate();
-                this.updateDebugger();
-                break;
-            case ControlEventType.BREAKPOINT:
-                break;
+    onDebuggerAddressChanged(value) {
+        const addr = Util.parseNumber(value);
+        if (isNaN(addr)) {
+            this.debuggerAddress = "";
+        } else {
+            this.debuggerAddress = this.toHexAddress(value);
         }
+    }
+
+    onBreakpointAddressChanged(value) {
+        const addr = Util.parseNumber(value);
+        if (isNaN(addr)) {
+            this.commandDispatcherService.setBreakpoint(null);
+            this.breakpointAddress = "";
+        } else {
+            this.commandDispatcherService.setBreakpoint(addr);
+            this.breakpointAddress = this.toHexAddress(value);
+        }
+    }
+
+    onTextFocus() {
+        this.ti994A.getKeyboard().stop();
+    }
+
+    onTextBlur() {
+        this.ti994A.getKeyboard().start();
     }
 
     ngOnDestroy() {

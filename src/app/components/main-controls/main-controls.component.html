@@ -1,18 +1,18 @@
-<div class="navbar navbar-default">
+<div class="navbar">
     <div class="btn-group">
-        <button class="btn btn-success navbar-btn" (click)="start()" [disabled]="running"><fa name="play"></fa> Start</button>
-        <button class="btn btn-default navbar-btn" (click)="fast()" [disabled]="running"><fa name="forward"></fa> Fast</button>
-        <button class="btn btn-default navbar-btn" (click)="frame()" [disabled]="running"><fa name="fast-forward"></fa> Frame</button>
-        <button class="btn btn-default navbar-btn" (click)="step()" [disabled]="running"><fa name="step-forward"></fa> Step</button>
-        <button class="btn btn-warning navbar-btn" (click)="stop()" [disabled]="!running"><fa name="pause"></fa> Pause</button>
-        <button class="btn btn-danger navbar-btn" (click)="reset()"><fa name="refresh"></fa> Reset</button>
+        <button class="btn btn-success" (click)="start()" [disabled]="running"><fa name="play"></fa> Start</button>
+        <button class="btn btn-default" (click)="fast()" [disabled]="running"><fa name="forward"></fa> Fast</button>
+        <button class="btn btn-default" (click)="frame()" [disabled]="running"><fa name="fast-forward"></fa> Frame</button>
+        <button class="btn btn-default" (click)="step()" [disabled]="running"><fa name="step-forward"></fa> Step</button>
+        <button class="btn btn-warning" (click)="stop()" [disabled]="!running"><fa name="pause"></fa> Pause</button>
+        <button class="btn btn-danger" (click)="reset()"><fa name="refresh"></fa> Reset</button>
     </div>
     <div class="btn-group">
-        <div class="btn btn-primary navbar-btn btn-file"><fa name="credit-card"></fa> Open Cartridge<input type="file" #fileInputModule (change)="openModule(fileInputModule.files)"></div>
+        <div class="btn btn-primary btn-file"><fa name="credit-card"></fa> Open Cartridge<input type="file" #fileInputModule (change)="openModule(fileInputModule.files)"></div>
     </div>
     <div class="btn-group">
-        <div class="btn btn-primary navbar-btn btn-file"><fa name="floppy-o"></fa> Open Disk/File<input type="file" #fileInputDisk multiple="multiple" (change)="openDisk(fileInputDisk.files)"></div>
-        <select class="selectpicker navbar-btn" data-width="100px" [(ngModel)]="driveIndex" title="Drive">
+        <div class="btn btn-primary btn-file"><fa name="floppy-o"></fa> Open Disk/File<input type="file" #fileInputDisk multiple="multiple" (change)="openDisk(fileInputDisk.files)"></div>
+        <select class="selectpicker" data-width="100px" [(ngModel)]="driveIndex" title="Drive">
             <option data-icon="fa-hdd-o" [ngValue]="0" selected>DSK1</option>
             <option data-icon="fa-hdd-o" [ngValue]="1">DSK2</option>
             <option data-icon="fa-hdd-o" [ngValue]="2">DSK3</option>
@@ -20,13 +20,13 @@
     </div>
     <div class="btn-group">
         <div class="dropup">
-            <button class="btn btn-success navbar-btn dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <button class="btn btn-success dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <fa name="folder-open-o"></fa> More...
             </button>
             <app-submenu [data]="menu" class="multilevel" role="menu" aria-labelledby="dropdownMenu"></app-submenu>
         </div>
     </div>
     <div class="btn-group">
-        <a class="btn btn-default navbar-btn" (click)="screenshot()" id="btnScreenshot" download="screenshot.png"><fa name="camera"></fa></a>
+        <a class="btn btn-default" (click)="screenshot()" id="btnScreenshot" download="screenshot.png"><fa name="camera"></fa></a>
     </div>
 </div>
