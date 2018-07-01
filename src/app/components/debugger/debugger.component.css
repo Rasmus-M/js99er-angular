@@ -1,0 +1,4 @@
+#memory {
+    height: calc(100vh - 460px);
+    max-height: calc(100vh - 460px);
+}

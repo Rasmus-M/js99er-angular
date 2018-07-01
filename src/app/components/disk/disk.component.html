@@ -1,1 +1,51 @@
-<p>Disk: Nothing here yet</p>
+<div class="row">
+    <div class="form-group">
+        <select class="form-control" id="diskImageList"></select>
+    </div>
+</div>
+<div class="row" id="fileTableRow">
+    <table class="table table-striped table-bordered">
+        <thead id="diskFileHead">
+        <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Data Type</th>
+            <th>Record Type</th>
+            <th>Record Length</th>
+            <th>Size</th>
+        </tr>
+        </thead>
+        <tbody id="diskFileTable"></tbody>
+    </table>
+</div>
+<div class="row">
+    <div id="diskTools" class="navbar navbar-default">
+        <div class="btn-group dropup">
+            <div class="dropdown">
+                <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                    <span class="glyphicon glyphicon-floppy-open"></span> Insert into drive
+                    <span class="caret"></span>
+                </button>
+                <ul id="diskDriveImage" class="dropdown-menu">
+                    <li><a href="#" id="insertDSK0">DSK1</a></li>
+                    <li><a href="#" id="insertDSK1">DSK2</a></li>
+                    <li><a href="#" id="insertDSK2">DSK3</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="btn-group">
+            <button id="btnDeleteDisk" class="btn btn-danger navbar-btn">
+                <span class="glyphicon glyphicon-remove"></span> Disk
+            </button>
+            <button id="btnDeleteFiles" class="btn btn-danger navbar-btn">
+                <span class="glyphicon glyphicon-remove"></span> Files
+            </button>
+        </div>
+        <div class="btn-group">
+            <button id="btnDownload" class="btn btn-primary navbar-btn">
+                <span class="glyphicon glyphicon-floppy-save"></span> Save DSK File
+            </button>
+        </div>
+    </div>
+</div>

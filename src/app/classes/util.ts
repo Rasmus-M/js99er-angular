@@ -33,8 +33,12 @@ export class Util {
     }
 
     static parseNumber(s: string) {
-        if (s.startsWith("0x")) {
+        if (!s) {
+            return NaN;
+        } else if (s.startsWith("0x")) {
             return parseInt(s.substring(2), 16);
+        } else if (s.startsWith(">")) {
+            return parseInt(s.substring(1), 16);
         } else {
             return parseInt(s, 10);
         }

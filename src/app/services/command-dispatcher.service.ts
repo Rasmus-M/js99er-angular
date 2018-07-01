@@ -68,4 +68,8 @@ export class CommandDispatcherService {
     screenshot() {
         this.commandSubject.next(new Command(CommandType.SCREENSHOT, null));
     }
+
+    setBreakpoint(addr: number) {
+        this.commandSubject.next(new Command(CommandType.SET_BREAKPOINT, addr));
+    }
 }

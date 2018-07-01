@@ -3,7 +3,7 @@
         <div class="col-lg-7">
             <div class="row">
                 <div class="col-lg-12">
-                    <app-console [diskImages]="diskImages" (consoleReady)="onConsoleReady($event)"></app-console>
+                    <app-console [diskImages]="diskImages"></app-console>
                 </div>
             </div>
             <div class="row">
@@ -24,14 +24,14 @@
                 <tab heading="Disk">
                     <div class="card tab-card">
                         <div class="card-body tab-card-body">
-                            <app-disk></app-disk>
+                            <app-disk [diskImages]="diskImages"></app-disk>
                         </div>
                     </div>
                 </tab>
                 <tab heading="Tape">
                     <div class="card tab-card">
                         <div class="card-body tab-card-body">
-                            <app-tape></app-tape>
+                            <app-tape [ti994A]="ti994A"></app-tape>
                         </div>
                     </div>
                 </tab>

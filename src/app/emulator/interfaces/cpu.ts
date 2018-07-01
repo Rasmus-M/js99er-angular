@@ -2,6 +2,7 @@ import {State} from './state';
 
 export interface CPU extends State {
     reset(): void;
+    run(cycles: number): number;
     getPC(): number;
     setPC(pc: number): void;
     setWP(number: number): void;
@@ -11,8 +12,8 @@ export interface CPU extends State {
     setSuspended(suspended: boolean): void;
     isIdle(): boolean;
     atBreakpoint(): boolean;
-    setOtherBreakpoint(number: number): void;
-    run(f18ACyclesPerScanline: number): number;
+    setBreakpoint(addr: number): void;
+    setOtherBreakpoint(addr: number): void;
     getInternalRegsString(): string;
     getRegsStringFormatted(): string;
     dumpProfile(): void;

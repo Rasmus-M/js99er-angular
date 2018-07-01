@@ -54,7 +54,7 @@ export class TI994A implements State {
     private frameInterval: number;
     private fpsInterval: number;
 
-    constructor(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: {[key: string]: DiskImage}, settings: Settings, onBreakpoint: () => void) {
+    constructor(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: {[key: string]: DiskImage}, settings: Settings, onBreakpoint: (CPU) => void) {
         this.document = document;
         this.canvas = canvas;
         this.settings = settings;

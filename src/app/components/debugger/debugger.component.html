@@ -1,1 +1,37 @@
-<p>Debugger: Nothing here yet</p>
+<div class="row">
+    <pre id="status">{{statusString}}</pre>
+    <pre id="memory">{{memoryViewText}}</pre>
+</div>
+<div class="row">
+    <div id="debuggerTools" class="navbar navbar-default">
+        <div class="btn-group dropup">
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
+                    <span class="glyphicon glyphicon-eye-open"></span> View
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a data-target="#" id="disassembly">Disassembly <span id="disassemblyCheck" class="glyphicon glyphicon-ok"></span></a>
+                    </li>
+                    <li><a data-target="#" id="hexView">Hex view <span id="hexViewCheck"></span></a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="btn-group dropup">
+            <div class="dropdown">
+                <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                    <span class="glyphicon glyphicon-th"></span> Memory
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a data-target="#" id="cpumem">CPU memory <span id="cpumemCheck" class="glyphicon glyphicon-ok"></span></a></li>
+                    <li><a data-target="#" id="vdpmem">VDP memory <span id="vdpmemCheck"></span></a></li>
+                </ul>
+            </div>
+        </div>
+        <form class="form-inline my-2 my-lg-0">
+            <input class="form-control mr-sm-2" type="text" placeholder="Address" aria-label="Address" maxlength="5" [ngModel]="debuggerAddress">
+            <input class="form-control mr-sm-2" type="text" placeholder="Breakpoint" aria-label="Breakpoint" maxlength="5" [ngModel]="breakpointAddress" (ngModelChange)="setBreakpoint($event)">
+        </form>
+    </div>
+</div>

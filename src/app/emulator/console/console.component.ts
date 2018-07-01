@@ -11,6 +11,7 @@ import {DiskService} from '../../services/disk.service';
 import {SettingsService} from '../../services/settings.service';
 import * as $ from 'jquery';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
+import {CPU} from '../interfaces/cpu';
 
 @Component({
     selector: 'app-console',
@@ -20,7 +21,7 @@ import {EventDispatcherService} from '../../services/event-dispatcher.service';
 export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
 
     @Input() diskImages: { [key: string]: DiskImage };
-    @Output() consoleReady: EventEmitter<TI994A> = new EventEmitter<TI994A>();
+
     private ti994A: TI994A;
     private canvas: HTMLCanvasElement;
     private subscription: Subscription;
@@ -42,20 +43,34 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngAfterViewInit() {
         this.canvas = this.element.nativeElement.querySelector('canvas');
-        this.ti994A = new TI994A(document, this.canvas, this.diskImages, this.settingsService.getSettings(), null);
-        this.consoleReady.emit(this.ti994A);
+        this.ti994A = new TI994A(document, this.canvas, this.diskImages, this.settingsService.getSettings(), this.onBreakpoint);
+        this.eventDispatcherService.ready(this.ti994A);
         // this.ti994A.start(false);
+    }
+
+    reset() {
+        this.ti994A.reset(true);
+        this.ti994A.start(false);
+        this.eventDispatcherService.started();
+    }
+
+    start(fast: boolean) {
+        this.ti994A.start(fast);
+        this.eventDispatcherService.started();
+    }
+
+    stop() {
+        this.ti994A.stop();
+        this.eventDispatcherService.stopped();
     }
 
     onCommand(command: Command) {
         switch (command.type) {
             case CommandType.START:
-                this.ti994A.start(false);
-                this.eventDispatcherService.started();
+                this.start(false);
                 break;
             case CommandType.FAST:
-                this.ti994A.start(true);
-                this.eventDispatcherService.started();
+                this.start(true);
                 break;
             case CommandType.FRAME:
                 this.ti994A.frame();
@@ -64,8 +79,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.ti994A.step();
                 break;
             case CommandType.STOP:
-                this.ti994A.stop();
-                this.eventDispatcherService.stopped();
+                this.stop();
                 break;
             case CommandType.RESET:
                 this.reset();
@@ -149,13 +163,15 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
             case CommandType.SCREENSHOT:
                 this.eventDispatcherService.screenshot(this.canvas.toDataURL());
                 break;
+            case CommandType.SET_BREAKPOINT:
+                const addr = command.data;
+                this.ti994A.getCPU().setBreakpoint(addr);
+                const gpu = this.ti994A.getVDP().getGPU();
+                if (gpu) {
+                    gpu.setBreakpoint(addr);
+                }
+                break;
         }
-    }
-
-    reset() {
-        this.ti994A.reset(true);
-        this.ti994A.start(false);
-        this.eventDispatcherService.started();
     }
 
     onCanvasClick(evt) {
@@ -171,7 +187,13 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
+    onBreakpoint(cpu: CPU) {
+        this.stop();
+        this.eventDispatcherService.breakpoint(cpu);
+    }
+
     ngOnDestroy() {
+        this.ti994A.stop();
         this.subscription.unsubscribe();
     }
 }

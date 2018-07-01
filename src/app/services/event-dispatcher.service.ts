@@ -3,6 +3,8 @@ import {Subject} from 'rxjs/Subject';
 import {Observable} from 'rxjs/Observable';
 import {Subscription} from 'rxjs/Subscription';
 import {ControlEvent, ControlEventType} from '../classes/controlEvent';
+import {CPU} from '../emulator/interfaces/cpu';
+import {TI994A} from '../emulator/classes/ti994a';
 
 @Injectable({
     providedIn: 'root'
@@ -20,12 +22,20 @@ export class EventDispatcherService {
         return this.eventObservable.subscribe(handler);
     }
 
+    ready(ti994A: TI994A) {
+        this.eventSubject.next(new ControlEvent(ControlEventType.READY, ti994A));
+    }
+
     started() {
         this.eventSubject.next(new ControlEvent(ControlEventType.STARTED, {}));
     }
 
     stopped() {
         this.eventSubject.next(new ControlEvent(ControlEventType.STOPPED, {}));
+    }
+
+    breakpoint(cpu: CPU) {
+        this.eventSubject.next(new ControlEvent(ControlEventType.BREAKPOINT, cpu));
     }
 
     screenshot(dataURL: string) {

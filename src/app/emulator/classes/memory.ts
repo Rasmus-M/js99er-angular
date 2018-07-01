@@ -13,8 +13,9 @@ import {TI994A} from './ti994a';
 import {Settings} from '../../classes/settings';
 import {PSG} from '../interfaces/psg';
 import {Speech} from '../interfaces/speech';
+import {MemoryDevice} from '../interfaces/memory-device';
 
-export class Memory implements State {
+export class Memory implements State, MemoryDevice {
 
     static SOUND = 0x8400;  // Sound write data
     static VDPRD = 0x8800;  // VDP read data
@@ -601,14 +602,14 @@ export class Memory implements State {
             (this.enableAMS ? '\nAMS Regs: ' + this.ams.getStatusString() : '');
     }
 
-    hexView(start, length, anchorAddr): object {
+    hexView(start: number, length: number, anchorAddr: number): object {
         let text = '';
         let anchorLine = null;
         let addr = start;
         let line = 0;
         for (let i = 0; i < length; addr++, i++) {
             if ((i & 0x000F) === 0) {
-                text += '\n' + addr.toHexWord() + ':';
+                text += '\n' + Util.toHexWord(addr) + ':';
                 line++;
             }
             text += ' ';

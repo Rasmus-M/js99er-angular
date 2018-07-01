@@ -1,11 +1,12 @@
 import {CommandType} from './command';
 
 export enum ControlEventType {
-    STARTED = 0,
-    STOPPED = 1,
-    SCREENSHOT = 2
+    READY = 0,
+    STARTED = 1,
+    STOPPED = 2,
+    BREAKPOINT = 3,
+    SCREENSHOT = 4
 }
-
 
 export class ControlEvent {
 

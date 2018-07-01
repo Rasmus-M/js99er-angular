@@ -10,7 +10,8 @@ export enum CommandType {
     OPEN_SOFTWARE,
     CHANGE_SETTING,
     PRESS_KEY,
-    SCREENSHOT
+    SCREENSHOT,
+    SET_BREAKPOINT
 }
 
 export class Command {

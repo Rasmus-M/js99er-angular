@@ -1,7 +1,8 @@
 import {CPU} from './cpu';
 import {State} from './state';
+import {MemoryDevice} from './memory-device';
 
-export interface VDP extends State {
+export interface VDP extends State, MemoryDevice {
     reset(): void;
     drawFrame(timestamp: number): void;
     initFrame(timestamp: number): void;
@@ -13,7 +14,6 @@ export interface VDP extends State {
     readData(): number;
     getRAM(): Uint8Array;
     getRegsString(): string;
-    hexView(start, length, anchorAddr): object;
     getWord(addr: number): number;
     getCharAt(x: number, y: number): number;
     setFlicker(value: boolean): void;

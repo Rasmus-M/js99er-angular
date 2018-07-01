@@ -7,6 +7,7 @@ import {Command, CommandType} from './classes/command';
 import {TI994A} from './emulator/classes/ti994a';
 import {Log} from './classes/log';
 import {SettingsService} from './services/settings.service';
+import {CPU} from './emulator/interfaces/cpu';
 
 @Component({
     selector: 'app-root',
@@ -19,8 +20,8 @@ export class AppComponent implements OnInit {
 
     diskImages: { [key: string]: DiskImage };
     settings: Settings;
+    ti994A: TI994A;
 
-    private ti994A: TI994A;
     private log: Log = Log.getLog();
 
     constructor(
@@ -46,7 +47,6 @@ export class AppComponent implements OnInit {
     }
 
     onCommand(command: Command) {
-        console.log(command);
         switch (command.type) {
             case CommandType.CHANGE_SETTING:
                 const setting: Setting = command.data.setting;
