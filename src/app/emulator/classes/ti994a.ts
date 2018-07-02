@@ -1,6 +1,5 @@
 ///<reference path="tms5220.ts"/>
 import {State} from '../interfaces/state';
-import {DiskDrive, DiskImage} from './disk';
 import {TMS9919} from './tms9919';
 import {CRU} from './cru';
 import {Tape} from './tape';
@@ -20,6 +19,8 @@ import {Software} from '../../classes/software';
 import {Settings} from '../../classes/settings';
 import {PSG} from '../interfaces/psg';
 import {Speech} from '../interfaces/speech';
+import {DiskDrive} from './diskdrive';
+import {DiskImage} from './diskimage';
 
 export class TI994A implements State {
 
@@ -54,7 +55,7 @@ export class TI994A implements State {
     private frameInterval: number;
     private fpsInterval: number;
 
-    constructor(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: {[key: string]: DiskImage}, settings: Settings, onBreakpoint: (CPU) => void) {
+    constructor(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: DiskImage[], settings: Settings, onBreakpoint: (CPU) => void) {
         this.document = document;
         this.canvas = canvas;
         this.settings = settings;
@@ -73,7 +74,7 @@ export class TI994A implements State {
         this.reset(false);
     }
 
-    assemble(diskImages: {[key: string]: DiskImage}) {
+    assemble(diskImages: DiskImage[]) {
         this.memory = new Memory(this, this.settings);
         this.cpu = new TMS9900(this);
         this.setVDP();
@@ -83,9 +84,9 @@ export class TI994A implements State {
         this.keyboard = new Keyboard(this.document, this.settings);
         this.tape = new Tape();
         this.diskDrives = [
-            new DiskDrive("DSK1", diskImages.FLOPPY1, this),
-            new DiskDrive("DSK2", diskImages.FLOPPY2, this),
-            new DiskDrive("DSK3", diskImages.FLOPPY3, this)
+            new DiskDrive("DSK1", diskImages[0], this),
+            new DiskDrive("DSK2", diskImages[1], this),
+            new DiskDrive("DSK3", diskImages[2], this)
         ];
         this.setGoogleDrive();
         this.speech.setCPU(this.cpu);

@@ -4,6 +4,9 @@ import {Observable} from 'rxjs/Observable';
 import {Subscription} from 'rxjs/Subscription';
 import {ControlEvent, ControlEventType} from '../classes/controlEvent';
 import {TI994A} from '../emulator/classes/ti994a';
+import index from '@angular/cli/lib/cli';
+import {DiskImage} from '../emulator/classes/diskimage';
+import {DiskDrive} from '../emulator/classes/diskdrive';
 
 @Injectable({
     providedIn: 'root'
@@ -35,5 +38,13 @@ export class EventDispatcherService {
 
     screenshot(dataURL: string) {
         this.eventSubject.next(new ControlEvent(ControlEventType.SCREENSHOT, dataURL));
+    }
+
+    diskImageChanged(diskImage: DiskImage) {
+        this.eventSubject.next(new ControlEvent(ControlEventType.DISK_IMAGE_CHANGED, diskImage));
+    }
+
+    diskDriveChanged(diskDrive: DiskDrive, diskImage: DiskImage) {
+        this.eventSubject.next(new ControlEvent(ControlEventType.DISK_DRIVE_CHANGED, {diskDrive: diskDrive, diskImage: diskImage}));
     }
 }

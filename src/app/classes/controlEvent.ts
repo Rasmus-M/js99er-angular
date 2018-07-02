@@ -1,10 +1,10 @@
-import {CommandType} from './command';
-
 export enum ControlEventType {
     READY,
     STARTED,
     STOPPED,
-    SCREENSHOT
+    SCREENSHOT,
+    DISK_IMAGE_CHANGED,
+    DISK_DRIVE_CHANGED
 }
 
 export class ControlEvent {

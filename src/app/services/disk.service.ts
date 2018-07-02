@@ -1,11 +1,14 @@
 import {Injectable} from '@angular/core';
 import {Log} from '../classes/log';
-import {DiskDrive, DiskImage} from '../emulator/classes/disk';
+import {DiskDrive} from '../emulator/classes/diskdrive';
 import {ZipService} from './zip.service';
 import {CommandDispatcherService} from './command-dispatcher.service';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {ObjectLoaderService} from './object-loader.service';
+import {DiskImage, DiskImageEvent} from '../emulator/classes/diskimage';
+import {EventDispatcherService} from './event-dispatcher.service';
+import {saveAs} from 'file-saver';
 
 @Injectable()
 export class DiskService {
@@ -15,7 +18,24 @@ export class DiskService {
     constructor(
         private zipService: ZipService,
         private commandDispatcherService: CommandDispatcherService,
+        private eventDispatcherService: EventDispatcherService,
         private objectLoaderService: ObjectLoaderService) {
+    }
+
+    createDefaultDiskImages(): DiskImage[] {
+        return [
+            this.createDiskImage('Floppy disk A'),
+            this.createDiskImage('Floppy disk B'),
+            this.createDiskImage('Floppy disk C')
+        ];
+    }
+
+    createDiskImage(name: string): DiskImage {
+        return new DiskImage(name, this.onDiskImageChanged.bind(this));
+    }
+
+    onDiskImageChanged(event: DiskImageEvent) {
+       this.eventDispatcherService.diskImageChanged(event.diskImage);
     }
 
     loadDiskFiles(files: FileList, diskDrive: DiskDrive): Observable<DiskImage> {
@@ -70,12 +90,13 @@ export class DiskService {
     loadDiskFile(filename, file: File, diskDrive: DiskDrive): Observable<DiskImage> {
         const subject = new Subject<DiskImage>();
         const reader = new FileReader();
+        const service = this;
         reader.onload = function () {
             // reader.result contains the contents of blob as a typed array
             const fileBuffer = new Uint8Array(this.result);
             let diskImage;
             if (fileBuffer.length >= 16 && fileBuffer[0x0D] === 0x44 && fileBuffer[0x0E] === 0x53 && fileBuffer[0x0F] === 0x4B) {
-                diskImage = diskDrive.loadDSKFile(filename, fileBuffer);
+                diskImage = diskDrive.loadDSKFile(filename, fileBuffer, service.onDiskImageChanged.bind(service));
             } else {
                 diskImage = diskDrive.getDiskImage();
                 if (diskImage != null) {
@@ -89,5 +110,11 @@ export class DiskService {
         };
         reader.readAsArrayBuffer(file);
         return subject.asObservable();
+    }
+
+    saveDiskImage(diskImage: DiskImage) {
+        const imageFile = diskImage.getBinaryImage();
+        const blob = new Blob([imageFile], { type: "application/octet-stream" });
+        saveAs(blob, diskImage.getName() + ".dsk");
     }
 }

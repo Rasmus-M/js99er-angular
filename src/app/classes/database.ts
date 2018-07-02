@@ -1,5 +1,5 @@
 import {Log} from './log';
-import {DiskImage} from '../emulator/classes/disk';
+import {DiskImage} from '../emulator/classes/diskimage';
 
 export class Database {
 

@@ -1,6 +1,6 @@
 import {AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {TI994A} from '../classes/ti994a';
-import {DiskImage} from '../classes/disk';
+import {DiskImage} from '../classes/diskimage';
 import {Setting, Settings} from '../../classes/settings';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {Subscription} from 'rxjs/Subscription';
@@ -20,7 +20,7 @@ import {CPU} from '../interfaces/cpu';
 })
 export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
 
-    @Input() diskImages: { [key: string]: DiskImage };
+    @Input() diskImages: DiskImage[];
 
     private ti994A: TI994A;
     private canvas: HTMLCanvasElement;
@@ -106,10 +106,12 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                 break;
             case CommandType.OPEN_DISK:
                 const data = command.data;
-                this.diskService.loadDiskFiles(data.files, this.ti994A.getDiskDrives()[data.driveIndex]).subscribe(
+                const diskDrive = this.ti994A.getDiskDrives()[data.driveIndex];
+                this.diskService.loadDiskFiles(data.files, diskDrive).subscribe(
                     (diskImage: DiskImage) => {
                         if (diskImage) {
-                            this.log.info(diskImage.getName());
+                            this.eventDispatcherService.diskDriveChanged(diskDrive, diskImage);
+                            this.log.info(diskImage.getName() + " loaded to " + diskDrive.getName());
                         }
                     },
                     (error) => {

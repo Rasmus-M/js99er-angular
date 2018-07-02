@@ -6,6 +6,7 @@ import {ControlEvent, ControlEventType} from '../../classes/controlEvent';
 import {Util} from '../../classes/util';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import * as $ from "jquery";
+import {Subscription} from 'rxjs/index';
 
 @Component({
     selector: 'app-debugger',
@@ -23,6 +24,7 @@ export class DebuggerComponent implements OnInit, AfterViewInit, OnDestroy {
     memoryViewText: string;
 
     private timerHandle: number;
+    private subscription: Subscription;
 
     constructor(
         private element: ElementRef,
@@ -32,7 +34,7 @@ export class DebuggerComponent implements OnInit, AfterViewInit, OnDestroy {
     ) {}
 
     ngOnInit() {
-        this.eventDispatcherService.subscribe(this.onEvent.bind(this));
+        this.subscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
     }
 
     ngAfterViewInit() {
@@ -166,5 +168,6 @@ export class DebuggerComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngOnDestroy() {
         this.stopUpdate();
+        this.subscription.unsubscribe();
     }
 }

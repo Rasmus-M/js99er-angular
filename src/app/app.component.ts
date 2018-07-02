@@ -1,49 +1,48 @@
-import {Component, ElementRef, OnInit} from '@angular/core';
+import {Component, ElementRef, OnDestroy, OnInit} from '@angular/core';
 import {CommandDispatcherService} from './services/command-dispatcher.service';
 import {Setting, Settings} from './classes/settings';
-import {DiskImage} from './emulator/classes/disk';
+import {DiskImage} from './emulator/classes/diskimage';
 import {AudioService} from './services/audio.service';
 import {Command, CommandType} from './classes/command';
 import {TI994A} from './emulator/classes/ti994a';
 import {Log} from './classes/log';
 import {SettingsService} from './services/settings.service';
-import {CPU} from './emulator/interfaces/cpu';
+import {EventDispatcherService} from './services/event-dispatcher.service';
+import {Subscription} from 'rxjs/Subscription';
+import {ControlEvent, ControlEventType} from './classes/controlEvent';
+import {DiskService} from './services/disk.service';
 
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
 
     title = "JS99'er";
 
-    diskImages: { [key: string]: DiskImage };
+    diskImages: DiskImage[];
     settings: Settings;
     ti994A: TI994A;
 
+    private commandSubscription: Subscription;
+    private eventSubscription: Subscription;
     private log: Log = Log.getLog();
 
     constructor(
         private element: ElementRef,
         private audioService: AudioService,
         private commandDispatcherService: CommandDispatcherService,
-        private settingsService: SettingsService
+        private eventDispatcherService: EventDispatcherService,
+        private settingsService: SettingsService,
+        private diskService: DiskService
     ) {}
 
     ngOnInit() {
-        this.diskImages = {
-            FLOPPY1: new DiskImage('Floppy 1', null),
-            FLOPPY2: new DiskImage('Floppy 2', null),
-            FLOPPY3: new DiskImage('Floppy 3', null)
-        };
+        this.diskImages = this.diskService.createDefaultDiskImages();
         this.settings = this.settingsService.getSettings();
-        this.commandDispatcherService.subscribe(this.onCommand.bind(this));
-    }
-
-    onConsoleReady(ti994A) {
-        this.ti994A = ti994A;
-        this.audioService.init(this.settings.isSoundEnabled(), ti994A.getPSG(), ti994A.getSpeech(), ti994A.getTape());
+        this.commandSubscription = this.commandDispatcherService.subscribe(this.onCommand.bind(this));
+        this.eventSubscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
     }
 
     onCommand(command: Command) {
@@ -58,7 +57,24 @@ export class AppComponent implements OnInit {
         }
     }
 
+    onEvent(event: ControlEvent) {
+        switch (event.type) {
+            case ControlEventType.READY:
+                this.ti994A = event.data;
+                this.audioService.init(this.settings.isSoundEnabled(), this.ti994A.getPSG(), this.ti994A.getSpeech(), this.ti994A.getTape());
+                break;
+            case ControlEventType.DISK_DRIVE_CHANGED:
+                this.diskImages.push(event.data.diskImage);
+                break;
+        }
+    }
+
     onKeyboardSelected() {
         window.dispatchEvent(new Event('resize'));
+    }
+
+    ngOnDestroy() {
+        this.commandSubscription.unsubscribe();
+        this.eventSubscription.unsubscribe();
     }
 }

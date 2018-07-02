@@ -3,7 +3,7 @@ import {VDP} from '../interfaces/vdp';
 import {TMS9919} from './tms9919';
 import {TMS5220} from './tms5220';
 import {AMS} from './ams';
-import {DiskDrive} from './disk';
+import {DiskDrive} from './diskdrive';
 import {GoogleDrive} from './googledrive';
 import {System} from './system';
 import {Util} from '../../classes/util';

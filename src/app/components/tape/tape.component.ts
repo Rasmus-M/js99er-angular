@@ -8,8 +8,6 @@ import {TI994A} from '../../emulator/classes/ti994a';
 })
 export class TapeComponent implements OnInit {
 
-    @Input() ti994A: TI994A;
-
     constructor() {
     }
 

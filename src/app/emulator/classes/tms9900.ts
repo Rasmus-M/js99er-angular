@@ -3,7 +3,7 @@ import {Util} from '../../classes/util';
 import {Keyboard} from './keyboard';
 import {Memory} from './memory';
 import {Log} from '../../classes/log';
-import {DiskDrive} from './disk';
+import {DiskDrive} from './diskdrive';
 import {GoogleDrive} from './googledrive';
 import {Decoder, Opcode} from '../../classes/decoder';
 import {CPU} from '../interfaces/cpu';

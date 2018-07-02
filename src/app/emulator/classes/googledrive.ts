@@ -2,20 +2,19 @@ import gapi from 'gapi-client';
 import {
     AccessType,
     DataType,
-    DiskDrive,
     DiskError,
-    DiskFile,
-    DiskImage,
     FileType,
-    FixedRecord,
     OpCode,
     OperationMode,
-    RecordType, VariableRecord
+    RecordType
 } from './disk';
 import {Log} from '../../classes/log';
 import {TI994A} from './ti994a';
 import {Memory} from './memory';
 import {Util} from '../../classes/util';
+import {DiskFile, FixedRecord, VariableRecord} from './diskfile';
+import {DiskImage} from './diskimage';
+import {DiskDrive} from './diskdrive';
 
 export class GoogleDrive {
 
