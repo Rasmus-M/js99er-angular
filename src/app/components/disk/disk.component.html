@@ -1,7 +1,7 @@
 <div class="row">
     <div class="form-group">
         <select class="form-control" id="diskImageList" [ngModel]="diskImageIndex" (ngModelChange)="onDiskImageChanged($event)">
-            <option *ngFor="let diskImage of diskImages; index as i" value="{{i}}">{{diskImage.getName()}}</option>
+            <option *ngFor="let diskImage of diskImages; index as i" value="{{i}}">{{diskImage.getName()}} {{diskImageDrives[i]}}</option>
         </select>
     </div>
 </div>

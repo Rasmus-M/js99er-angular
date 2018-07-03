@@ -79,7 +79,7 @@ export class DiskService {
                     };
                     reader.readAsText(file);
                 } else {
-                    // Single file
+                    // Single file (DSK image, TIFILE, V9T9)
                     service.loadDiskFile(file.name, file, diskDrive).subscribe(subject);
                 }
             }

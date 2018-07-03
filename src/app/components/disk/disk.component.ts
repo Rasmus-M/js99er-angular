@@ -17,6 +17,7 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
 
     @Input() diskImages: DiskImage[];
 
+    diskImageDrives: string[] = [];
     diskImageIndex = 0;
     driveIndex = 0;
     diskFiles: DiskFile[];
@@ -33,7 +34,6 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngOnInit() {
         this.subscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
-        this.onDiskImageChanged(this.diskImageIndex);
     }
 
     ngAfterViewInit() {
@@ -41,22 +41,11 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
         $(select).selectpicker({iconBase: 'fa'});
     }
 
-    onDiskImageChanged(index) {
-        const filesObject = this.diskImages[index].getFiles();
-        const files = [];
-        for (const name in filesObject) {
-            if (filesObject.hasOwnProperty(name)) {
-                files.push(filesObject[name]);
-            }
-        }
-        console.log(files);
-        this.diskFiles = files;
-    }
-
     onEvent(event: ConsoleEvent) {
         switch (event.type) {
             case ConsoleEventType.READY:
                 this.ti994A = event.data;
+                this.onDiskImageChanged(this.diskImageIndex);
                 break;
             case ConsoleEventType.DISK_IMAGE_CHANGED:
                 const diskImage = event.data;
@@ -65,7 +54,44 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.onDiskImageChanged(index);
                 }
                 break;
+            case ConsoleEventType.DISK_DRIVE_CHANGED:
+                this.updateAllDiskImageDrives();
+                break;
         }
+    }
+
+    onDiskImageChanged(index) {
+        this.diskImageIndex = index;
+        const filesObject = this.diskImages[index].getFiles();
+        const files = [];
+        for (const name in filesObject) {
+            if (filesObject.hasOwnProperty(name)) {
+                files.push(filesObject[name]);
+            }
+        }
+        this.diskFiles = files;
+        this.updateAllDiskImageDrives();
+    }
+
+    private updateAllDiskImageDrives() {
+        for (let i = 0; i < this.diskImages.length; i++) {
+            this.diskImageDrives[i] = this.updateDiskImageDrives(this.diskImages[i]);
+        }
+    }
+
+    private updateDiskImageDrives(diskImage: DiskImage): string {
+        let s = "";
+        if (this.ti994A) {
+            this.ti994A.getDiskDrives().forEach((diskDrive) => {
+                if (diskDrive.getDiskImage() === diskImage) {
+                    s += (s.length > 0 ? ", " : "") + diskDrive.getName();
+                }
+            });
+            if (s.length > 0) {
+                s = "(in " + s + ")";
+            }
+        }
+        return s;
     }
 
     save() {
