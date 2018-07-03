@@ -3,10 +3,10 @@ import {DiskImage} from '../../emulator/classes/diskimage';
 import * as $ from "jquery";
 import {DiskFile} from '../../emulator/classes/diskfile';
 import {Subscription} from 'rxjs/Subscription';
-import {Command, CommandType} from '../../classes/command';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
-import {ControlEvent, ControlEventType} from '../../classes/controlEvent';
+import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
 import {DiskService} from '../../services/disk.service';
+import {TI994A} from '../../emulator/classes/ti994a';
 
 @Component({
     selector: 'app-disk',
@@ -22,6 +22,7 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
     diskFiles: DiskFile[];
 
     private subscription: Subscription;
+    private ti994A: TI994A;
 
     constructor(
         private element: ElementRef,
@@ -52,9 +53,12 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
         this.diskFiles = files;
     }
 
-    onEvent(event: ControlEvent) {
+    onEvent(event: ConsoleEvent) {
         switch (event.type) {
-            case ControlEventType.DISK_IMAGE_CHANGED:
+            case ConsoleEventType.READY:
+                this.ti994A = event.data;
+                break;
+            case ConsoleEventType.DISK_IMAGE_CHANGED:
                 const diskImage = event.data;
                 const index = this.diskImages.indexOf(diskImage);
                 if (index !== -1) {

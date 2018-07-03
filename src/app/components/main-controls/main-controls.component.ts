@@ -6,7 +6,7 @@ import {CommandDispatcherService} from '../../services/command-dispatcher.servic
 import {SoftwareMenuService} from '../../services/software-menu.service';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {Subscription} from 'rxjs/Subscription';
-import {ControlEvent, ControlEventType} from '../../classes/controlEvent';
+import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
 
 // declare var jQuery: JQuery;
 
@@ -77,15 +77,15 @@ export class MainControlsComponent implements OnInit, AfterViewInit, OnDestroy {
         this.commandDispatcherService.screenshot();
     }
 
-    onEvent(event: ControlEvent) {
+    onEvent(event: ConsoleEvent) {
         switch (event.type) {
-            case ControlEventType.STARTED:
+            case ConsoleEventType.STARTED:
                 this.running = true;
                 break;
-            case ControlEventType.STOPPED:
+            case ConsoleEventType.STOPPED:
                 this.running = false;
                 break;
-            case ControlEventType.SCREENSHOT:
+            case ConsoleEventType.SCREENSHOT:
                 console.log(event.data);
                 this.element.nativeElement.querySelector("#btnScreenshot").href = event.data;
                 break;

@@ -9,7 +9,7 @@ import {Log} from './classes/log';
 import {SettingsService} from './services/settings.service';
 import {EventDispatcherService} from './services/event-dispatcher.service';
 import {Subscription} from 'rxjs/Subscription';
-import {ControlEvent, ControlEventType} from './classes/controlEvent';
+import {ConsoleEvent, ConsoleEventType} from './classes/consoleevent';
 import {DiskService} from './services/disk.service';
 
 @Component({
@@ -57,13 +57,13 @@ export class AppComponent implements OnInit, OnDestroy {
         }
     }
 
-    onEvent(event: ControlEvent) {
+    onEvent(event: ConsoleEvent) {
         switch (event.type) {
-            case ControlEventType.READY:
+            case ConsoleEventType.READY:
                 this.ti994A = event.data;
                 this.audioService.init(this.settings.isSoundEnabled(), this.ti994A.getPSG(), this.ti994A.getSpeech(), this.ti994A.getTape());
                 break;
-            case ControlEventType.DISK_DRIVE_CHANGED:
+            case ConsoleEventType.DISK_DRIVE_CHANGED:
                 this.diskImages.push(event.data.diskImage);
                 break;
         }

@@ -1,4 +1,4 @@
-export enum ControlEventType {
+export enum ConsoleEventType {
     READY,
     STARTED,
     STOPPED,
@@ -7,21 +7,21 @@ export enum ControlEventType {
     DISK_DRIVE_CHANGED
 }
 
-export class ControlEvent {
+export class ConsoleEvent {
 
-    private _type: ControlEventType;
+    private _type: ConsoleEventType;
     private _data: any;
 
-    constructor(type: ControlEventType, data: any) {
+    constructor(type: ConsoleEventType, data: any) {
         this._type = type;
         this._data = data;
     }
 
-    get type(): ControlEventType {
+    get type(): ConsoleEventType {
         return this._type;
     }
 
-    set type(value: ControlEventType) {
+    set type(value: ConsoleEventType) {
         this._type = value;
     }
 
