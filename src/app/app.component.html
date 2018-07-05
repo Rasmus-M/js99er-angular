@@ -14,42 +14,42 @@
         </div>
         <div class="col-lg-5">
             <tabset type="pills">
-                <tab heading="Log">
+                <tab heading="Log" (select)="onTabSelected(0, $event)">
                     <div class="card tab-card">
                         <div class="card-body tab-card-body">
                             <app-log></app-log>
                         </div>
                     </div>
                 </tab>
-                <tab heading="Disk">
+                <tab heading="Disk" (select)="onTabSelected(1, $event)">
                     <div class="card tab-card">
                         <div class="card-body tab-card-body">
                             <app-disk [diskImages]="diskImages"></app-disk>
                         </div>
                     </div>
                 </tab>
-                <tab heading="Tape">
+                <tab heading="Tape" (select)="onTabSelected(2, $event)">
                     <div class="card tab-card">
                         <div class="card-body tab-card-body">
                             <app-tape></app-tape>
                         </div>
                     </div>
                 </tab>
-                <tab heading="Keyboard" (select)="onKeyboardSelected()">
+                <tab heading="Keyboard" (select)="onTabSelected(3, $event)">
                     <div class="card tab-card">
                         <div class="card-body tab-card-body">
                             <app-keyboard></app-keyboard>
                         </div>
                     </div>
                 </tab>
-                <tab heading="Debugger">
+                <tab heading="Debugger" (select)="onTabSelected(4, $event)">
                     <div class="card tab-card">
                         <div class="card-body tab-card-body">
-                            <app-debugger></app-debugger>
+                            <app-debugger [visible]="tabIndex === 4"></app-debugger>
                         </div>
                     </div>
                 </tab>
-                <tab heading="Options">
+                <tab heading="Options" (select)="onTabSelected(5, $event)">
                     <div class="card tab-card">
                         <div class="card-body tab-card-body">
                             <app-settings></app-settings>

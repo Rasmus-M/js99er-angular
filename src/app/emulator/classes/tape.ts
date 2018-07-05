@@ -25,6 +25,8 @@ export class Tape implements State {
         -0.47039, -0.24116, -0.03194, -0.00001
     ];
 
+    private static AUDIO_GATE_BUFFER_LENGTH = 4096;
+
     private audioContext: AudioContext;
     private sampleRate: number;
     private samplesPerBit: number;
@@ -46,6 +48,11 @@ export class Tape implements State {
     private out: string;
     private outByte: number;
     private outByteCount: number;
+    private audioGateBuffer = new Float32Array(Tape.AUDIO_GATE_BUFFER_LENGTH);
+    private audioGateBufferStart = 0;
+    private audioGateBufferEnd = 0;
+    private lastAudioGateChange = -1;
+
     private log: Log = Log.getLog();
 
     constructor() {
@@ -151,6 +158,18 @@ export class Tape implements State {
         this.playing = this.playPressed;
     }
 
+    setAudioGate(value, time) {
+        if (this.lastAudioGateChange !== -1) {
+            const audioGate = value ? 0.75 : -0.75;
+            const timePassed = Math.min(((time - this.lastAudioGateChange) >> 6), 8);
+            for (let i = 0; i < timePassed; i++) {
+                this.audioGateBuffer[this.audioGateBufferEnd] = audioGate;
+                this.audioGateBufferEnd = (this.audioGateBufferEnd + 1) % Tape.AUDIO_GATE_BUFFER_LENGTH;
+            }
+        }
+        this.lastAudioGateChange = time;
+    }
+
     updateSoundBuffer(buffer) {
         if (!this.paused) {
             if (this.playing) {
@@ -172,7 +191,10 @@ export class Tape implements State {
             }
         }
         for (let i = 0; i < buffer.length; i++) {
-            buffer[i] = 0;
+            buffer[i] = this.audioGateBuffer[this.audioGateBufferStart];
+            if (this.audioGateBufferStart !== this.audioGateBufferEnd) {
+                this.audioGateBufferStart = (this.audioGateBufferStart + 1) % Tape.AUDIO_GATE_BUFFER_LENGTH;
+            }
         }
     }
 

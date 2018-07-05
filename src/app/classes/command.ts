@@ -1,17 +1,17 @@
 export enum CommandType {
-    START,
-    FAST,
-    FRAME,
-    STEP,
-    STOP,
-    RESET,
-    OPEN_MODULE,
-    OPEN_DISK,
-    OPEN_SOFTWARE,
-    CHANGE_SETTING,
-    PRESS_KEY,
-    SCREENSHOT,
-    SET_BREAKPOINT
+    START = "Start",
+    FAST = "Fast",
+    FRAME = "Frame",
+    STEP = "Step",
+    STOP = "Stop",
+    RESET = "Reset",
+    OPEN_MODULE = "Open Module",
+    OPEN_DISK = "Open Disk",
+    OPEN_SOFTWARE = "Open Software",
+    CHANGE_SETTING = "Change Settings",
+    PRESS_KEY = "Press Key",
+    TAKE_SCREENSHOT = "Take Screenshot",
+    SET_BREAKPOINT = "Set breakpoint"
 }
 
 export class Command {

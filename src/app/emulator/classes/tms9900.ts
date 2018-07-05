@@ -1346,7 +1346,7 @@ export class TMS9900 implements CPU {
         this.resetLGT_AGT_EQ();
         this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
 
-        return 14;
+        return cycles + 14;
     }
 
     // eXtended OPeration: XOP src ???

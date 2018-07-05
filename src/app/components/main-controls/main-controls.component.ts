@@ -85,8 +85,7 @@ export class MainControlsComponent implements OnInit, AfterViewInit, OnDestroy {
             case ConsoleEventType.STOPPED:
                 this.running = false;
                 break;
-            case ConsoleEventType.SCREENSHOT:
-                console.log(event.data);
+            case ConsoleEventType.SCREENSHOT_TAKEN:
                 this.element.nativeElement.querySelector("#btnScreenshot").href = event.data;
                 break;
         }

@@ -11,6 +11,7 @@ import {EventDispatcherService} from './services/event-dispatcher.service';
 import {Subscription} from 'rxjs/Subscription';
 import {ConsoleEvent, ConsoleEventType} from './classes/consoleevent';
 import {DiskService} from './services/disk.service';
+import {TabDirective} from 'ngx-bootstrap';
 
 @Component({
     selector: 'app-root',
@@ -24,6 +25,7 @@ export class AppComponent implements OnInit, OnDestroy {
     diskImages: DiskImage[];
     settings: Settings;
     ti994A: TI994A;
+    tabIndex: number;
 
     private commandSubscription: Subscription;
     private eventSubscription: Subscription;
@@ -46,6 +48,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     onCommand(command: Command) {
+        console.log(command.type);
         switch (command.type) {
             case CommandType.CHANGE_SETTING:
                 const setting: Setting = command.data.setting;
@@ -58,6 +61,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     onEvent(event: ConsoleEvent) {
+        console.log(event.type);
         switch (event.type) {
             case ConsoleEventType.READY:
                 this.ti994A = event.data;
@@ -72,8 +76,11 @@ export class AppComponent implements OnInit, OnDestroy {
         }
     }
 
-    onKeyboardSelected() {
-        window.dispatchEvent(new Event('resize'));
+    onTabSelected(index: number, directive: TabDirective) {
+        this.tabIndex = index;
+        if (index === 3) {
+            window.dispatchEvent(new Event('resize'));
+        }
     }
 
     ngOnDestroy() {

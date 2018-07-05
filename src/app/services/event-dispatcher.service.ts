@@ -37,7 +37,7 @@ export class EventDispatcherService {
     }
 
     screenshot(dataURL: string) {
-        this.eventSubject.next(new ConsoleEvent(ConsoleEventType.SCREENSHOT, dataURL));
+        this.eventSubject.next(new ConsoleEvent(ConsoleEventType.SCREENSHOT_TAKEN, dataURL));
     }
 
     diskImageChanged(diskImage: DiskImage) {

@@ -175,7 +175,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
             case CommandType.PRESS_KEY:
                 this.ti994A.getKeyboard().virtualKeyPress(command.data);
                 break;
-            case CommandType.SCREENSHOT:
+            case CommandType.TAKE_SCREENSHOT:
                 this.eventDispatcherService.screenshot(this.canvas.toDataURL());
                 break;
             case CommandType.SET_BREAKPOINT:

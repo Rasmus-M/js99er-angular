@@ -1,10 +1,10 @@
 export enum ConsoleEventType {
-    READY,
-    STARTED,
-    STOPPED,
-    SCREENSHOT,
-    DISK_IMAGE_CHANGED,
-    DISK_DRIVE_CHANGED
+    READY = "Ready",
+    STARTED = "Started",
+    STOPPED = "Stopped",
+    SCREENSHOT_TAKEN = "Screenshot Taken",
+    DISK_IMAGE_CHANGED = "Disk Image Changed",
+    DISK_DRIVE_CHANGED = "Disk Drive Changed"
 }
 
 export class ConsoleEvent {

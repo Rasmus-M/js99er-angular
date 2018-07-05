@@ -18,6 +18,7 @@ export class CRU implements State {
     private keyboard: Keyboard;
     private tape: Tape;
     private memory: Memory;
+    private cpu: CPU;
 
     private cru: boolean[];
     private timerMode: boolean;
@@ -38,6 +39,7 @@ export class CRU implements State {
         this.memory = this.console.getMemory();
         this.keyboard = this.console.getKeyboard();
         this.tape = this.console.getTape();
+        this.cpu = this.console.getCPU();
 
         this.vdpInterrupt = false;
         this.timerMode = false;
@@ -141,6 +143,8 @@ export class CRU implements State {
             }
             if (addr === 22) {
                 this.tape.setMotorOn(value);
+            } else if (addr === 24) {
+               this.tape.setAudioGate(value, this.cpu.getCycles());
             } else if (addr === 25) {
                 this.tape.write(value, this.timerInterruptCount);
             }

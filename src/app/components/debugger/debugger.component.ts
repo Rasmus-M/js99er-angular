@@ -15,7 +15,8 @@ import {Subscription} from 'rxjs/index';
 })
 export class DebuggerComponent implements OnInit, AfterViewInit, OnDestroy {
 
-    private ti994A: TI994A;
+    @Input() visible: boolean;
+
     memoryView = 0;
     memoryType = 0;
     debuggerAddress: string;
@@ -23,6 +24,7 @@ export class DebuggerComponent implements OnInit, AfterViewInit, OnDestroy {
     statusString: string;
     memoryViewText: string;
 
+    private ti994A: TI994A;
     private timerHandle: number;
     private subscription: Subscription;
 
@@ -68,7 +70,7 @@ export class DebuggerComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     updateDebugger() {
-        if (this.ti994A) {
+        if (this.visible && this.ti994A) {
             this.statusString = this.ti994A.getStatusString();
             let viewObj;
             const pc = this.ti994A.getPC();
