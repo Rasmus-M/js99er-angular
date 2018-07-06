@@ -11,7 +11,11 @@ export enum CommandType {
     CHANGE_SETTING = "Change Settings",
     PRESS_KEY = "Press Key",
     TAKE_SCREENSHOT = "Take Screenshot",
-    SET_BREAKPOINT = "Set breakpoint"
+    SET_BREAKPOINT = "Set breakpoint",
+    ADD_DISK = "Add Disk",
+    INSERT_DISK = "Insert Disk",
+    REMOVE_DISK = "Remove Disk",
+    DELETE_DISK = "Delete Disk"
 }
 
 export class Command {

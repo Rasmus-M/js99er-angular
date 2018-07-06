@@ -7,6 +7,7 @@ import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
 import {DiskService} from '../../services/disk.service';
 import {TI994A} from '../../emulator/classes/ti994a';
+import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 
 @Component({
     selector: 'app-disk',
@@ -26,6 +27,7 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
 
     constructor(
         private element: ElementRef,
+        private commandDispatcherService: CommandDispatcherService,
         private eventDispatcherService: EventDispatcherService,
         private diskService: DiskService
     ) {
@@ -46,7 +48,7 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.ti994A = event.data;
                 this.onDiskImageChanged(this.diskImageIndex);
                 break;
-            case ConsoleEventType.DISK_IMAGE_CHANGED: {
+            case ConsoleEventType.DISK_MODIFIED: {
                     const diskImage = event.data;
                     const index = this.diskImages.indexOf(diskImage);
                     if (index !== -1) {
@@ -54,7 +56,7 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
                     }
                 }
                 break;
-            case ConsoleEventType.DISK_DRIVE_CHANGED: {
+            case ConsoleEventType.DISK_INSERTED: {
                     const index = this.diskImages.indexOf(event.data.diskImage);
                     if (index !== -1) {
                         this.onDiskImageChanged(index);
@@ -100,12 +102,19 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     addDisk() {
+        this.commandDispatcherService.addDisk();
     }
 
     insertDisk(index: number) {
+        if (index >= 0) {
+            this.commandDispatcherService.insertDisk(index);
+        } else {
+            this.commandDispatcherService.removeDisk(index);
+        }
     }
 
-    removeDisk() {
+    deleteDisk() {
+        this.commandDispatcherService.deleteDisk(this.diskImageIndex);
     }
 
     deleteFiles() {

@@ -67,7 +67,7 @@ export class AppComponent implements OnInit, OnDestroy {
                 this.ti994A = event.data;
                 this.audioService.init(this.settings.isSoundEnabled(), this.ti994A.getPSG(), this.ti994A.getSpeech(), this.ti994A.getTape());
                 break;
-            case ConsoleEventType.DISK_DRIVE_CHANGED:
+            case ConsoleEventType.DISK_INSERTED:
                 const diskImage: DiskImage = event.data.diskImage;
                 if (this.diskImages.indexOf(diskImage) === -1) {
                     this.diskImages.push(diskImage);

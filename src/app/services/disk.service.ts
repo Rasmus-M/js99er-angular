@@ -35,7 +35,7 @@ export class DiskService {
     }
 
     onDiskImageChanged(event: DiskImageEvent) {
-       this.eventDispatcherService.diskImageChanged(event.diskImage);
+       this.eventDispatcherService.diskChanged(event.diskImage);
     }
 
     loadDiskFiles(files: FileList, diskDrive: DiskDrive): Observable<DiskImage> {

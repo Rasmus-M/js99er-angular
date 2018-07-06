@@ -72,4 +72,20 @@ export class CommandDispatcherService {
     setBreakpoint(addr: number) {
         this.commandSubject.next(new Command(CommandType.SET_BREAKPOINT, addr));
     }
+
+    addDisk() {
+        this.commandSubject.next(new Command(CommandType.ADD_DISK, null));
+    }
+
+    insertDisk(index: number) {
+        this.commandSubject.next(new Command(CommandType.INSERT_DISK, index));
+    }
+
+    removeDisk(index: number) {
+        this.commandSubject.next(new Command(CommandType.REMOVE_DISK, index));
+    }
+
+    deleteDisk(index: number) {
+        this.commandSubject.next(new Command(CommandType.DELETE_DISK, index));
+    }
 }

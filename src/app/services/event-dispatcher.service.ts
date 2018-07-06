@@ -40,11 +40,23 @@ export class EventDispatcherService {
         this.eventSubject.next(new ConsoleEvent(ConsoleEventType.SCREENSHOT_TAKEN, dataURL));
     }
 
-    diskImageChanged(diskImage: DiskImage) {
-        this.eventSubject.next(new ConsoleEvent(ConsoleEventType.DISK_IMAGE_CHANGED, diskImage));
+    diskChanged(diskImage: DiskImage) {
+        this.eventSubject.next(new ConsoleEvent(ConsoleEventType.DISK_MODIFIED, diskImage));
     }
 
-    diskDriveChanged(diskDrive: DiskDrive, diskImage: DiskImage) {
-        this.eventSubject.next(new ConsoleEvent(ConsoleEventType.DISK_DRIVE_CHANGED, {diskDrive: diskDrive, diskImage: diskImage}));
+    diskAdded(diskImage: DiskImage) {
+        this.eventSubject.next(new ConsoleEvent(ConsoleEventType.DISK_ADDED, {diskImage: diskImage}));
+    }
+
+    diskInserted(diskDrive: DiskDrive, diskImage: DiskImage) {
+        this.eventSubject.next(new ConsoleEvent(ConsoleEventType.DISK_INSERTED, {diskDrive: diskDrive, diskImage: diskImage}));
+    }
+
+    diskRemoved(diskImage: DiskImage) {
+        this.eventSubject.next(new ConsoleEvent(ConsoleEventType.DISK_REMOVED, {diskImage: diskImage}));
+    }
+
+    diskDeleted(diskImage: DiskImage) {
+        this.eventSubject.next(new ConsoleEvent(ConsoleEventType.DISK_DELETED, {diskImage: diskImage}));
     }
 }

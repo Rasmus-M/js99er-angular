@@ -113,7 +113,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.diskService.loadDiskFiles(data.files, diskDrive).subscribe(
                     (diskImage: DiskImage) => {
                         if (diskImage) {
-                            this.eventDispatcherService.diskDriveChanged(diskDrive, diskImage);
+                            this.eventDispatcherService.diskInserted(diskDrive, diskImage);
                             this.log.info(diskImage.getName() + " loaded to " + diskDrive.getName());
                         }
                     },
