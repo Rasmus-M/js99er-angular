@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
 import {TI994A} from '../../emulator/classes/ti994a';
 import {DisassemblerService} from '../../services/disassembler.service';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
@@ -13,7 +13,7 @@ import {Subscription} from 'rxjs/index';
     templateUrl: './debugger.component.html',
     styleUrls: ['./debugger.component.css']
 })
-export class DebuggerComponent implements OnInit, AfterViewInit, OnDestroy {
+export class DebuggerComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
 
     @Input() visible: boolean;
 
@@ -51,6 +51,12 @@ export class DebuggerComponent implements OnInit, AfterViewInit, OnDestroy {
         if (this.timerHandle) {
             window.clearInterval(this.timerHandle);
             this.timerHandle = 0;
+        }
+    }
+
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes.visible.currentValue) {
+            this.updateDebugger();
         }
     }
 

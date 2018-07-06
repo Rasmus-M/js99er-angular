@@ -112,6 +112,18 @@ export class DiskService {
         return subject.asObservable();
     }
 
+    addDisk() {
+    }
+
+    insertDisk(index: number) {
+    }
+
+    removeDisk(index: number) {
+    }
+
+    deleteFiles() {
+    }
+
     saveDiskImage(diskImage: DiskImage) {
         const imageFile = diskImage.getBinaryImage();
         const blob = new Blob([imageFile], { type: "application/octet-stream" });

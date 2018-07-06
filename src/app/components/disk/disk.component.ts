@@ -19,7 +19,6 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
 
     diskImageDrives: string[] = [];
     diskImageIndex = 0;
-    driveIndex = 0;
     diskFiles: DiskFile[];
 
     private subscription: Subscription;
@@ -47,15 +46,21 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.ti994A = event.data;
                 this.onDiskImageChanged(this.diskImageIndex);
                 break;
-            case ConsoleEventType.DISK_IMAGE_CHANGED:
-                const diskImage = event.data;
-                const index = this.diskImages.indexOf(diskImage);
-                if (index !== -1) {
-                    this.onDiskImageChanged(index);
+            case ConsoleEventType.DISK_IMAGE_CHANGED: {
+                    const diskImage = event.data;
+                    const index = this.diskImages.indexOf(diskImage);
+                    if (index !== -1) {
+                        this.onDiskImageChanged(index);
+                    }
                 }
                 break;
-            case ConsoleEventType.DISK_DRIVE_CHANGED:
-                this.updateAllDiskImageDrives();
+            case ConsoleEventType.DISK_DRIVE_CHANGED: {
+                    const index = this.diskImages.indexOf(event.data.diskImage);
+                    if (index !== -1) {
+                        this.onDiskImageChanged(index);
+                    }
+                    this.updateAllDiskImageDrives();
+                }
                 break;
         }
     }
@@ -94,7 +99,19 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
         return s;
     }
 
-    save() {
+    addDisk() {
+    }
+
+    insertDisk(index: number) {
+    }
+
+    removeDisk() {
+    }
+
+    deleteFiles() {
+    }
+
+    saveDisk() {
         this.diskService.saveDiskImage(this.diskImages[this.diskImageIndex]);
     }
 

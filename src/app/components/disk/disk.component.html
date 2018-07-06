@@ -1,53 +1,62 @@
 <div class="row">
     <div class="form-group">
         <select class="form-control" id="diskImageList" [ngModel]="diskImageIndex" (ngModelChange)="onDiskImageChanged($event)">
+            <option value="-1">-- None --</option>
             <option *ngFor="let diskImage of diskImages; index as i" value="{{i}}">{{diskImage.getName()}} {{diskImageDrives[i]}}</option>
         </select>
     </div>
 </div>
-<div class="row" id="fileTableRow">
-    <table class="table table-striped table-bordered">
-        <thead id="diskFileHead">
+<div class="row">
+    <table class="table table-striped table-fixed">
+        <thead>
         <tr>
-            <th></th>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Data Type</th>
-            <th>Record Type</th>
-            <th>Record Length</th>
-            <th>Size</th>
+            <th width="25%">Name</th>
+            <th width="15%">Type</th>
+            <th width="15%">Data Type</th>
+            <th width="15%">Record Type</th>
+            <th width="15%">Record Length</th>
+            <th width="15%">Size</th>
         </tr>
         </thead>
-        <tbody id="diskFileTable">
+        <tbody>
             <tr *ngFor="let diskFile of diskFiles">
-                <th></th>
-                <td>{{diskFile.getName()}}</td>
-                <td>{{diskFile.getFileType()}}</td>
-                <td>{{diskFile.getDataType()}}</td>
-                <td>{{diskFile.getRecordType()}}</td>
-                <td>{{diskFile.getRecordLength()}}</td>
-                <td>{{diskFile.getSectorCount()}}</td>
+                <td width="25%">{{diskFile.getName()}}</td>
+                <td width="15%">{{diskFile.getFileType()}}</td>
+                <td width="15%">{{diskFile.getDataType()}}</td>
+                <td width="15%">{{diskFile.getRecordType()}}</td>
+                <td width="15%">{{diskFile.getRecordLength()}}</td>
+                <td width="15%">{{diskFile.getSectorCount()}}</td>
             </tr>
         </tbody>
     </table>
 </div>
 <div class="row">
     <div id="diskTools" class="navbar">
-        <select class="selectpicker mr-2" data-width="auto" [(ngModel)]="driveIndex" title="Insert into drive" name="driveIndex" >
-            <option [ngValue]="0">DSK1</option>
-            <option [ngValue]="1">DSK2</option>
-            <option [ngValue]="3">DSK3</option>
-        </select>
         <div class="btn-group mr-1">
-            <button id="btnDeleteDisk" class="btn btn-danger navbar-btn">
+            <button id="btnNewDisk" class="btn btn-default navbar-btn">
+                <fa name="plus-circle" (click)="addDisk()"></fa> New Disk
+            </button>
+        </div>
+        <div class="dropup mr-1">
+          <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Insert Into
+          </button>
+          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <a class="dropdown-item" href="#" (click)="insertDisk(0)">DSK1</a>
+            <a class="dropdown-item" href="#" (click)="insertDisk(1)">DSK2</a>
+            <a class="dropdown-item" href="#" (click)="insertDisk(2)">DSK3</a>
+          </div>
+        </div>
+        <div class="btn-group mr-1">
+            <button id="btnDeleteDisk" class="btn btn-danger navbar-btn" (click)="removeDisk()">
                 <fa name="remove"></fa> Disk
             </button>
-            <button id="btnDeleteFiles" class="btn btn-danger navbar-btn">
+            <button id="btnDeleteFiles" class="btn btn-danger navbar-btn" (click)="deleteFiles()">
                 <fa name="remove"></fa> Files
             </button>
         </div>
         <div class="btn-group">
-            <button id="btnDownload" class="btn btn-primary navbar-btn" (click)="save()">
+            <button id="btnDownload" class="btn btn-primary navbar-btn" (click)="saveDisk()">
                 <fa name="save"></fa> Save DSK File
             </button>
         </div>
