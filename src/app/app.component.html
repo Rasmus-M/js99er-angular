@@ -1,62 +1,54 @@
-<div class="container-fluid">
-    <div class="row" id="main-row">
-        <div class="col-lg-7">
-            <div class="row">
-                <div class="col-lg-12">
-                    <app-console [diskImages]="diskImages"></app-console>
+<div class="app">
+    <div class="console">
+        <app-console class="console" [diskImages]="diskImages"></app-console>
+    </div>
+    <div class="side-panel">
+        <tabset type="pills">
+            <tab heading="Log" (select)="onTabSelected(0, $event)">
+                <div class="card tab-card">
+                    <div class="card-body tab-card-body">
+                        <app-log></app-log>
+                    </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-12">
-                    <app-main-controls></app-main-controls>
+            </tab>
+            <tab heading="Disk" (select)="onTabSelected(1, $event)">
+                <div class="card tab-card">
+                    <div class="card-body tab-card-body">
+                        <app-disk [diskImages]="diskImages"></app-disk>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div class="col-lg-5">
-            <tabset type="pills">
-                <tab heading="Log" (select)="onTabSelected(0, $event)">
-                    <div class="card tab-card">
-                        <div class="card-body tab-card-body">
-                            <app-log></app-log>
-                        </div>
+            </tab>
+            <tab heading="Tape" (select)="onTabSelected(2, $event)">
+                <div class="card tab-card">
+                    <div class="card-body tab-card-body">
+                        <app-tape></app-tape>
                     </div>
-                </tab>
-                <tab heading="Disk" (select)="onTabSelected(1, $event)">
-                    <div class="card tab-card">
-                        <div class="card-body tab-card-body">
-                            <app-disk [diskImages]="diskImages"></app-disk>
-                        </div>
+                </div>
+            </tab>
+            <tab heading="Keyboard" (select)="onTabSelected(3, $event)">
+                <div class="card tab-card">
+                    <div class="card-body tab-card-body">
+                        <app-keyboard></app-keyboard>
                     </div>
-                </tab>
-                <tab heading="Tape" (select)="onTabSelected(2, $event)">
-                    <div class="card tab-card">
-                        <div class="card-body tab-card-body">
-                            <app-tape></app-tape>
-                        </div>
+                </div>
+            </tab>
+            <tab heading="Debugger" (select)="onTabSelected(4, $event)">
+                <div class="card tab-card">
+                    <div class="card-body tab-card-body">
+                        <app-debugger [visible]="tabIndex === 4"></app-debugger>
                     </div>
-                </tab>
-                <tab heading="Keyboard" (select)="onTabSelected(3, $event)">
-                    <div class="card tab-card">
-                        <div class="card-body tab-card-body">
-                            <app-keyboard></app-keyboard>
-                        </div>
+                </div>
+            </tab>
+            <tab heading="Options" (select)="onTabSelected(5, $event)">
+                <div class="card tab-card">
+                    <div class="card-body tab-card-body">
+                        <app-settings></app-settings>
                     </div>
-                </tab>
-                <tab heading="Debugger" (select)="onTabSelected(4, $event)">
-                    <div class="card tab-card">
-                        <div class="card-body tab-card-body">
-                            <app-debugger [visible]="tabIndex === 4"></app-debugger>
-                        </div>
-                    </div>
-                </tab>
-                <tab heading="Options" (select)="onTabSelected(5, $event)">
-                    <div class="card tab-card">
-                        <div class="card-body tab-card-body">
-                            <app-settings></app-settings>
-                        </div>
-                    </div>
-                </tab>
-            </tabset>
-        </div>
+                </div>
+            </tab>
+        </tabset>
+    </div>
+    <div class="toolbar">
+        <app-main-controls class="main-controls"></app-main-controls>
     </div>
 </div>

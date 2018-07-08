@@ -1,3 +1,21 @@
-#main-row {
-    margin-top: 16px;
+.console {
+    grid-area: console;
+}
+
+.side-panel {
+    grid-area: side_panel;
+}
+
+.toolbar {
+    grid-area: toolbar;
+}
+
+
+.app {
+    display: grid;
+    --consoleHeight: calc(100vh - 64px);
+    grid-template-columns: calc(var(--consoleHeight) * 4 / 3) 1fr;
+    grid-template-rows: var(--consoleHeight) 1fr;
+    grid-template-areas: "console side_panel"
+                         "toolbar toolbar";
 }
