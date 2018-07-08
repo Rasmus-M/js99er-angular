@@ -27,7 +27,7 @@ export class SubmenuComponent {
         this.closing.emit(true);
         this.softwareMenuService.loadModuleFromMenu(this.data[i].url).subscribe(
             (software: Software) => {
-                this.commandDispatcherService.openSoftware(software);
+                this.commandDispatcherService.loadSoftware(software);
             },
             (error) => {
                 console.log(error);

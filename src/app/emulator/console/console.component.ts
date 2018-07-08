@@ -97,7 +97,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
             case CommandType.RESET:
                 this.reset();
                 break;
-            case CommandType.OPEN_MODULE:
+            case CommandType.LOAD_MODULE:
                 this.softwareService.loadModuleFromFile(command.data).subscribe(
                     (software) => {
                         this.ti994A.loadSoftware(software);
@@ -107,7 +107,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                     }
                 );
                 break;
-            case CommandType.OPEN_DISK:
+            case CommandType.LOAD_DISK:
                 const data = command.data;
                 const diskDrive = this.ti994A.getDiskDrives()[data.driveIndex];
                 this.diskService.loadDiskFiles(data.files, diskDrive).subscribe(
@@ -122,7 +122,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                     }
                 );
                 break;
-            case CommandType.OPEN_SOFTWARE:
+            case CommandType.LOAD_SOFTWARE:
                 this.ti994A.loadSoftware(command.data);
                 this.ti994A.getMemory().setPADWord(0x83C0, Math.floor(Math.random() * 0xFFFF));
                 break;
@@ -185,6 +185,10 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                 if (gpu) {
                     gpu.setBreakpoint(addr);
                 }
+                break;
+            case CommandType.INSERT_DISK:
+                break;
+            case CommandType.REMOVE_DISK:
                 break;
         }
     }
