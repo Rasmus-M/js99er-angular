@@ -5,9 +5,9 @@ export enum CommandType {
     STEP = "Step",
     STOP = "Stop",
     RESET = "Reset",
-    OPEN_MODULE = "Open Module",
-    OPEN_DISK = "Open Disk",
-    OPEN_SOFTWARE = "Open Software",
+    LOAD_MODULE = "Load Module",
+    LOAD_DISK = "Load Disk",
+    LOAD_SOFTWARE = "Load Software",
     CHANGE_SETTING = "Change Settings",
     PRESS_KEY = "Press Key",
     TAKE_SCREENSHOT = "Take Screenshot",
@@ -15,7 +15,8 @@ export enum CommandType {
     ADD_DISK = "Add Disk",
     INSERT_DISK = "Insert Disk",
     REMOVE_DISK = "Remove Disk",
-    DELETE_DISK = "Delete Disk"
+    DELETE_DISK = "Delete Disk",
+    SAVE_DISK = "Save Disk"
 }
 
 export class Command {

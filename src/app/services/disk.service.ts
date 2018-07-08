@@ -9,10 +9,16 @@ import {ObjectLoaderService} from './object-loader.service';
 import {DiskImage, DiskImageEvent} from '../emulator/classes/diskimage';
 import {EventDispatcherService} from './event-dispatcher.service';
 import {saveAs} from 'file-saver';
+import {Subscription} from 'rxjs/Subscription';
+import {Command, CommandType} from '../classes/command';
+import {ConsoleEvent, ConsoleEventType} from '../classes/consoleevent';
 
 @Injectable()
 export class DiskService {
 
+    private diskImages: DiskImage[] = [];
+    private commandSubscription: Subscription;
+    private eventSubscription: Subscription;
     private log: Log = Log.getLog();
 
     constructor(
@@ -20,18 +26,21 @@ export class DiskService {
         private commandDispatcherService: CommandDispatcherService,
         private eventDispatcherService: EventDispatcherService,
         private objectLoaderService: ObjectLoaderService) {
+        this.commandSubscription = this.commandDispatcherService.subscribe(this.onCommand.bind(this));
+        this.eventSubscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
     }
 
     createDefaultDiskImages(): DiskImage[] {
-        return [
-            this.createDiskImage('Floppy disk A'),
-            this.createDiskImage('Floppy disk B'),
-            this.createDiskImage('Floppy disk C')
-        ];
+        this.createDiskImage('Floppy disk A');
+        this.createDiskImage('Floppy disk B');
+        this.createDiskImage('Floppy disk C');
+        return this.diskImages;
     }
 
     createDiskImage(name: string): DiskImage {
-        return new DiskImage(name, this.onDiskImageChanged.bind(this));
+        const diskImage = new DiskImage(name, this.onDiskImageChanged.bind(this));
+        this.diskImages.push(diskImage);
+        return diskImage;
     }
 
     onDiskImageChanged(event: DiskImageEvent) {
@@ -69,7 +78,7 @@ export class DiskService {
                     const reader = new FileReader();
                     reader.onload = function () {
                         service.objectLoaderService.loadObjFile(reader.result);
-                        service.commandDispatcherService.openSoftware(
+                        service.commandDispatcherService.loadSoftware(
                             service.objectLoaderService.getSoftware()
                         );
                         subject.next();
@@ -113,20 +122,49 @@ export class DiskService {
     }
 
     addDisk() {
+        const diskImage: DiskImage = this.createDiskImage("New disk");
+        this.eventDispatcherService.diskAdded(diskImage);
     }
 
-    insertDisk(index: number) {
-    }
-
-    removeDisk(index: number) {
+    deleteDisk(diskImage: DiskImage) {
+        const index = this.diskImages.indexOf(diskImage);
+        if (index !== -1) {
+            this.diskImages.splice(index, 1);
+            this.eventDispatcherService.diskDeleted(diskImage);
+        }
     }
 
     deleteFiles() {
     }
 
-    saveDiskImage(diskImage: DiskImage) {
+    saveDisk(diskImage: DiskImage) {
         const imageFile = diskImage.getBinaryImage();
         const blob = new Blob([imageFile], { type: "application/octet-stream" });
         saveAs(blob, diskImage.getName() + ".dsk");
+    }
+
+    onCommand(command: Command) {
+        switch (command.type) {
+            case CommandType.ADD_DISK:
+                this.addDisk();
+                break;
+            case CommandType.SAVE_DISK:
+                this.saveDisk(command.data);
+                break;
+            case CommandType.DELETE_DISK:
+                this.deleteDisk(command.data);
+                break;
+        }
+    }
+
+    onEvent(event: ConsoleEvent) {
+        switch (event.type) {
+            case ConsoleEventType.DISK_INSERTED:
+                const diskImage: DiskImage = event.data.diskImage;
+                if (this.diskImages.indexOf(diskImage) === -1) {
+                    this.diskImages.push(diskImage);
+                }
+                break;
+        }
     }
 }

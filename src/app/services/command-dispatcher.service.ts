@@ -5,6 +5,8 @@ import {Command, CommandType} from '../classes/command';
 import {Subscription} from 'rxjs/Subscription';
 import {Software} from '../classes/software';
 import {Setting} from '../classes/settings';
+import {DiskImage} from '../emulator/classes/diskimage';
+import {DiskDrive} from '../emulator/classes/diskdrive';
 
 
 @Injectable()
@@ -45,16 +47,16 @@ export class CommandDispatcherService {
         this.commandSubject.next(new Command(CommandType.RESET, null));
     }
 
-    openModule(file: File) {
-        this.commandSubject.next(new Command(CommandType.OPEN_MODULE, file));
+    loadModule(file: File) {
+        this.commandSubject.next(new Command(CommandType.LOAD_MODULE, file));
     }
 
-    openDisk(files: FileList, driveIndex: number) {
-        this.commandSubject.next(new Command(CommandType.OPEN_DISK, {files: files, driveIndex: driveIndex}));
+    loadDisk(files: FileList, driveIndex: number) {
+        this.commandSubject.next(new Command(CommandType.LOAD_DISK, {files: files, driveIndex: driveIndex}));
     }
 
-    openSoftware(software: Software) {
-        this.commandSubject.next(new Command(CommandType.OPEN_SOFTWARE, software));
+    loadSoftware(software: Software) {
+        this.commandSubject.next(new Command(CommandType.LOAD_SOFTWARE, software));
     }
 
     changeSetting(setting: Setting, value: boolean) {
@@ -77,15 +79,19 @@ export class CommandDispatcherService {
         this.commandSubject.next(new Command(CommandType.ADD_DISK, null));
     }
 
-    insertDisk(index: number) {
-        this.commandSubject.next(new Command(CommandType.INSERT_DISK, index));
+    insertDisk(diskDrive: DiskDrive, diskImage: DiskImage) {
+        this.commandSubject.next(new Command(CommandType.INSERT_DISK, {diskDrive: diskDrive, diskImage: diskImage}));
     }
 
-    removeDisk(index: number) {
-        this.commandSubject.next(new Command(CommandType.REMOVE_DISK, index));
+    removeDisk(diskDrive: DiskDrive, diskImage: DiskImage) {
+        this.commandSubject.next(new Command(CommandType.REMOVE_DISK, {diskDrive: diskDrive, diskImage: diskImage}));
     }
 
-    deleteDisk(index: number) {
-        this.commandSubject.next(new Command(CommandType.DELETE_DISK, index));
+    deleteDisk(diskImage: DiskImage) {
+        this.commandSubject.next(new Command(CommandType.DELETE_DISK, diskImage));
+    }
+
+    saveDisk(diskImage: DiskImage) {
+        this.commandSubject.next(new Command(CommandType.SAVE_DISK, diskImage));
     }
 }

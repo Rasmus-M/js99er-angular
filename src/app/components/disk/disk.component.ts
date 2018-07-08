@@ -64,6 +64,15 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.updateAllDiskImageDrives();
                 }
                 break;
+            case ConsoleEventType.DISK_ADDED:
+                this.updateAllDiskImageDrives();
+                break;
+            case ConsoleEventType.DISK_REMOVED:
+                this.updateAllDiskImageDrives();
+                break;
+            case ConsoleEventType.DISK_DELETED:
+                this.updateAllDiskImageDrives();
+                break;
         }
     }
 
@@ -107,21 +116,21 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
 
     insertDisk(index: number) {
         if (index >= 0) {
-            this.commandDispatcherService.insertDisk(index);
+            this.commandDispatcherService.insertDisk(this.ti994A.getDiskDrives()[index], this.diskImages[this.diskImageIndex]);
         } else {
-            this.commandDispatcherService.removeDisk(index);
+            this.commandDispatcherService.removeDisk(this.ti994A.getDiskDrives()[index], this.diskImages[this.diskImageIndex]);
         }
     }
 
     deleteDisk() {
-        this.commandDispatcherService.deleteDisk(this.diskImageIndex);
+        this.commandDispatcherService.deleteDisk(this.diskImages[this.diskImageIndex]);
     }
 
     deleteFiles() {
     }
 
     saveDisk() {
-        this.diskService.saveDiskImage(this.diskImages[this.diskImageIndex]);
+        this.commandDispatcherService.saveDisk(this.diskImages[this.diskImageIndex]);
     }
 
     ngOnDestroy() {

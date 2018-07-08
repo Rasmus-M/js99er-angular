@@ -63,13 +63,13 @@ export class MainControlsComponent implements OnInit, AfterViewInit, OnDestroy {
 
     openModule(files: FileList) {
         if (files.length) {
-            this.commandDispatcherService.openModule(files[0]);
+            this.commandDispatcherService.loadModule(files[0]);
         }
     }
 
     openDisk(files: FileList) {
         if (files.length) {
-            this.commandDispatcherService.openDisk(files, this.driveIndex);
+            this.commandDispatcherService.loadDisk(files, this.driveIndex);
         }
     }
 
