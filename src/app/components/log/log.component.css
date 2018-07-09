@@ -1,6 +1,5 @@
 #log {
     height: 100%;
-    max-height: calc(100vh - 124px);
     white-space: pre;
     overflow-x: scroll;
     overflow-y: scroll;

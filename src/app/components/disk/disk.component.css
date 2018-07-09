@@ -10,6 +10,6 @@
 
 .table-fixed tbody {
     display: block;
-    height: calc(100vh - 360px);
+    height: 300px;
     overflow: auto;
 }

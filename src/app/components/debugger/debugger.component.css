@@ -3,8 +3,9 @@
 }
 
 #memory {
-    height: calc(100vh - 540px);
     width: 100%;
+    max-height: 200px;
+    overflow: scroll;
 }
 
 .address-entry {

@@ -4,10 +4,16 @@
 
 .side-panel {
     grid-area: side_panel;
+    overflow-x: hidden;
+    overflow-y: auto;
+    /*
+    display: flex;
+    flex-direction: column;
+    flex: 1; */
 }
 
-.toolbar {
-    grid-area: toolbar;
+.main-controls {
+    grid-area: main_controls;
 }
 
 
@@ -17,5 +23,5 @@
     grid-template-columns: calc(var(--consoleHeight) * 4 / 3) 1fr;
     grid-template-rows: var(--consoleHeight) 1fr;
     grid-template-areas: "console side_panel"
-                         "toolbar toolbar";
+                         "main_controls main_controls";
 }
