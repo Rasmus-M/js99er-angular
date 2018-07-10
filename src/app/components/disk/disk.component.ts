@@ -1,8 +1,10 @@
 import {AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit} from '@angular/core';
-import {DiskImage} from '../../emulator/classes/diskimage';
-import * as $ from "jquery";
-import {DiskFile} from '../../emulator/classes/diskfile';
 import {Subscription} from 'rxjs/Subscription';
+import * as $ from "jquery";
+import 'bootstrap';
+import 'bootstrap-select';
+import {DiskImage} from '../../emulator/classes/diskimage';
+import {DiskFile} from '../../emulator/classes/diskfile';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
 import {DiskService} from '../../services/disk.service';

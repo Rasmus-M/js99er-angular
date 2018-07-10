@@ -1,12 +1,14 @@
 import {AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
+import {Subscription} from 'rxjs/index';
+import * as $ from "jquery";
+import 'bootstrap';
+import 'bootstrap-select';
 import {TI994A} from '../../emulator/classes/ti994a';
 import {DisassemblerService} from '../../services/disassembler.service';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
 import {Util} from '../../classes/util';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
-import * as $ from "jquery";
-import {Subscription} from 'rxjs/index';
 
 @Component({
     selector: 'app-debugger',

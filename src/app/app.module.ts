@@ -3,7 +3,7 @@ import {BrowserModule} from '@angular/platform-browser';
 import {AngularFontAwesomeModule} from 'angular-font-awesome';
 import {HttpClientModule} from '@angular/common/http';
 import {FormsModule} from '@angular/forms';
-import {MatTabsModule, MatCardModule, MatButtonModule, MatCheckboxModule} from '@angular/material';
+import {MatMenuModule, MatTabsModule, MatCardModule, MatButtonModule, MatCheckboxModule, MatSelectModule, MatIconModule, MatDividerModule} from '@angular/material';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 import {EmulatorModule} from './emulator/emulator.module';
@@ -22,9 +22,9 @@ import {SettingsService} from './services/settings.service';
 import {SettingsComponent} from './components/settings/settings.component';
 import {LogComponent} from './components/log/log.component';
 import {EventDispatcherService} from './services/event-dispatcher.service';
-import { KeyboardComponent } from './components/keyboard/keyboard.component';
-import { DiskComponent } from './components/disk/disk.component';
-import { TapeComponent } from './components/tape/tape.component';
+import {KeyboardComponent} from './components/keyboard/keyboard.component';
+import {DiskComponent} from './components/disk/disk.component';
+import {TapeComponent} from './components/tape/tape.component';
 
 @NgModule({
     declarations: [
@@ -40,10 +40,14 @@ import { TapeComponent } from './components/tape/tape.component';
     ],
     imports: [
         BrowserModule,
+        MatMenuModule,
         MatTabsModule,
         MatCardModule,
         MatButtonModule,
         MatCheckboxModule,
+        MatSelectModule,
+        MatIconModule,
+        MatDividerModule,
         BrowserAnimationsModule,
         AngularFontAwesomeModule,
         HttpClientModule,

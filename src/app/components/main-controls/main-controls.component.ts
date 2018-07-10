@@ -1,40 +1,35 @@
-import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit} from '@angular/core';
-import * as $ from 'jquery';
-import 'bootstrap';
-import 'bootstrap-select';
+import {Component, ElementRef, OnDestroy, OnInit} from '@angular/core';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {SoftwareMenuService} from '../../services/software-menu.service';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {Subscription} from 'rxjs/Subscription';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
-
-// declare var jQuery: JQuery;
+import {Software} from '../../classes/software';
+import {Log} from '../../classes/log';
 
 @Component({
     selector: 'app-main-controls',
     templateUrl: './main-controls.component.html',
     styleUrls: ['./main-controls.component.css'],
 })
-export class MainControlsComponent implements OnInit, AfterViewInit, OnDestroy {
+export class MainControlsComponent implements OnInit, OnDestroy {
 
     running = false;
     driveIndex = 0;
-    menu = SoftwareMenuService.MENU;
+    menuData = SoftwareMenuService.MENU;
+
     private subscription: Subscription;
+    private log: Log = Log.getLog();
 
     constructor(
         private element: ElementRef,
+        private softwareMenuService: SoftwareMenuService,
         private commandDispatcherService: CommandDispatcherService,
         private eventDispatcherService: EventDispatcherService
     ) {}
 
     ngOnInit(): void {
         this.subscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
-    }
-
-    ngAfterViewInit() {
-        const select = this.element.nativeElement.querySelector(".selectpicker");
-        $(select).selectpicker({iconBase: 'fa'});
     }
 
     start() {
@@ -61,16 +56,32 @@ export class MainControlsComponent implements OnInit, AfterViewInit, OnDestroy {
         this.commandDispatcherService.reset();
     }
 
-    openModule(files: FileList) {
+    openModule(fileInput: HTMLInputElement) {
+        const files = fileInput.files;
         if (files.length) {
             this.commandDispatcherService.loadModule(files[0]);
+            fileInput.value = "";
         }
     }
 
-    openDisk(files: FileList) {
+    openDisk(fileInput: HTMLInputElement) {
+        const files = fileInput.files;
         if (files.length) {
             this.commandDispatcherService.loadDisk(files, this.driveIndex);
+            fileInput.value = "";
         }
+    }
+
+    openSoftware(url) {
+        this.softwareMenuService.loadModuleFromMenu(url).subscribe(
+            (software: Software) => {
+                this.commandDispatcherService.loadSoftware(software);
+            },
+            (error) => {
+                console.log(error);
+                this.log.error(error);
+            }
+        );
     }
 
     screenshot() {

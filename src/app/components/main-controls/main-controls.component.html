@@ -5,30 +5,42 @@
 <button mat-button (click)="stop()" [disabled]="!running"><fa name="pause"></fa> Pause</button>
 <button mat-button (click)="reset()"><fa name="refresh"></fa> Reset</button>
 
-<input type="file" #fileInputModule (change)="openModule(fileInputModule.files)">
+<button mat-button (click)="fileInputModule.click()">
+    <fa name="credit-card"></fa> Open Cartridge<input #fileInputModule type="file" (change)="openModule(fileInputModule)" [hidden]="true"/>
+</button>
 
+<button mat-button (click)="fileInputDisk.click()">
+    <fa name="floppy-o"></fa> Open Disk File<input #fileInputDisk type="file" (change)="openDisk(fileInputDisk)" [hidden]="true" multiple="multiple"/>
+</button>
 
-<div class="navbar">
-    <div class="btn-group">
-        <div class="btn btn-primary btn-file"><fa name="credit-card"></fa> Open Cartridge<input type="file" #fileInputModule (change)="openModule(fileInputModule.files)"></div>
-    </div>
-    <div class="btn-group">
-        <div class="btn btn-primary btn-file"><fa name="floppy-o"></fa> Open Disk/File<input type="file" #fileInputDisk multiple="multiple" (change)="openDisk(fileInputDisk.files)"></div>
-        <select class="selectpicker" data-width="100px" [(ngModel)]="driveIndex" title="Drive">
-            <option data-icon="fa-hdd-o" [ngValue]="0" selected>DSK1</option>
-            <option data-icon="fa-hdd-o" [ngValue]="1">DSK2</option>
-            <option data-icon="fa-hdd-o" [ngValue]="2">DSK3</option>
-        </select>
-    </div>
-    <div class="btn-group">
-        <div class="dropup">
-            <button class="btn btn-success dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <fa name="folder-open-o"></fa> More...
-            </button>
-            <app-submenu [data]="menu" class="multilevel" role="menu" aria-labelledby="dropdownMenu"></app-submenu>
-        </div>
-    </div>
-    <div class="btn-group">
-        <a class="btn btn-default" (click)="screenshot()" id="btnScreenshot" download="screenshot.png"><fa name="camera"></fa></a>
-    </div>
-</div>
+<mat-form-field>
+    <mat-select [(value)]="driveIndex" placeholder="Drive" style="font-size: 14px; width: auto;">
+        <mat-option value="0"><fa name="hdd-o"></fa> DSK1</mat-option>
+        <mat-option value="1"><fa name="hdd-o"></fa> DSK2</mat-option>
+        <mat-option value="2"><fa name="hdd-o"></fa> DSK3</mat-option>
+    </mat-select>
+</mat-form-field>
+
+<button mat-button [matMenuTriggerFor]="menu" [matMenuTriggerData]="menuData">More...</button>
+<mat-menu #menu="matMenu" yPosition="above" >
+    <ng-template matMenuContent let-items="items">
+        <ng-container *ngFor="let item of items">
+            <button *ngIf="item.type==='ITEM'" mat-menu-item (click)="openSoftware(item.url)">{{item.name}}</button>
+            <mat-divider *ngIf="item.type==='DIVIDER'"></mat-divider>
+            <ng-container *ngIf="item.type==='SUBMENU'">
+                <button mat-menu-item [matMenuTriggerFor]="subMenu" [matMenuTriggerData]="item">{{item.name}}</button>
+                <mat-menu #subMenu="matMenu">
+                    <ng-template matMenuContent let-items="items">
+                        <ng-container *ngFor="let item of items">
+                            <button *ngIf="item.type==='ITEM'" mat-menu-item (click)="openSoftware(item.url)">{{item.name}}</button>
+                            <mat-divider *ngIf="item.type==='DIVIDER'"></mat-divider>
+                        </ng-container>
+                    </ng-template>
+                </mat-menu>
+            </ng-container>
+        </ng-container>
+    </ng-template>
+</mat-menu>
+
+<a mat-button (click)="screenshot()" download="screenshot.png" id="btnScreenshot"><fa name="camera"></fa> Screenshot</a>
+
