@@ -24,7 +24,7 @@ import {EventDispatcherService} from './services/event-dispatcher.service';
 import {KeyboardComponent} from './components/keyboard/keyboard.component';
 import {DiskComponent} from './components/disk/disk.component';
 import {TapeComponent} from './components/tape/tape.component';
-import { MoreMenuComponent } from './components/more-menu/more-menu.component';
+import { SoftwareMenuComponent } from './components/software-menu/software-menu.component';
 
 @NgModule({
     declarations: [
@@ -36,7 +36,7 @@ import { MoreMenuComponent } from './components/more-menu/more-menu.component';
         KeyboardComponent,
         DiskComponent,
         TapeComponent,
-        MoreMenuComponent
+        SoftwareMenuComponent
     ],
     imports: [
         BrowserModule,

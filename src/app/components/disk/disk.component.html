@@ -1,10 +1,17 @@
 <div class="row">
-    <div class="form-group">
-        <select class="form-control" id="diskImageList" [ngModel]="diskImageIndex" (ngModelChange)="onDiskImageChanged($event)">
-            <option value="-1">-- None --</option>
-            <option *ngFor="let diskImage of diskImages; index as i" value="{{i}}">{{diskImage.getName()}} {{diskImageDrives[i]}}</option>
-        </select>
+    <div class="col-lg-6">
+        <mat-select placeholder="Drive" [value]="driveIndex" (selectionChange)="onDriveIndexChanged($event)" style="font-size: 14px; width: auto;">
+            <mat-option *ngFor="let diskDrive of diskDrives; index as i" value="{{i}}"><fa name="hdd-o"></fa> {{diskDrive.getName()}}</mat-option>
+        </mat-select>
     </div>
+    <div class="col-lg-6">
+        <mat-select placeholder="Image" id="diskImageList" [ngModel]="diskImageIndex" (ngModelChange)="onDiskImageChanged($event)">
+            <mat-option value="-1">-- None --</mat-option>
+            <mat-option *ngFor="let diskImage of diskImages; index as i" value="{{i}}">{{diskImage.getName()}} {{diskImageDrives[i]}}</mat-option>
+        </mat-select>
+    </div>
+</div>
+<div class="row">
 </div>
 <div class="row">
     <table class="table table-striped table-fixed">

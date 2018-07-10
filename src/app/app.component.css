@@ -1,5 +1,6 @@
 .console {
     grid-area: console;
+    justify-self: center;
 }
 
 .side-panel {
@@ -14,6 +15,7 @@
 
 .main-controls {
     grid-area: main_controls;
+    justify-self: center;
 }
 
 
@@ -24,4 +26,6 @@
     grid-template-rows: var(--consoleHeight) 1fr;
     grid-template-areas: "console side_panel"
                          "main_controls main_controls";
+    grid-row-gap: 8px;
+    grid-column-gap: 8px;
 }

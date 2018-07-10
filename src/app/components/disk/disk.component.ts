@@ -10,6 +10,7 @@ import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
 import {DiskService} from '../../services/disk.service';
 import {TI994A} from '../../emulator/classes/ti994a';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
+import {DiskDrive} from '../../emulator/classes/diskdrive';
 
 @Component({
     selector: 'app-disk',
@@ -20,7 +21,9 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
 
     @Input() diskImages: DiskImage[];
 
+    diskDrives: DiskDrive[];
     diskImageDrives: string[] = [];
+    driveIndex = 0;
     diskImageIndex = 0;
     diskFiles: DiskFile[];
 
@@ -48,6 +51,7 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
         switch (event.type) {
             case ConsoleEventType.READY:
                 this.ti994A = event.data;
+                this.diskDrives = this.ti994A.getDiskDrives();
                 this.onDiskImageChanged(this.diskImageIndex);
                 break;
             case ConsoleEventType.DISK_MODIFIED: {
@@ -78,6 +82,10 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
+    onDriveIndexChanged(index) {
+        this.eventDispatcherService.diskDriveChanged(this.driveIndex);
+    }
+
     onDiskImageChanged(index) {
         this.diskImageIndex = index;
         const filesObject = this.diskImages[index].getFiles();
@@ -100,7 +108,7 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
     private updateDiskImageDrives(diskImage: DiskImage): string {
         let s = "";
         if (this.ti994A) {
-            this.ti994A.getDiskDrives().forEach((diskDrive) => {
+            this.diskDrives.forEach((diskDrive) => {
                 if (diskDrive.getDiskImage() === diskImage) {
                     s += (s.length > 0 ? ", " : "") + diskDrive.getName();
                 }
@@ -118,9 +126,9 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
 
     insertDisk(index: number) {
         if (index >= 0) {
-            this.commandDispatcherService.insertDisk(this.ti994A.getDiskDrives()[index], this.diskImages[this.diskImageIndex]);
+            this.commandDispatcherService.insertDisk(this.diskDrives[index], this.diskImages[this.diskImageIndex]);
         } else {
-            this.commandDispatcherService.removeDisk(this.ti994A.getDiskDrives()[index], this.diskImages[this.diskImageIndex]);
+            this.commandDispatcherService.removeDisk(this.diskDrives[index], this.diskImages[this.diskImageIndex]);
         }
     }
 

@@ -4,7 +4,6 @@ import {Observable} from 'rxjs/Observable';
 import {Subscription} from 'rxjs/Subscription';
 import {ConsoleEvent, ConsoleEventType} from '../classes/consoleevent';
 import {TI994A} from '../emulator/classes/ti994a';
-import index from '@angular/cli/lib/cli';
 import {DiskImage} from '../emulator/classes/diskimage';
 import {DiskDrive} from '../emulator/classes/diskdrive';
 
@@ -25,38 +24,50 @@ export class EventDispatcherService {
     }
 
     ready(ti994A: TI994A) {
-        this.eventSubject.next(new ConsoleEvent(ConsoleEventType.READY, ti994A));
+        this.sendAsyncEvent(ConsoleEventType.READY, ti994A);
     }
 
     started() {
-        this.eventSubject.next(new ConsoleEvent(ConsoleEventType.STARTED, {}));
+        this.sendAsyncEvent(ConsoleEventType.STARTED, {});
     }
 
     stopped() {
-        this.eventSubject.next(new ConsoleEvent(ConsoleEventType.STOPPED, {}));
+        this.sendAsyncEvent(ConsoleEventType.STOPPED, {});
     }
 
     screenshot(dataURL: string) {
-        this.eventSubject.next(new ConsoleEvent(ConsoleEventType.SCREENSHOT_TAKEN, dataURL));
+        this.sendAsyncEvent(ConsoleEventType.SCREENSHOT_TAKEN, dataURL);
     }
 
     diskChanged(diskImage: DiskImage) {
-        this.eventSubject.next(new ConsoleEvent(ConsoleEventType.DISK_MODIFIED, diskImage));
+        this.sendAsyncEvent(ConsoleEventType.DISK_MODIFIED, diskImage);
     }
 
     diskAdded(diskImage: DiskImage) {
-        this.eventSubject.next(new ConsoleEvent(ConsoleEventType.DISK_ADDED, {diskImage: diskImage}));
+        this.sendAsyncEvent(ConsoleEventType.DISK_ADDED, {diskImage: diskImage});
     }
 
     diskInserted(diskDrive: DiskDrive, diskImage: DiskImage) {
-        this.eventSubject.next(new ConsoleEvent(ConsoleEventType.DISK_INSERTED, {diskDrive: diskDrive, diskImage: diskImage}));
+        this.sendAsyncEvent(ConsoleEventType.DISK_INSERTED, {diskDrive: diskDrive, diskImage: diskImage});
     }
 
     diskRemoved(diskImage: DiskImage) {
-        this.eventSubject.next(new ConsoleEvent(ConsoleEventType.DISK_REMOVED, {diskImage: diskImage}));
+        this.sendAsyncEvent(ConsoleEventType.DISK_REMOVED, {diskImage: diskImage});
     }
 
     diskDeleted(diskImage: DiskImage) {
-        this.eventSubject.next(new ConsoleEvent(ConsoleEventType.DISK_DELETED, {diskImage: diskImage}));
+        this.sendAsyncEvent(ConsoleEventType.DISK_DELETED, {diskImage: diskImage});
+    }
+
+    diskDriveChanged(diskDriveIndex: number) {
+        this.sendAsyncEvent(ConsoleEventType.DISK_DRIVE_CHANGED, diskDriveIndex);
+    }
+
+    sendAsyncEvent(eventType: ConsoleEventType, data: any) {
+        window.setTimeout(
+            () => {
+                this.eventSubject.next(new ConsoleEvent(eventType, data));
+            }
+        );
     }
 }

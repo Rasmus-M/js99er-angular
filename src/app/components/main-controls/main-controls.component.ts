@@ -83,6 +83,9 @@ export class MainControlsComponent implements OnInit, OnDestroy {
             case ConsoleEventType.SCREENSHOT_TAKEN:
                 this.element.nativeElement.querySelector("#btnScreenshot").href = event.data;
                 break;
+            case ConsoleEventType.DISK_DRIVE_CHANGED:
+                this.driveIndex = event.data;
+                break;
         }
     }
 

@@ -11,9 +11,7 @@ import {EventDispatcherService} from './services/event-dispatcher.service';
 import {Subscription} from 'rxjs/Subscription';
 import {ConsoleEvent, ConsoleEventType} from './classes/consoleevent';
 import {DiskService} from './services/disk.service';
-import {TabDirective} from 'ngx-bootstrap';
 import {MatTabChangeEvent} from '@angular/material';
-import index from '@angular/cli/lib/cli';
 
 @Component({
     selector: 'app-root',
@@ -50,7 +48,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     onCommand(command: Command) {
-        console.log(command.type);
+        this.log.info(command.type);
         switch (command.type) {
             case CommandType.CHANGE_SETTING:
                 const setting: Setting = command.data.setting;
@@ -63,7 +61,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     onEvent(event: ConsoleEvent) {
-        console.log(event.type);
+        this.log.info(event.type);
         switch (event.type) {
             case ConsoleEventType.READY:
                 this.ti994A = event.data;
@@ -73,7 +71,6 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     onTabSelected(event: MatTabChangeEvent) {
-        console.log(event.index);
         this.tabIndex = event.index;
     }
 

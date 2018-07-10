@@ -5,11 +5,11 @@ import {CommandDispatcherService} from '../../services/command-dispatcher.servic
 import {Log} from '../../classes/log';
 
 @Component({
-    selector: 'app-more-menu',
-    templateUrl: './more-menu.component.html',
-    styleUrls: ['./more-menu.component.css']
+    selector: 'app-software-menu',
+    templateUrl: './software-menu.component.html',
+    styleUrls: ['./software-menu.component.css']
 })
-export class MoreMenuComponent implements OnInit {
+export class SoftwareMenuComponent implements OnInit {
 
     @Input() menuData: any;
 

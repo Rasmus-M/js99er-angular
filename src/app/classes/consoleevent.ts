@@ -7,7 +7,8 @@ export enum ConsoleEventType {
     DISK_ADDED = "Disk Added",
     DISK_INSERTED = "Disk Inserted",
     DISK_REMOVED = "Disk Removed",
-    DISK_DELETED = "Disk Deleted"
+    DISK_DELETED = "Disk Deleted",
+    DISK_DRIVE_CHANGED = "Disk Drive Changed"
 }
 
 export class ConsoleEvent {

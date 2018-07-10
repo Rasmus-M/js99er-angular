@@ -1,27 +1,17 @@
-<button mat-button (click)="start()" [disabled]="running"><fa name="play"></fa> Start</button>
-<button mat-button (click)="fast()" [disabled]="running"><fa name="forward"></fa> Fast</button>
-<button mat-button (click)="frame()" [disabled]="running"><fa name="fast-forward"></fa> Frame</button>
-<button mat-button (click)="step()" [disabled]="running"><fa name="step-forward"></fa> Step</button>
-<button mat-button (click)="stop()" [disabled]="!running"><fa name="pause"></fa> Pause</button>
-<button mat-button (click)="reset()"><fa name="refresh"></fa> Reset</button>
-
-<button mat-button (click)="fileInputModule.click()">
-    <fa name="credit-card"></fa> Open Cartridge<input #fileInputModule type="file" (change)="openModule(fileInputModule)" [hidden]="true"/>
+<button mat-raised-button color="primary" (click)="start()" [disabled]="running"><fa name="play"></fa> Start</button>
+<button mat-raised-button (click)="fast()" [disabled]="running"><fa name="forward"></fa> Fast</button>
+<button mat-raised-button (click)="frame()" [disabled]="running"><fa name="fast-forward"></fa> Frame</button>
+<button mat-raised-button (click)="step()" [disabled]="running"><fa name="step-forward"></fa> Step</button>
+<button mat-raised-button (click)="stop()" [disabled]="!running"><fa name="pause"></fa> Pause</button>
+<button mat-raised-button color="warn" (click)="reset()"><fa name="refresh"></fa> Reset</button>
+<span class="margin-right"></span>
+<button mat-raised-button (click)="fileInputModule.click()">
+    <fa name="credit-card"></fa> Load Cart<input #fileInputModule type="file" (change)="openModule(fileInputModule)" [hidden]="true"/>
 </button>
-
-<button mat-button (click)="fileInputDisk.click()">
-    <fa name="floppy-o"></fa> Open Disk File<input #fileInputDisk type="file" (change)="openDisk(fileInputDisk)" [hidden]="true" multiple="multiple"/>
+<button mat-raised-button (click)="fileInputDisk.click()">
+    <fa name="floppy-o"></fa> Insert Disk<input #fileInputDisk type="file" (change)="openDisk(fileInputDisk)" [hidden]="true" multiple="multiple"/>
 </button>
-
-<mat-form-field>
-    <mat-select [(value)]="driveIndex" placeholder="Drive" style="font-size: 14px; width: auto;">
-        <mat-option value="0"><fa name="hdd-o"></fa> DSK1</mat-option>
-        <mat-option value="1"><fa name="hdd-o"></fa> DSK2</mat-option>
-        <mat-option value="2"><fa name="hdd-o"></fa> DSK3</mat-option>
-    </mat-select>
-</mat-form-field>
-
-<app-more-menu [menuData]="menuData"></app-more-menu>
-
-<a mat-button (click)="screenshot()" download="screenshot.png" id="btnScreenshot"><fa name="camera"></fa> Screenshot</a>
+<app-software-menu [menuData]="menuData"></app-software-menu>
+<span class="margin-right"></span>
+<a mat-raised-button (click)="screenshot()" download="screenshot.png" id="btnScreenshot"><fa name="camera"></fa> Screen shot</a>
 
