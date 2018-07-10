@@ -1,9 +1,10 @@
 import {NgModule} from '@angular/core';
 import {BrowserModule} from '@angular/platform-browser';
-import {TabsModule} from 'ngx-bootstrap';
 import {AngularFontAwesomeModule} from 'angular-font-awesome';
 import {HttpClientModule} from '@angular/common/http';
 import {FormsModule} from '@angular/forms';
+import {MatTabsModule, MatCardModule, MatButtonModule, MatCheckboxModule} from '@angular/material';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 import {EmulatorModule} from './emulator/emulator.module';
 import {AppComponent} from './app.component';
@@ -39,7 +40,11 @@ import { TapeComponent } from './components/tape/tape.component';
     ],
     imports: [
         BrowserModule,
-        TabsModule.forRoot(),
+        MatTabsModule,
+        MatCardModule,
+        MatButtonModule,
+        MatCheckboxModule,
+        BrowserAnimationsModule,
         AngularFontAwesomeModule,
         HttpClientModule,
         EmulatorModule,

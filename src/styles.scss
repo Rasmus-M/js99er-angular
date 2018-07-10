@@ -13,6 +13,8 @@ $enable-rounded: true;
 // import in the bootstrap SASS file
 @import '../node_modules/bootstrap/scss/bootstrap';
 
+@import "~@angular/material/prebuilt-themes/indigo-pink.css";
+
 ///* Level 1 (outer) */
 //.tab-content {
 //    height: 100%;

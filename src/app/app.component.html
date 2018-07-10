@@ -3,50 +3,50 @@
         <app-console class="console" [diskImages]="diskImages"></app-console>
     </div>
     <div class="side-panel">
-        <tabset type="pills">
-            <tab heading="Log" (select)="onTabSelected(0, $event)">
-                <div class="card tab-card">
-                    <div class="card-body tab-card-body">
+        <mat-tab-group>
+            <mat-tab label="Log" (select)="onTabSelected(0, $event)">
+                <mat-card>
+                    <mat-card-content>
                         <app-log></app-log>
-                    </div>
-                </div>
-            </tab>
-            <tab heading="Disk" (select)="onTabSelected(1, $event)">
-                <div class="card tab-card">
-                    <div class="card-body tab-card-body">
+                    </mat-card-content>
+                </mat-card>
+            </mat-tab>
+            <mat-tab label="Disk" (select)="onTabSelected(1, $event)">
+                <mat-card>
+                    <mat-card-content>
                         <app-disk [diskImages]="diskImages"></app-disk>
-                    </div>
-                </div>
-            </tab>
-            <tab heading="Tape" (select)="onTabSelected(2, $event)">
-                <div class="card tab-card">
-                    <div class="card-body tab-card-body">
+                    </mat-card-content>
+                </mat-card>
+            </mat-tab>
+            <mat-tab label="Tape" (select)="onTabSelected(2, $event)">
+                <mat-card>
+                    <mat-card-content>
                         <app-tape></app-tape>
-                    </div>
-                </div>
-            </tab>
-            <tab heading="Keyboard" (select)="onTabSelected(3, $event)">
-                <div class="card tab-card">
-                    <div class="card-body tab-card-body">
+                    </mat-card-content>
+                </mat-card>
+            </mat-tab>
+            <mat-tab label="Keyboard" (select)="onTabSelected(3, $event)">
+                <mat-card>
+                    <mat-card-content>
                         <app-keyboard></app-keyboard>
-                    </div>
-                </div>
-            </tab>
-            <tab heading="Debugger" (select)="onTabSelected(4, $event)">
-                <div class="card tab-card">
-                    <div class="card-body tab-card-body">
+                    </mat-card-content>
+                </mat-card>
+            </mat-tab>
+            <mat-tab label="Debugger" (select)="onTabSelected(4, $event)">
+                <mat-card>
+                    <mat-card-content>
                         <app-debugger [visible]="tabIndex === 4"></app-debugger>
-                    </div>
-                </div>
-            </tab>
-            <tab heading="Options" (select)="onTabSelected(5, $event)">
-                <div class="card tab-card">
-                    <div class="card-body tab-card-body">
+                    </mat-card-content>
+                </mat-card>
+            </mat-tab>
+            <mat-tab label="Options" (select)="onTabSelected(5, $event)">
+                <mat-card>
+                    <mat-card-content>
                         <app-settings></app-settings>
-                    </div>
-                </div>
-            </tab>
-        </tabset>
+                    </mat-card-content>
+                </mat-card>
+            </mat-tab>
+        </mat-tab-group>
     </div>
     <div class="main-controls">
         <app-main-controls></app-main-controls>

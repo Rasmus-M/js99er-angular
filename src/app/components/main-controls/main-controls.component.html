@@ -1,12 +1,14 @@
+<button mat-button (click)="start()" [disabled]="running"><fa name="play"></fa> Start</button>
+<button mat-button (click)="fast()" [disabled]="running"><fa name="forward"></fa> Fast</button>
+<button mat-button (click)="frame()" [disabled]="running"><fa name="fast-forward"></fa> Frame</button>
+<button mat-button (click)="step()" [disabled]="running"><fa name="step-forward"></fa> Step</button>
+<button mat-button (click)="stop()" [disabled]="!running"><fa name="pause"></fa> Pause</button>
+<button mat-button (click)="reset()"><fa name="refresh"></fa> Reset</button>
+
+<input type="file" #fileInputModule (change)="openModule(fileInputModule.files)">
+
+
 <div class="navbar">
-    <div class="btn-group">
-        <button class="btn btn-success" (click)="start()" [disabled]="running"><fa name="play"></fa> Start</button>
-        <button class="btn btn-default" (click)="fast()" [disabled]="running"><fa name="forward"></fa> Fast</button>
-        <button class="btn btn-default" (click)="frame()" [disabled]="running"><fa name="fast-forward"></fa> Frame</button>
-        <button class="btn btn-default" (click)="step()" [disabled]="running"><fa name="step-forward"></fa> Step</button>
-        <button class="btn btn-warning" (click)="stop()" [disabled]="!running"><fa name="pause"></fa> Pause</button>
-        <button class="btn btn-danger" (click)="reset()"><fa name="refresh"></fa> Reset</button>
-    </div>
     <div class="btn-group">
         <div class="btn btn-primary btn-file"><fa name="credit-card"></fa> Open Cartridge<input type="file" #fileInputModule (change)="openModule(fileInputModule.files)"></div>
     </div>
