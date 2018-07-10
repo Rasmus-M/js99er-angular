@@ -4,8 +4,6 @@ import {SoftwareMenuService} from '../../services/software-menu.service';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {Subscription} from 'rxjs/Subscription';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
-import {Software} from '../../classes/software';
-import {Log} from '../../classes/log';
 
 @Component({
     selector: 'app-main-controls',
@@ -19,11 +17,9 @@ export class MainControlsComponent implements OnInit, OnDestroy {
     menuData = SoftwareMenuService.MENU;
 
     private subscription: Subscription;
-    private log: Log = Log.getLog();
 
     constructor(
         private element: ElementRef,
-        private softwareMenuService: SoftwareMenuService,
         private commandDispatcherService: CommandDispatcherService,
         private eventDispatcherService: EventDispatcherService
     ) {}
@@ -70,18 +66,6 @@ export class MainControlsComponent implements OnInit, OnDestroy {
             this.commandDispatcherService.loadDisk(files, this.driveIndex);
             fileInput.value = "";
         }
-    }
-
-    openSoftware(url) {
-        this.softwareMenuService.loadModuleFromMenu(url).subscribe(
-            (software: Software) => {
-                this.commandDispatcherService.loadSoftware(software);
-            },
-            (error) => {
-                console.log(error);
-                this.log.error(error);
-            }
-        );
     }
 
     screenshot() {

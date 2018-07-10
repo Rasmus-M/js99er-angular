@@ -16,7 +16,6 @@ import {ZipService} from './services/zip.service';
 import {DiskService} from './services/disk.service';
 import {CommandDispatcherService} from './services/command-dispatcher.service';
 import {ObjectLoaderService} from './services/object-loader.service';
-import {SubmenuComponent} from './components/submenu/submenu.component';
 import {SoftwareMenuService} from './services/software-menu.service';
 import {SettingsService} from './services/settings.service';
 import {SettingsComponent} from './components/settings/settings.component';
@@ -25,18 +24,19 @@ import {EventDispatcherService} from './services/event-dispatcher.service';
 import {KeyboardComponent} from './components/keyboard/keyboard.component';
 import {DiskComponent} from './components/disk/disk.component';
 import {TapeComponent} from './components/tape/tape.component';
+import { MoreMenuComponent } from './components/more-menu/more-menu.component';
 
 @NgModule({
     declarations: [
         AppComponent,
         DebuggerComponent,
         MainControlsComponent,
-        SubmenuComponent,
         SettingsComponent,
         LogComponent,
         KeyboardComponent,
         DiskComponent,
-        TapeComponent
+        TapeComponent,
+        MoreMenuComponent
     ],
     imports: [
         BrowserModule,

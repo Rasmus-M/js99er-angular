@@ -21,26 +21,7 @@
     </mat-select>
 </mat-form-field>
 
-<button mat-button [matMenuTriggerFor]="menu" [matMenuTriggerData]="menuData">More...</button>
-<mat-menu #menu="matMenu" yPosition="above" >
-    <ng-template matMenuContent let-items="items">
-        <ng-container *ngFor="let item of items">
-            <button *ngIf="item.type==='ITEM'" mat-menu-item (click)="openSoftware(item.url)">{{item.name}}</button>
-            <mat-divider *ngIf="item.type==='DIVIDER'"></mat-divider>
-            <ng-container *ngIf="item.type==='SUBMENU'">
-                <button mat-menu-item [matMenuTriggerFor]="subMenu" [matMenuTriggerData]="item">{{item.name}}</button>
-                <mat-menu #subMenu="matMenu">
-                    <ng-template matMenuContent let-items="items">
-                        <ng-container *ngFor="let item of items">
-                            <button *ngIf="item.type==='ITEM'" mat-menu-item (click)="openSoftware(item.url)">{{item.name}}</button>
-                            <mat-divider *ngIf="item.type==='DIVIDER'"></mat-divider>
-                        </ng-container>
-                    </ng-template>
-                </mat-menu>
-            </ng-container>
-        </ng-container>
-    </ng-template>
-</mat-menu>
+<app-more-menu [menuData]="menuData"></app-more-menu>
 
 <a mat-button (click)="screenshot()" download="screenshot.png" id="btnScreenshot"><fa name="camera"></fa> Screenshot</a>
 
