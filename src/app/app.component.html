@@ -3,43 +3,43 @@
         <app-console class="console" [diskImages]="diskImages"></app-console>
     </div>
     <div class="side-panel">
-        <mat-tab-group>
-            <mat-tab label="Log" (select)="onTabSelected(0, $event)">
+        <mat-tab-group (selectedTabChange)="onTabSelected($event)">
+            <mat-tab label="Log">
                 <mat-card>
                     <mat-card-content>
                         <app-log></app-log>
                     </mat-card-content>
                 </mat-card>
             </mat-tab>
-            <mat-tab label="Disk" (select)="onTabSelected(1, $event)">
+            <mat-tab label="Disk">
                 <mat-card>
                     <mat-card-content>
                         <app-disk [diskImages]="diskImages"></app-disk>
                     </mat-card-content>
                 </mat-card>
             </mat-tab>
-            <mat-tab label="Tape" (select)="onTabSelected(2, $event)">
+            <mat-tab label="Tape">
                 <mat-card>
                     <mat-card-content>
                         <app-tape></app-tape>
                     </mat-card-content>
                 </mat-card>
             </mat-tab>
-            <mat-tab label="Keyboard" (select)="onTabSelected(3, $event)">
+            <mat-tab label="Keyboard">
                 <mat-card>
                     <mat-card-content>
-                        <app-keyboard></app-keyboard>
+                        <app-keyboard [visible]="tabIndex === 3"></app-keyboard>
                     </mat-card-content>
                 </mat-card>
             </mat-tab>
-            <mat-tab label="Debugger" (select)="onTabSelected(4, $event)">
+            <mat-tab label="Debugger">
                 <mat-card>
                     <mat-card-content>
                         <app-debugger [visible]="tabIndex === 4"></app-debugger>
                     </mat-card-content>
                 </mat-card>
             </mat-tab>
-            <mat-tab label="Options" (select)="onTabSelected(5, $event)">
+            <mat-tab label="Options">
                 <mat-card>
                     <mat-card-content>
                         <app-settings></app-settings>
