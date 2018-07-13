@@ -1,16 +1,19 @@
+.tab-content {
+    margin: 0;
+    padding: 16px 0 0;
+    height: calc(100% - 16px);
+    overflow: hidden;
+}
+
 .console {
     grid-area: console;
-    justify-self: center;
+    justify-self: start;
 }
 
 .side-panel {
     grid-area: side_panel;
     overflow-x: hidden;
     overflow-y: auto;
-    /*
-    display: flex;
-    flex-direction: column;
-    flex: 1; */
 }
 
 .main-controls {
@@ -18,11 +21,11 @@
     justify-self: center;
 }
 
-
 .app {
     display: grid;
-    --consoleHeight: calc(100vh - 64px);
-    grid-template-columns: calc(var(--consoleHeight) * 4 / 3) 1fr;
+    --consoleHeight: calc(100vh - 96px);
+    --consoleWidth: calc(var(--consoleHeight) * 4 / 3);
+    grid-template-columns: var(--consoleWidth) 1fr;
     grid-template-rows: var(--consoleHeight) 1fr;
     grid-template-areas: "console side_panel"
                          "main_controls main_controls";

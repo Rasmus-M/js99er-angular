@@ -5,46 +5,24 @@
     <div class="side-panel">
         <mat-tab-group (selectedTabChange)="onTabSelected($event)">
             <mat-tab label="Log">
-                <mat-card>
-                    <mat-card-content>
-                        <app-log></app-log>
-                    </mat-card-content>
-                </mat-card>
+                <div class="tab-content">
+                    <app-log></app-log>
+                </div>
             </mat-tab>
             <mat-tab label="Disk">
-                <mat-card>
-                    <mat-card-content>
-                        <app-disk [diskImages]="diskImages"></app-disk>
-                    </mat-card-content>
-                </mat-card>
+                <app-disk [diskImages]="diskImages"></app-disk>
             </mat-tab>
             <mat-tab label="Tape">
-                <mat-card>
-                    <mat-card-content>
-                        <app-tape></app-tape>
-                    </mat-card-content>
-                </mat-card>
+                <app-tape></app-tape>
             </mat-tab>
             <mat-tab label="Keyboard">
-                <mat-card>
-                    <mat-card-content>
-                        <app-keyboard [visible]="tabIndex === 3"></app-keyboard>
-                    </mat-card-content>
-                </mat-card>
+                <app-keyboard [visible]="tabIndex === 3"></app-keyboard>
             </mat-tab>
             <mat-tab label="Debugger">
-                <mat-card>
-                    <mat-card-content>
-                        <app-debugger [visible]="tabIndex === 4"></app-debugger>
-                    </mat-card-content>
-                </mat-card>
+                <app-debugger [visible]="tabIndex === 4"></app-debugger>
             </mat-tab>
             <mat-tab label="Options">
-                <mat-card>
-                    <mat-card-content>
-                        <app-settings></app-settings>
-                    </mat-card-content>
-                </mat-card>
+                <app-settings></app-settings>
             </mat-tab>
         </mat-tab-group>
     </div>

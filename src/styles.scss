@@ -1,59 +1,23 @@
 /* You can add global styles to this file, and also import other style files */
 
-// set the variables you wish to change
-$enable-gradients: false;
-$enable-shadows: true;
-$enable-rounded: true;
-
-.btn {
-    background-image: linear-gradient(to bottom, rgba(255,255,255,0.5), rgba(255,255,255,0.2) 49%, rgba(0,0,0,0.15) 51%, rgba(0,0,0,0.05));
-    background-repeat: repeat-x;
-}
-
-// import in the bootstrap SASS file
-@import '../node_modules/bootstrap/scss/bootstrap';
-
 @import "~@angular/material/prebuilt-themes/indigo-pink.css";
 
-///* Level 1 (outer) */
-//.tab-content {
-//    height: 100%;
-//}
-//
-///* Level 2 */
-//.tab-pane {
-//    height: 100%;
-//}
-//
-///* Level 3 */
-//.tab-card {
-//    height: 100%;
-//}
-//
-///* Level 4 (inner) */
-//.tab-card-body {
-//    height: 100%;
-//}
+html {
+    padding: 0;
+    margin: 0;
+}
 
-.btn-file {
-    position: relative;
+body {
+    padding: 8px;
+    margin: 0;
+}
+
+mat-tab-group, .mat-tab-body-wrapper, mat-tab {
+    height: 100%;
     overflow: hidden;
 }
 
-.btn-file input[type=file] {
-    position: absolute;
-    top: 0;
-    right: 0;
-    min-width: 100%;
-    min-height: 100%;
-    font-size: 999px;
-    text-align: right;
-    filter: alpha(opacity=0);
-    opacity: 0;
-    outline: none;
-    background: white;
-    cursor: inherit;
-    display: block;
+.margin-right {
+    margin-right: 8px;
 }
-
 

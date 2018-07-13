@@ -1,8 +1,6 @@
 import {AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit} from '@angular/core';
 import {Subscription} from 'rxjs/Subscription';
 import * as $ from "jquery";
-import 'bootstrap';
-import 'bootstrap-select';
 import {DiskImage} from '../../emulator/classes/diskimage';
 import {DiskFile} from '../../emulator/classes/diskfile';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
@@ -11,6 +9,7 @@ import {DiskService} from '../../services/disk.service';
 import {TI994A} from '../../emulator/classes/ti994a';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {DiskDrive} from '../../emulator/classes/diskdrive';
+import {MatSelectChange} from '@angular/material';
 
 @Component({
     selector: 'app-disk',
@@ -26,6 +25,7 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
     driveIndex = 0;
     diskImageIndex = 0;
     diskFiles: DiskFile[];
+    displayedColumns = ['fileName', 'fileType', 'dataType', 'recordType', 'recordLength', 'fileSize'];
 
     private subscription: Subscription;
     private ti994A: TI994A;
@@ -43,8 +43,6 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngAfterViewInit() {
-        const select = this.element.nativeElement.querySelector(".selectpicker");
-        $(select).selectpicker({iconBase: 'fa'});
     }
 
     onEvent(event: ConsoleEvent) {
@@ -82,17 +80,22 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
-    onDriveIndexChanged(index) {
+    onDriveIndexChanged(index: number) {
+        this.driveIndex = index;
+        console.log("driveIndex=" + this.driveIndex);
         this.eventDispatcherService.diskDriveChanged(this.driveIndex);
     }
 
-    onDiskImageChanged(index) {
+    onDiskImageChanged(index: number) {
         this.diskImageIndex = index;
-        const filesObject = this.diskImages[index].getFiles();
+        console.log("diskImageIndex=" + this.diskImageIndex);
         const files = [];
-        for (const name in filesObject) {
-            if (filesObject.hasOwnProperty(name)) {
-                files.push(filesObject[name]);
+        if (index >= 0) {
+            const filesObject = this.diskImages[index].getFiles();
+            for (const name in filesObject) {
+                if (filesObject.hasOwnProperty(name)) {
+                    files.push(filesObject[name]);
+                }
             }
         }
         this.diskFiles = files;
@@ -124,7 +127,8 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
         this.commandDispatcherService.addDisk();
     }
 
-    insertDisk(index: number) {
+    insertDisk() {
+        const index = this.diskImageIndex;
         if (index >= 0) {
             this.commandDispatcherService.insertDisk(this.diskDrives[index], this.diskImages[this.diskImageIndex]);
         } else {

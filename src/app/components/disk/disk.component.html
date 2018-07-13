@@ -1,71 +1,53 @@
-<div class="row">
-    <div class="col-lg-6">
-        <mat-select placeholder="Drive" [value]="driveIndex" (selectionChange)="onDriveIndexChanged($event)" style="font-size: 14px; width: auto;">
-            <mat-option *ngFor="let diskDrive of diskDrives; index as i" value="{{i}}"><fa name="hdd-o"></fa> {{diskDrive.getName()}}</mat-option>
-        </mat-select>
+<div class="disk">
+    <div class="disk-selects">
+        <mat-form-field>
+            <mat-select placeholder="Drive" [value]="driveIndex" (selectionChange)="onDriveIndexChanged($event.value)">
+                <mat-option *ngFor="let diskDrive of diskDrives; index as i" [value]="i"><fa name="hdd-o"></fa> {{diskDrive.getName()}}</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field>
+            <mat-select placeholder="Image" [value]="diskImageIndex" (selectionChange)="onDiskImageChanged($event.value)">
+                <mat-option value="-1">-- None --</mat-option>
+                <mat-option *ngFor="let diskImage of diskImages; index as i" [value]="i">{{diskImage.getName()}} {{diskImageDrives[i]}}</mat-option>
+            </mat-select>
+        </mat-form-field>
     </div>
-    <div class="col-lg-6">
-        <mat-select placeholder="Image" id="diskImageList" [ngModel]="diskImageIndex" (ngModelChange)="onDiskImageChanged($event)">
-            <mat-option value="-1">-- None --</mat-option>
-            <mat-option *ngFor="let diskImage of diskImages; index as i" value="{{i}}">{{diskImage.getName()}} {{diskImageDrives[i]}}</mat-option>
-        </mat-select>
+    <div class="files-table">
+        <table mat-table [dataSource]="diskFiles" class="mat-elevation-z8">
+            <ng-container matColumnDef="fileName">
+                <th mat-header-cell *matHeaderCellDef> Name </th>
+                <td mat-cell *matCellDef="let file"> {{file.getName()}} </td>
+            </ng-container>
+            <ng-container matColumnDef="fileType">
+                <th mat-header-cell *matHeaderCellDef> Type </th>
+                <td mat-cell *matCellDef="let file"> {{file.getFileType()}} </td>
+            </ng-container>
+            <ng-container matColumnDef="dataType">
+                <th mat-header-cell *matHeaderCellDef> Data Type </th>
+                <td mat-cell *matCellDef="let file"> {{file.getDataType()}} </td>
+            </ng-container>
+            <ng-container matColumnDef="recordType">
+                <th mat-header-cell *matHeaderCellDef> Record Type </th>
+                <td mat-cell *matCellDef="let file"> {{file.getRecordType()}} </td>
+            </ng-container>
+            <ng-container matColumnDef="recordLength">
+                <th mat-header-cell *matHeaderCellDef> Record Lenth </th>
+                <td mat-cell *matCellDef="let file"> {{file.getRecordLength()}} </td>
+            </ng-container>
+            <ng-container matColumnDef="fileSize">
+                <th mat-header-cell *matHeaderCellDef> Size </th>
+                <td mat-cell *matCellDef="let file"> {{file.getSectorCount()}} </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
     </div>
-</div>
-<div class="row">
-</div>
-<div class="row">
-    <table class="table table-striped table-fixed">
-        <thead>
-        <tr>
-            <th width="25%">Name</th>
-            <th width="15%">Type</th>
-            <th width="15%">Data Type</th>
-            <th width="15%">Record Type</th>
-            <th width="15%">Record Length</th>
-            <th width="15%">Size</th>
-        </tr>
-        </thead>
-        <tbody>
-            <tr *ngFor="let diskFile of diskFiles">
-                <td width="25%">{{diskFile.getName()}}</td>
-                <td width="15%">{{diskFile.getFileType()}}</td>
-                <td width="15%">{{diskFile.getDataType()}}</td>
-                <td width="15%">{{diskFile.getRecordType()}}</td>
-                <td width="15%">{{diskFile.getRecordLength()}}</td>
-                <td width="15%">{{diskFile.getSectorCount()}}</td>
-            </tr>
-        </tbody>
-    </table>
-</div>
-<div class="row">
-    <div id="diskTools" class="navbar">
-        <div class="btn-group mr-1">
-            <button id="btnNewDisk" class="btn btn-default navbar-btn">
-                <fa name="plus-circle" (click)="addDisk()"></fa> New Disk
-            </button>
-        </div>
-        <div class="dropup mr-1">
-          <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Insert Into
-          </button>
-          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-            <a class="dropdown-item" href="#" (click)="insertDisk(0)">DSK1</a>
-            <a class="dropdown-item" href="#" (click)="insertDisk(1)">DSK2</a>
-            <a class="dropdown-item" href="#" (click)="insertDisk(2)">DSK3</a>
-          </div>
-        </div>
-        <div class="btn-group mr-1">
-            <button id="btnDeleteDisk" class="btn btn-danger navbar-btn" (click)="deleteDisk()">
-                <fa name="remove"></fa> Disk
-            </button>
-            <button id="btnDeleteFiles" class="btn btn-danger navbar-btn" (click)="deleteFiles()">
-                <fa name="remove"></fa> Files
-            </button>
-        </div>
-        <div class="btn-group">
-            <button id="btnDownload" class="btn btn-primary navbar-btn" (click)="saveDisk()">
-                <fa name="save"></fa> Save DSK File
-            </button>
-        </div>
-    </div>
+    <mat-toolbar class="disk-toolbar">
+        <button mat-raised-button (click)="addDisk()"><fa name="plus-circle"></fa> New Disk</button>
+        <button mat-raised-button color="primary" (click)="insertDisk()"><fa name="plus-circle"></fa> Insert Disk</button>
+        <button mat-raised-button color="warn" (click)="deleteDisk()"><fa name="remove"></fa> Delete Disk</button>
+        <button mat-raised-button color="warn" (click)="deleteFiles()"><fa name="remove"></fa> Delete Files</button>
+        <button mat-raised-button color="primary" (click)="saveDisk()"><fa name="save"></fa> Save DSK</button>
+    </mat-toolbar>
 </div>

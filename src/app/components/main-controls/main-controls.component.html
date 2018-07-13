@@ -1,17 +1,18 @@
-<button mat-raised-button color="primary" (click)="start()" [disabled]="running"><fa name="play"></fa> Start</button>
-<button mat-raised-button (click)="fast()" [disabled]="running"><fa name="forward"></fa> Fast</button>
-<button mat-raised-button (click)="frame()" [disabled]="running"><fa name="fast-forward"></fa> Frame</button>
-<button mat-raised-button (click)="step()" [disabled]="running"><fa name="step-forward"></fa> Step</button>
-<button mat-raised-button (click)="stop()" [disabled]="!running"><fa name="pause"></fa> Pause</button>
-<button mat-raised-button color="warn" (click)="reset()"><fa name="refresh"></fa> Reset</button>
-<span class="margin-right"></span>
-<button mat-raised-button (click)="fileInputModule.click()">
-    <fa name="credit-card"></fa> Load Cart<input #fileInputModule type="file" (change)="openModule(fileInputModule)" [hidden]="true"/>
-</button>
-<button mat-raised-button (click)="fileInputDisk.click()">
-    <fa name="floppy-o"></fa> Insert Disk<input #fileInputDisk type="file" (change)="openDisk(fileInputDisk)" [hidden]="true" multiple="multiple"/>
-</button>
-<app-software-menu [menuData]="menuData"></app-software-menu>
-<span class="margin-right"></span>
-<a mat-raised-button (click)="screenshot()" download="screenshot.png" id="btnScreenshot"><fa name="camera"></fa> Screen shot</a>
-
+<mat-toolbar>
+    <button mat-raised-button color="primary" (click)="start()" [disabled]="running"><fa name="play"></fa> Start</button>
+    <button mat-raised-button (click)="fast()" [disabled]="running"><fa name="forward"></fa> Fast</button>
+    <button mat-raised-button (click)="frame()" [disabled]="running"><fa name="fast-forward"></fa> Frame</button>
+    <button mat-raised-button (click)="step()" [disabled]="running"><fa name="step-forward"></fa> Step</button>
+    <button mat-raised-button (click)="stop()" [disabled]="!running"><fa name="pause"></fa> Pause</button>
+    <button mat-raised-button color="warn" (click)="reset()"><fa name="refresh"></fa> Reset</button>
+    <span class="margin-right"></span>
+    <button mat-raised-button (click)="fileInputModule.click()">
+        <fa name="credit-card"></fa> Load Cart<input #fileInputModule type="file" (change)="openModule(fileInputModule)" [hidden]="true"/>
+    </button>
+    <button mat-raised-button (click)="fileInputDisk.click()">
+        <fa name="floppy-o"></fa> Load Disk<input #fileInputDisk type="file" (change)="openDisk(fileInputDisk)" [hidden]="true" multiple="multiple"/>
+    </button>
+    <app-software-menu [menuData]="menuData"></app-software-menu>
+    <span class="margin-right"></span>
+    <a mat-raised-button (click)="screenshot()" download="screenshot.png" id="btnScreenshot"><fa name="camera"></fa> Screen shot</a>
+</mat-toolbar>

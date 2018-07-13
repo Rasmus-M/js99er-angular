@@ -1,15 +1,30 @@
-.table-fixed thead {
-    width: calc( 100% - 1em )/* scrollbar is average 1em/16px width, remove it from thead width */
-}
-
-.table-fixed thead, tbody tr {
-    display: table;
+table {
     width: 100%;
-    table-layout: fixed; /* even columns width , fix width of table too */
+}
+.disk-selects {
+    grid-area: disk-selects;
+}
+.files-table {
+    grid-area: files-table;
+    height: 400px;
+    overflow: auto;
+}
+.disk-toolbar {
+    grid-area: disk-toolbar;
+}
+.disk {
+    display: grid;
+    height: 100%;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+        "disk-selects"
+        "files-table"
+        "disk-toolbar";
+    grid-row-gap: 8px;
 }
 
-.table-fixed tbody {
-    display: block;
-    height: 300px;
-    overflow: auto;
+mat-form-field {
+    width: 45%;
+    padding-right: 16px;
 }

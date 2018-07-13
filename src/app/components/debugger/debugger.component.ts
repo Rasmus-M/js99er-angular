@@ -1,8 +1,6 @@
 import {AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
 import {Subscription} from 'rxjs/index';
 import * as $ from "jquery";
-import 'bootstrap';
-import 'bootstrap-select';
 import {TI994A} from '../../emulator/classes/ti994a';
 import {DisassemblerService} from '../../services/disassembler.service';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
@@ -42,7 +40,6 @@ export class DebuggerComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     }
 
     ngAfterViewInit() {
-        $(this.element.nativeElement).find(".selectpicker").selectpicker({});
     }
 
     startUpdate() {
