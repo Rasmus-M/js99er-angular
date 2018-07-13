@@ -4,7 +4,7 @@ import {AngularFontAwesomeModule} from 'angular-font-awesome';
 import {HttpClientModule} from '@angular/common/http';
 import {FormsModule} from '@angular/forms';
 import {MatMenuModule, MatTabsModule, MatCardModule, MatButtonModule, MatCheckboxModule, MatSelectModule, MatIconModule, MatDividerModule,
-        MatToolbarModule, MatTableModule} from '@angular/material';
+        MatToolbarModule, MatTableModule, MatInputModule} from '@angular/material';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 import {EmulatorModule} from './emulator/emulator.module';
@@ -51,6 +51,7 @@ import { SoftwareMenuComponent } from './components/software-menu/software-menu.
         MatDividerModule,
         MatToolbarModule,
         MatTableModule,
+        MatInputModule,
         BrowserAnimationsModule,
         AngularFontAwesomeModule,
         HttpClientModule,

@@ -1,22 +1,19 @@
-import {AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {Subscription} from 'rxjs/Subscription';
-import * as $ from "jquery";
 import {DiskImage} from '../../emulator/classes/diskimage';
 import {DiskFile} from '../../emulator/classes/diskfile';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
-import {DiskService} from '../../services/disk.service';
 import {TI994A} from '../../emulator/classes/ti994a';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {DiskDrive} from '../../emulator/classes/diskdrive';
-import {MatSelectChange} from '@angular/material';
 
 @Component({
     selector: 'app-disk',
     templateUrl: './disk.component.html',
     styleUrls: ['./disk.component.css']
 })
-export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
+export class DiskComponent implements OnInit, OnDestroy {
 
     @Input() diskImages: DiskImage[];
 
@@ -28,13 +25,10 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
     displayedColumns = ['fileName', 'fileType', 'dataType', 'recordType', 'recordLength', 'fileSize'];
 
     private subscription: Subscription;
-    private ti994A: TI994A;
 
     constructor(
-        private element: ElementRef,
         private commandDispatcherService: CommandDispatcherService,
-        private eventDispatcherService: EventDispatcherService,
-        private diskService: DiskService
+        private eventDispatcherService: EventDispatcherService
     ) {
     }
 
@@ -42,14 +36,11 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
         this.subscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
     }
 
-    ngAfterViewInit() {
-    }
-
     onEvent(event: ConsoleEvent) {
         switch (event.type) {
             case ConsoleEventType.READY:
-                this.ti994A = event.data;
-                this.diskDrives = this.ti994A.getDiskDrives();
+                const ti994A: TI994A = event.data;
+                this.diskDrives = ti994A.getDiskDrives();
                 this.onDiskImageChanged(this.diskImageIndex);
                 break;
             case ConsoleEventType.DISK_MODIFIED: {
@@ -102,27 +93,6 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
         this.updateAllDiskImageDrives();
     }
 
-    private updateAllDiskImageDrives() {
-        for (let i = 0; i < this.diskImages.length; i++) {
-            this.diskImageDrives[i] = this.updateDiskImageDrives(this.diskImages[i]);
-        }
-    }
-
-    private updateDiskImageDrives(diskImage: DiskImage): string {
-        let s = "";
-        if (this.ti994A) {
-            this.diskDrives.forEach((diskDrive) => {
-                if (diskDrive.getDiskImage() === diskImage) {
-                    s += (s.length > 0 ? ", " : "") + diskDrive.getName();
-                }
-            });
-            if (s.length > 0) {
-                s = "(in " + s + ")";
-            }
-        }
-        return s;
-    }
-
     addDisk() {
         this.commandDispatcherService.addDisk();
     }
@@ -149,5 +119,26 @@ export class DiskComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngOnDestroy() {
         this.subscription.unsubscribe();
+    }
+
+    private updateAllDiskImageDrives() {
+        for (let i = 0; i < this.diskImages.length; i++) {
+            this.diskImageDrives[i] = this.updateDiskImageDrives(this.diskImages[i]);
+        }
+    }
+
+    private updateDiskImageDrives(diskImage: DiskImage): string {
+        let s = "";
+        if (this.diskDrives) {
+            this.diskDrives.forEach((diskDrive) => {
+                if (diskDrive.getDiskImage() === diskImage) {
+                    s += (s.length > 0 ? ", " : "") + diskDrive.getName();
+                }
+            });
+            if (s.length > 0) {
+                s = "(in " + s + ")";
+            }
+        }
+        return s;
     }
 }

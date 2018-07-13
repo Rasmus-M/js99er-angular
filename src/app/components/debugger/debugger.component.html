@@ -1,30 +1,37 @@
-<div class="row">
-    <div class="card w-100">
-        <div class="card-body w-100">
-            <pre id="status">{{statusString}}</pre>
-        </div>
-    </div>
-    <div class="card w-100">
-        <div class="card-body w-100">
-            <pre id="memory">{{memoryViewText}}</pre>
-        </div>
-    </div>
-</div>
-<div class="row">
-    <div id="debuggerTools" class="navbar navbar-expand-l">
-        <form class="form-inline">
-            <select class="selectpicker mr-1" data-width="auto" [(ngModel)]="memoryView" title="View" name="memoryView" >
-                <option [ngValue]="0">Disassembly</option>
-                <option [ngValue]="1">Hex view</option>
-            </select>
-            <select class="selectpicker mr-1" data-width="auto" [(ngModel)]="memoryType" title="Memory" name="memoryType">
-                <option [ngValue]="0">CPU memory</option>
-                <option [ngValue]="1">VDP memory</option>
-            </select>
-            <input class="form-control mr-1 address-entry" type="text" placeholder="Address" aria-label="Address" maxlength="5"
-                   [ngModel]="debuggerAddress" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onDebuggerAddressChanged($event)" (focus)="onTextFocus()" name="debuggerAddress">
-            <input class="form-control address-entry" type="text" placeholder="Breakpoint" aria-label="Breakpoint" maxlength="5"
-                   [ngModel]="breakpointAddress" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onBreakpointAddressChanged($event)" (focus)="onTextFocus()" name="breakpointAddress">
-        </form>
-    </div>
-</div>
+<mat-card>
+    <mat-card-header>
+        <mat-card-title>Status</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+        <pre id="status">{{statusString}}</pre>
+    </mat-card-content>
+</mat-card>
+<mat-card>
+    <mat-card-header>
+        <mat-card-title>Memory View</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+        <pre id="memory">{{memoryViewText}}</pre>
+    </mat-card-content>
+</mat-card>
+
+<form>
+    <mat-form-field>
+        <mat-select placeholder="Memory View" [(value)]="memoryView">
+            <mat-option [value]="0">Disassembly</mat-option>
+            <mat-option [value]="1">Hex view</mat-option>
+        </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+        <mat-select placeholder="Memory Type" [(value)]="memoryType">
+            <mat-option [value]="0">CPU Memory</mat-option>
+            <mat-option [value]="1">VDP Memory</mat-option>
+        </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+        <input matInput placeholder="Address" maxlength="5" [ngModel]="debuggerAddress" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onDebuggerAddressChanged($event)" (focus)="onTextFocus()" name="debuggerAddress">
+    </mat-form-field>
+    <mat-form-field>
+        <input matInput placeholder="Breakpoint" maxlength="5" [ngModel]="breakpointAddress" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onBreakpointAddressChanged($event)" (focus)="onTextFocus()" name="breakpointAddress">
+    </mat-form-field>
+</form>

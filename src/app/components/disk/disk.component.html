@@ -7,8 +7,8 @@
         </mat-form-field>
         <mat-form-field>
             <mat-select placeholder="Image" [value]="diskImageIndex" (selectionChange)="onDiskImageChanged($event.value)">
-                <mat-option value="-1">-- None --</mat-option>
-                <mat-option *ngFor="let diskImage of diskImages; index as i" [value]="i">{{diskImage.getName()}} {{diskImageDrives[i]}}</mat-option>
+                <mat-option value="-1"><fa name="ban"></fa> None</mat-option>
+                <mat-option *ngFor="let diskImage of diskImages; index as i" [value]="i"><fa name="floppy-o"></fa> {{diskImage.getName()}} {{diskImageDrives[i]}}</mat-option>
             </mat-select>
         </mat-form-field>
     </div>
@@ -46,8 +46,10 @@
     <mat-toolbar class="disk-toolbar">
         <button mat-raised-button (click)="addDisk()"><fa name="plus-circle"></fa> New Disk</button>
         <button mat-raised-button color="primary" (click)="insertDisk()"><fa name="plus-circle"></fa> Insert Disk</button>
+        <span class="margin-right"></span>
         <button mat-raised-button color="warn" (click)="deleteDisk()"><fa name="remove"></fa> Delete Disk</button>
         <button mat-raised-button color="warn" (click)="deleteFiles()"><fa name="remove"></fa> Delete Files</button>
+        <span class="margin-right"></span>
         <button mat-raised-button color="primary" (click)="saveDisk()"><fa name="save"></fa> Save DSK</button>
     </mat-toolbar>
 </div>

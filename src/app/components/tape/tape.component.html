@@ -1,28 +1,15 @@
-<div class="row">
-    <div id="tapePanel" class="panel panel-default">
-        <div class="form-group">
-            <div class="btn btn-primary navbar-btn btn-file"><span class="glyphicon glyphicon-open"></span> Open Tape
-                File<input type="file" accept="audio/*" id="fileInputTape"></div>
-            <button id="btnSaveTape" class="btn btn-default navbar-btn"><span
-                class="glyphicon glyphicon-download"></span> Save Tape File
-            </button>
-        </div>
-    </div>
-</div>
-<div class="row">
-    <div id="tapeTools" class="navbar navbar-default">
-        <div class="btn-group">
-            <button id="btnRecord" class="btn btn-danger navbar-btn"><span class="glyphicon glyphicon-record"></span>
-                Rec
-            </button>
-            <button id="btnPlay" class="btn btn-primary navbar-btn"><span class="glyphicon glyphicon-play"></span> Play
-            </button>
-            <button id="btnRewind" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-backward"></span>
-                Rew
-            </button>
-            <button id="btnTapeStop" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-stop"></span>
-                Stop
-            </button>
-        </div>
-    </div>
-</div>
+<mat-card>
+    <mat-card-content>
+        <button mat-raised-button color="primary" (click)="fileInputTape.click()">
+            <fa name="folder-open"></fa> Open Tape File<input #fileInputTape type="file" accept="audio/*" (change)="openTape(fileInputTape)" [hidden]="true"/>
+        </button>
+        <span class="margin-right"></span>
+        <button mat-raised-button (click)="saveTape()"><fa name="save"></fa> Save Tape File</button>
+    </mat-card-content>
+</mat-card>
+<mat-toolbar>
+    <button mat-raised-button color="warn" (click)="record()"><fa name="circle"></fa> Rec</button>
+    <button mat-raised-button color="primary" (click)="play()"><fa name="play"></fa> Play</button>
+    <button mat-raised-button (click)="rewind()"><fa name="backward"></fa> Rew</button>
+    <button mat-raised-button (click)="stop()"><fa name="stop"></fa> Stop</button>
+</mat-toolbar>
