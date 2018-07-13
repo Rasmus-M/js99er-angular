@@ -1,7 +1,8 @@
 <pre id="status">{{statusString}}</pre>
 <mat-divider></mat-divider>
-<pre id="memory">{{memoryViewText}}</pre>
-<div>
+<pre id="memory"></pre>
+<mat-divider></mat-divider>
+<div style="margin-top: 12px;">
     <mat-form-field class="memory-select">
         <mat-select placeholder="Memory View" [(value)]="memoryView">
             <mat-option [value]="0">Disassembly</mat-option>

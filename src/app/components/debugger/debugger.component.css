@@ -10,11 +10,13 @@
 }
 
 .memory-select {
-    width: 120px;
+    width: 25%;
+    padding-right: 8px;
 }
 
 .address-entry {
-    width: 8em;
+    width: 20%;
+    padding-right: 8px;
 }
 
 
