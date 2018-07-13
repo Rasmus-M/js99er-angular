@@ -10,19 +10,29 @@
                 </div>
             </mat-tab>
             <mat-tab label="Disk">
-                <app-disk [diskImages]="diskImages"></app-disk>
+                <div class="tab-content">
+                    <app-disk [diskImages]="diskImages"></app-disk>
+                </div>
             </mat-tab>
             <mat-tab label="Tape">
-                <app-tape></app-tape>
+                <div class="tab-content">
+                    <app-tape></app-tape>
+                </div>
             </mat-tab>
             <mat-tab label="Keyboard">
-                <app-keyboard [visible]="tabIndex === 3"></app-keyboard>
+                <div class="tab-content">
+                    <app-keyboard [visible]="tabIndex === 3"></app-keyboard>
+                </div>
             </mat-tab>
             <mat-tab label="Debugger">
-                <app-debugger [visible]="tabIndex === 4"></app-debugger>
+                <div class="tab-content">
+                    <app-debugger [visible]="tabIndex === 4"></app-debugger>
+                </div>
             </mat-tab>
             <mat-tab label="Options">
-                <app-settings></app-settings>
+                <div class="tab-content">
+                    <app-settings></app-settings>
+                </div>
             </mat-tab>
         </mat-tab-group>
     </div>
