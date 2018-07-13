@@ -5,9 +5,16 @@
 #memory {
     width: 100%;
     max-height: 200px;
-    overflow: scroll;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+.memory-select {
+    width: 120px;
 }
 
 .address-entry {
     width: 8em;
 }
+
+

@@ -8,6 +8,14 @@ export class Util {
         return '>' + s;
     }
 
+    static toHexWordShort(number) {
+        let s = number.toString(16).toUpperCase();
+        while (s.length < 4) {
+            s = '0' + s;
+        }
+        return s;
+    }
+
     static toHex12Bit(number) {
         let s = number.toString(16).toUpperCase();
         while (s.length < 3) {

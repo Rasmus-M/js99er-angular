@@ -151,7 +151,7 @@ export class DebuggerComponent implements OnInit, AfterViewInit, OnChanges, OnDe
         if (isNaN(addr)) {
             this.debuggerAddress = "";
         } else {
-            this.debuggerAddress = Util.toHexWord(value);
+            this.debuggerAddress = Util.toHexWordShort(value);
         }
         this.updateDebugger();
     }
@@ -163,7 +163,7 @@ export class DebuggerComponent implements OnInit, AfterViewInit, OnChanges, OnDe
             this.breakpointAddress = "";
         } else {
             this.commandDispatcherService.setBreakpoint(addr);
-            this.breakpointAddress = Util.toHexWord(value);
+            this.breakpointAddress = Util.toHexWordShort(value);
         }
         this.ti994A.getKeyboard().start();
         this.updateDebugger();
