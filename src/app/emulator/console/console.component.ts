@@ -13,6 +13,7 @@ import * as $ from 'jquery';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {CPU} from '../interfaces/cpu';
 import {DiskDrive} from '../classes/diskdrive';
+import {Tape} from '../classes/tape';
 
 @Component({
     selector: 'app-console',
@@ -199,15 +200,36 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.eventDispatcherService.diskRemoved(diskDrive, diskImage);
                 }
                 break;
-            case CommandType.OPEN_TAPE:
+            case CommandType.OPEN_TAPE: {
+                    const tape: Tape = this.ti994A.getTape();
+                    tape.loadTapeFile(command.data, () => {
+                        this.eventDispatcherService.tapeOpened(tape.isPlayEnabled());
+                    });
+                }
                 break;
-            case CommandType.RECORD_TAPE:
+            case CommandType.RECORD_TAPE: {
+                    const tape: Tape = this.ti994A.getTape();
+                    tape.record();
+                    this.eventDispatcherService.tapeRecording();
+                }
                 break;
-            case CommandType.PLAY_TAPE:
+            case CommandType.PLAY_TAPE: {
+                    const tape: Tape = this.ti994A.getTape();
+                    tape.play();
+                    this.eventDispatcherService.tapePlaying();
+                }
                 break;
-            case CommandType.STOP_TAPE:
+            case CommandType.STOP_TAPE: {
+                    const tape: Tape = this.ti994A.getTape();
+                    tape.stop();
+                    this.eventDispatcherService.tapeStopped(tape.isPlayEnabled(), tape.isRewindEnabled());
+                }
                 break;
-            case CommandType.REWIND_TAPE:
+            case CommandType.REWIND_TAPE: {
+                    const tape: Tape = this.ti994A.getTape();
+                    tape.rewind();
+                    this.eventDispatcherService.tapeRewound();
+                }
                 break;
         }
     }

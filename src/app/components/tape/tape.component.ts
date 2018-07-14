@@ -42,7 +42,7 @@ export class TapeComponent implements OnInit, OnDestroy {
                 break;
             case ConsoleEventType.TAPE_OPENED:
                 this.canRecord = true;
-                this.canPlay = true;
+                this.canPlay = event.data;
                 this.canRewind = false;
                 this.canStop = false;
                 break;

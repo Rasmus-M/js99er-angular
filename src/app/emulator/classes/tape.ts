@@ -79,6 +79,7 @@ export class Tape implements State {
     }
 
     resetSampleBuffer() {
+        this.sampleBuffer = new Float32Array();
         this.sampleBufferOffset = 0;
         this.sampleBufferAudioOffset = 0;
         this.lastWriteValue = null;
