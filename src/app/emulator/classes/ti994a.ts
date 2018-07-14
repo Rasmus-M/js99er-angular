@@ -171,7 +171,6 @@ export class TI994A implements State {
     start(fast) {
         if (!this.isRunning()) {
             this.cpuSpeed = fast ? 2 : 1;
-            this.log.info("Start");
             this.cpu.setSuspended(false);
             this.tape.setPaused(false);
             this.keyboard.start();
@@ -267,7 +266,6 @@ export class TI994A implements State {
     }
 
     stop() {
-        this.log.info("Stop");
         window.clearInterval(this.frameInterval);
         window.clearInterval(this.fpsInterval);
         this.psg.mute();
@@ -406,5 +404,4 @@ export class TI994A implements State {
             this.tape.restoreState(state.tape);
         }
     }
-
 }
