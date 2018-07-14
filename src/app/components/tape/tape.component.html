@@ -9,10 +9,10 @@
 
     </div>
     <mat-toolbar class="toolbar">
-        <button mat-raised-button color="warn" (click)="record()"><fa name="circle"></fa> Rec</button>
-        <button mat-raised-button color="primary" (click)="play()"><fa name="play"></fa> Play</button>
-        <button mat-raised-button (click)="rewind()"><fa name="backward"></fa> Rew</button>
-        <button mat-raised-button (click)="stop()"><fa name="stop"></fa> Stop</button>
+        <button mat-raised-button color="warn" (click)="record()" [disabled]="!canRecord"><fa name="circle"></fa> Rec</button>
+        <button mat-raised-button color="primary" (click)="play()" [disabled]="!canPlay"><fa name="play"></fa> Play</button>
+        <button mat-raised-button (click)="rewind()" [disabled]="!canRewind"><fa name="backward"></fa> Rew</button>
+        <button mat-raised-button (click)="stop()" [disabled]="!canStop"><fa name="stop"></fa> Stop</button>
     </mat-toolbar>
 </div>
 b

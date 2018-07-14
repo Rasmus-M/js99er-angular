@@ -94,4 +94,24 @@ export class CommandDispatcherService {
     saveDisk(diskImage: DiskImage) {
         this.commandSubject.next(new Command(CommandType.SAVE_DISK, diskImage));
     }
+
+    openTape(file: ArrayBuffer) {
+        this.commandSubject.next(new Command(CommandType.OPEN_TAPE, file));
+    }
+
+    recordTape() {
+        this.commandSubject.next(new Command(CommandType.RECORD_TAPE, null));
+    }
+
+    playTape() {
+        this.commandSubject.next(new Command(CommandType.PLAY_TAPE, null));
+    }
+
+    rewindTape() {
+        this.commandSubject.next(new Command(CommandType.REWIND_TAPE, null));
+    }
+
+    stopTape() {
+        this.commandSubject.next(new Command(CommandType.STOP_TAPE, null));
+    }
 }

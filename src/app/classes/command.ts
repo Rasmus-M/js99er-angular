@@ -17,8 +17,11 @@ export enum CommandType {
     REMOVE_DISK = "Remove disk",
     DELETE_DISK = "Delete disk",
     SAVE_DISK = "Save disk",
+    OPEN_TAPE = "Open tape",
+    RECORD_TAPE  = "Record tape",
     PLAY_TAPE = "Play tape",
-    STOP_TAPR = "Stop tape"
+    REWIND_TAPE = "Rewind tape",
+    STOP_TAPE = "Stop tape"
 }
 
 export class Command {

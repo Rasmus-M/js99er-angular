@@ -199,6 +199,16 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.eventDispatcherService.diskRemoved(diskDrive, diskImage);
                 }
                 break;
+            case CommandType.OPEN_TAPE:
+                break;
+            case CommandType.RECORD_TAPE:
+                break;
+            case CommandType.PLAY_TAPE:
+                break;
+            case CommandType.STOP_TAPE:
+                break;
+            case CommandType.REWIND_TAPE:
+                break;
         }
     }
 

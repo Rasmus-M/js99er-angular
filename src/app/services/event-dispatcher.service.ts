@@ -28,11 +28,11 @@ export class EventDispatcherService {
     }
 
     started() {
-        this.sendAsyncEvent(ConsoleEventType.STARTED, {});
+        this.sendAsyncEvent(ConsoleEventType.STARTED, null);
     }
 
     stopped() {
-        this.sendAsyncEvent(ConsoleEventType.STOPPED, {});
+        this.sendAsyncEvent(ConsoleEventType.STOPPED, null);
     }
 
     screenshot(dataURL: string) {
@@ -61,6 +61,26 @@ export class EventDispatcherService {
 
     diskDriveChanged(diskDriveIndex: number) {
         this.sendAsyncEvent(ConsoleEventType.DISK_DRIVE_CHANGED, diskDriveIndex);
+    }
+
+    tapeOpened() {
+        this.sendAsyncEvent(ConsoleEventType.TAPE_OPENED, null);
+    }
+
+    tapeRecording() {
+        this.sendAsyncEvent(ConsoleEventType.TAPE_RECORDING, null);
+    }
+
+    tapeStopped(playEnabled: boolean, rewindEnabled: boolean) {
+        this.sendAsyncEvent(ConsoleEventType.TAPE_STOPPED, {playEnabled: playEnabled, rewindEnabled: rewindEnabled});
+    }
+
+    tapePlaying() {
+        this.sendAsyncEvent(ConsoleEventType.TAPE_PLAYING, null);
+    }
+
+    tapeRewound() {
+        this.sendAsyncEvent(ConsoleEventType.TAPE_REWOUND, null);
     }
 
     sendAsyncEvent(eventType: ConsoleEventType, data: any) {

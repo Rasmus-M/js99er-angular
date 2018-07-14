@@ -135,6 +135,7 @@ export class DiskService {
     }
 
     deleteFiles() {
+        // TODO
     }
 
     saveDisk(diskImage: DiskImage) {

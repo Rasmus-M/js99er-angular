@@ -9,9 +9,11 @@ export enum ConsoleEventType {
     DISK_REMOVED = "Disk removed",
     DISK_DELETED = "Disk deleted",
     DISK_DRIVE_CHANGED = "Disk drive changed",
+    TAPE_OPENED = "Tape opened",
+    TAPE_RECORDING = "Tape recording",
     TAPE_STOPPED = "Tape stopped",
-    TAPE_STARTED = "Tape started",
-    TAPE_REWINDED = "Tape rewinded"
+    TAPE_PLAYING = "Tape playing",
+    TAPE_REWOUND = "Tape rewound"
 }
 
 export class ConsoleEvent {
