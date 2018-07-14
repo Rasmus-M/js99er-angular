@@ -13,7 +13,7 @@
         </mat-form-field>
     </div>
     <div class="files-table">
-        <table mat-table [dataSource]="diskFiles" class="mat-elevation-z8">
+        <table mat-table [dataSource]="diskFiles" class="mat-elevation-z1">
             <ng-container matColumnDef="select">
                 <th mat-header-cell *matHeaderCellDef>
                     <mat-checkbox (change)="$event ? masterToggle() : null"
