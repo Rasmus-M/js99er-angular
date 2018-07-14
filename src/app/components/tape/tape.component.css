@@ -1,0 +1,18 @@
+.tape-open-save {
+    grid-area: tape-open-save;
+}
+
+.toolbar {
+    grid-area: toolbar;
+}
+
+.tape {
+    display: grid;
+    height: 100%;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+    grid-template-areas:
+        "tape-open-save"
+        "toolbar";
+    grid-row-gap: 8px;
+}

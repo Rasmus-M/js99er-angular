@@ -1,31 +1,31 @@
-<pre id="status">{{statusString}}</pre>
-<mat-divider></mat-divider>
-<pre id="memory"></pre>
-<mat-divider></mat-divider>
-<div style="margin-top: 12px;">
-    <mat-form-field class="memory-select">
-        <mat-select placeholder="Memory View" [(value)]="memoryView">
-            <mat-option [value]="0">Disassembly</mat-option>
-            <mat-option [value]="1">Hex view</mat-option>
-        </mat-select>
-    </mat-form-field>
-    <span class="margin-right"></span>
-    <mat-form-field class="memory-select">
-        <mat-select placeholder="Memory Type" [(value)]="memoryType">
-            <mat-option [value]="0">CPU Memory</mat-option>
-            <mat-option [value]="1">VDP Memory</mat-option>
-        </mat-select>
-    </mat-form-field>
-    <span class="margin-right"></span>
-    <mat-form-field class="address-entry">
-        <span matPrefix>&gt;</span>
-        <input matInput placeholder="View Address" maxlength="5" [ngModel]="debuggerAddress" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onDebuggerAddressChanged($event)" (focus)="onTextFocus()">
-        <mat-hint>Hex value</mat-hint>
-    </mat-form-field>
-    <span class="margin-right"></span>
-    <mat-form-field class="address-entry">
-        <span matPrefix>&gt;</span>
-        <input matInput placeholder="Breakpoint" maxlength="5" [ngModel]="breakpointAddress" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onBreakpointAddressChanged($event)" (focus)="onTextFocus()">
-        <mat-hint>Hex value</mat-hint>
-    </mat-form-field>
+<div class="debugger">
+    <pre class="status">{{statusString}}</pre>
+    <pre class="memoryView" id="memory"></pre>
+    <div class="debugger-toolbar">
+        <mat-form-field class="memory-select">
+            <mat-select placeholder="Memory View" [(value)]="memoryView">
+                <mat-option [value]="0">Disassembly</mat-option>
+                <mat-option [value]="1">Hex view</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <span class="margin-right"></span>
+        <mat-form-field class="memory-select">
+            <mat-select placeholder="Memory Type" [(value)]="memoryType">
+                <mat-option [value]="0">CPU Memory</mat-option>
+                <mat-option [value]="1">VDP Memory</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <span class="margin-right"></span>
+        <mat-form-field class="address-entry">
+            <span matPrefix>&gt;</span>
+            <input matInput placeholder="View Address" maxlength="5" [ngModel]="debuggerAddress" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onDebuggerAddressChanged($event)" (focus)="onTextFocus()">
+            <mat-hint>Hexadecimal</mat-hint>
+        </mat-form-field>
+        <span class="margin-right"></span>
+        <mat-form-field class="address-entry">
+            <span matPrefix>&gt;</span>
+            <input matInput placeholder="Breakpoint" maxlength="5" [ngModel]="breakpointAddress" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onBreakpointAddressChanged($event)" (focus)="onTextFocus()">
+            <mat-hint>Hexadecimal</mat-hint>
+        </mat-form-field>
+    </div>
 </div>

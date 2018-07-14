@@ -6,7 +6,7 @@ table {
 }
 .files-table {
     grid-area: files-table;
-    height: 400px;
+    height: 100%;
     overflow: auto;
 }
 .disk-toolbar {

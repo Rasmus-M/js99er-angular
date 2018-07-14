@@ -1,12 +1,17 @@
-#status {
+.status {
     width: 100%;
+    grid-area: status;
 }
 
-#memory {
+.memoryView {
     width: 100%;
-    max-height: 200px;
     overflow-x: hidden;
     overflow-y: scroll;
+    grid-area: memory-view;
+}
+
+.debugger-toolbar {
+    grid-area: toolbar;
 }
 
 .memory-select {
@@ -19,4 +24,14 @@
     padding-right: 8px;
 }
 
-
+.debugger {
+    display: grid;
+    height: 100%;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+        "status"
+        "memory-view"
+        "toolbar";
+    grid-row-gap: 8px;
+}

@@ -51,8 +51,8 @@ export class EventDispatcherService {
         this.sendAsyncEvent(ConsoleEventType.DISK_INSERTED, {diskDrive: diskDrive, diskImage: diskImage});
     }
 
-    diskRemoved(diskImage: DiskImage) {
-        this.sendAsyncEvent(ConsoleEventType.DISK_REMOVED, {diskImage: diskImage});
+    diskRemoved(diskDrive: DiskDrive, diskImage: DiskImage) {
+        this.sendAsyncEvent(ConsoleEventType.DISK_REMOVED, {diskDrive: diskDrive, diskImage: diskImage});
     }
 
     diskDeleted(diskImage: DiskImage) {

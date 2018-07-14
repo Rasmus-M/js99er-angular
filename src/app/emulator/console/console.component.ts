@@ -12,6 +12,7 @@ import {SettingsService} from '../../services/settings.service';
 import * as $ from 'jquery';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {CPU} from '../interfaces/cpu';
+import {DiskDrive} from '../classes/diskdrive';
 
 @Component({
     selector: 'app-console',
@@ -104,20 +105,21 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                     }
                 );
                 break;
-            case CommandType.LOAD_DISK:
-                const data = command.data;
-                const diskDrive = this.ti994A.getDiskDrives()[data.driveIndex];
-                this.diskService.loadDiskFiles(data.files, diskDrive).subscribe(
-                    (diskImage: DiskImage) => {
-                        if (diskImage) {
-                            this.eventDispatcherService.diskInserted(diskDrive, diskImage);
-                            this.log.info(diskImage.getName() + " loaded to " + diskDrive.getName());
+            case CommandType.LOAD_DISK: {
+                    const data = command.data;
+                    const diskDrive = this.ti994A.getDiskDrives()[data.driveIndex];
+                    this.diskService.loadDiskFiles(data.files, diskDrive).subscribe(
+                        (diskImage: DiskImage) => {
+                            if (diskImage) {
+                                this.eventDispatcherService.diskInserted(diskDrive, diskImage);
+                                this.log.info(diskImage.getName() + " loaded to " + diskDrive.getName());
+                            }
+                        },
+                        (error) => {
+                            this.log.error(error);
                         }
-                    },
-                    (error) => {
-                        this.log.error(error);
-                    }
-                );
+                    );
+                }
                 break;
             case CommandType.LOAD_SOFTWARE:
                 this.ti994A.loadSoftware(command.data);
@@ -183,9 +185,19 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                     gpu.setBreakpoint(addr);
                 }
                 break;
-            case CommandType.INSERT_DISK:
+            case CommandType.INSERT_DISK: {
+                    const diskDrive: DiskDrive = this.ti994A.getDiskDrives()[command.data.driveIndex];
+                    const diskImage: DiskImage = command.data.diskImage;
+                    diskDrive.setDiskImage(diskImage);
+                    this.eventDispatcherService.diskInserted(diskDrive, diskImage);
+                }
                 break;
-            case CommandType.REMOVE_DISK:
+            case CommandType.REMOVE_DISK: {
+                    const diskDrive: DiskDrive = this.ti994A.getDiskDrives()[command.data];
+                    const diskImage = diskDrive.getDiskImage();
+                    diskDrive.setDiskImage(null);
+                    this.eventDispatcherService.diskRemoved(diskDrive, diskImage);
+                }
                 break;
         }
     }

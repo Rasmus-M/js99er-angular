@@ -51,8 +51,8 @@ export class CommandDispatcherService {
         this.commandSubject.next(new Command(CommandType.LOAD_MODULE, file));
     }
 
-    loadDisk(files: FileList, driveIndex: number) {
-        this.commandSubject.next(new Command(CommandType.LOAD_DISK, {files: files, driveIndex: driveIndex}));
+    loadDisk(driveIndex: number, files: FileList) {
+        this.commandSubject.next(new Command(CommandType.LOAD_DISK, {driveIndex: driveIndex, files: files}));
     }
 
     loadSoftware(software: Software) {
@@ -79,12 +79,12 @@ export class CommandDispatcherService {
         this.commandSubject.next(new Command(CommandType.ADD_DISK, null));
     }
 
-    insertDisk(diskDrive: DiskDrive, diskImage: DiskImage) {
-        this.commandSubject.next(new Command(CommandType.INSERT_DISK, {diskDrive: diskDrive, diskImage: diskImage}));
+    insertDisk(driveIndex: number, diskImage: DiskImage) {
+        this.commandSubject.next(new Command(CommandType.INSERT_DISK, {driveIndex: driveIndex, diskImage: diskImage}));
     }
 
-    removeDisk(diskDrive: DiskDrive, diskImage: DiskImage) {
-        this.commandSubject.next(new Command(CommandType.REMOVE_DISK, {diskDrive: diskDrive, diskImage: diskImage}));
+    removeDisk(driveIndex: number) {
+        this.commandSubject.next(new Command(CommandType.REMOVE_DISK, driveIndex));
     }
 
     deleteDisk(diskImage: DiskImage) {

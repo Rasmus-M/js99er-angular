@@ -63,7 +63,7 @@ export class MainControlsComponent implements OnInit, OnDestroy {
     openDisk(fileInput: HTMLInputElement) {
         const files = fileInput.files;
         if (files.length) {
-            this.commandDispatcherService.loadDisk(files, this.driveIndex);
+            this.commandDispatcherService.loadDisk(this.driveIndex, files);
             fileInput.value = "";
         }
     }

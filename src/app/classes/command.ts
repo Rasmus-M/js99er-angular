@@ -5,18 +5,20 @@ export enum CommandType {
     STEP = "Step",
     STOP = "Stop",
     RESET = "Reset",
-    LOAD_MODULE = "Load Module",
-    LOAD_DISK = "Load Disk",
-    LOAD_SOFTWARE = "Load Software",
-    CHANGE_SETTING = "Change Settings",
-    PRESS_KEY = "Press Key",
-    TAKE_SCREENSHOT = "Take Screenshot",
+    LOAD_MODULE = "Load module",
+    LOAD_DISK = "Load disk",
+    LOAD_SOFTWARE = "Load software",
+    CHANGE_SETTING = "Change settings",
+    PRESS_KEY = "Press key",
+    TAKE_SCREENSHOT = "Take screen shot",
     SET_BREAKPOINT = "Set breakpoint",
-    ADD_DISK = "Add Disk",
-    INSERT_DISK = "Insert Disk",
-    REMOVE_DISK = "Remove Disk",
-    DELETE_DISK = "Delete Disk",
-    SAVE_DISK = "Save Disk"
+    ADD_DISK = "Add disk",
+    INSERT_DISK = "Insert disk",
+    REMOVE_DISK = "Remove disk",
+    DELETE_DISK = "Delete disk",
+    SAVE_DISK = "Save disk",
+    PLAY_TAPE = "Play tape",
+    STOP_TAPR = "Stop tape"
 }
 
 export class Command {

@@ -2,13 +2,16 @@ export enum ConsoleEventType {
     READY = "Ready",
     STARTED = "Started",
     STOPPED = "Stopped",
-    SCREENSHOT_TAKEN = "Screenshot Taken",
-    DISK_MODIFIED = "Disk Modified",
-    DISK_ADDED = "Disk Added",
-    DISK_INSERTED = "Disk Inserted",
-    DISK_REMOVED = "Disk Removed",
-    DISK_DELETED = "Disk Deleted",
-    DISK_DRIVE_CHANGED = "Disk Drive Changed"
+    SCREENSHOT_TAKEN = "Screenshot taken",
+    DISK_MODIFIED = "Disk modified",
+    DISK_ADDED = "Disk added",
+    DISK_INSERTED = "Disk inserted",
+    DISK_REMOVED = "Disk removed",
+    DISK_DELETED = "Disk deleted",
+    DISK_DRIVE_CHANGED = "Disk drive changed",
+    TAPE_STOPPED = "Tape stopped",
+    TAPE_STARTED = "Tape started",
+    TAPE_REWINDED = "Tape rewinded"
 }
 
 export class ConsoleEvent {

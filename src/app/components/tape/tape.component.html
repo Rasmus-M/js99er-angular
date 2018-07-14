@@ -1,15 +1,18 @@
-<mat-card>
-    <mat-card-content>
-        <button mat-raised-button color="primary" (click)="fileInputTape.click()">
-            <fa name="folder-open"></fa> Open Tape File<input #fileInputTape type="file" accept="audio/*" (change)="openTape(fileInputTape)" [hidden]="true"/>
-        </button>
-        <span class="margin-right"></span>
-        <button mat-raised-button (click)="saveTape()"><fa name="save"></fa> Save Tape File</button>
-    </mat-card-content>
-</mat-card>
-<mat-toolbar>
-    <button mat-raised-button color="warn" (click)="record()"><fa name="circle"></fa> Rec</button>
-    <button mat-raised-button color="primary" (click)="play()"><fa name="play"></fa> Play</button>
-    <button mat-raised-button (click)="rewind()"><fa name="backward"></fa> Rew</button>
-    <button mat-raised-button (click)="stop()"><fa name="stop"></fa> Stop</button>
-</mat-toolbar>
+<div class="tape">
+    <div class="tape-open-save">
+            <button mat-raised-button color="primary" (click)="fileInputTape.click()">
+                <fa name="folder-open"></fa> Open Tape File<input #fileInputTape type="file" accept="audio/*" (change)="openTape(fileInputTape)" [hidden]="true"/>
+            </button>
+            <span class="margin-right"></span>
+            <button mat-raised-button (click)="saveTape()"><fa name="save"></fa> Save Tape File</button>
+
+
+    </div>
+    <mat-toolbar class="toolbar">
+        <button mat-raised-button color="warn" (click)="record()"><fa name="circle"></fa> Rec</button>
+        <button mat-raised-button color="primary" (click)="play()"><fa name="play"></fa> Play</button>
+        <button mat-raised-button (click)="rewind()"><fa name="backward"></fa> Rew</button>
+        <button mat-raised-button (click)="stop()"><fa name="stop"></fa> Stop</button>
+    </mat-toolbar>
+</div>
+b

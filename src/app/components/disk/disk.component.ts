@@ -68,6 +68,13 @@ export class DiskComponent implements OnInit, OnDestroy {
             case ConsoleEventType.DISK_DELETED:
                 this.updateAllDiskImageDrives();
                 break;
+            case ConsoleEventType.DISK_DRIVE_CHANGED: {
+                    // Self-generated
+                    const diskDrive: DiskDrive = this.diskDrives[event.data];
+                    const diskImage: DiskImage = diskDrive.getDiskImage();
+                    this.onDiskImageChanged(this.diskImages.indexOf(diskImage));
+                }
+                break;
         }
     }
 
@@ -100,9 +107,9 @@ export class DiskComponent implements OnInit, OnDestroy {
     insertDisk() {
         const index = this.diskImageIndex;
         if (index >= 0) {
-            this.commandDispatcherService.insertDisk(this.diskDrives[index], this.diskImages[this.diskImageIndex]);
+            this.commandDispatcherService.insertDisk(this.driveIndex, this.diskImages[index]);
         } else {
-            this.commandDispatcherService.removeDisk(this.diskDrives[index], this.diskImages[this.diskImageIndex]);
+            this.commandDispatcherService.removeDisk(this.driveIndex);
         }
     }
 
