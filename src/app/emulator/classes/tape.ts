@@ -36,7 +36,7 @@ export class Tape implements State {
     private playing: boolean;
     private recording: boolean;
     private audioBuffer: AudioBuffer;
-    private sampleBuffer: Float32Array;
+    private sampleBuffer: number[];
     private playDelay: number;
     private paused: boolean;
     private sampleBufferOffset: number;
@@ -72,14 +72,13 @@ export class Tape implements State {
         this.motorOn = false;
         this.playing = false;
         this.recording = false;
-        this.sampleBuffer = null;
+        this.sampleBuffer = [];
         this.playDelay = 0;
         this.paused = false;
         this.resetSampleBuffer();
     }
 
     resetSampleBuffer() {
-        this.sampleBuffer = new Float32Array();
         this.sampleBufferOffset = 0;
         this.sampleBufferAudioOffset = 0;
         this.lastWriteValue = null;
@@ -95,11 +94,14 @@ export class Tape implements State {
         const tape = this;
         if (this.audioContext) {
             this.audioContext.decodeAudioData(fileBuffer).then(
-                function (audioBuffer) {
+                function (audioBuffer: AudioBuffer) {
                     tape.audioBuffer = audioBuffer;
                     const sampleBuffer = new Float32Array(audioBuffer.length);
                     audioBuffer.copyFromChannel(sampleBuffer, 0);
-                    tape.sampleBuffer = sampleBuffer;
+                    tape.sampleBuffer = [];
+                    for (let i = 0; i < audioBuffer.length; i++) {
+                        tape.sampleBuffer[i] = sampleBuffer[i];
+                    }
                     tape.resetSampleBuffer();
                     callback();
                 },
