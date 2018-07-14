@@ -7,6 +7,7 @@ import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
 import {TI994A} from '../../emulator/classes/ti994a';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {DiskDrive} from '../../emulator/classes/diskdrive';
+import {SelectionModel} from '@angular/cdk/collections';
 
 @Component({
     selector: 'app-disk',
@@ -22,9 +23,11 @@ export class DiskComponent implements OnInit, OnDestroy {
     driveIndex = 0;
     diskImageIndex = 0;
     diskFiles: DiskFile[];
-    displayedColumns = ['fileName', 'fileType', 'dataType', 'recordType', 'recordLength', 'fileSize'];
+    displayedColumns = ['select', 'fileName', 'fileType', 'dataType', 'recordType', 'recordLength', 'fileSize'];
+    selection: SelectionModel<DiskFile>;
 
     private subscription: Subscription;
+    private deletingDisk = false;
 
     constructor(
         private commandDispatcherService: CommandDispatcherService,
@@ -34,6 +37,7 @@ export class DiskComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.subscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
+        this.selection = new SelectionModel<DiskFile>(true, []);
     }
 
     onEvent(event: ConsoleEvent) {
@@ -64,9 +68,14 @@ export class DiskComponent implements OnInit, OnDestroy {
                 break;
             case ConsoleEventType.DISK_REMOVED:
                 this.updateAllDiskImageDrives();
+                if (this.deletingDisk) {
+                    this.commandDispatcherService.deleteDisk(this.diskImages[this.diskImageIndex]);
+                    this.onDiskImageChanged(-1);
+                }
                 break;
             case ConsoleEventType.DISK_DELETED:
                 this.updateAllDiskImageDrives();
+                this.diskImageIndex = -1;
                 break;
             case ConsoleEventType.DISK_DRIVE_CHANGED: {
                     // Self-generated
@@ -114,14 +123,30 @@ export class DiskComponent implements OnInit, OnDestroy {
     }
 
     deleteDisk() {
-        this.commandDispatcherService.deleteDisk(this.diskImages[this.diskImageIndex]);
+        this.deletingDisk = true;
+        this.commandDispatcherService.removeDisk(this.driveIndex);
     }
 
     deleteFiles() {
+        this.commandDispatcherService.deleteDiskFiles(this.diskImages[this.diskImageIndex], this.selection.selected);
     }
 
     saveDisk() {
         this.commandDispatcherService.saveDisk(this.diskImages[this.diskImageIndex]);
+    }
+
+    /** Whether the number of selected elements matches the total number of rows. */
+    isAllSelected() {
+        const numSelected = this.selection.selected.length;
+        const numRows = this.diskFiles.length;
+        return numSelected === numRows;
+    }
+
+    /** Selects all rows if they are not all selected; otherwise clear selection. */
+    masterToggle() {
+        this.isAllSelected() ?
+            this.selection.clear() :
+            this.diskFiles.forEach(row => this.selection.select(row));
     }
 
     ngOnDestroy() {

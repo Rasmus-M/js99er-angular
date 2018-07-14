@@ -7,6 +7,7 @@ import {Software} from '../classes/software';
 import {Setting} from '../classes/settings';
 import {DiskImage} from '../emulator/classes/diskimage';
 import {DiskDrive} from '../emulator/classes/diskdrive';
+import {DiskFile} from '../emulator/classes/diskfile';
 
 
 @Injectable()
@@ -89,6 +90,10 @@ export class CommandDispatcherService {
 
     deleteDisk(diskImage: DiskImage) {
         this.commandSubject.next(new Command(CommandType.DELETE_DISK, diskImage));
+    }
+
+    deleteDiskFiles(diskImage: DiskImage, diskfiles: DiskFile[]) {
+        this.commandSubject.next(new Command(CommandType.DELETE_DISK_FILES, {diskImage: diskImage, diskFiles: diskfiles}));
     }
 
     saveDisk(diskImage: DiskImage) {

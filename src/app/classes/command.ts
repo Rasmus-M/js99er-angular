@@ -16,6 +16,7 @@ export enum CommandType {
     INSERT_DISK = "Insert disk",
     REMOVE_DISK = "Remove disk",
     DELETE_DISK = "Delete disk",
+    DELETE_DISK_FILES = "Delete disk fles",
     SAVE_DISK = "Save disk",
     OPEN_TAPE = "Open tape",
     RECORD_TAPE  = "Record tape",

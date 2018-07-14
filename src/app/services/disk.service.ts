@@ -12,6 +12,7 @@ import {saveAs} from 'file-saver';
 import {Subscription} from 'rxjs/Subscription';
 import {Command, CommandType} from '../classes/command';
 import {ConsoleEvent, ConsoleEventType} from '../classes/consoleevent';
+import {DiskFile} from '../emulator/classes/diskfile';
 
 @Injectable()
 export class DiskService {
@@ -134,8 +135,11 @@ export class DiskService {
         }
     }
 
-    deleteFiles() {
-        // TODO
+    deleteFiles(diskImage: DiskImage, diskFiles: DiskFile[]) {
+        diskFiles.forEach((diskFile: DiskFile) => {
+            diskImage.deleteFile(diskFile.getName());
+        });
+        this.eventDispatcherService.diskChanged(diskImage);
     }
 
     saveDisk(diskImage: DiskImage) {
@@ -154,6 +158,9 @@ export class DiskService {
                 break;
             case CommandType.DELETE_DISK:
                 this.deleteDisk(command.data);
+                break;
+            case CommandType.DELETE_DISK_FILES:
+                this.deleteFiles(command.data.diskImage, command.data.diskFiles);
                 break;
         }
     }
