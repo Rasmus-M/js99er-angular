@@ -13,7 +13,8 @@ export enum ConsoleEventType {
     TAPE_RECORDING = "Tape recording",
     TAPE_STOPPED = "Tape stopped",
     TAPE_PLAYING = "Tape playing",
-    TAPE_REWOUND = "Tape rewound"
+    TAPE_REWOUND = "Tape rewound",
+    SETTINGS_RESTORED = "Settings restored"
 }
 
 export class ConsoleEvent {

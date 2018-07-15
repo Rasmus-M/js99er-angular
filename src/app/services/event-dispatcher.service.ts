@@ -83,6 +83,10 @@ export class EventDispatcherService {
         this.sendAsyncEvent(ConsoleEventType.TAPE_REWOUND, null);
     }
 
+    settingsRestored() {
+        this.sendAsyncEvent(ConsoleEventType.SETTINGS_RESTORED, null);
+    }
+
     sendAsyncEvent(eventType: ConsoleEventType, data: any) {
         window.setTimeout(
             () => {

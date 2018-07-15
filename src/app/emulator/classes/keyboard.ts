@@ -31,7 +31,7 @@ export class Keyboard implements State {
     constructor(document: Document, settings: Settings) {
         this.document = document;
         this.pcKeyboardEnabled = settings.isPCKeyboardEnabled();
-        this.mapArrowKeysToFctnSDEX = settings.isMapArrowKeysToFctnSDEXEnabled();
+        this.mapArrowKeysToFctnSDEX = settings.isMapArrowKeysEnabled();
         this.columns = new Array(9);
         for (let col = 0; col < 8; col++) {
             this.columns[col] = [];

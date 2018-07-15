@@ -76,6 +76,10 @@ export class CommandDispatcherService {
         this.commandSubject.next(new Command(CommandType.SET_BREAKPOINT, addr));
     }
 
+    setBreakpointAddress(addr: number) {
+        this.commandSubject.next(new Command(CommandType.SET_BREAKPOINT_ADDRESS, addr));
+    }
+
     addDisk() {
         this.commandSubject.next(new Command(CommandType.ADD_DISK, null));
     }
@@ -118,5 +122,13 @@ export class CommandDispatcherService {
 
     stopTape() {
         this.commandSubject.next(new Command(CommandType.STOP_TAPE, null));
+    }
+
+    saveState() {
+        this.commandSubject.next(new Command(CommandType.SAVE_STATE, null));
+    }
+
+    restoreState() {
+        this.commandSubject.next(new Command(CommandType.RESTORE_STATE, null));
     }
 }

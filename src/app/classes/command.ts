@@ -12,6 +12,7 @@ export enum CommandType {
     PRESS_KEY = "Press key",
     TAKE_SCREENSHOT = "Take screen shot",
     SET_BREAKPOINT = "Set breakpoint",
+    SET_BREAKPOINT_ADDRESS = "Set breakpoint address",
     ADD_DISK = "Add disk",
     INSERT_DISK = "Insert disk",
     REMOVE_DISK = "Remove disk",
@@ -22,7 +23,9 @@ export enum CommandType {
     RECORD_TAPE  = "Record tape",
     PLAY_TAPE = "Play tape",
     REWIND_TAPE = "Rewind tape",
-    STOP_TAPE = "Stop tape"
+    STOP_TAPE = "Stop tape",
+    SAVE_STATE = "Save state",
+    RESTORE_STATE = "Restore state"
 }
 
 export class Command {

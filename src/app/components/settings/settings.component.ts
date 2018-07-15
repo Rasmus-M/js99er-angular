@@ -1,5 +1,9 @@
 import {Component, OnInit} from '@angular/core';
 import {SettingsService} from '../../services/settings.service';
+import {EventDispatcherService} from '../../services/event-dispatcher.service';
+import {Subscription} from 'rxjs/Subscription';
+import {TI994A} from '../../emulator/classes/ti994a';
+import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
 
 @Component({
     selector: 'app-settings',
@@ -20,11 +24,20 @@ export class SettingsComponent implements OnInit {
     enableGRAM: boolean;
     enablePixelated: boolean;
 
+    private subscription: Subscription;
 
-    constructor(private settingsService: SettingsService) {
+    constructor(
+        private settingsService: SettingsService,
+        private eventDispatcherService: EventDispatcherService
+    ) {
     }
 
     ngOnInit() {
+        this.subscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
+        this.readSettings();
+    }
+
+    readSettings() {
         this.enableSound = this.settingsService.isSoundEnabled();
         this.enableSpeech = this.settingsService.isSpeechEnabled();
         this.enable32KRAM = this.settingsService.is32KRAMEnabled();
@@ -36,6 +49,14 @@ export class SettingsComponent implements OnInit {
         this.enableAMS = this.settingsService.isAMSEnabled();
         this.enableGRAM = this.settingsService.isGRAMEnabled();
         this.enablePixelated = this.settingsService.isPixelatedEnabled();
+    }
+
+    onEvent(event: ConsoleEvent) {
+        switch (event.type) {
+            case ConsoleEventType.SETTINGS_RESTORED:
+                this.readSettings();
+                break;
+        }
     }
 
     onEnableSoundChanged(value) {

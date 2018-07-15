@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import {Setting, Settings} from '../classes/settings';
 import {CommandDispatcherService} from './command-dispatcher.service';
+import {EventDispatcherService} from './event-dispatcher.service';
 
 @Injectable()
 export class SettingsService {
@@ -9,7 +10,10 @@ export class SettingsService {
     private persistent = true;
     private storage: Storage;
 
-    constructor(private commandDispatcherService: CommandDispatcherService) {
+    constructor(
+        private commandDispatcherService: CommandDispatcherService,
+        private eventDispatcherService: EventDispatcherService
+    ) {
         this.settings = new Settings();
         this.loadState();
     }
@@ -36,7 +40,7 @@ export class SettingsService {
                 this.settings.setPCKeyboardEnabled(storage.getItem('enablePCKeyboard') === 'true');
             }
             if (storage.getItem('enableMapArrowKeysToFctnSDEX') != null) {
-                this.settings.setMapArrowKeysToEnabled(storage.getItem('enableMapArrowKeysToFctnSDEX') === 'true');
+                this.settings.setMapArrowKeysEnabled(storage.getItem('enableMapArrowKeysToFctnSDEX') === 'true');
             }
             if (storage.getItem('enableGoogleDrive') != null) {
                 this.settings.setGoogleDriveEnabled(storage.getItem('enableGoogleDrive') === 'true');
@@ -151,12 +155,12 @@ export class SettingsService {
     }
 
     isMapArrowKeysToFctnSDEXEnabled() {
-        return this.settings.isMapArrowKeysToFctnSDEXEnabled();
+        return this.settings.isMapArrowKeysEnabled();
     }
 
     setMapArrowKeysEnabled(enabled) {
-        if (enabled !== this.settings.isMapArrowKeysToFctnSDEXEnabled()) {
-            this.settings.setMapArrowKeysToEnabled(enabled);
+        if (enabled !== this.settings.isMapArrowKeysEnabled()) {
+            this.settings.setMapArrowKeysEnabled(enabled);
             if (this.persistent && this.storage) {
                 this.storage.setItem('enableMapArrowKeysToFctnSDEX', enabled);
             }
@@ -218,5 +222,10 @@ export class SettingsService {
             }
             this.commandDispatcherService.changeSetting(Setting.PIXELATED, enabled);
         }
+    }
+
+    restoreSettings(settings: Settings) {
+        this.settings.copyFrom(settings);
+        this.eventDispatcherService.settingsRestored();
     }
 }

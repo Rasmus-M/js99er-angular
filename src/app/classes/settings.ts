@@ -88,11 +88,11 @@ export class Settings {
         this.enablePCKeyboard = enabled;
     }
 
-    isMapArrowKeysToFctnSDEXEnabled() {
+    isMapArrowKeysEnabled() {
         return this.enableMapArrowKeys;
     }
 
-    setMapArrowKeysToEnabled(enabled) {
+    setMapArrowKeysEnabled(enabled) {
         this.enableMapArrowKeys = enabled;
     }
 
@@ -126,5 +126,19 @@ export class Settings {
 
     setPixelatedEnabled(enabled) {
         this.enablePixelated = enabled;
+    }
+
+    copyFrom(otherSettings: Settings) {
+        this.enableSound = otherSettings.isSoundEnabled();
+        this.enableSpeech = otherSettings.isSpeechEnabled();
+        this.enable32KRAM = otherSettings.is32KRAMEnabled();
+        this.enableF18A = otherSettings.isF18AEnabled();
+        this.enableFlicker = otherSettings.isFlickerEnabled();
+        this.enablePCKeyboard = otherSettings.isPCKeyboardEnabled();
+        this.enableMapArrowKeys = otherSettings.isMapArrowKeysEnabled();
+        this.enableGoogleDrive = otherSettings.isGoogleDriveEnabled();
+        this.enableAMS = otherSettings.isAMSEnabled();
+        this.enableGRAM = otherSettings.isGRAMEnabled();
+        this.enablePixelated = otherSettings.isPixelatedEnabled();
     }
 }

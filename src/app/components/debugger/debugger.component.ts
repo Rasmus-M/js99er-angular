@@ -7,6 +7,7 @@ import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
 import {Util} from '../../classes/util';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
+import {Command, CommandType} from '../../classes/command';
 
 @Component({
     selector: 'app-debugger',
@@ -25,7 +26,8 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
 
     private ti994A: TI994A;
     private timerHandle: number;
-    private subscription: Subscription;
+    private eventSubscription: Subscription;
+    private commandSubscription: Subscription;
 
     constructor(
         private element: ElementRef,
@@ -35,7 +37,8 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     ) {}
 
     ngOnInit() {
-        this.subscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
+        this.eventSubscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
+        this.commandSubscription = this.commandDispatcherService.subscribe(this.onCommand.bind(this));
     }
 
     startUpdate() {
@@ -66,6 +69,19 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             case ConsoleEventType.STOPPED:
                 this.stopUpdate();
                 this.updateDebugger();
+                break;
+        }
+    }
+
+    private onCommand(command: Command) {
+        switch (command.type) {
+            case CommandType.SET_BREAKPOINT_ADDRESS:
+                const addr = command.data;
+                if (addr === null) {
+                    this.onBreakpointAddressChanged("");
+                } else {
+                    this.onBreakpointAddressChanged(Util.toHexWordShort(addr));
+                }
                 break;
         }
     }
@@ -174,6 +190,6 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
 
     ngOnDestroy() {
         this.stopUpdate();
-        this.subscription.unsubscribe();
+        this.eventSubscription.unsubscribe();
     }
 }

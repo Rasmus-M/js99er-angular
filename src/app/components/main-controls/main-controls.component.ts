@@ -72,6 +72,14 @@ export class MainControlsComponent implements OnInit, OnDestroy {
         this.commandDispatcherService.screenshot();
     }
 
+    saveState() {
+        this.commandDispatcherService.saveState();
+    }
+
+    restoreState() {
+        this.commandDispatcherService.restoreState();
+    }
+
     onEvent(event: ConsoleEvent) {
         switch (event.type) {
             case ConsoleEventType.STARTED:

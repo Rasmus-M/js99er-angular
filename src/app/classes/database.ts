@@ -1,5 +1,6 @@
 import {Log} from './log';
 import {DiskImage} from '../emulator/classes/diskimage';
+import {DiskDrive} from '../emulator/classes/diskdrive';
 
 export class Database {
 
@@ -44,7 +45,7 @@ export class Database {
 
             request.onsuccess = function () {
                 that.log.info("Database opened OK.");
-                const db: IDBDatabase = request.result;
+                that.db = IDBDatabase = request.result;
                 if (callback) { callback(true); }
             };
 
@@ -65,7 +66,7 @@ export class Database {
         return this.supported;
     }
 
-    getDiskDrive(name, callback) {
+    getDiskDrive(name, callback: (result: DiskDrive | boolean) => void) {
         if (this.db != null && name != null) {
             const that = this;
 
@@ -87,7 +88,7 @@ export class Database {
         }
     }
 
-    putDiskDrive(diskDrive, callback) {
+    putDiskDrive(diskDrive: DiskDrive, callback: (boolean) => void) {
         if (this.db != null) {
             const that = this;
 
@@ -109,11 +110,11 @@ export class Database {
         }
     }
 
-    getDiskImages(callback) {
+    getDiskImages(callback: (diskImages: DiskImage[] | boolean) => void) {
         if (this.db != null) {
             const that = this;
 
-            const diskImages = {};
+            const diskImages = [];
             const trans: IDBTransaction = this.db.transaction([Database.DISK_IMAGES_STORE], "readonly");
             const store: IDBObjectStore = trans.objectStore(Database.DISK_IMAGES_STORE);
 
@@ -126,7 +127,7 @@ export class Database {
                     const state = cursor.value;
                     const diskImage = new DiskImage(state.name, null);
                     diskImage.restoreState(state);
-                    diskImages[state.name] = diskImage;
+                    diskImages.push(diskImage);
 
                     cursor.continue();
                 } else {
@@ -143,7 +144,7 @@ export class Database {
         }
     }
 
-    getDiskImage(name, callback) {
+    getDiskImage(name: string, callback: (boolean) => void) {
         if (this.db != null && name != null) {
             const that = this;
 
@@ -168,7 +169,7 @@ export class Database {
         }
     }
 
-    putDiskImage(diskImage, callback) {
+    putDiskImage(diskImage: DiskImage, callback: (boolean) => void) {
         if (this.db != null) {
             const that = this;
 
@@ -190,7 +191,7 @@ export class Database {
         }
     }
 
-    deleteDiskImage(name, callback) {
+    deleteDiskImage(name: string, callback: (boolean) => void) {
         if (this.db != null && name != null) {
             const that = this;
 
@@ -212,7 +213,7 @@ export class Database {
         }
     }
 
-    deleteAllDiskImages(callback) {
+    deleteAllDiskImages(callback: (boolean) => void) {
         if (this.db != null) {
             const that = this;
 
@@ -241,7 +242,7 @@ export class Database {
         }
     }
 
-    getBinaryFile(name, callback) {
+    getBinaryFile(name: string, callback: (boolean) => void) {
         if (this.db != null && name != null) {
             const that = this;
 
@@ -268,7 +269,7 @@ export class Database {
         }
     }
 
-    putBinaryFile(name, binaryFile, callback) {
+    putBinaryFile(name: string, binaryFile: Uint8Array, callback: (boolean) => void) {
         if (this.db != null) {
             const that = this;
 
@@ -290,7 +291,7 @@ export class Database {
         }
     }
 
-    getMachineState(name, callback) {
+    getMachineState(name: string, callback: (boolean) => void) {
         if (this.db != null && name != null) {
             const that = this;
 
@@ -317,7 +318,7 @@ export class Database {
         }
     }
 
-    putMachineState(name, state, callback) {
+    putMachineState(name: string, state: any, callback: (boolean) => void) {
         if (this.db != null) {
             const that = this;
 
