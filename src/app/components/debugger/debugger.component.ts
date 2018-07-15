@@ -77,7 +77,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         switch (command.type) {
             case CommandType.SET_BREAKPOINT_ADDRESS:
                 const addr = command.data;
-                if (addr === null) {
+                if (addr === undefined || addr === null) {
                     this.onBreakpointAddressChanged("");
                 } else {
                     this.onBreakpointAddressChanged(Util.toHexWordShort(addr));

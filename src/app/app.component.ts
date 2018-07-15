@@ -230,21 +230,18 @@ export class AppComponent implements OnInit, OnDestroy {
         const diskDriveName = diskDrives[index].getName();
         this.databaseService.getDiskDrive(diskDriveName, function (diskDriveState) {
             if (diskDriveState) {
-                // TODO
                 if (diskDriveState.diskImage) {
-                    diskDrives[index].setDiskImage(diskDriveState.diskImage);
+                    let diskImage: DiskImage = null;
+                    for (let i = 0; i < diskImages.length && !diskImage; i++) {
+                        if (diskImages[i].getName() === diskDriveState.diskImage) {
+                            diskImage = diskImages[i];
+                        }
+                    }
+                    diskDrives[index].setDiskImage(diskImage);
                     that.log.info("Disk image " + diskDrives[index].getDiskImage().getName() + " restored to " + diskDrives[index].getName() + ".");
                 } else {
                     diskDrives[index].setDiskImage(null);
                 }
-                /*
-                if (diskDriveState.diskImage && diskImages[diskDriveState.diskImage]) {
-                    diskDrives[index].setDiskImage(diskImages[diskDriveState.diskImage]);
-                    that.log.info("Disk image " + diskDrives[index].getDiskImage().getName() + " restored to " + diskDrives[index].getName() + ".");
-                } else {
-                    diskDrives[index].setDiskImage(null);
-                }
-                */
                 that.loadDiskDrives(diskDrives, diskImages, index + 1, callback);
             } else {
                 callback(false);
