@@ -172,7 +172,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
                                 that.commandDispatcherService.setBreakpointAddress(state.cpu.breakpoint);
 
-                                that.log.info("wasRunning=" + wasRunning);
                                 if (wasRunning) {
                                     that.commandDispatcherService.start();
                                 } else {
