@@ -87,6 +87,10 @@ export class EventDispatcherService {
         this.sendAsyncEvent(ConsoleEventType.SETTINGS_RESTORED, null);
     }
 
+    stateRestored() {
+        this.sendAsyncEvent(ConsoleEventType.STATE_RESTORED, null);
+    }
+
     sendAsyncEvent(eventType: ConsoleEventType, data: any) {
         window.setTimeout(
             () => {

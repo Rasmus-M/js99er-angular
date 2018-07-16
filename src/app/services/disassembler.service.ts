@@ -24,8 +24,8 @@ export class DisassemblerService {
     }
 
     disassemble(start, length, maxInstructions, anchorAddr) {
-        this.start = start || 0;
-        this.length = length || 0x10000;
+        this.start = Math.max(start || 0, 0);
+        this.length = Math.min(length || 0x10000, 0x10000 - this.start);
         this.maxInstructions = maxInstructions || 0x10000;
         this.anchorAddr = anchorAddr || this.start;
         // Start by disassembling from the anchor address to ensure correct alignment

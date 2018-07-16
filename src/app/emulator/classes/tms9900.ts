@@ -1837,6 +1837,7 @@ export class TMS9900 implements CPU {
 
     restoreState(state: any) {
         this.PC = state.PC;
+        this.log.info("PC restored to " + Util.toHexWord(this.PC));
         this.WP = state.WP;
         this.ST = state.ST;
         this.flagX = state.flagX;

@@ -70,6 +70,9 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                 this.stopUpdate();
                 this.updateDebugger();
                 break;
+            case ConsoleEventType.STATE_RESTORED:
+                this.updateDebugger();
+                break;
         }
     }
 
@@ -78,9 +81,9 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             case CommandType.SET_BREAKPOINT_ADDRESS:
                 const addr = command.data;
                 if (addr === undefined || addr === null) {
-                    this.onBreakpointAddressChanged("");
+                    this.breakpointAddress = "";
                 } else {
-                    this.onBreakpointAddressChanged(Util.toHexWordShort(addr));
+                    this.breakpointAddress = Util.toHexWordShort(addr);
                 }
                 break;
         }
@@ -125,8 +128,8 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                         if (this.memoryType === 0) {
                             // CPU
                             this.disassemblerService.setMemory(this.ti994A.getMemory());
-                            viewObj = this.disassemblerService.disassemble(0, 0x10000, null, debuggerAddress);
-                            // viewObj = this.disassemblerService.disassemble(debuggerAddress - 0x400, 0x800, null, debuggerAddress);
+                            // viewObj = this.disassemblerService.disassemble(0, 0x10000, null, debuggerAddress);
+                            viewObj = this.disassemblerService.disassemble(debuggerAddress - 0x400, 0x800, null, debuggerAddress);
                         } else {
                             // VDP
                             this.disassemblerService.setMemory(this.ti994A.getVDP());

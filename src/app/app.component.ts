@@ -121,7 +121,9 @@ export class AppComponent implements OnInit, OnDestroy {
         const that = this;
         const database = this.databaseService;
         const wasRunning = this.ti994A.isRunning();
-        this.commandDispatcherService.stop();
+        if (wasRunning) {
+            this.commandDispatcherService.stop();
+        }
         database.getDiskImages(function (diskImages) {
             if (diskImages) {
                 that.diskImages = diskImages;
@@ -143,10 +145,11 @@ export class AppComponent implements OnInit, OnDestroy {
                                 }
 
                                 that.ti994A.restoreState(state);
+                                that.log.info("Console state restored");
 
                                 const settings: Settings = new Settings();
                                 settings.setSoundEnabled(that.settingsService.isSoundEnabled());
-                                settings.setSpeechEnabled(state.tms5220.enabled);
+                                settings.setSpeechEnabled(state.speech.enabled);
                                 settings.set32KRAMEnabled(state.memory.enable32KRAM);
                                 settings.setF18AEnabled(that.settingsService.isF18AEnabled());
                                 settings.setFlickerEnabled(state.vdp.enableFlicker);
@@ -167,11 +170,14 @@ export class AppComponent implements OnInit, OnDestroy {
                                     that.eventDispatcherService.tapeStopped(tape.isPlayEnabled(), tape.isRewindEnabled());
                                 }
 
-                                that.commandDispatcherService.setBreakpointAddress(state.tms9900.breakpoint);
+                                that.commandDispatcherService.setBreakpointAddress(state.cpu.breakpoint);
 
+                                that.log.info("wasRunning=" + wasRunning);
                                 if (wasRunning) {
                                     that.commandDispatcherService.start();
                                 }
+
+                                that.eventDispatcherService.stateRestored();
 
                                 that.log.info("Machine state restored OK.");
                             } else {

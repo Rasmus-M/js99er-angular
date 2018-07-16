@@ -367,13 +367,13 @@ export class TI994A implements State {
 
     getState() {
         return {
-            tms9900: this.cpu.getState(),
+            cpu: this.cpu.getState(),
             memory: this.memory.getState(),
             cru: this.cru.getState(),
             keyboard: this.keyboard.getState(),
             vdp: this.vdp.getState(),
-            tms9919: this.psg.getState(),
-            tms5220: this.speech.getState(),
+            psg: this.psg.getState(),
+            speech: this.speech.getState(),
             tape: this.tape.getState()
         };
     }
