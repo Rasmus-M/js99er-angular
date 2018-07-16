@@ -175,6 +175,8 @@ export class AppComponent implements OnInit, OnDestroy {
                                 that.log.info("wasRunning=" + wasRunning);
                                 if (wasRunning) {
                                     that.commandDispatcherService.start();
+                                } else {
+                                    that.ti994A.getPSG().mute();
                                 }
 
                                 that.eventDispatcherService.stateRestored();
