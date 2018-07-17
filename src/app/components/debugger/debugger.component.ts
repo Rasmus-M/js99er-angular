@@ -23,7 +23,6 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     debuggerAddress: string;
     breakpointAddress: string;
     statusString: string;
-    memoryLines: string[];
     memoryString: string;
 
     private ti994A: TI994A;
@@ -151,13 +150,12 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                 }
             }
             const $memory = $(this.element.nativeElement).find("#memory");
-            this.memoryLines = viewObj.lines;
-            this.memoryString = this.memoryLines.join("\n");
-            // $memory.text(viewObj.lines);
+            this.memoryString = viewObj.lines.join("\n");
             if (viewObj.anchorLine !== null && viewObj.lines.length > 0) {
                 setTimeout(
                     function () {
-                        $memory.scrollTop(viewObj.anchorLine * ($memory.prop('scrollHeight') / viewObj.lines.length));
+                        const lineHeight = $memory.prop('scrollHeight') / viewObj.lines.length;
+                        $memory.scrollTop(viewObj.anchorLine * lineHeight);
                     }
                 );
             }
