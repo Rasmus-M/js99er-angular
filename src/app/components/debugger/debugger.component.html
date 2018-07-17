@@ -1,16 +1,21 @@
 <div class="debugger">
     <pre class="status mat-elevation-z1">{{statusString}}</pre>
-    <pre class="memoryView mat-elevation-z1" id="memory"></pre>
+    <pre class="memoryView mat-elevation-z1" id="memory">{{memoryString}}</pre>
+        <!--
+        <ng-container *ngFor="let line of memoryLines">
+            {{line}}
+        </ng-container>
+        -->
     <div class="debugger-toolbar">
         <mat-form-field class="memory-select">
-            <mat-select placeholder="Memory View" [(value)]="memoryView">
+            <mat-select placeholder="Memory View" [value]="memoryView" (selectionChange)="onMemoryViewChanged($event.value)">
                 <mat-option [value]="0">Disassembly</mat-option>
                 <mat-option [value]="1">Hex view</mat-option>
             </mat-select>
         </mat-form-field>
         <span class="margin-right"></span>
         <mat-form-field class="memory-select">
-            <mat-select placeholder="Memory Type" [(value)]="memoryType">
+            <mat-select placeholder="Memory Type" [value]="memoryType" (selectionChange)="onMemoryTypeChanged($event.value)">
                 <mat-option [value]="0">CPU Memory</mat-option>
                 <mat-option [value]="1">VDP Memory</mat-option>
             </mat-select>

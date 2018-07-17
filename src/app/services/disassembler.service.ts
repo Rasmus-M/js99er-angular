@@ -1,6 +1,5 @@
 import {Injectable} from '@angular/core';
 import {Decoder} from '../classes/decoder';
-import {Memory} from '../emulator/classes/memory';
 import {Util} from '../classes/util';
 import {MemoryDevice} from '../emulator/interfaces/memory-device';
 
@@ -23,36 +22,34 @@ export class DisassemblerService {
         this.memory = memory;
     }
 
-    disassemble(start, length, maxInstructions, anchorAddr) {
+    disassemble(start, length, maxInstructions, anchorAddr): {lines: string[], anchorLine: number} {
         this.start = Math.max(start || 0, 0);
         this.length = Math.min(length || 0x10000, 0x10000 - this.start);
         this.maxInstructions = maxInstructions || 0x10000;
         this.anchorAddr = anchorAddr || this.start;
         // Start by disassembling from the anchor address to ensure correct alignment
         const result = this.disassembleRange(this.anchorAddr, this.start + this.length - this.anchorAddr, this.maxInstructions, this.anchorAddr);
-        // Then prepend the disassembly before, which may be misaligned
+        // Then prepend the first part of the disassembly, which may be misaligned
         if (this.start < this.anchorAddr) {
-            const result2 = this.disassembleRange(this.start, this.anchorAddr - this.start, this.maxInstructions - result.lineCount, null);
-            result.text = result2.text + result.text;
-            result.lineCount += result2.lineCount;
-            result.anchorLine += result2.lineCount;
+            const result2 = this.disassembleRange(this.start, this.anchorAddr - this.start, this.maxInstructions - result.lines.length, null);
+            result.lines = result2.lines.concat(result.lines);
+            result.anchorLine += result2.lines.length;
         }
         return result;
     }
 
-    private disassembleRange(start, length, maxInstructions, anchorAddr) {
+    private disassembleRange(start, length, maxInstructions, anchorAddr): {lines: string[], anchorLine: number} {
         this.addr = start;
         const end = start + length;
         const decoderTable = Decoder.getDecoderTable();
-        let disassembly = '';
-        let lineCount = 0;
+        const disassembly = [];
         let anchorLine = null;
         let ts, td, s, d, b, c, w, disp, imm;
         for (let i = 0; i < maxInstructions && this.addr < end; i++) {
             const instrAddr = this.addr; // Start address for current instruction
-            disassembly += (anchorAddr && anchorLine == null && instrAddr >= anchorAddr) ? '\u27a8 ' : '  ';
             const instr = this.memory.getWord(instrAddr);
             const opcode = decoderTable[instr];
+            let line = (anchorAddr !== null && anchorLine === null && instrAddr >= anchorAddr) ? '\u27a8 ' : '  ';
             if (opcode != null) {
                 // Decode instruction
                 let src = null;
@@ -143,35 +140,34 @@ export class DisassemblerService {
                         break;
                 }
                 // Output disassembly
-                disassembly += Util.toHexWord(instrAddr) + ' ';
-                disassembly += Util.toHexWord(instr) + ' ';
-                disassembly += this.padr(opcode.id, " ", 4);
+                line += Util.toHexWord(instrAddr) + ' ';
+                line += Util.toHexWord(instr) + ' ';
+                line += this.padr(opcode.id, " ", 4);
                 if (src != null || dst != null) {
-                    disassembly += ' ';
+                    line += ' ';
                     if (src != null) {
-                        disassembly += src;
+                        line += src;
                     }
                     if (src != null && dst != null) {
-                        disassembly += ',';
+                        line += ',';
                     }
                     if (dst != null) {
-                        disassembly += dst;
+                        line += dst;
                     }
                 }
             } else {
                 // Illegal
-                disassembly += Util.toHexWord(instrAddr) + ' ';
-                disassembly += Util.toHexWord(instr) + ' ';
-                disassembly += 'DATA ' + Util.toHexWord(instr);
+                line += Util.toHexWord(instrAddr) + ' ';
+                line += Util.toHexWord(instr) + ' ';
+                line += 'DATA ' + Util.toHexWord(instr);
             }
-            disassembly += '\n';
-            lineCount++;
-            if (anchorLine === null && anchorAddr && instrAddr >= anchorAddr) {
+            disassembly.push(line);
+            if (anchorAddr !== null && anchorLine === null && instrAddr >= anchorAddr) {
                 anchorLine = i;
             }
             this.addr += 2;
         }
-        return {text: disassembly, lineCount: lineCount, anchorLine: anchorLine};
+        return {lines: disassembly, anchorLine: anchorLine};
     }
 
     private ga(type, val) {

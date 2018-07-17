@@ -602,29 +602,29 @@ export class Memory implements State, MemoryDevice {
             (this.enableAMS ? '\nAMS Regs: ' + this.ams.getStatusString() : '');
     }
 
-    hexView(start: number, length: number, anchorAddr: number): object {
-        let text = '';
-        let anchorLine = null;
+    hexView(start: number, length: number, anchorAddr: number): {lines: string[], anchorLine: number} {
+        const lines: string[] = [];
+        let anchorLine: number = null;
         let addr = start;
-        let line = 0;
+        let lineNo = 0;
+        let line = "";
         for (let i = 0; i < length; addr++, i++) {
-            if ((i & 0x000F) === 0) {
-                text += '\n' + Util.toHexWord(addr) + ':';
-                line++;
-            }
-            text += ' ';
             if (anchorAddr && anchorAddr === addr) {
-                anchorLine = line;
+                anchorLine = lineNo;
             }
-            let hex;
-            const byte = this.getByte(addr);
-            hex = byte.toString(16).toUpperCase();
-            if (hex.length === 1) {
-                text += '0';
+            if ((i & 0xF) === 0) {
+                line += Util.toHexWord(addr) + ': ';
             }
-            text += hex;
+            line += Util.toHexByteShort(this.getByte(addr));
+            if ((i & 0xF) === 0xF) {
+                lines.push(line);
+                line = "";
+                lineNo++;
+            } else {
+                line += ' ';
+            }
         }
-        return {text: text.substr(1), lineCount: line, anchorLine: anchorLine - 1};
+        return {lines: lines, anchorLine: anchorLine};
     }
 
     set32KRAMEnabled(enabled: boolean) {

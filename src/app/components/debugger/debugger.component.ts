@@ -23,6 +23,8 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     debuggerAddress: string;
     breakpointAddress: string;
     statusString: string;
+    memoryLines: string[];
+    memoryString: string;
 
     private ti994A: TI994A;
     private timerHandle: number;
@@ -94,7 +96,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     updateDebugger() {
         if (this.visible && this.ti994A) {
             this.statusString = this.ti994A.getStatusString();
-            let viewObj;
+            let viewObj: {lines: string[], anchorLine: number};
             const pc = this.ti994A.getPC();
             if (this.ti994A.isRunning()) {
                 // Running
@@ -148,11 +150,13 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                 }
             }
             const $memory = $(this.element.nativeElement).find("#memory");
-            $memory.text(viewObj.text);
-            if (viewObj.anchorLine !== null) {
+            this.memoryLines = viewObj.lines;
+            this.memoryString = this.memoryLines.join("\n");
+            // $memory.text(viewObj.lines);
+            if (viewObj.anchorLine !== null && viewObj.lines.length > 0) {
                 setTimeout(
                     function () {
-                        $memory.scrollTop(viewObj.anchorLine * ($memory.prop('scrollHeight') / viewObj.lineCount));
+                        $memory.scrollTop(viewObj.anchorLine * ($memory.prop('scrollHeight') / viewObj.lines.length));
                     }
                 );
             }
@@ -194,5 +198,15 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     ngOnDestroy() {
         this.stopUpdate();
         this.eventSubscription.unsubscribe();
+    }
+
+    onMemoryViewChanged(memoryView: number) {
+        this.memoryView = memoryView;
+        this.updateDebugger();
+    }
+
+    onMemoryTypeChanged(memoryType: number) {
+        this.memoryType = memoryType;
+        this.updateDebugger();
     }
 }

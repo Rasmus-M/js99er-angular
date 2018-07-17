@@ -553,27 +553,29 @@ export class TMS9918A implements VDP {
         return s;
     }
 
-    hexView(start, length, anchorAddr): object {
-        let text = '';
-        let anchorLine = null;
+    hexView(start, length, anchorAddr): {lines: string[], anchorLine: number} {
+        const lines: string[] = [];
+        let anchorLine: number = null;
         let addr = start;
-        let line = 0;
-        for (let i = 0; i < length && addr < 0x4000; addr++, i++) {
-            if ((i & 0x000F) === 0) {
-                text += '\n' + addr.toHexWord() + ':';
-                line++;
-            }
-            text += ' ';
+        let lineNo = 0;
+        let line = "";
+        for (let i = 0; i < length; addr++, i++) {
             if (anchorAddr && anchorAddr === addr) {
-                anchorLine = line;
+                anchorLine = lineNo;
             }
-            const hex = this.ram[addr].toString(16).toUpperCase();
-            if (hex.length === 1) {
-                text += '0';
+            if ((i & 0xF) === 0) {
+                line += Util.toHexWord(addr) + ': ';
             }
-            text += hex;
+            line += Util.toHexByteShort(this.ram[addr]);
+            if ((i & 0xF) === 0xF) {
+                lines.push(line);
+                line = "";
+                lineNo++;
+            } else {
+                line += ' ';
+            }
         }
-        return {text: text.substr(1), lineCount: line, anchorLine: anchorLine - 1};
+        return {lines: lines, anchorLine: anchorLine};
     }
 
     public getWord(addr: number) {
