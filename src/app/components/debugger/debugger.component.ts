@@ -95,6 +95,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
 
     updateDebugger() {
         if (this.visible && this.ti994A) {
+            console.log("Update debugger");
             this.statusString = this.ti994A.getStatusString();
             let viewObj: {lines: string[], anchorLine: number};
             const pc = this.ti994A.getPC();
@@ -131,8 +132,8 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                     if (this.memoryType === 0) {
                         // CPU
                         this.disassemblerService.setMemory(this.ti994A.getMemory());
-                        // viewObj = this.disassemblerService.disassemble(0, 0x10000, null, debuggerAddress);
-                        viewObj = this.disassemblerService.disassemble(debuggerAddress - 0x400, 0x800, null, debuggerAddress);
+                        viewObj = this.disassemblerService.disassemble(0, 0x10000, null, debuggerAddress);
+                        // viewObj = this.disassemblerService.disassemble(debuggerAddress - 0x400, 0x800, null, debuggerAddress);
                     } else {
                         // VDP
                         this.disassemblerService.setMemory(this.ti994A.getVDP());
