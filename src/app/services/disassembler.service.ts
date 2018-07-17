@@ -29,7 +29,7 @@ export class DisassemblerService {
         this.maxInstructions = maxInstructions || 0x10000;
         this.anchorAddr = anchorAddr || this.start;
         // Start by disassembling from the anchor address to ensure correct alignment
-        const result = this.disassembleRange(this.anchorAddr, this.length - this.anchorAddr, this.maxInstructions, this.anchorAddr);
+        const result = this.disassembleRange(this.anchorAddr, this.start + this.length - this.anchorAddr, this.maxInstructions, this.anchorAddr);
         // Then prepend the disassembly before, which may be misaligned
         if (this.start < this.anchorAddr) {
             const result2 = this.disassembleRange(this.start, this.anchorAddr - this.start, this.maxInstructions - result.lineCount, null);

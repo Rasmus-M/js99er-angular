@@ -42,13 +42,15 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     startUpdate() {
-        this.timerHandle = window.setInterval(this.updateDebugger.bind(this), 200);
+        if (!this.timerHandle) {
+            this.timerHandle = window.setInterval(this.updateDebugger.bind(this), 200);
+        }
     }
 
     stopUpdate() {
         if (this.timerHandle) {
             window.clearInterval(this.timerHandle);
-            this.timerHandle = 0;
+            this.timerHandle = null;
         }
     }
 
@@ -91,71 +93,69 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
 
     updateDebugger() {
         if (this.visible && this.ti994A) {
-            setTimeout(() => {
-                this.statusString = this.ti994A.getStatusString();
-                let viewObj;
-                const pc = this.ti994A.getPC();
-                if (this.ti994A.isRunning()) {
-                    // Running
-                    if (this.memoryView === 0) {
-                        // Disassemble
-                        if (this.memoryType === 0) {
-                            // CPU
-                            this.disassemblerService.setMemory(this.ti994A.getMemory());
-                            viewObj = this.disassemblerService.disassemble(pc, null, 19, pc);
-                        } else {
-                            // VDP
-                            this.disassemblerService.setMemory(this.ti994A.getVDP());
-                            viewObj = this.disassemblerService.disassemble(pc, null, 19, pc);
-                        }
+            this.statusString = this.ti994A.getStatusString();
+            let viewObj;
+            const pc = this.ti994A.getPC();
+            if (this.ti994A.isRunning()) {
+                // Running
+                if (this.memoryView === 0) {
+                    // Disassemble
+                    if (this.memoryType === 0) {
+                        // CPU
+                        this.disassemblerService.setMemory(this.ti994A.getMemory());
+                        viewObj = this.disassemblerService.disassemble(pc, null, 32, pc);
                     } else {
-                        // Hex view
-                        if (this.memoryType === 0) {
-                            // CPU
-                            const debuggerAddress = this.getDebuggerAddress(0x8300);
-                            viewObj = this.ti994A.getMemory().hexView(debuggerAddress, 304, debuggerAddress);
-                        } else {
-                            // VDP
-                            const debuggerAddress = this.getDebuggerAddress(0);
-                            viewObj = this.ti994A.getVDP().hexView(debuggerAddress, 304, debuggerAddress);
-                        }
+                        // VDP
+                        this.disassemblerService.setMemory(this.ti994A.getVDP());
+                        viewObj = this.disassemblerService.disassemble(pc, null, 32, pc);
                     }
                 } else {
-                    // Stopped
-                    const debuggerAddress = this.getDebuggerAddress(pc);
-                    if (this.memoryView === 0) {
-                        // Disassemble
-                        if (this.memoryType === 0) {
-                            // CPU
-                            this.disassemblerService.setMemory(this.ti994A.getMemory());
-                            // viewObj = this.disassemblerService.disassemble(0, 0x10000, null, debuggerAddress);
-                            viewObj = this.disassemblerService.disassemble(debuggerAddress - 0x400, 0x800, null, debuggerAddress);
-                        } else {
-                            // VDP
-                            this.disassemblerService.setMemory(this.ti994A.getVDP());
-                            viewObj = this.disassemblerService.disassemble(0, this.ti994A.getVDP().getGPU() ? 0x4800 : 0x4000, null, debuggerAddress);
-                        }
+                    // Hex view
+                    if (this.memoryType === 0) {
+                        // CPU
+                        const debuggerAddress = this.getDebuggerAddress(0x8300);
+                        viewObj = this.ti994A.getMemory().hexView(debuggerAddress, 304, debuggerAddress);
                     } else {
-                        // Hex view
-                        if (this.memoryType === 0) {
-                            // CPU
-                            viewObj = this.ti994A.getMemory().hexView(0, 0x10000, debuggerAddress);
-                        } else {
-                            // VDP
-                            viewObj = this.ti994A.getVDP().hexView(0, this.ti994A.getVDP().getGPU() ? 0x4800 : 0x4000, debuggerAddress);
-                        }
+                        // VDP
+                        const debuggerAddress = this.getDebuggerAddress(0);
+                        viewObj = this.ti994A.getVDP().hexView(debuggerAddress, 304, debuggerAddress);
                     }
                 }
-                const $memory = $(this.element.nativeElement).find("#memory");
-                $memory.text(viewObj.text);
-                if (viewObj.anchorLine) {
-                    setTimeout(
-                        function () {
-                            $memory.scrollTop(viewObj.anchorLine * ($memory.prop('scrollHeight') / viewObj.lineCount));
-                        }
-                    );
+            } else {
+                // Stopped
+                const debuggerAddress = this.getDebuggerAddress(pc);
+                if (this.memoryView === 0) {
+                    // Disassemble
+                    if (this.memoryType === 0) {
+                        // CPU
+                        this.disassemblerService.setMemory(this.ti994A.getMemory());
+                        // viewObj = this.disassemblerService.disassemble(0, 0x10000, null, debuggerAddress);
+                        viewObj = this.disassemblerService.disassemble(debuggerAddress - 0x400, 0x800, null, debuggerAddress);
+                    } else {
+                        // VDP
+                        this.disassemblerService.setMemory(this.ti994A.getVDP());
+                        viewObj = this.disassemblerService.disassemble(0, this.ti994A.getVDP().getGPU() ? 0x4800 : 0x4000, null, debuggerAddress);
+                    }
+                } else {
+                    // Hex view
+                    if (this.memoryType === 0) {
+                        // CPU
+                        viewObj = this.ti994A.getMemory().hexView(0, 0x10000, debuggerAddress);
+                    } else {
+                        // VDP
+                        viewObj = this.ti994A.getVDP().hexView(0, this.ti994A.getVDP().getGPU() ? 0x4800 : 0x4000, debuggerAddress);
+                    }
                 }
-            });
+            }
+            const $memory = $(this.element.nativeElement).find("#memory");
+            $memory.text(viewObj.text);
+            if (viewObj.anchorLine !== null) {
+                setTimeout(
+                    function () {
+                        $memory.scrollTop(viewObj.anchorLine * ($memory.prop('scrollHeight') / viewObj.lineCount));
+                    }
+                );
+            }
         }
     }
 
