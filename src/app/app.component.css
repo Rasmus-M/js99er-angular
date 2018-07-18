@@ -21,7 +21,7 @@
     /* justify-self: center; */
 }
 
-@media screen and (orientation: landscape) {
+@media (min-aspect-ratio: 14/9) {
     .app {
         display: grid;
         --consoleHeight: calc(100vh - 96px);
@@ -36,13 +36,13 @@
     }
 }
 
-@media screen and (orientation: portrait) {
+@media (max-aspect-ratio: 14/9) {
     .app {
         display: grid;
-        --consoleWidth: calc(100vw - 8px);
+        --consoleWidth: calc(100vw - 20px);
         --consoleHeight: calc(var(--consoleWidth) * 3 / 4);
         grid-template-columns: 1fr;
-        grid-template-rows: var(--consoleHeight) auto auto;
+        grid-template-rows: var(--consoleHeight) auto 600px;
         grid-template-areas:
             "console"
             "main_controls"

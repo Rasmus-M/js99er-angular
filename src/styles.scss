@@ -2,15 +2,15 @@
 
 @import "~@angular/material/prebuilt-themes/indigo-pink.css";
 
-html {
+html, body {
     padding: 0;
     margin: 0;
 }
 
 body {
-    padding: 8px;
-    margin: 0;
     font-size: 14px;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 mat-tab-group, .mat-tab-body-wrapper, mat-tab {

@@ -379,7 +379,7 @@ export class F18A implements VDP {
     }
 
     setDimensions(force) {
-        const newCanvasWidth = this.screenMode === F18A.MODE_TEXT_80 ? 608 : 304;
+        const newCanvasWidth = this.screenMode === F18A.MODE_TEXT_80 ? 640 : 320;
         const newCanvasHeight = this.screenMode === F18A.MODE_TEXT_80 ? 480 : 240;
         const newDimensions = force || newCanvasWidth !== this.canvas.width || newCanvasHeight !== this.canvas.height;
         if (newDimensions) {

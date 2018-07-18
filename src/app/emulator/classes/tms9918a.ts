@@ -117,7 +117,7 @@ export class TMS9918A implements VDP {
         this.flicker = this.enableFlicker;
         this.redrawRequired = true;
 
-        this.canvas.width = 304;
+        this.canvas.width = 320;
         this.canvas.height = 240;
         this.canvasContext.fillStyle = 'rgba(' + this.palette[7].join(',') + ',1.0)';
         this.canvasContext.fillRect(0, 0, this.canvas.width, this.canvas.height);
