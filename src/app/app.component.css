@@ -18,7 +18,7 @@
 
 .main-controls {
     grid-area: main_controls;
-    justify-self: center;
+    /* justify-self: center; */
 }
 
 @media screen and (orientation: landscape) {

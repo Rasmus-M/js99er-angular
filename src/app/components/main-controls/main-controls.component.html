@@ -1,21 +1,21 @@
-<mat-toolbar>
-    <button mat-raised-button color="primary" (click)="start()" [disabled]="running"><fa name="play"></fa> Start</button>
-    <button mat-raised-button (click)="fast()" [disabled]="running"><fa name="forward"></fa> Fast</button>
-    <button mat-raised-button (click)="frame()" [disabled]="running"><fa name="fast-forward"></fa> Frame</button>
-    <button mat-raised-button (click)="step()" [disabled]="running"><fa name="step-forward"></fa> Step</button>
-    <button mat-raised-button (click)="stop()" [disabled]="!running"><fa name="pause"></fa> Pause</button>
-    <button mat-raised-button color="warn" (click)="reset()"><fa name="refresh"></fa> Reset</button>
+<mat-toolbar class="toolbar">
+    <button mat-raised-button color="primary" class="toolbar-button" (click)="start()" [disabled]="running"><fa name="play"></fa> Start</button>
+    <button mat-raised-button class="toolbar-button" (click)="fast()" [disabled]="running"><fa name="forward"></fa> Fast</button>
+    <button mat-raised-button class="toolbar-button" (click)="frame()" [disabled]="running"><fa name="fast-forward"></fa> Frame</button>
+    <button mat-raised-button class="toolbar-button" (click)="step()" [disabled]="running"><fa name="step-forward"></fa> Step</button>
+    <button mat-raised-button class="toolbar-button" (click)="stop()" [disabled]="!running"><fa name="pause"></fa> Pause</button>
+    <button mat-raised-button color="warn" class="toolbar-button" (click)="reset()"><fa name="refresh"></fa> Reset</button>
     <span class="margin-right"></span>
-    <button mat-raised-button (click)="fileInputModule.click()">
+    <button mat-raised-button class="toolbar-button" (click)="fileInputModule.click()">
         <fa name="credit-card"></fa> Load Cart<input #fileInputModule type="file" (change)="openModule(fileInputModule)" [hidden]="true"/>
     </button>
-    <button mat-raised-button (click)="fileInputDisk.click()">
+    <button mat-raised-button class="toolbar-button" (click)="fileInputDisk.click()">
         <fa name="floppy-o"></fa> Load Disk<input #fileInputDisk type="file" (change)="openDisk(fileInputDisk)" [hidden]="true" multiple="multiple"/>
     </button>
-    <app-software-menu [menuData]="menuData"></app-software-menu>
+    <app-software-menu class="toolbar-button" [menuData]="menuData"></app-software-menu>
     <span class="margin-right"></span>
-    <a mat-raised-button (click)="screenshot()" download="screenshot.png" id="btnScreenshot"><fa name="camera"></fa> Screenshot</a>
+    <a mat-raised-button class="toolbar-button" (click)="screenshot()" download="screenshot.png" id="btnScreenshot"><fa name="camera"></fa> Screenshot</a>
     <span class="margin-right"></span>
-    <button mat-raised-button (click)="saveState()"><fa name="download"></fa> Save State</button>
-    <button mat-raised-button (click)="restoreState()"><fa name="upload"></fa> Restore State</button>
+    <button mat-raised-button class="toolbar-button" (click)="saveState()"><fa name="download"></fa> Save State</button>
+    <button mat-raised-button class="toolbar-button" (click)="restoreState()"><fa name="upload"></fa> Restore State</button>
 </mat-toolbar>

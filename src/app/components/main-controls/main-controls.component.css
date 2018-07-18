@@ -1,1 +1,10 @@
+.toolbar {
+    height: auto;
+    min-height: 64px;
+    flex-wrap: wrap;
+    padding-top: 16px;
+}
 
+.toolbar-button {
+    margin-bottom: 16px;
+}
