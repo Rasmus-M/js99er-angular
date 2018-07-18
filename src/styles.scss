@@ -18,6 +18,10 @@ mat-tab-group, .mat-tab-body-wrapper, mat-tab {
     overflow: hidden;
 }
 
+.mat-tab-labels .mat-tab-label {
+    min-width: auto;
+}
+
 .margin-right {
     margin-right: 8px;
 }

@@ -22,8 +22,7 @@
             ],
             "styles": [
               "src/styles.scss",
-              "node_modules/font-awesome/css/font-awesome.css",
-              "node_modules/bootstrap-select/dist/css/bootstrap-select.css"
+              "node_modules/font-awesome/css/font-awesome.css"
             ],
             "scripts": [
               "node_modules/zip-js/WebContent/zip.js",
