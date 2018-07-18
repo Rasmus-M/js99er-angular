@@ -1,6 +1,6 @@
 # JS99'er
 
-This is a new version of js99er.net developed using Angular and TypeScript.
+This is a new version of js99er.net developed using Angular and TypeScript. Try it [here](https://github.com/Rasmus-M/js99er-angular).
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.7.3.
 
