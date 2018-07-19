@@ -1,6 +1,6 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { ConsoleComponent } from './console.component';
+import {ConsoleComponent} from './console.component';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 
 describe('ConsoleComponent', () => {

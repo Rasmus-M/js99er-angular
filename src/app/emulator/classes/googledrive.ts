@@ -1,13 +1,5 @@
 import gapi from 'gapi-client';
-import {
-    AccessType,
-    DataType,
-    DiskError,
-    FileType,
-    OpCode,
-    OperationMode,
-    RecordType
-} from './disk';
+import {AccessType, DataType, DiskError, FileType, OpCode, OperationMode, RecordType} from './disk';
 import {Log} from '../../classes/log';
 import {TI994A} from './ti994a';
 import {Memory} from './memory';

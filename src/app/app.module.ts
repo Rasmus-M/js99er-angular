@@ -2,10 +2,23 @@ import {NgModule} from '@angular/core';
 import {BrowserModule} from '@angular/platform-browser';
 import {AngularFontAwesomeModule} from 'angular-font-awesome';
 import {HttpClientModule} from '@angular/common/http';
-import {FormsModule} from '@angular/forms';
-import {ReactiveFormsModule} from '@angular/forms';
-import {MatMenuModule, MatTabsModule, MatCardModule, MatButtonModule, MatCheckboxModule, MatSelectModule, MatIconModule, MatDividerModule,
-        MatToolbarModule, MatTableModule, MatInputModule, MatDialogModule, MatListModule, MatAutocompleteModule} from '@angular/material';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {
+    MatAutocompleteModule,
+    MatButtonModule,
+    MatCardModule,
+    MatCheckboxModule,
+    MatDialogModule,
+    MatDividerModule,
+    MatIconModule,
+    MatInputModule,
+    MatListModule,
+    MatMenuModule,
+    MatSelectModule,
+    MatTableModule,
+    MatTabsModule,
+    MatToolbarModule
+} from '@angular/material';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 import {EmulatorModule} from './emulator/emulator.module';

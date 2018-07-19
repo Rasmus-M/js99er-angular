@@ -3,7 +3,6 @@ import {Keyboard} from './keyboard';
 import {Memory} from './memory';
 import {Tape} from './tape';
 import {State} from '../interfaces/state';
-import {TMS9900} from './tms9900';
 import {AMS} from './ams';
 import {Util} from '../../classes/util';
 import {CPU} from '../interfaces/cpu';

@@ -2,7 +2,6 @@ import {Component, OnInit} from '@angular/core';
 import {SettingsService} from '../../services/settings.service';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {Subscription} from 'rxjs/Subscription';
-import {TI994A} from '../../emulator/classes/ti994a';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
 
 @Component({

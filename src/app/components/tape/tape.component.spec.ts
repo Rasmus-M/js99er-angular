@@ -1,6 +1,6 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { TapeComponent } from './tape.component';
+import {TapeComponent} from './tape.component';
 
 describe('TapeComponent', () => {
   let component: TapeComponent;

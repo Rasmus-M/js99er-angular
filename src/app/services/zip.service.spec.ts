@@ -1,6 +1,6 @@
-import { TestBed, inject } from '@angular/core/testing';
+import {inject, TestBed} from '@angular/core/testing';
 
-import { ZipService } from './zip.service';
+import {ZipService} from './zip.service';
 
 describe('ZipService', () => {
   beforeEach(() => {

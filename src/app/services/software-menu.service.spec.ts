@@ -1,6 +1,6 @@
-import { TestBed, inject } from '@angular/core/testing';
+import {inject, TestBed} from '@angular/core/testing';
 
-import { SoftwareMenuService } from './software-menu.service';
+import {SoftwareMenuService} from './software-menu.service';
 
 describe('SoftwareMenuService', () => {
   beforeEach(() => {

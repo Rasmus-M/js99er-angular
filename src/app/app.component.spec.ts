@@ -1,6 +1,5 @@
-import { TestBed, async } from '@angular/core/testing';
-import { AppComponent } from './app.component';
-import { EmulatorModule} from './emulator/emulator.module';
+import {async, TestBed} from '@angular/core/testing';
+import {AppComponent} from './app.component';
 import {NO_ERRORS_SCHEMA} from '@angular/core';
 
 describe('AppComponent', () => {

@@ -1,6 +1,6 @@
 import {Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
 import {Subscription} from 'rxjs/index';
-import * as $ from "jquery";
+import * as $ from 'jquery';
 import {TI994A} from '../../emulator/classes/ti994a';
 import {DisassemblerService} from '../../services/disassembler.service';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';

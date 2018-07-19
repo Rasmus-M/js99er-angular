@@ -1,7 +1,7 @@
-import {AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit} from '@angular/core';
 import {TI994A} from '../classes/ti994a';
 import {DiskImage} from '../classes/diskimage';
-import {Setting, Settings} from '../../classes/settings';
+import {Setting} from '../../classes/settings';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {Subscription} from 'rxjs/Subscription';
 import {Command, CommandType} from '../../classes/command';

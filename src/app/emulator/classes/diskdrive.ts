@@ -1,7 +1,7 @@
 import {DiskFile, FixedRecord, VariableRecord} from './diskfile';
 import {AccessType, DataType, DiskError, FileType, OpCode, OperationMode, RecordType} from './disk';
 import {State} from '../interfaces/state';
-import {DiskImage, DiskImageEvent} from './diskimage';
+import {DiskImage} from './diskimage';
 import {TI994A} from './ti994a';
 import {Log} from '../../classes/log';
 import {Util} from '../../classes/util';

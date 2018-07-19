@@ -1,6 +1,6 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { KeyboardComponent } from './keyboard.component';
+import {KeyboardComponent} from './keyboard.component';
 
 describe('KeyboardComponent', () => {
   let component: KeyboardComponent;

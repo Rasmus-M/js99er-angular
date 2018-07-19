@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 import {Tape} from '../emulator/classes/tape';
 import {TMS5220} from '../emulator/classes/tms5220';
 import {PSG} from '../emulator/interfaces/psg';

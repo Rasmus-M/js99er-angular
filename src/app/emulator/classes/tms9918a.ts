@@ -1,7 +1,6 @@
 import {CRU} from './cru';
 import {Util} from '../../classes/util';
 import {VDP} from '../interfaces/vdp';
-import {State} from '../interfaces/state';
 import {CPU} from '../interfaces/cpu';
 import {TI994A} from './ti994a';
 import {Settings} from '../../classes/settings';

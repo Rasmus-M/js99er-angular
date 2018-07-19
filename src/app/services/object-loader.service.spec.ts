@@ -1,6 +1,6 @@
-import { TestBed, inject } from '@angular/core/testing';
+import {inject, TestBed} from '@angular/core/testing';
 
-import { ObjectLoaderService } from './object-loader.service';
+import {ObjectLoaderService} from './object-loader.service';
 
 describe('ObjectLoaderService', () => {
   beforeEach(() => {

@@ -6,7 +6,6 @@ import {Subscription} from 'rxjs/Subscription';
 import {Software} from '../classes/software';
 import {Setting} from '../classes/settings';
 import {DiskImage} from '../emulator/classes/diskimage';
-import {DiskDrive} from '../emulator/classes/diskdrive';
 import {DiskFile} from '../emulator/classes/diskfile';
 
 

@@ -1,6 +1,6 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { MoreSoftwareComponent } from './more-software.component';
+import {MoreSoftwareComponent} from './more-software.component';
 
 describe('MoreSoftwareComponent', () => {
   let component: MoreSoftwareComponent;

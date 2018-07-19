@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 import {Util} from '../classes/util';
 import {MemoryBlock, Software} from '../classes/software';
 
