@@ -14,6 +14,7 @@ import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {CPU} from '../interfaces/cpu';
 import {DiskDrive} from '../classes/diskdrive';
 import {Tape} from '../classes/tape';
+import {Software} from '../../classes/software';
 
 @Component({
     selector: 'app-console',
@@ -96,15 +97,16 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
             case CommandType.RESET:
                 this.reset();
                 break;
-            case CommandType.LOAD_MODULE:
-                this.softwareService.loadModuleFromFile(command.data).subscribe(
-                    (software) => {
-                        this.ti994A.loadSoftware(software);
-                    },
-                    (error) => {
-                        this.log.error(error);
-                    }
-                );
+            case CommandType.LOAD_MODULE: {
+                    this.softwareService.loadModuleFromFile(command.data).subscribe(
+                        (software) => {
+                            this.ti994A.loadSoftware(software);
+                        },
+                        (error) => {
+                            this.log.error(error);
+                        }
+                    );
+                }
                 break;
             case CommandType.LOAD_DISK: {
                     const data = command.data;
@@ -122,9 +124,14 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                     );
                 }
                 break;
-            case CommandType.LOAD_SOFTWARE:
-                this.ti994A.loadSoftware(command.data);
-                this.ti994A.getMemory().setPADWord(0x83C0, Math.floor(Math.random() * 0xFFFF));
+            case CommandType.LOAD_SOFTWARE: {
+                    const software: Software = command.data.software;
+                    if (command.data.autostart) {
+                        software.keyPresses = " 2";
+                    }
+                    this.ti994A.loadSoftware(software);
+                    this.ti994A.getMemory().setPADWord(0x83C0, Math.floor(Math.random() * 0xFFFF));
+                }
                 break;
             case CommandType.CHANGE_SETTING:
                 const setting: Setting = command.data.setting;

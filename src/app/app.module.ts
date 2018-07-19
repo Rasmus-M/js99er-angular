@@ -20,6 +20,7 @@ import {
     MatToolbarModule
 } from '@angular/material';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import { RouterModule, Routes } from '@angular/router';
 
 import {EmulatorModule} from './emulator/emulator.module';
 import {AppComponent} from './app.component';
@@ -41,6 +42,11 @@ import {DiskComponent} from './components/disk/disk.component';
 import {TapeComponent} from './components/tape/tape.component';
 import {SoftwareMenuComponent} from './components/software-menu/software-menu.component';
 import {MoreSoftwareComponent} from './components/more-software/more-software.component';
+
+const appRoutes: Routes = [
+    {path: '', component: AppComponent},
+    {path: 'cart/:cart', component: AppComponent}
+];
 
 @NgModule({
     declarations: [
@@ -76,6 +82,10 @@ import {MoreSoftwareComponent} from './components/more-software/more-software.co
         BrowserAnimationsModule,
         AngularFontAwesomeModule,
         HttpClientModule,
+        RouterModule.forRoot(
+            appRoutes,
+            { enableTracing: false }
+        ),
         EmulatorModule
     ],
     providers: [

@@ -31,10 +31,9 @@ export class SoftwareMenuComponent implements OnInit {
     openSoftware(url) {
         this.softwareMenuService.loadModuleFromMenu(url).subscribe(
             (software: Software) => {
-                this.commandDispatcherService.loadSoftware(software);
+                this.commandDispatcherService.loadSoftware(software, false);
             },
             (error) => {
-                console.log(error);
                 this.log.error(error);
             }
         );

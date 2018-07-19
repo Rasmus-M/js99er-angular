@@ -595,12 +595,7 @@ export class MoreSoftwareService {
         const sortedCarts: Software[] = [];
         for (let i = 0; i < carts.length; i++) {
             const cart = carts[i];
-            const filename = cart[0];
-            const name = cart[1] || this.fileToName(filename);
-            const software = new Software();
-            software.name = name;
-            software.url = "carts/" + filename + ".rpk";
-            sortedCarts.push(software);
+            sortedCarts.push(this.createSoftware(cart[0], this.getName(cart)));
         }
         sortedCarts.sort((s1: Software, s2: Software) => {
             return s1.name > s2.name ? 1 : (s1.name > s2.name ? -1 : 0);
@@ -608,10 +603,34 @@ export class MoreSoftwareService {
         return sortedCarts;
     }
 
-    private fileToName(filename) {
-        filename = filename.replace(/^(ag|as|aw|co|cy|db|dc|de|dlm|dv|fw|im|jp|mb|mi|na|ni|pb|ro|se|sf|sm|so|sp|ss|th|tv|vm|wd|wl)_/, "");
-        filename = filename.replace(/_/g, " ");
-        filename = filename.substr(0, 1).toUpperCase() + filename.substr(1);
-        return filename;
+    getByName(name: string): Software {
+        const carts = MoreSoftwareService.carts;
+        for (let i = 0; i < carts.length; i++) {
+            const cart: string[] = carts[i];
+            const cartName: string = this.getName(cart);
+            if (cartName.toLowerCase() === name.toLowerCase()) {
+                return this.createSoftware(cartName, cart[0]);
+            }
+        }
+        return null;
+    }
+
+    private getName(cart: string[]) {
+        if (cart[1]) {
+            return cart[1];
+        } else {
+            let filename = cart[0];
+            filename = filename.replace(/^(ag|as|aw|co|cy|db|dc|de|dlm|dv|fw|im|jp|mb|mi|na|ni|pb|ro|se|sf|sm|so|sp|ss|th|tv|vm|wd|wl)_/, "");
+            filename = filename.replace(/_/g, " ");
+            filename = filename.substr(0, 1).toUpperCase() + filename.substr(1);
+            return filename;
+        }
+    }
+
+    private createSoftware(name: string, filename: string) {
+        const software = new Software();
+        software.name = name;
+        software.url = "carts/" + filename + ".rpk";
+        return software;
     }
 }

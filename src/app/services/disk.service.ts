@@ -80,7 +80,7 @@ export class DiskService {
                     reader.onload = function () {
                         service.objectLoaderService.loadObjFile(reader.result);
                         service.commandDispatcherService.loadSoftware(
-                            service.objectLoaderService.getSoftware()
+                            service.objectLoaderService.getSoftware(), false
                         );
                         subject.next();
                     };

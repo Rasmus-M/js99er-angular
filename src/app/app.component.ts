@@ -14,6 +14,11 @@ import {DiskService} from './services/disk.service';
 import {MatTabChangeEvent} from '@angular/material';
 import {DatabaseService} from './services/database.service';
 import {DiskDrive} from './emulator/classes/diskdrive';
+import {ActivatedRoute, NavigationStart, ParamMap, Router, RouterEvent, RouterState, UrlSegment} from '@angular/router';
+import {ModuleService} from './services/module.service';
+import {Software} from './classes/software';
+import {MoreSoftwareComponent} from './components/more-software/more-software.component';
+import {MoreSoftwareService} from './services/more-software.service';
 
 @Component({
     selector: 'app-root',
@@ -28,24 +33,50 @@ export class AppComponent implements OnInit, OnDestroy {
     ti994A: TI994A;
     tabIndex: number;
 
+    private routerSubscription: Subscription;
     private commandSubscription: Subscription;
     private eventSubscription: Subscription;
     private log: Log = Log.getLog();
 
     constructor(
         private element: ElementRef,
+        private router: Router,
+        private activatedRoute: ActivatedRoute,
         private audioService: AudioService,
         private commandDispatcherService: CommandDispatcherService,
         private eventDispatcherService: EventDispatcherService,
         private settingsService: SettingsService,
         private diskService: DiskService,
-        private databaseService: DatabaseService
+        private databaseService: DatabaseService,
+        private moduleService: ModuleService,
+        private moreSoftwareService: MoreSoftwareService
     ) {}
 
     ngOnInit() {
         this.diskImages = this.diskService.createDefaultDiskImages();
+        this.routerSubscription = this.router.events.subscribe(this.onRouterEvent.bind(this));
         this.commandSubscription = this.commandDispatcherService.subscribe(this.onCommand.bind(this));
         this.eventSubscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
+    }
+
+    onRouterEvent(event: RouterEvent) {
+        if (event instanceof NavigationStart) {
+            const cartName = decodeURI(event.url.split("/").pop());
+            this.log.info("Load cart: " + cartName);
+            const cart: Software = this.moreSoftwareService.getByName(cartName);
+            if (cart) {
+                this.moduleService.loadRPKModuleFromURL("assets/" + cart.url).subscribe(
+                    (software: Software) => {
+                        this.commandDispatcherService.loadSoftware(software, true);
+                    },
+                    (error) => {
+                        this.log.error(error + " " + cart.url);
+                    }
+                );
+            } else {
+                this.log.error("Cart not found: " + cartName);
+            }
+        }
     }
 
     onCommand(command: Command) {
@@ -257,6 +288,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
+        this.routerSubscription.unsubscribe();
         this.commandSubscription.unsubscribe();
         this.eventSubscription.unsubscribe();
     }
