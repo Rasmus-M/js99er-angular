@@ -47,7 +47,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         this.canvas = this.element.nativeElement.querySelector('canvas');
         this.ti994A = new TI994A(document, this.canvas, this.diskImages, this.settingsService.getSettings(), this.onBreakpoint.bind(this));
         this.eventDispatcherService.ready(this.ti994A);
-        this.start(false);
+        // this.start(false);
     }
 
     reset() {

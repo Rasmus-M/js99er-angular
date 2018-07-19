@@ -3,8 +3,9 @@ import {BrowserModule} from '@angular/platform-browser';
 import {AngularFontAwesomeModule} from 'angular-font-awesome';
 import {HttpClientModule} from '@angular/common/http';
 import {FormsModule} from '@angular/forms';
+import {ReactiveFormsModule} from '@angular/forms';
 import {MatMenuModule, MatTabsModule, MatCardModule, MatButtonModule, MatCheckboxModule, MatSelectModule, MatIconModule, MatDividerModule,
-        MatToolbarModule, MatTableModule, MatInputModule} from '@angular/material';
+        MatToolbarModule, MatTableModule, MatInputModule, MatDialogModule, MatListModule, MatAutocompleteModule} from '@angular/material';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 import {EmulatorModule} from './emulator/emulator.module';
@@ -25,7 +26,8 @@ import {EventDispatcherService} from './services/event-dispatcher.service';
 import {KeyboardComponent} from './components/keyboard/keyboard.component';
 import {DiskComponent} from './components/disk/disk.component';
 import {TapeComponent} from './components/tape/tape.component';
-import { SoftwareMenuComponent } from './components/software-menu/software-menu.component';
+import {SoftwareMenuComponent} from './components/software-menu/software-menu.component';
+import {MoreSoftwareComponent} from './components/more-software/more-software.component';
 
 @NgModule({
     declarations: [
@@ -37,10 +39,13 @@ import { SoftwareMenuComponent } from './components/software-menu/software-menu.
         KeyboardComponent,
         DiskComponent,
         TapeComponent,
-        SoftwareMenuComponent
+        SoftwareMenuComponent,
+        MoreSoftwareComponent
     ],
     imports: [
         BrowserModule,
+        FormsModule,
+        ReactiveFormsModule,
         MatMenuModule,
         MatTabsModule,
         MatCardModule,
@@ -52,11 +57,13 @@ import { SoftwareMenuComponent } from './components/software-menu/software-menu.
         MatToolbarModule,
         MatTableModule,
         MatInputModule,
+        MatDialogModule,
+        MatListModule,
+        MatAutocompleteModule,
         BrowserAnimationsModule,
         AngularFontAwesomeModule,
         HttpClientModule,
-        EmulatorModule,
-        FormsModule
+        EmulatorModule
     ],
     providers: [
         ModuleService,
@@ -68,7 +75,9 @@ import { SoftwareMenuComponent } from './components/software-menu/software-menu.
         ObjectLoaderService,
         SoftwareMenuService,
         SettingsService
-
+    ],
+    entryComponents: [
+        MoreSoftwareComponent
     ],
     bootstrap: [
         AppComponent

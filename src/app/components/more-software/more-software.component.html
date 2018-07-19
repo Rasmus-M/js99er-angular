@@ -1,0 +1,14 @@
+<mat-dialog-content>
+    <mat-form-field class="full-width">
+        <input type="text" matInput [formControl]="cartControl" [matAutocomplete]="auto" placeholder="Select a cartridge to load">
+    </mat-form-field>
+    <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayCart">
+        <mat-option *ngFor="let cart of filteredCarts | async" [value]="cart">
+            {{cart.name}}
+        </mat-option>
+    </mat-autocomplete>
+</mat-dialog-content>
+<mat-dialog-actions>
+    <button mat-raised-button color="primary" (click)="onOK()">OK</button>
+    <button mat-raised-button mat-dialog-close>Close</button>
+</mat-dialog-actions>

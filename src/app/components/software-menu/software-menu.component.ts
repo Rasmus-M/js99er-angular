@@ -3,6 +3,9 @@ import {Software} from '../../classes/software';
 import {SoftwareMenuService} from '../../services/software-menu.service';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {Log} from '../../classes/log';
+import {MoreSoftwareComponent} from '../more-software/more-software.component';
+import {MatDialog} from '@angular/material';
+import {MoreSoftwareService} from '../../services/more-software.service';
 
 @Component({
     selector: 'app-software-menu',
@@ -17,7 +20,9 @@ export class SoftwareMenuComponent implements OnInit {
 
     constructor(
         private softwareMenuService: SoftwareMenuService,
-        private commandDispatcherService: CommandDispatcherService
+        private moreSoftwareService: MoreSoftwareService,
+        private commandDispatcherService: CommandDispatcherService,
+        public dialog: MatDialog
     ) {}
 
     ngOnInit() {
@@ -35,4 +40,15 @@ export class SoftwareMenuComponent implements OnInit {
         );
     }
 
+    openMoreDialog(): void {
+        const dialogRef = this.dialog.open(MoreSoftwareComponent, {
+            width: '400px',
+            data: this.moreSoftwareService.getAllCarts()
+        });
+        dialogRef.afterClosed().subscribe(result => {
+            if (result instanceof Software) {
+                this.openSoftware(result.url);
+            }
+        });
+    }
 }
