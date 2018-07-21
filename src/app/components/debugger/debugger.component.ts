@@ -186,12 +186,12 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             this.commandDispatcherService.setBreakpoint(addr);
             this.breakpointAddress = Util.toHexWordShort(value);
         }
-        this.ti994A.getKeyboard().start();
+        this.commandDispatcherService.startKeyboard();
         this.updateDebugger();
     }
 
     onTextFocus() {
-        this.ti994A.getKeyboard().stop();
+        this.commandDispatcherService.stopKeyboard();
     }
 
     ngOnDestroy() {

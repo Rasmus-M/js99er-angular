@@ -130,4 +130,12 @@ export class CommandDispatcherService {
     restoreState() {
         this.commandSubject.next(new Command(CommandType.RESTORE_STATE, null));
     }
+
+    stopKeyboard() {
+        this.commandSubject.next(new Command(CommandType.STOP_KEYBOARD, null));
+    }
+
+    startKeyboard() {
+        this.commandSubject.next(new Command(CommandType.START_KEYBOARD, null));
+    }
 }

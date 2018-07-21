@@ -238,6 +238,12 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.eventDispatcherService.tapeRewound();
                 }
                 break;
+            case CommandType.STOP_KEYBOARD:
+                this.ti994A.getKeyboard().stop();
+                break;
+            case CommandType.START_KEYBOARD:
+                this.ti994A.getKeyboard().start();
+                break;
         }
     }
 

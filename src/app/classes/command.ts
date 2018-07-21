@@ -25,7 +25,9 @@ export enum CommandType {
     REWIND_TAPE = "Rewind tape",
     STOP_TAPE = "Stop tape",
     SAVE_STATE = "Save state",
-    RESTORE_STATE = "Restore state"
+    RESTORE_STATE = "Restore state",
+    STOP_KEYBOARD = "Stop keyboard",
+    START_KEYBOARD = "Start keyboard"
 }
 
 export class Command {

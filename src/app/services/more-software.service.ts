@@ -595,7 +595,7 @@ export class MoreSoftwareService {
         const sortedCarts: Software[] = [];
         for (let i = 0; i < carts.length; i++) {
             const cart = carts[i];
-            sortedCarts.push(this.createSoftware(cart[0], this.getName(cart)));
+            sortedCarts.push(this.createSoftware(this.getName(cart), cart[0]));
         }
         sortedCarts.sort((s1: Software, s2: Software) => {
             return s1.name > s2.name ? 1 : (s1.name > s2.name ? -1 : 0);
@@ -627,10 +627,10 @@ export class MoreSoftwareService {
         }
     }
 
-    private createSoftware(name: string, filename: string) {
+    private createSoftware(name: string, url: string) {
         const software = new Software();
         software.name = name;
-        software.url = "carts/" + filename + ".rpk";
+        software.url = "carts/" + url + ".rpk";
         return software;
     }
 }
