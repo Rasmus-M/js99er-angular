@@ -94,7 +94,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
 
     updateDebugger() {
         if (this.visible && this.ti994A) {
-            console.log("Update debugger");
+            // console.log("Update debugger");
             this.statusString = this.ti994A.getStatusString();
             let viewObj: {lines: string[], anchorLine: number};
             const pc = this.ti994A.getPC();
