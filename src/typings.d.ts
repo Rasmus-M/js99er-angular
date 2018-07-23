@@ -4,10 +4,6 @@ interface NodeModule {
   id: string;
 }
 
-interface JQuery {
-   selectpicker(options: any): any;
-}
-
 interface Window {
     zip: any;
 }

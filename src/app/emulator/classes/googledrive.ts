@@ -1,4 +1,4 @@
-import gapi from 'gapi-client';
+import * as gapi from 'gapi-client';
 import {AccessType, DataType, DiskError, FileType, OpCode, OperationMode, RecordType} from './disk';
 import {Log} from '../../classes/log';
 import {TI994A} from './ti994a';
@@ -122,6 +122,7 @@ export class GoogleDrive {
 
         if (refresh || !GoogleDrive.AUTHORIZED) {
             if (gapi.auth) {
+                gapi.elemnt();
                 gapi.auth.authorize(
                     {'client_id': CLIENT_ID, 'scope': SCOPES, 'immediate': true},
                     (authResult) => {
@@ -151,6 +152,7 @@ export class GoogleDrive {
                 );
             } else {
                 Log.getLog().error("Google Drive access failed");
+                console.log(gapi, gapi.auth);
                 setTimeout(failure, 0);
             }
         } else {
@@ -159,7 +161,20 @@ export class GoogleDrive {
     };
 
     static powerUp = function (memory: Memory) {
+        const log: Log = Log.getLog();
         Log.getLog().info("Executing Google Drive DSR power-up routine.");
+        gapi.load('client:auth2', {
+            callback: () => {
+                log.info("OK");
+            },
+            onError: () => {
+                log.error("Error");
+            },
+            timeout: 5000,
+            onTimeout: () => {
+                log.warn("Timeout");
+            }
+        });
     };
 
     constructor(name: string, path: string, console: TI994A) {
