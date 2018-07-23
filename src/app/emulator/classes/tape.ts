@@ -66,6 +66,7 @@ export class Tape implements State {
         this.samplesPerBit = Math.floor(Tape.LEVEL_CHANGE_DURATION * this.sampleRate);
         if (this.sampleRate !== 0 && this.sampleRate !== 48000) {
             // TODO: Resample ZERO and ONE
+            this.log.warn("Sample rate is " + this.sampleRate + ", not 48000.");
         }
         this.recordPressed = false;
         this.playPressed = false;
@@ -106,7 +107,7 @@ export class Tape implements State {
                     callback();
                 },
                 function (e) {
-                    tape.log.error("Error decoding audio data" + e.err);
+                    tape.log.error("Error decoding audio data: " + e);
                 }
             );
         }
@@ -338,7 +339,7 @@ export class Tape implements State {
         }
         const audioBuffer = this.audioContext.createBuffer(1, array.length, this.sampleRate);
         audioBuffer.copyToChannel(array, 0);
-        return AudioBufferToWav.convert(audioBuffer, { float32: true });
+        return AudioBufferToWav.convert(audioBuffer, { float32: false });
     }
 
     getState() {
