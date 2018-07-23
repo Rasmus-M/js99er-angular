@@ -16,7 +16,6 @@ export class SettingsService {
     ) {
         this.settings = new Settings();
         this.loadState();
-        this.settings.setGoogleDriveEnabled(false);
     }
 
     loadState() {

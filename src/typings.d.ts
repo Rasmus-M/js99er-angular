@@ -6,4 +6,5 @@ interface NodeModule {
 
 interface Window {
     zip: any;
+    gapi: any;
 }

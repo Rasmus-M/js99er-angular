@@ -1,4 +1,4 @@
-import * as gapi from 'gapi-client';
+// import {google as gapi} from 'googleapis';
 import {AccessType, DataType, DiskError, FileType, OpCode, OperationMode, RecordType} from './disk';
 import {Log} from '../../classes/log';
 import {TI994A} from './ti994a';
@@ -121,9 +121,8 @@ export class GoogleDrive {
         const SCOPES = 'https://www.googleapis.com/auth/drive';
 
         if (refresh || !GoogleDrive.AUTHORIZED) {
-            if (gapi.auth) {
-                gapi.elemnt();
-                gapi.auth.authorize(
+            if (window.gapi.auth) {
+                window.gapi.auth.authorize(
                     {'client_id': CLIENT_ID, 'scope': SCOPES, 'immediate': true},
                     (authResult) => {
                         if (authResult && !authResult.error) {
@@ -133,7 +132,7 @@ export class GoogleDrive {
                             success();
                         } else {
                             // No access token could be retrieved, show the button to start the authorization flow.
-                            gapi.auth.authorize(
+                            window.gapi.auth.authorize(
                                 {'client_id': CLIENT_ID, 'scope': SCOPES, 'immediate': false},
                                 (authResult2) => {
                                     if (authResult2 && !authResult2.error) {
@@ -152,7 +151,6 @@ export class GoogleDrive {
                 );
             } else {
                 Log.getLog().error("Google Drive access failed");
-                console.log(gapi, gapi.auth);
                 setTimeout(failure, 0);
             }
         } else {
@@ -163,7 +161,8 @@ export class GoogleDrive {
     static powerUp = function (memory: Memory) {
         const log: Log = Log.getLog();
         Log.getLog().info("Executing Google Drive DSR power-up routine.");
-        gapi.load('client:auth2', {
+        /*
+        window.gapi.load('client:auth2', {
             callback: () => {
                 log.info("OK");
             },
@@ -175,6 +174,7 @@ export class GoogleDrive {
                 log.warn("Timeout");
             }
         });
+        */
     };
 
     constructor(name: string, path: string, console: TI994A) {
@@ -601,7 +601,7 @@ export class GoogleDrive {
    }
 
     getFiles(parent, callback) {
-        const request = gapi.client.request({
+        const request = window.gapi.client.request({
             'path': '/drive/v2/files',
             'method': 'GET',
             'params': {'q': "mimeType !== 'application/vnd.google-apps.folder' and '" + parent + "' in parents and trashed = false"}
@@ -612,7 +612,7 @@ export class GoogleDrive {
    }
 
     findFile(fileName, parent, callback) {
-        const request = gapi.client.request({
+        const request = window.gapi.client.request({
             'path': '/drive/v2/files',
             'method': 'GET',
             'params': {'q': "mimeType !== 'application/vnd.google-apps.folder' and title = '" + fileName + "' and '" + parent + "' in parents and trashed = false"}
@@ -621,14 +621,14 @@ export class GoogleDrive {
         request.execute((result) => {
             // console.log(result);
             const items = result.items;
-            const id = items.length > 0 ? items[0].id : null;
+            const id = items && items.length > 0 ? items[0].id : null;
             this.log.info("findFile '" + fileName + "': " + id);
             callback(id);
         });
    }
 
     getFile(fileId, callback) {
-        const request = gapi.client.request({
+        const request = window.gapi.client.request({
             'path': '/drive/v2/files/' + fileId,
             'method': 'GET'
         });
@@ -660,7 +660,7 @@ export class GoogleDrive {
         this.getFile(fileId, (file) => {
             if (file.downloadUrl) {
                 this.log.info("getFileContent: " + file.title);
-                const accessToken = gapi.auth.getToken().access_token;
+                const accessToken = window.gapi.auth.getToken().access_token;
                 const xhr = new XMLHttpRequest();
                 xhr.open('GET', file.downloadUrl);
                 xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
@@ -717,7 +717,7 @@ export class GoogleDrive {
                 base64Data +
                 close_delim;
 
-            const request = gapi.client.request({
+            const request = window.gapi.client.request({
                 'path': '/upload/drive/v2/files',
                 'method': 'POST',
                 'params': {'uploadType': 'multipart'},
@@ -752,7 +752,7 @@ export class GoogleDrive {
                     base64Data +
                     close_delim;
 
-                const request = gapi.client.request({
+                const request = window.gapi.client.request({
                     'path': '/upload/drive/v2/files/' + fileId,
                     'method': 'PUT',
                     'params': {'uploadType': 'multipart', 'alt': 'json'},
@@ -789,7 +789,7 @@ export class GoogleDrive {
             'mimeType': 'application/vnd.google-apps.folder'
         };
 
-        const request = gapi.client.request({
+        const request = window.gapi.client.request({
             'path': '/drive/v2/files',
             'method': 'POST',
             'body': JSON.stringify(metadata)
@@ -803,7 +803,7 @@ export class GoogleDrive {
    }
 
     getFolder(folderName, parent, callback) {
-        const request = gapi.client.request({
+        const request = window.gapi.client.request({
             'path': '/drive/v2/files',
             'method': 'GET',
             'params': {'q': "mimeType = 'application/vnd.google-apps.folder' and title = '" + folderName + "' and '" + parent + "' in parents and trashed = false"}
