@@ -76,7 +76,7 @@ export class DiskImage implements State {
         this.fireEvent(new DiskImageEvent("fileDeleted", fileName));
     }
 
-    loadTIFile(fileName: string, fileBuffer: Uint8Array, ignoreTIFileName: boolean) {
+    loadTIFile(fileName: string, fileBuffer: Uint8Array, ignoreTIFileName: boolean): DiskFile {
         if (fileBuffer != null && fileBuffer.length > 0x80) {
             let sectors;
             let flags;

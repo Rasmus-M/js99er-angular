@@ -248,11 +248,12 @@ export class TMS9900 implements CPU {
                         case 2:
                             if (this.PC >= GoogleDrive.DSR_HOOK_START && this.PC <= GoogleDrive.DSR_HOOK_END) {
                                 const that = this;
-                                if (GoogleDrive.execute(this.PC, this.googleDrives, this.memory, function (success) {
-                                    that.log.debug("CPU resumed");
+                                if (GoogleDrive.execute(this.PC, this.googleDrives, this.memory, function (success: boolean) {
+                                    that.log.debug("CPU resumed, success=" + success);
                                     that.setSuspended(false);
-                                }.bind(this))) {
-                                    // Google drive is asynchronous - we cannot continue until after the callback
+                                })) {
+                                    // A return value of true means an asynchronous action is taking place
+                                    // We need to suspend and wait for the callback
                                     this.log.debug("CPU suspended");
                                     this.setSuspended(true);
                                 }

@@ -1,4 +1,4 @@
-// import {google as gapi} from 'googleapis';
+import * as gapi from 'gapi-client';
 import {AccessType, DataType, DiskError, FileType, OpCode, OperationMode, RecordType} from './disk';
 import {Log} from '../../classes/log';
 import {TI994A} from './ti994a';
@@ -61,6 +61,8 @@ export class GoogleDrive {
     static DSR_HOOK_START = GoogleDrive.DSR_ROM_POWER_UP;
     static DSR_HOOK_END = GoogleDrive.DSR_ROM_GDR3;
 
+    static CLIENT_ID = "101694421528-72cnh0nor5rvoj245fispof8hdaq47i4.apps.googleusercontent.com";
+    static SCOPES = 'https://www.googleapis.com/auth/drive';
     static AUTHORIZED = false;
 
     private name: string;
@@ -72,12 +74,13 @@ export class GoogleDrive {
     private catalogFile: DiskFile;
     private log: Log = Log.getLog();
 
-    static execute = function (pc: number, googleDrives: GoogleDrive[], memory: Memory, callback) {
+    static execute = function (pc: number, googleDrives: GoogleDrive[], memory: Memory, callback: (boolean) => void): boolean {
         let googleDrive = null;
         switch (pc) {
             case GoogleDrive.DSR_ROM_POWER_UP:
-                GoogleDrive.powerUp(memory);
-                return false;
+                GoogleDrive.powerUp(callback);
+                // return false; // Continue
+                return true; // Suspend CPU until callback
             case GoogleDrive.DSR_ROM_GDR1:
                 googleDrive = googleDrives[0];
                 break;
@@ -88,7 +91,7 @@ export class GoogleDrive {
                 googleDrive = googleDrives[2];
                 break;
             default:
-                return false;
+                return false; // Continue
         }
         if (googleDrive !== null) {
             const pabAddr = memory.getPADWord(0x8356) - 14;
@@ -100,82 +103,57 @@ export class GoogleDrive {
                         googleDrive.log.info("Returned error code: " + errorCode + "\n");
                         googleDrive.ram[pabAddr + 1] = (googleDrive.ram[pabAddr + 1] | (errorCode << 5)) & 0xFF;
                         memory.setPADByte(0x837C, memory.getPADByte(0x837C) | status);
-                        callback(true);
+                        callback(true); // Resume CPU
                     });
                 },
                 () => {
                     googleDrive.log.info("Failed opcode: " + opCode);
                     googleDrive.ram[pabAddr + 1] = (googleDrive.ram[pabAddr + 1] | (DiskError.DEVICE_ERROR << 5)) & 0xFF;
                     memory.setPADByte(0x837C, memory.getPADByte(0x837C) | 0x20);
-                    callback(false);
+                    callback(false); // Resume CPU
                 }
             );
-            return true;
+            return true; // Suspend CPU until callback
         }
-        return false;
+        return false; // Continue
     };
 
     static authorize = function (refresh: boolean, success: () => void, failure: () => void) {
-
-        const CLIENT_ID = "101694421528-72cnh0nor5rvoj245fispof8hdaq47i4.apps.googleusercontent.com";
-        const SCOPES = 'https://www.googleapis.com/auth/drive';
-
-        if (refresh || !GoogleDrive.AUTHORIZED) {
-            if (window.gapi.auth) {
-                window.gapi.auth.authorize(
-                    {'client_id': CLIENT_ID, 'scope': SCOPES, 'immediate': true},
-                    (authResult) => {
-                        if (authResult && !authResult.error) {
-                            // Access token has been successfully retrieved, requests can be sent to the API.
-                            Log.getLog().info("Google Drive authorization OK");
-                            GoogleDrive.AUTHORIZED = true;
-                            success();
-                        } else {
-                            // No access token could be retrieved, show the button to start the authorization flow.
-                            window.gapi.auth.authorize(
-                                {'client_id': CLIENT_ID, 'scope': SCOPES, 'immediate': false},
-                                (authResult2) => {
-                                    if (authResult2 && !authResult2.error) {
-                                        // Access token has been successfully retrieved, requests can be sent to the API.
-                                        Log.getLog().info("Google Drive authorization OK");
-                                        GoogleDrive.AUTHORIZED = true;
-                                        success();
-                                    } else {
-                                        Log.getLog().warn("Google Drive authorization failed");
-                                        failure();
-                                    }
-                                }
-                            );
-                        }
-                    }
-                );
-            } else {
-                Log.getLog().error("Google Drive access failed");
-                setTimeout(failure, 0);
-            }
+       if (GoogleDrive.AUTHORIZED) {
+            setTimeout(success);
         } else {
-            setTimeout(success, 0);
+            Log.getLog().warn("Not signed in to Google");
+            setTimeout(failure);
         }
     };
 
-    static powerUp = function (memory: Memory) {
-        const log: Log = Log.getLog();
-        Log.getLog().info("Executing Google Drive DSR power-up routine.");
-        /*
-        window.gapi.load('client:auth2', {
-            callback: () => {
-                log.info("OK");
-            },
-            onError: () => {
-                log.error("Error");
-            },
-            timeout: 5000,
-            onTimeout: () => {
-                log.warn("Timeout");
-            }
+    static powerUp = function (callback: (boolean) => void) {
+        const log = Log.getLog();
+        log.info("Executing Google Drive DSR power-up routine.");
+        gapi.load("client:auth2", function() {
+            log.info("Google library loaded");
+            gapi.client.init({
+                clientId: GoogleDrive.CLIENT_ID,
+                scope: GoogleDrive.SCOPES
+            }).then(function () {
+                log.info("Google client init OK");
+                const authInstance = gapi.auth2.getAuthInstance();
+                if (authInstance.isSignedIn.get()) {
+                    log.info("Already signed in.");
+                    GoogleDrive.AUTHORIZED = true;
+                    callback(true);
+                } else {
+                    authInstance.signIn();
+                    authInstance.isSignedIn.listen(function (isSignedIn) {
+                        log.info("Signed in: " + isSignedIn);
+                        GoogleDrive.AUTHORIZED = isSignedIn;
+                        callback(isSignedIn);
+                    });
+                }
+            });
         });
-        */
     };
+
 
     constructor(name: string, path: string, console: TI994A) {
         this.name = name;
@@ -309,7 +287,6 @@ export class GoogleDrive {
                                                 const fileData = that.diskImage.saveTIFile(fileName);
                                                 if (fileData !== null) {
                                                     that.insertOrUpdateFile(fileName, parent, fileData, (file2) => {
-                                                        // console.log(file2);
                                                         callback(0, 0);
                                                     });
                                                 } else {
@@ -482,7 +459,6 @@ export class GoogleDrive {
                             const saveBuffer = that.diskImage.saveTIFile(fileName);
                             if (saveBuffer !== null) {
                                 that.insertOrUpdateFile(fileName, parent, saveBuffer, (file2) => {
-                                    // console.log(file2);
                                     callback(0, 0);
                                 });
                             } else {
@@ -514,7 +490,7 @@ export class GoogleDrive {
         });
    }
 
-    createCatalogFile(files: any[]) {
+    createCatalogFile(files: any[]): DiskFile {
         const catFile = new DiskFile("CATALOG", FileType.DATA, RecordType.FIXED, 38, DataType.INTERNAL);
         catFile.open(OperationMode.OUTPUT, AccessType.SEQUENTIAL);
         const data = [];
@@ -532,7 +508,7 @@ export class GoogleDrive {
                 type = 5;
             } else {
                 type = 1; // DF
-                if (file.getDatatype() === DataType.INTERNAL) {
+                if (file.getDataType() === DataType.INTERNAL) {
                     type += 2;
                 }
                 if (file.getRecordType() === RecordType.VARIABLE) {
@@ -601,10 +577,10 @@ export class GoogleDrive {
    }
 
     getFiles(parent, callback) {
-        const request = window.gapi.client.request({
+        const request = gapi.client.request({
             'path': '/drive/v2/files',
             'method': 'GET',
-            'params': {'q': "mimeType !== 'application/vnd.google-apps.folder' and '" + parent + "' in parents and trashed = false"}
+            'params': {'q': "mimeType != 'application/vnd.google-apps.folder' and '" + parent + "' in parents and trashed = false"}
         });
         request.execute((result) => {
             callback(result.items);
@@ -612,14 +588,13 @@ export class GoogleDrive {
    }
 
     findFile(fileName, parent, callback) {
-        const request = window.gapi.client.request({
+        const request = gapi.client.request({
             'path': '/drive/v2/files',
             'method': 'GET',
-            'params': {'q': "mimeType !== 'application/vnd.google-apps.folder' and title = '" + fileName + "' and '" + parent + "' in parents and trashed = false"}
+            'params': {'q': "mimeType != 'application/vnd.google-apps.folder' and title = '" + fileName + "' and '" + parent + "' in parents and trashed = false"}
         });
 
         request.execute((result) => {
-            // console.log(result);
             const items = result.items;
             const id = items && items.length > 0 ? items[0].id : null;
             this.log.info("findFile '" + fileName + "': " + id);
@@ -628,7 +603,7 @@ export class GoogleDrive {
    }
 
     getFile(fileId, callback) {
-        const request = window.gapi.client.request({
+        const request = gapi.client.request({
             'path': '/drive/v2/files/' + fileId,
             'method': 'GET'
         });
@@ -651,7 +626,7 @@ export class GoogleDrive {
                     _getFileContents(items, callback2);
                 });
             } else {
-                callback();
+                callback2();
             }
         }
    }
@@ -660,7 +635,7 @@ export class GoogleDrive {
         this.getFile(fileId, (file) => {
             if (file.downloadUrl) {
                 this.log.info("getFileContent: " + file.title);
-                const accessToken = window.gapi.auth.getToken().access_token;
+                const accessToken = gapi.auth.getToken().access_token;
                 const xhr = new XMLHttpRequest();
                 xhr.open('GET', file.downloadUrl);
                 xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
@@ -717,7 +692,7 @@ export class GoogleDrive {
                 base64Data +
                 close_delim;
 
-            const request = window.gapi.client.request({
+            const request = gapi.client.request({
                 'path': '/upload/drive/v2/files',
                 'method': 'POST',
                 'params': {'uploadType': 'multipart'},
@@ -752,7 +727,7 @@ export class GoogleDrive {
                     base64Data +
                     close_delim;
 
-                const request = window.gapi.client.request({
+                const request = gapi.client.request({
                     'path': '/upload/drive/v2/files/' + fileId,
                     'method': 'PUT',
                     'params': {'uploadType': 'multipart', 'alt': 'json'},
@@ -789,7 +764,7 @@ export class GoogleDrive {
             'mimeType': 'application/vnd.google-apps.folder'
         };
 
-        const request = window.gapi.client.request({
+        const request = gapi.client.request({
             'path': '/drive/v2/files',
             'method': 'POST',
             'body': JSON.stringify(metadata)
@@ -803,7 +778,7 @@ export class GoogleDrive {
    }
 
     getFolder(folderName, parent, callback) {
-        const request = window.gapi.client.request({
+        const request = gapi.client.request({
             'path': '/drive/v2/files',
             'method': 'GET',
             'params': {'q': "mimeType = 'application/vnd.google-apps.folder' and title = '" + folderName + "' and '" + parent + "' in parents and trashed = false"}
@@ -813,7 +788,6 @@ export class GoogleDrive {
             const items = result.items;
             const id = items.length > 0 ? items[0].id : null;
             this.log.info("getFolder '" + folderName + "': " + id);
-            // console.log(result);
             callback(id);
         });
    }

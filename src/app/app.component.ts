@@ -17,7 +17,6 @@ import {DiskDrive} from './emulator/classes/diskdrive';
 import {ActivatedRoute, NavigationStart, ParamMap, Router, RouterEvent, RouterState, UrlSegment} from '@angular/router';
 import {ModuleService} from './services/module.service';
 import {Software} from './classes/software';
-import {MoreSoftwareComponent} from './components/more-software/more-software.component';
 import {MoreSoftwareService} from './services/more-software.service';
 
 @Component({
