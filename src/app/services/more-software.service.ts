@@ -584,7 +584,21 @@ export class MoreSoftwareService {
         ['worm_attack', null],
         ['ww_editass2_easybug', null],
         ['yahtzee', null],
-        ['RockRunner', 'Rock Runner (ROM)']
+        ['RockRunner', 'Rock Runner (ROM)'],
+        ['atarisoft-multicart', 'Atarisoft multicart'],
+        ['bouncy', null],
+        ['doa', 'Dungeons of Asgaard'],
+        ['flappybird', null],
+        ['flying-shark-1.2.1', 'Flying Shark'],
+        ['formula99', 'Formula 99 demo'],
+        ['jsw', 'Jet Set Willy'],
+        ['knightlore', null],
+        ['RoadHunter', 'Road Hunter'],
+        ['sabrewulf', null],
+        ['skyway', null],
+        ['sports', 'Sports Game'],
+        ['tiscramble', 'TI Scramble'],
+        ['titanium', null]
     ];
 
     constructor() {
