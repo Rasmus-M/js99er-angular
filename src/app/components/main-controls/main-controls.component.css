@@ -4,7 +4,7 @@
     }
 
     .toolbar-button {
-        min-width: 96px;
+        min-width: auto;
     }
 }
 
