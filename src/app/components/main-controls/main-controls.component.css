@@ -1,10 +1,22 @@
-.toolbar {
-    height: auto;
-    min-height: 64px;
-    flex-wrap: wrap;
-    padding-top: 16px;
+@media (min-aspect-ratio: 14/9) {
+    .toolbar {
+        overflow-x: hidden;
+    }
+
+    .toolbar-button {
+        min-width: 96px;
+    }
 }
 
-.toolbar-button {
-    margin-bottom: 16px;
+@media (max-aspect-ratio: 14/9) {
+    .toolbar {
+        height: auto;
+        min-height: 64px;
+        flex-wrap: wrap;
+        padding-top: 16px;
+    }
+
+    .toolbar-button {
+        margin-bottom: 16px;
+    }
 }
