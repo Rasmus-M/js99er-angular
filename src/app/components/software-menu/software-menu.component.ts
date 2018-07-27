@@ -14,7 +14,7 @@ import {MoreSoftwareService} from '../../services/more-software.service';
 })
 export class SoftwareMenuComponent implements OnInit {
 
-    @Input() menuData: any;
+    menuData: any;
 
     private log: Log = Log.getLog();
 
@@ -26,6 +26,12 @@ export class SoftwareMenuComponent implements OnInit {
     ) {}
 
     ngOnInit() {
+        this.softwareMenuService.getMenuData().subscribe(
+            (menuData) => {
+                this.menuData = menuData;
+            },
+            this.log.error
+        );
     }
 
     openSoftware(url) {
@@ -33,9 +39,7 @@ export class SoftwareMenuComponent implements OnInit {
             (software: Software) => {
                 this.commandDispatcherService.loadSoftware(software, false);
             },
-            (error) => {
-                this.log.error(error);
-            }
+            this.log.error
         );
     }
 

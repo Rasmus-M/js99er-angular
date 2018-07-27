@@ -14,7 +14,6 @@ export class MainControlsComponent implements OnInit, OnDestroy {
 
     running = false;
     driveIndex = 0;
-    menuData = SoftwareMenuService.MENU;
 
     private subscription: Subscription;
 
