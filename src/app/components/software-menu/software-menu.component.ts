@@ -40,16 +40,21 @@ export class SoftwareMenuComponent implements OnInit {
     }
 
     openMoreDialog(): void {
-        this.commandDispatcherService.stopKeyboard();
-        const dialogRef = this.dialog.open(MoreSoftwareComponent, {
-            width: '400px',
-            data: this.moreSoftwareService.getAllCarts()
-        });
-        dialogRef.afterClosed().subscribe(result => {
-            this.commandDispatcherService.startKeyboard();
-            if (result instanceof Software) {
-                this.openSoftware(result.url);
-            }
-        });
+        this.moreSoftwareService.getIndex().subscribe(
+            (carts: Software[]) => {
+                this.commandDispatcherService.stopKeyboard();
+                const dialogRef = this.dialog.open(MoreSoftwareComponent, {
+                    width: '400px',
+                    data: carts
+                });
+                dialogRef.afterClosed().subscribe(result => {
+                    this.commandDispatcherService.startKeyboard();
+                    if (result instanceof Software) {
+                        this.openSoftware(result.url);
+                    }
+                });
+            },
+            this.log.error
+        );
     }
 }

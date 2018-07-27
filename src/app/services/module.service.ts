@@ -19,6 +19,18 @@ export class ModuleService {
         this.zipService = zipService;
     }
 
+    private static hexArrayToByteArray(hexArray) {
+        const binArray = [];
+        let n = 0;
+        for (let i = 0; i < hexArray.length; i++) {
+            const row = hexArray[i];
+            for (let j = 0; j < row.length; j += 2) {
+                binArray[n++] = parseInt(row.substr(j, 2), 16);
+            }
+        }
+        return new Uint8Array(binArray);
+    }
+
     loadModuleFromFile(file): Observable<Software> {
         let extension = file.name.split('.').pop();
         extension = extension ? extension.toLowerCase() : "";
@@ -124,7 +136,6 @@ export class ModuleService {
                                 }
                                 filesToLoad--;
                                 if (filesToLoad === 0) {
-                                    console.log(module);
                                     subject.next(module);
                                     subject.complete();
                                 }
@@ -258,17 +269,5 @@ export class ModuleService {
             }
         );
         return subject.asObservable();
-    }
-
-    private static hexArrayToByteArray(hexArray) {
-        const binArray = [];
-        let n = 0;
-        for (let i = 0; i < hexArray.length; i++) {
-            const row = hexArray[i];
-            for (let j = 0; j < row.length; j += 2) {
-                binArray[n++] = parseInt(row.substr(j, 2), 16);
-            }
-        }
-        return new Uint8Array(binArray);
     }
 }

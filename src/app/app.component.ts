@@ -63,19 +63,21 @@ export class AppComponent implements OnInit, OnDestroy {
             const cartName = decodeURI(event.url.split("/").pop());
             if (cartName) {
                 this.log.info("Load cart: " + cartName);
-                const cart: Software = this.moreSoftwareService.getByName(cartName);
-                if (cart) {
-                    this.moduleService.loadRPKModuleFromURL("assets/" + cart.url).subscribe(
-                        (software: Software) => {
-                            this.commandDispatcherService.loadSoftware(software, true);
-                        },
-                        (error) => {
-                            this.log.error(error + " " + cart.url);
-                        }
-                    );
-                } else {
-                    this.log.error("Cart not found: " + cartName);
-                }
+                this.moreSoftwareService.getByName(cartName).subscribe(
+                    (cart: Software) => {
+                        this.moduleService.loadRPKModuleFromURL("assets/" + cart.url).subscribe(
+                            (software: Software) => {
+                                this.commandDispatcherService.loadSoftware(software, true);
+                            },
+                            (error) => {
+                                this.log.error(error + " " + cart.url);
+                            }
+                        );
+                    },
+                    (error) => {
+                        this.log.error(error);
+                    }
+                );
             }
         }
     }

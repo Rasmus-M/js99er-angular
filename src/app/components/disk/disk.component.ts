@@ -89,13 +89,11 @@ export class DiskComponent implements OnInit, OnDestroy {
 
     onDriveIndexChanged(index: number) {
         this.driveIndex = index;
-        console.log("driveIndex=" + this.driveIndex);
         this.eventDispatcherService.diskDriveChanged(this.driveIndex);
     }
 
     onDiskImageChanged(index: number) {
         this.diskImageIndex = index;
-        console.log("diskImageIndex=" + this.diskImageIndex);
         const files = [];
         if (index >= 0) {
             const filesObject = this.diskImages[index].getFiles();

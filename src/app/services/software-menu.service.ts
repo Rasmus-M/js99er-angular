@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {Software} from '../classes/software';
 import {Observable} from 'rxjs/Observable';
 import {ModuleService} from './module.service';
-import {Subject} from 'rxjs/index';
+import {Subject} from 'rxjs';
 
 @Injectable()
 export class SoftwareMenuService {
