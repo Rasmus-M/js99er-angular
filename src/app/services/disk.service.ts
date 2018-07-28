@@ -13,6 +13,7 @@ import {Subscription} from 'rxjs/Subscription';
 import {Command, CommandType} from '../classes/command';
 import {ConsoleEvent, ConsoleEventType} from '../classes/consoleevent';
 import {DiskFile} from '../emulator/classes/diskfile';
+import {DatabaseService} from "./database.service";
 
 @Injectable()
 export class DiskService {
@@ -26,7 +27,9 @@ export class DiskService {
         private zipService: ZipService,
         private commandDispatcherService: CommandDispatcherService,
         private eventDispatcherService: EventDispatcherService,
-        private objectLoaderService: ObjectLoaderService) {
+        private objectLoaderService: ObjectLoaderService,
+        private databaseService: DatabaseService
+    ) {
         this.commandSubscription = this.commandDispatcherService.subscribe(this.onCommand.bind(this));
         this.eventSubscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
     }
@@ -142,7 +145,7 @@ export class DiskService {
         this.eventDispatcherService.diskChanged(diskImage);
     }
 
-    saveDisk(diskImage: DiskImage) {
+    saveDiskImageAs(diskImage: DiskImage) {
         const imageFile = diskImage.getBinaryImage();
         const blob = new Blob([imageFile], { type: "application/octet-stream" });
         saveAs(blob, diskImage.getName() + ".dsk");
@@ -154,7 +157,7 @@ export class DiskService {
                 this.addDisk();
                 break;
             case CommandType.SAVE_DISK:
-                this.saveDisk(command.data);
+                this.saveDiskImageAs(command.data);
                 break;
             case CommandType.DELETE_DISK:
                 this.deleteDisk(command.data);
@@ -174,5 +177,65 @@ export class DiskService {
                 }
                 break;
         }
+    }
+
+    saveDiskImages(diskImages: DiskImage[], index: number, callback: (boolean) => void) {
+        const that = this;
+        if (index === diskImages.length) {
+            callback(true);
+            return;
+        }
+        const diskImage = diskImages[index];
+        this.databaseService.putDiskImage(diskImage, function (ok) {
+            if (ok) {
+                that.saveDiskImages(diskImages, index + 1, callback);
+            } else {
+                callback(false);
+            }
+        });
+    }
+
+    saveDiskDrives(diskDrives: DiskDrive[], index: number, callback) {
+        const that = this;
+        if (index === diskDrives.length) {
+            callback(true);
+            return;
+        }
+        const diskDrive = diskDrives[index];
+        this.databaseService.putDiskDrive(diskDrive, function (ok) {
+            if (ok) {
+                that.saveDiskDrives(diskDrives, index + 1, callback);
+            } else {
+                callback(false);
+            }
+        });
+    }
+
+    restoreDiskDrives(diskDrives: DiskDrive[], diskImages: DiskImage[], index: number, callback: (boolean) => void) {
+        const that = this;
+        if (index === diskDrives.length) {
+            callback(true);
+            return;
+        }
+        const diskDriveName = diskDrives[index].getName();
+        this.databaseService.getDiskDrive(diskDriveName, function (diskDriveState) {
+            if (diskDriveState) {
+                if (diskDriveState.diskImage) {
+                    let diskImage: DiskImage = null;
+                    for (let i = 0; i < diskImages.length && !diskImage; i++) {
+                        if (diskImages[i].getName() === diskDriveState.diskImage) {
+                            diskImage = diskImages[i];
+                        }
+                    }
+                    diskDrives[index].setDiskImage(diskImage);
+                    that.log.info("Disk image " + diskDrives[index].getDiskImage().getName() + " restored to " + diskDrives[index].getName() + ".");
+                } else {
+                    diskDrives[index].setDiskImage(null);
+                }
+                that.restoreDiskDrives(diskDrives, diskImages, index + 1, callback);
+            } else {
+                callback(false);
+            }
+        });
     }
 }

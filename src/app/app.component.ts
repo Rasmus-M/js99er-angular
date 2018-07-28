@@ -124,11 +124,11 @@ export class AppComponent implements OnInit, OnDestroy {
         if (database.isSupported()) {
             database.deleteAllDiskImages(function (success) {
                 if (success) {
-                    that.saveDiskImages(that.diskImages, 0, function (success1) {
+                    that.diskService.saveDiskImages(that.diskImages, 0, function (success1) {
                         if (success1) {
                             that.log.info('Disk images saved OK.');
                             const diskDrives = that.ti994A.getDiskDrives();
-                            that.saveDiskDrives(diskDrives, 0, function (success2) {
+                            that.diskService.saveDiskDrives(diskDrives, 0, function (success2) {
                                 if (success2) {
                                     that.log.info('Disk drives saved OK.');
                                     const state = that.ti994A.getState();
@@ -166,7 +166,7 @@ export class AppComponent implements OnInit, OnDestroy {
                 that.diskImages = diskImages;
                 that.log.info("Disk images restored OK.");
                 const diskDrives = that.ti994A.getDiskDrives();
-                that.loadDiskDrives(diskDrives, diskImages, 0, function (success) {
+                that.diskService.restoreDiskDrives(diskDrives, diskImages, 0, function (success) {
                     if (success) {
                         that.log.info("Disk drives restored OK.");
                         database.getMachineState("ti994a", function (state) {
@@ -229,66 +229,6 @@ export class AppComponent implements OnInit, OnDestroy {
                 });
             } else {
                 that.log.error("Disk images could not be restored.");
-            }
-        });
-    }
-
-    saveDiskImages(diskImages: DiskImage[], index: number, callback: (boolean) => void) {
-        const that = this;
-        if (index === diskImages.length) {
-            callback(true);
-            return;
-        }
-        const diskImage = diskImages[index];
-        this.databaseService.putDiskImage(diskImage, function (ok) {
-            if (ok) {
-                that.saveDiskImages(diskImages, index + 1, callback);
-            } else {
-                callback(false);
-            }
-        });
-    }
-
-    saveDiskDrives(diskDrives: DiskDrive[], index: number, callback) {
-        const that = this;
-        if (index === diskDrives.length) {
-            callback(true);
-            return;
-        }
-        const diskDrive = diskDrives[index];
-        this.databaseService.putDiskDrive(diskDrive, function (ok) {
-            if (ok) {
-                that.saveDiskDrives(diskDrives, index + 1, callback);
-            } else {
-                callback(false);
-            }
-        });
-    }
-
-    loadDiskDrives(diskDrives: DiskDrive[], diskImages: DiskImage[], index: number, callback: (boolean) => void) {
-        const that = this;
-        if (index === diskDrives.length) {
-            callback(true);
-            return;
-        }
-        const diskDriveName = diskDrives[index].getName();
-        this.databaseService.getDiskDrive(diskDriveName, function (diskDriveState) {
-            if (diskDriveState) {
-                if (diskDriveState.diskImage) {
-                    let diskImage: DiskImage = null;
-                    for (let i = 0; i < diskImages.length && !diskImage; i++) {
-                        if (diskImages[i].getName() === diskDriveState.diskImage) {
-                            diskImage = diskImages[i];
-                        }
-                    }
-                    diskDrives[index].setDiskImage(diskImage);
-                    that.log.info("Disk image " + diskDrives[index].getDiskImage().getName() + " restored to " + diskDrives[index].getName() + ".");
-                } else {
-                    diskDrives[index].setDiskImage(null);
-                }
-                that.loadDiskDrives(diskDrives, diskImages, index + 1, callback);
-            } else {
-                callback(false);
             }
         });
     }
