@@ -26,11 +26,12 @@ import {MoreSoftwareService} from './services/more-software.service';
 })
 export class AppComponent implements OnInit, OnDestroy {
 
-    title = "JS99'er";
-
     diskImages: DiskImage[];
     ti994A: TI994A;
     tabIndex: number;
+
+    private title = "JS99'er";
+    private version = "7.0.0";
 
     private routerSubscription: Subscription;
     private commandSubscription: Subscription;
@@ -52,6 +53,8 @@ export class AppComponent implements OnInit, OnDestroy {
     ) {}
 
     ngOnInit() {
+        this.log.info("Welcome to " + this.title + " version " + this.version);
+        this.log.info("--------------------------------");
         this.diskImages = this.diskService.createDefaultDiskImages();
         this.routerSubscription = this.router.events.subscribe(this.onRouterEvent.bind(this));
         this.commandSubscription = this.commandDispatcherService.subscribe(this.onCommand.bind(this));
