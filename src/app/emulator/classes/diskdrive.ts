@@ -756,10 +756,10 @@ export class DiskDrive implements State {
                 // this.log.info("Logical record length: " + recordLength);
                 const fileLength = fileType === FileType.PROGRAM ? (sectorsAllocated - 1) * 256 + (endOfFileOffset === 0 ? 256 : endOfFileOffset) : recordLength * sectorsAllocated * recordsPerSector;
                 this.log.info(
-                    (fileType === FileType.DATA ? "DATA" : "PROGRAM") + ": " +
+                    Disk.FILE_TYPE_LABELS[fileType] + ": " +
                     (fileType === FileType.DATA ?
-                        (datatype === DataType.DISPLAY ? "DISPLAY" : "INTERNAL") + ", " +
-                        (recordType === RecordType.FIXED ? "FIXED" : "VARIABLE") + ", " +
+                        Disk.DATA_TYPE_LABELS[datatype] + ", " +
+                        Disk.RECORD_TYPE_LABELS[recordType] + ", " +
                         recordLength + ", "
                         : ""
                     ) + "file length = " + fileLength

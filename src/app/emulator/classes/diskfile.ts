@@ -1,6 +1,7 @@
 import {AccessType, DataType, Disk, FileType, OperationMode, RecordType} from './disk';
 import {State} from '../interfaces/state';
 import {Util} from '../../classes/util';
+import {Log} from "../../classes/log";
 
 export class DiskFile implements State {
 
@@ -14,6 +15,7 @@ export class DiskFile implements State {
     private records: Record[];
     private program: Uint8Array;
     private accessType: AccessType;
+    private log: Log = Log.getLog();
 
     constructor(name, fileType: FileType, recordType: RecordType, recordLength, dataType: DataType) {
         this.name = name;
@@ -162,7 +164,7 @@ export class DiskFile implements State {
     }
 
     putRecord(record: Record) {
-        return this.records[this.recordPointer++] = record;
+        this.records[this.recordPointer++] = record;
     }
 
     deleteRecord() {
@@ -302,13 +304,12 @@ export class FixedRecord extends Record {
 
     constructor(data: string | number[], length: number) {
         super();
-        let i;
         if (typeof(data) === "string") {
-            for (i = 0; i < length; i++) {
+            for (let i = 0; i < length; i++) {
                 this.data[i] = data.length > i ? data.charCodeAt(i) : 0;
             }
         } else if (typeof(data) === "object") {
-            for (i = 0; i < length; i++) {
+            for (let i = 0; i < length; i++) {
                 this.data[i] = data.length > i ? data[i] : 0;
             }
         }
@@ -319,5 +320,12 @@ export class VariableRecord extends Record {
 
     constructor(data: string | number[]) {
         super();
+        if (typeof(data) === "string") {
+            for (let i = 0; i < data.length; i++) {
+                this.data[i] = data.charCodeAt(i);
+            }
+        } else if (typeof(data) === "object") {
+            this.data = data;
+        }
     }
 }
