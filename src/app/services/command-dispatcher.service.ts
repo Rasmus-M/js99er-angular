@@ -59,6 +59,10 @@ export class CommandDispatcherService {
         this.commandSubject.next(new Command(CommandType.LOAD_SOFTWARE, {software: software, autostart: autostart}));
     }
 
+    unloadSoftware() {
+        this.commandSubject.next(new Command(CommandType.UNLOAD_SOFTWARE, null));
+    }
+
     changeSetting(setting: Setting, value: boolean) {
         this.commandSubject.next(new Command(CommandType.CHANGE_SETTING, {setting: setting, value: value}));
     }

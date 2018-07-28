@@ -1,5 +1,5 @@
 import {DiskFile, FixedRecord, VariableRecord} from './diskfile';
-import {AccessType, DataType, DiskError, FileType, OpCode, OperationMode, RecordType} from './disk';
+import {AccessType, DataType, Disk, DiskError, FileType, OpCode, OperationMode, RecordType} from './disk';
 import {State} from '../interfaces/state';
 import {DiskImage} from './diskimage';
 import {TI994A} from './ti994a';
@@ -115,10 +115,6 @@ export class DiskDrive implements State {
         // >16 subprogram
         0x05, 0xCB,                     // >4090 INCT R11
         0x04, 0x5B                      // >4092 B *R11
-    ];
-
-    static OPERATION_MODES = [
-        "UPDATE", "OUTPUT", "INPUT", "APPEND"
     ];
 
     static STATUS_NO_SUCH_FILE = 0x80;
@@ -272,10 +268,10 @@ export class DiskDrive implements State {
 
         this.log.info(
             fileName + ": " +
-            DiskDrive.OPERATION_MODES[operationMode] + ", " +
-            (accessType === AccessType.RELATIVE ? "RELATIVE" : "SEQUENTIAL") + ", " +
-            (datatype === DataType.DISPLAY ? "DISPLAY" : "INTERNAL") + ", " +
-            (recordType === RecordType.FIXED ? "FIXED" : "VARIABLE") + ", " +
+            Disk.OPERATION_MODE_LABELS[operationMode] + ", " +
+            Disk.ACCESS_TYPE_LABELS[accessType] + ", " +
+            Disk.DATA_TYPE_LABELS[datatype] + ", " +
+            Disk.RECORD_TYPE_LABELS[recordType] + ", " +
              recordLength
         );
         // this.log.info("File name: " + fileName);

@@ -1,5 +1,5 @@
 import * as gapi from 'gapi-client';
-import {AccessType, DataType, DiskError, FileType, OpCode, OperationMode, RecordType} from './disk';
+import {AccessType, DataType, Disk, DiskError, FileType, OpCode, OperationMode, RecordType} from './disk';
 import {Log} from '../../classes/log';
 import {TI994A} from './ti994a';
 import {Memory} from './memory';
@@ -204,10 +204,10 @@ export class GoogleDrive {
 
         this.log.debug(
             fileName + ": " +
-            DiskDrive.OPERATION_MODES[operationMode] + ", " +
-            (accessType === AccessType.RELATIVE ? "RELATIVE" : "SEQUENTIAL") + ", " +
-            (datatype === DataType.DISPLAY ? "DISPLAY" : "INTERNAL") + ", " +
-            (recordType === RecordType.FIXED ? "FIXED" : "VARIABLE") + ", " +
+            Disk.OPERATION_MODE_LABELS[operationMode] + ", " +
+            Disk.ACCESS_TYPE_LABELS[accessType] + ", " +
+            Disk.DATA_TYPE_LABELS[datatype] + ", " +
+            Disk.RECORD_TYPE_LABELS[recordType] + ", " +
             recordLength
         );
 

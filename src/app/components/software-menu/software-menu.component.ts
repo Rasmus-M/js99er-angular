@@ -35,12 +35,16 @@ export class SoftwareMenuComponent implements OnInit {
     }
 
     openSoftware(url) {
-        this.softwareMenuService.loadModuleFromMenu(url).subscribe(
-            (software: Software) => {
-                this.commandDispatcherService.loadSoftware(software, false);
-            },
-            this.log.error
-        );
+        if (url) {
+            this.softwareMenuService.loadModuleFromMenu(url).subscribe(
+                (software: Software) => {
+                    this.commandDispatcherService.loadSoftware(software, false);
+                },
+                this.log.error
+            );
+        } else {
+            this.commandDispatcherService.unloadSoftware();
+        }
     }
 
     openMoreDialog(): void {

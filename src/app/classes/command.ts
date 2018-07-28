@@ -8,6 +8,7 @@ export enum CommandType {
     LOAD_MODULE = "Load module",
     LOAD_DISK = "Load disk",
     LOAD_SOFTWARE = "Load software",
+    UNLOAD_SOFTWARE = "Unload software",
     CHANGE_SETTING = "Change settings",
     PRESS_KEY = "Press key",
     TAKE_SCREENSHOT = "Take screen shot",

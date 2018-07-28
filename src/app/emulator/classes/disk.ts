@@ -49,3 +49,27 @@ export enum DiskError {
     FILE_ERROR = 7
 }
 
+export class Disk {
+
+    static FILE_TYPE_LABELS: string[] = [
+        "Data", "Program"
+    ];
+
+    static ACCESS_TYPE_LABELS: string[] = [
+        "Sequential", "Relative"
+    ];
+
+    static DATA_TYPE_LABELS: string[] = [
+        "Display", "Internal"
+    ];
+
+    static RECORD_TYPE_LABELS: string[] = [
+        "Fixed", "Variable"
+    ];
+
+    static OPERATION_MODE_LABELS = [
+        "Update", "Output", "Input", "Append"
+    ];
+
+}
+

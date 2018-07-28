@@ -1,4 +1,4 @@
-import {AccessType, DataType, FileType, OperationMode, RecordType} from './disk';
+import {AccessType, DataType, Disk, FileType, OperationMode, RecordType} from './disk';
 import {State} from '../interfaces/state';
 import {Util} from '../../classes/util';
 
@@ -35,8 +35,39 @@ export class DiskFile implements State {
         return this.fileType;
     }
 
+    getFileTypeLabel(): string {
+        return Disk.FILE_TYPE_LABELS[this.fileType];
+    }
+
+    getDataType(): DataType {
+        return this.dataType;
+    }
+
+    getDataTypeLabel(): string {
+        return Disk.DATA_TYPE_LABELS[this.dataType];
+    }
+
     getRecordType(): RecordType {
         return this.recordType;
+    }
+
+    getRecordTypeLabel(): string {
+        return Disk.RECORD_TYPE_LABELS[this.recordType];
+    }
+    getAccessType(): AccessType {
+        return this.accessType;
+    }
+
+    getAccessTypeLabel(): string {
+        return Disk.ACCESS_TYPE_LABELS[this.accessType];
+    }
+
+    getOperationMode(): OperationMode {
+        return this.operationMode;
+    }
+
+    getOperationModeLabel(): string {
+        return Disk.OPERATION_MODE_LABELS[this.operationMode];
     }
 
     getRecordLength(): number {
@@ -106,18 +137,6 @@ export class DiskFile implements State {
         } else {
             return this.program.length;
         }
-    }
-
-    getDataType(): DataType {
-        return this.dataType;
-    }
-
-    getOperationMode(): OperationMode {
-        return this.operationMode;
-    }
-
-    getAccessType(): AccessType {
-        return this.accessType;
     }
 
     getRecordPointer(): number {

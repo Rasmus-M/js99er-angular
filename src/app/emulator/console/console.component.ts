@@ -135,6 +135,9 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.ti994A.getMemory().setPADWord(0x83C0, Math.floor(Math.random() * 0xFFFF));
                 }
                 break;
+            case CommandType.UNLOAD_SOFTWARE:
+                this.ti994A.loadSoftware(new Software());
+                break;
             case CommandType.CHANGE_SETTING:
                 const setting: Setting = command.data.setting;
                 const value: boolean = command.data.value;
