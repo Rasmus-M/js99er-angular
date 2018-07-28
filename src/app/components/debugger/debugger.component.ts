@@ -37,6 +37,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         private commandDispatcherService: CommandDispatcherService,
     ) {}
 
+
     ngOnInit() {
         this.eventSubscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
         this.commandSubscription = this.commandDispatcherService.subscribe(this.onCommand.bind(this));
@@ -197,6 +198,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     ngOnDestroy() {
         this.stopUpdate();
         this.eventSubscription.unsubscribe();
+        this.commandSubscription.unsubscribe();
     }
 
     onMemoryViewChanged(memoryView: number) {

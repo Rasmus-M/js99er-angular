@@ -1,5 +1,4 @@
 import {AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit} from '@angular/core';
-import {TI994A} from '../classes/ti994a';
 import {DiskImage} from '../classes/diskimage';
 import {Setting} from '../../classes/settings';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
@@ -15,6 +14,8 @@ import {CPU} from '../interfaces/cpu';
 import {DiskDrive} from '../classes/diskdrive';
 import {Tape} from '../classes/tape';
 import {Software} from '../../classes/software';
+import {ConsoleFactoryService} from "../services/console-factory.service";
+import {Console} from "../interfaces/console";
 
 @Component({
     selector: 'app-console',
@@ -25,7 +26,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
 
     @Input() diskImages: DiskImage[];
 
-    private ti994A: TI994A;
+    private ti994A: Console;
     private canvas: HTMLCanvasElement;
     private subscription: Subscription;
     private log: Log = Log.getLog();
@@ -36,7 +37,8 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         private eventDispatcherService: EventDispatcherService,
         private softwareService: ModuleService,
         private diskService: DiskService,
-        private settingsService: SettingsService
+        private settingsService: SettingsService,
+        private consoleFactoryService: ConsoleFactoryService
     ) {
     }
 
@@ -46,7 +48,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngAfterViewInit() {
         this.canvas = this.element.nativeElement.querySelector('canvas');
-        this.ti994A = new TI994A(document, this.canvas, this.diskImages, this.settingsService.getSettings(), this.onBreakpoint.bind(this));
+        this.ti994A = this.consoleFactoryService.create(document, this.canvas, this.diskImages, this.settingsService.getSettings(), this.onBreakpoint.bind(this));
         this.eventDispatcherService.ready(this.ti994A);
         this.start(false);
     }

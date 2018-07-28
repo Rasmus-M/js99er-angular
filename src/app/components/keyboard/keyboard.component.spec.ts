@@ -1,25 +1,30 @@
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {KeyboardComponent} from './keyboard.component';
+import {CommandDispatcherService} from "../../services/command-dispatcher.service";
 
 describe('KeyboardComponent', () => {
-  let component: KeyboardComponent;
-  let fixture: ComponentFixture<KeyboardComponent>;
+    let component: KeyboardComponent;
+    let fixture: ComponentFixture<KeyboardComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ KeyboardComponent ]
-    })
-    .compileComponents();
-  }));
+    beforeEach(async(() => {
+        TestBed.configureTestingModule({
+            declarations: [KeyboardComponent],
+            providers: [
+                {provide: CommandDispatcherService}
+            ]
 
-  beforeEach(() => {
-    fixture = TestBed.createComponent(KeyboardComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+        })
+            .compileComponents();
+    }));
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+    beforeEach(() => {
+        fixture = TestBed.createComponent(KeyboardComponent);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+    });
+
+    it('should create', () => {
+        expect(component).toBeTruthy();
+    });
 });

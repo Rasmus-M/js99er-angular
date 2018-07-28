@@ -6,6 +6,7 @@ import {ConsoleEvent, ConsoleEventType} from '../classes/consoleevent';
 import {TI994A} from '../emulator/classes/ti994a';
 import {DiskImage} from '../emulator/classes/diskimage';
 import {DiskDrive} from '../emulator/classes/diskdrive';
+import {Console} from "../emulator/interfaces/console";
 
 @Injectable({
     providedIn: 'root'
@@ -23,7 +24,7 @@ export class EventDispatcherService {
         return this.eventObservable.subscribe(handler);
     }
 
-    ready(ti994A: TI994A) {
+    ready(ti994A: Console) {
         this.sendAsyncEvent(ConsoleEventType.READY, ti994A);
     }
 

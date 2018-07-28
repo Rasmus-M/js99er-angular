@@ -21,8 +21,9 @@ import {PSG} from '../interfaces/psg';
 import {Speech} from '../interfaces/speech';
 import {DiskDrive} from './diskdrive';
 import {DiskImage} from './diskimage';
+import {Console} from "../interfaces/console";
 
-export class TI994A implements State {
+export class TI994A implements Console, State {
 
     static FRAMES_TO_RUN = Number.MAX_VALUE;
     static FRAME_MS = 17;

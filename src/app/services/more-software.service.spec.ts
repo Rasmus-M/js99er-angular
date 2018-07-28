@@ -1,11 +1,12 @@
 import {inject, TestBed} from '@angular/core/testing';
 
 import {MoreSoftwareService} from './more-software.service';
+import {HttpClient, HttpHandler} from "@angular/common/http";
 
 describe('MoreSoftwareService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [MoreSoftwareService]
+      providers: [MoreSoftwareService, HttpClient, HttpHandler]
     });
   });
 
