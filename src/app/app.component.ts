@@ -18,6 +18,7 @@ import {ActivatedRoute, NavigationStart, ParamMap, Router, RouterEvent, RouterSt
 import {ModuleService} from './services/module.service';
 import {Software} from './classes/software';
 import {MoreSoftwareService} from './services/more-software.service';
+import 'rxjs/add/operator/map';
 
 @Component({
     selector: 'app-root',
@@ -122,35 +123,26 @@ export class AppComponent implements OnInit, OnDestroy {
         const that = this;
         const database = this.databaseService;
         if (database.isSupported()) {
-            database.deleteAllDiskImages(function (success) {
-                if (success) {
-                    that.diskService.saveDiskImages(that.diskImages, 0, function (success1) {
-                        if (success1) {
-                            that.log.info('Disk images saved OK.');
-                            const diskDrives = that.ti994A.getDiskDrives();
-                            that.diskService.saveDiskDrives(diskDrives, 0, function (success2) {
-                                if (success2) {
-                                    that.log.info('Disk drives saved OK.');
-                                    const state = that.ti994A.getState();
-                                    database.putMachineState('ti994a', state, function (success3) {
-                                        if (success3) {
-                                            that.log.info('Machine state saved OK.');
-                                        } else {
-                                            that.log.info('Machine state could not be saved.');
-                                        }
-                                    });
-                                } else {
-                                    that.log.info('Disk drives could not be saved.');
-                                }
-                            });
-                        } else {
-                            that.log.info('Disk images could not be saved.');
-                        }
-                    });
-                } else {
-                    that.log.info('Could not delete old disk images.');
+            database.deleteAllDiskImages().map(
+                () => that.diskService.saveDiskImages(that.diskImages)
+            ).map(
+                () => {
+                    that.log.info('Disk images saved OK.');
+                    const diskDrives = that.ti994A.getDiskDrives();
+                    return that.diskService.saveDiskDrives(diskDrives);
                 }
-            });
+            ).map(
+                () => {
+                    that.log.info('Disk drives saved OK.');
+                    const state = that.ti994A.getState();
+                    return database.putMachineState('ti994a', state);
+                }
+            ).subscribe(
+                () => {
+                    this.log.info("Machine state saved OK.");
+                },
+                that.log.error
+            );
         }
     }
 
@@ -161,76 +153,69 @@ export class AppComponent implements OnInit, OnDestroy {
         if (wasRunning) {
             this.commandDispatcherService.stop();
         }
-        database.getDiskImages(function (diskImages) {
-            if (diskImages) {
+        database.getDiskImages().map(
+            (diskImages: DiskImage[]) => {
                 that.diskImages = diskImages;
                 that.log.info("Disk images restored OK.");
                 const diskDrives = that.ti994A.getDiskDrives();
-                that.diskService.restoreDiskDrives(diskDrives, diskImages, 0, function (success) {
-                    if (success) {
-                        that.log.info("Disk drives restored OK.");
-                        database.getMachineState("ti994a", function (state) {
-                            if (state) {
-
-                                const f18AEnabled = typeof(state.vdp.gpu) === "object";
-                                if (f18AEnabled && !that.settingsService.isF18AEnabled()) {
-                                    that.log.error("Please enable F18A before restoring the state");
-                                    return;
-                                } else if (!f18AEnabled && that.settingsService.isF18AEnabled()) {
-                                    that.log.error("Please disable F18A before restoring the state");
-                                    return;
-                                }
-
-                                that.ti994A.restoreState(state);
-                                that.log.info("Console state restored");
-
-                                const settings: Settings = new Settings();
-                                settings.setSoundEnabled(that.settingsService.isSoundEnabled());
-                                settings.setSpeechEnabled(state.speech.enabled);
-                                settings.set32KRAMEnabled(state.memory.enable32KRAM);
-                                settings.setF18AEnabled(that.settingsService.isF18AEnabled());
-                                settings.setFlickerEnabled(state.vdp.enableFlicker);
-                                settings.setPCKeyboardEnabled(state.keyboard.pcKeyboardEnabled);
-                                settings.setMapArrowKeysEnabled(state.keyboard.mapArrowKeysToFctnSDEX);
-                                settings.setGoogleDriveEnabled(that.settingsService.isGoogleDriveEnabled());
-                                settings.setAMSEnabled(state.memory.enableAMS);
-                                settings.setGRAMEnabled(state.memory.enableGRAM);
-                                settings.setPixelatedEnabled(that.settingsService.isPixelatedEnabled());
-                                that.settingsService.restoreSettings(settings);
-
-                                if (state.tape.recordPressed) {
-                                    that.eventDispatcherService.tapeRecording();
-                                } else if (state.tape.playPressed) {
-                                    that.eventDispatcherService.tapePlaying();
-                                } else {
-                                    const tape = that.ti994A.getTape();
-                                    that.eventDispatcherService.tapeStopped(tape.isPlayEnabled(), tape.isRewindEnabled());
-                                }
-
-                                that.commandDispatcherService.setBreakpointAddress(state.cpu.breakpoint);
-
-                                if (wasRunning) {
-                                    that.commandDispatcherService.start();
-                                } else {
-                                    that.ti994A.getPSG().mute();
-                                }
-
-                                that.eventDispatcherService.stateRestored();
-
-                                that.log.info("Machine state restored OK.");
-                            } else {
-                                that.log.error("Machine state could not be restored.");
-                            }
-                        });
-                    } else {
-                        that.log.error("Disk drives could not be restored.");
-                    }
-                    // updateDiskImageList();
-                });
-            } else {
-                that.log.error("Disk images could not be restored.");
+                return that.diskService.restoreDiskDrives(diskDrives, diskImages);
             }
-        });
+        ).map(
+            () => {
+                that.log.info("Disk drives restored OK.");
+                return database.getMachineState("ti994a");
+            }
+        ).subscribe(
+            (state: any) => {
+                const f18AEnabled = typeof(state.vdp.gpu) === "object";
+                if (f18AEnabled && !that.settingsService.isF18AEnabled()) {
+                    that.log.error("Please enable F18A before restoring the state");
+                    return;
+                } else if (!f18AEnabled && that.settingsService.isF18AEnabled()) {
+                    that.log.error("Please disable F18A before restoring the state");
+                    return;
+                }
+
+                that.ti994A.restoreState(state);
+                that.log.info("Console state restored");
+
+                const settings: Settings = new Settings();
+                settings.setSoundEnabled(that.settingsService.isSoundEnabled());
+                settings.setSpeechEnabled(state.speech.enabled);
+                settings.set32KRAMEnabled(state.memory.enable32KRAM);
+                settings.setF18AEnabled(that.settingsService.isF18AEnabled());
+                settings.setFlickerEnabled(state.vdp.enableFlicker);
+                settings.setPCKeyboardEnabled(state.keyboard.pcKeyboardEnabled);
+                settings.setMapArrowKeysEnabled(state.keyboard.mapArrowKeysToFctnSDEX);
+                settings.setGoogleDriveEnabled(that.settingsService.isGoogleDriveEnabled());
+                settings.setAMSEnabled(state.memory.enableAMS);
+                settings.setGRAMEnabled(state.memory.enableGRAM);
+                settings.setPixelatedEnabled(that.settingsService.isPixelatedEnabled());
+                that.settingsService.restoreSettings(settings);
+
+                if (state.tape.recordPressed) {
+                    that.eventDispatcherService.tapeRecording();
+                } else if (state.tape.playPressed) {
+                    that.eventDispatcherService.tapePlaying();
+                } else {
+                    const tape = that.ti994A.getTape();
+                    that.eventDispatcherService.tapeStopped(tape.isPlayEnabled(), tape.isRewindEnabled());
+                }
+
+                that.commandDispatcherService.setBreakpointAddress(state.cpu.breakpoint);
+
+                if (wasRunning) {
+                    that.commandDispatcherService.start();
+                } else {
+                    that.ti994A.getPSG().mute();
+                }
+
+                that.eventDispatcherService.stateRestored();
+
+                that.log.info("Machine state restored OK.");
+            },
+            that.log.error
+        );
     }
 
     ngOnDestroy() {

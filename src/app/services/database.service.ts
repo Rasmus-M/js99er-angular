@@ -2,6 +2,8 @@ import {Injectable} from '@angular/core';
 import {Database} from '../classes/database';
 import {DiskImage} from '../emulator/classes/diskimage';
 import {DiskDrive} from '../emulator/classes/diskdrive';
+import {Subject} from "rxjs/Subject";
+import {Observable} from "rxjs";
 
 @Injectable({
     providedIn: 'root'
@@ -22,31 +24,101 @@ export class DatabaseService {
         return this.supported;
     }
 
-    getDiskImages(callback: (diskImages: DiskImage[]) => void) {
-        this.database.getDiskImages(callback);
+    getDiskImages() {
+        const subject = new Subject<DiskImage[]>();
+        this.database.getDiskImages(
+            (result: any) => {
+                if (result) {
+                    subject.next(result);
+                } else {
+                    subject.error("Failed to get disk images");
+                }
+            }
+        );
+        return subject.asObservable();
     }
 
-    putDiskImage(diskImage: DiskImage, callback: (success: boolean) => void) {
-        this.database.putDiskImage(diskImage, callback);
+    putDiskImage(diskImage: DiskImage): Observable<void> {
+        const subject = new Subject<void>();
+        this.database.putDiskImage(diskImage,
+            (success: boolean) => {
+                if (success) {
+                    subject.next();
+                } else {
+                    subject.error("Failed to put disk image " + diskImage.getName());
+                }
+            }
+        );
+        return subject.asObservable();
     }
 
-    deleteAllDiskImages(callback: (success: boolean) => void) {
-        this.database.deleteAllDiskImages(callback);
+    deleteAllDiskImages(): Observable<void> {
+        const subject = new Subject<void>();
+        this.database.deleteAllDiskImages(
+            (success: boolean) => {
+                if (success) {
+                    subject.next();
+                } else {
+                    subject.error("Failed to delete all disk images");
+                }
+            }
+        );
+        return subject.asObservable();
     }
 
-    getDiskDrive(name: string, callback: (state: any) => void) {
-        this.database.getDiskDrive(name, callback);
+    getDiskDrive(name: string): Observable<any> {
+        const subject = new Subject<any>();
+        this.database.getDiskDrive(name,
+            (result: any) => {
+                if (result) {
+                    subject.next(result);
+                } else {
+                    subject.error("Failed to get disk drive " + name);
+                }
+            }
+        );
+        return subject.asObservable();
     }
 
-    putDiskDrive(diskDrive: DiskDrive, callback: (success: boolean) => void) {
-        this.database.putDiskDrive(diskDrive, callback);
+    putDiskDrive(diskDrive: DiskDrive): Observable<void> {
+        const subject = new Subject<void>();
+        this.database.putDiskDrive(diskDrive,
+            (success: boolean) => {
+                if (success) {
+                    subject.next();
+                } else {
+                    subject.error("Failed to put disk drive " + diskDrive.getName());
+                }
+            }
+        );
+        return subject.asObservable();
     }
 
-    getMachineState(name: string, callback: (state: any) => void) {
-        this.database.getMachineState(name, callback);
+    getMachineState(name: string): Observable<any> {
+        const subject = new Subject<any>();
+        this.database.getMachineState(name,
+            (result: any) => {
+                if (result) {
+                    subject.next(result);
+                } else {
+                    subject.error("Failed to get machine state");
+                }
+            }
+        );
+        return subject.asObservable();
     }
 
-    putMachineState(name: string, state: any, callback: (success: boolean) => void) {
-        this.database.putMachineState(name, state, callback);
+    putMachineState(name: string, state: any): Observable<void> {
+        const subject = new Subject<void>();
+        this.database.putMachineState(name, state,
+            (success: boolean) => {
+                if (success) {
+                    subject.next();
+                } else {
+                    subject.error("Failed to put machine state");
+                }
+            }
+        );
+        return subject.asObservable();
     }
 }

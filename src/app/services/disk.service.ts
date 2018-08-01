@@ -14,6 +14,7 @@ import {Command, CommandType} from '../classes/command';
 import {ConsoleEvent, ConsoleEventType} from '../classes/consoleevent';
 import {DiskFile} from '../emulator/classes/diskfile';
 import {DatabaseService} from "./database.service";
+import {forkJoin} from "rxjs";
 
 @Injectable()
 export class DiskService {
@@ -179,63 +180,53 @@ export class DiskService {
         }
     }
 
-    saveDiskImages(diskImages: DiskImage[], index: number, callback: (boolean) => void) {
-        const that = this;
-        if (index === diskImages.length) {
-            callback(true);
-            return;
-        }
-        const diskImage = diskImages[index];
-        this.databaseService.putDiskImage(diskImage, function (ok) {
-            if (ok) {
-                that.saveDiskImages(diskImages, index + 1, callback);
-            } else {
-                callback(false);
-            }
+    saveDiskImages(diskImages: DiskImage[]): Observable<void[]> {
+        const observables: Observable<void>[] = [];
+        diskImages.forEach((diskImage: DiskImage) => {
+            observables.push(this.databaseService.putDiskImage(diskImage));
         });
+        return forkJoin(observables);
     }
 
-    saveDiskDrives(diskDrives: DiskDrive[], index: number, callback) {
-        const that = this;
-        if (index === diskDrives.length) {
-            callback(true);
-            return;
-        }
-        const diskDrive = diskDrives[index];
-        this.databaseService.putDiskDrive(diskDrive, function (ok) {
-            if (ok) {
-                that.saveDiskDrives(diskDrives, index + 1, callback);
-            } else {
-                callback(false);
-            }
+    saveDiskDrives(diskDrives: DiskDrive[]): Observable<void[]> {
+        const observables: Observable<void>[] = [];
+        diskDrives.forEach((diskDrive: DiskDrive) => {
+            observables.push(this.databaseService.putDiskDrive(diskDrive));
         });
+        return forkJoin(observables);
     }
 
-    restoreDiskDrives(diskDrives: DiskDrive[], diskImages: DiskImage[], index: number, callback: (boolean) => void) {
-        const that = this;
-        if (index === diskDrives.length) {
-            callback(true);
-            return;
-        }
-        const diskDriveName = diskDrives[index].getName();
-        this.databaseService.getDiskDrive(diskDriveName, function (diskDriveState) {
-            if (diskDriveState) {
-                if (diskDriveState.diskImage) {
-                    let diskImage: DiskImage = null;
-                    for (let i = 0; i < diskImages.length && !diskImage; i++) {
-                        if (diskImages[i].getName() === diskDriveState.diskImage) {
-                            diskImage = diskImages[i];
+    restoreDiskDrives(diskDrives: DiskDrive[], diskImages: DiskImage[]): Observable<any[]> {
+        const observables: Observable<any>[] = [];
+        diskDrives.forEach((diskDrive: DiskDrive) => {
+            observables.push(this.restoreDiskDrive(diskDrive, diskImages));
+        });
+        return forkJoin(observables);
+    }
+
+    restoreDiskDrive(diskDrive: DiskDrive, diskImages: DiskImage[]): Observable<void> {
+        const subject = new Subject<void>();
+        this.databaseService.getDiskDrive(diskDrive.getName()).subscribe(
+            (diskDriveState: any) => {
+                if (diskDriveState) {
+                    if (diskDriveState.diskImage) {
+                        let diskImage: DiskImage = null;
+                        for (let i = 0; i < diskImages.length && !diskImage; i++) {
+                            if (diskImages[i].getName() === diskDriveState.diskImage) {
+                                diskImage = diskImages[i];
+                            }
                         }
+                        diskDrive.setDiskImage(diskImage);
+                        this.log.info("Disk image " + diskDrive.getDiskImage().getName() + " restored to " + diskDrive.getName() + ".");
+                    } else {
+                        diskDrive.setDiskImage(null);
                     }
-                    diskDrives[index].setDiskImage(diskImage);
-                    that.log.info("Disk image " + diskDrives[index].getDiskImage().getName() + " restored to " + diskDrives[index].getName() + ".");
+                    subject.next();
                 } else {
-                    diskDrives[index].setDiskImage(null);
+                    subject.error("Failed to restore disk drive " + diskDrive.getName());
                 }
-                that.restoreDiskDrives(diskDrives, diskImages, index + 1, callback);
-            } else {
-                callback(false);
             }
-        });
+        );
+        return subject.asObservable();
     }
 }
