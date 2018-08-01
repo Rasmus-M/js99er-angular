@@ -13,12 +13,12 @@ import {ConsoleEvent, ConsoleEventType} from './classes/consoleevent';
 import {DiskService} from './services/disk.service';
 import {MatTabChangeEvent} from '@angular/material';
 import {DatabaseService} from './services/database.service';
-import {DiskDrive} from './emulator/classes/diskdrive';
-import {ActivatedRoute, NavigationStart, ParamMap, Router, RouterEvent, RouterState, UrlSegment} from '@angular/router';
+import {ActivatedRoute, NavigationStart, Router, RouterEvent} from '@angular/router';
 import {ModuleService} from './services/module.service';
 import {Software} from './classes/software';
 import {MoreSoftwareService} from './services/more-software.service';
 import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/mergeMap';
 
 @Component({
     selector: 'app-root',
@@ -131,7 +131,7 @@ export class AppComponent implements OnInit, OnDestroy {
                     const diskDrives = that.ti994A.getDiskDrives();
                     return that.diskService.saveDiskDrives(diskDrives);
                 }
-            ).map(
+            ).mergeMap(
                 () => {
                     that.log.info('Disk drives saved OK.');
                     const state = that.ti994A.getState();
@@ -160,7 +160,7 @@ export class AppComponent implements OnInit, OnDestroy {
                 const diskDrives = that.ti994A.getDiskDrives();
                 return that.diskService.restoreDiskDrives(diskDrives, diskImages);
             }
-        ).map(
+        ).mergeMap(
             () => {
                 that.log.info("Disk drives restored OK.");
                 return database.getMachineState("ti994a");
