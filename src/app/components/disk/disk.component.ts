@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
 import {Subscription} from 'rxjs/Subscription';
 import {DiskImage} from '../../emulator/classes/diskimage';
 import {DiskFile} from '../../emulator/classes/diskfile';
@@ -83,6 +83,9 @@ export class DiskComponent implements OnInit, OnDestroy {
                     const diskImage: DiskImage = diskDrive.getDiskImage();
                     this.onDiskImageChanged(this.diskImages.indexOf(diskImage));
                 }
+                break;
+            case ConsoleEventType.STATE_RESTORED:
+                this.onDriveIndexChanged(this.driveIndex);
                 break;
         }
     }

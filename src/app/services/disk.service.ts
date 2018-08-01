@@ -196,8 +196,8 @@ export class DiskService {
         return forkJoin(observables);
     }
 
-    restoreDiskDrives(diskDrives: DiskDrive[], diskImages: DiskImage[]): Observable<any[]> {
-        const observables: Observable<any>[] = [];
+    restoreDiskDrives(diskDrives: DiskDrive[], diskImages: DiskImage[]): Observable<void[]> {
+        const observables: Observable<void>[] = [];
         diskDrives.forEach((diskDrive: DiskDrive) => {
             observables.push(this.restoreDiskDrive(diskDrive, diskImages));
         });
