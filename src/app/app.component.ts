@@ -31,8 +31,8 @@ export class AppComponent implements OnInit, OnDestroy {
     ti994A: TI994A;
     tabIndex: number;
 
-    private title = "JS99'er";
-    private version = "7.0.1";
+    title = "JS99'er";
+    version = "7.0.1";
 
     private routerSubscription: Subscription;
     private commandSubscription: Subscription;

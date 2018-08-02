@@ -42,6 +42,7 @@ import {DiskComponent} from './components/disk/disk.component';
 import {TapeComponent} from './components/tape/tape.component';
 import {SoftwareMenuComponent} from './components/software-menu/software-menu.component';
 import {MoreSoftwareComponent} from './components/more-software/more-software.component';
+import { AboutComponent } from './components/about/about.component';
 
 const appRoutes: Routes = [
     {path: '', component: AppComponent},
@@ -59,7 +60,8 @@ const appRoutes: Routes = [
         DiskComponent,
         TapeComponent,
         SoftwareMenuComponent,
-        MoreSoftwareComponent
+        MoreSoftwareComponent,
+        AboutComponent
     ],
     imports: [
         BrowserModule,
