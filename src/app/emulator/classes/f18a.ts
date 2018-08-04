@@ -578,7 +578,10 @@ export class F18A implements VDP {
                     // Tile layer 1
                     let tilePriority = false, transparentColor0 = false;
                     if (this.tileLayer1Enabled) {
-                        ({tilePriority, transparentColor0, color, paletteBaseIndex} = this.drawTileLayer(x, y, y1, rowOffset, lineOffset, nameTableCanonicalBase, nameTableBaseAddr, this.colorTable, borderWidth, scrollWidth, this.hScroll1, this.hPageSize1, this.tilePaletteSelect, color, paletteBaseIndex));
+                        ({tilePriority, transparentColor0, color, paletteBaseIndex} = this.drawTileLayer(
+                            x, y, y1, rowOffset, lineOffset, nameTableCanonicalBase, nameTableBaseAddr,
+                            this.colorTable, borderWidth, scrollWidth, this.hScroll1, this.hPageSize1, this.tilePaletteSelect, color, paletteBaseIndex
+                        ));
                     }
                     // Bitmap layer
                     if (this.bitmapEnable) {
@@ -616,7 +619,8 @@ export class F18A implements VDP {
                     }
                     // Tile layer 2
                     if (this.tileLayer2Enabled) {
-                        const {tilePriority: tilePriority2, transparentColor0: transparentColor02, color: tileColor2, paletteBaseIndex: tilePaletteBaseIndex2} = this.drawTileLayer(x, y, y1, rowOffset2, lineOffset2, nameTableCanonicalBase2, nameTableBaseAddr2, this.colorTable2, borderWidth, scrollWidth, this.hScroll2, this.hPageSize2, this.tilePaletteSelect2, 0, 0);
+                        const {tilePriority: tilePriority2, transparentColor0: transparentColor02, color: tileColor2, paletteBaseIndex: tilePaletteBaseIndex2} =
+                            this.drawTileLayer(x, y, y1, rowOffset2, lineOffset2, nameTableCanonicalBase2, nameTableBaseAddr2, this.colorTable2, borderWidth, scrollWidth, this.hScroll2, this.hPageSize2, this.tilePaletteSelect2, 0, 0);
                         if ((tileColor2 > 0 || !transparentColor02) && (this.tileMap2AlwaysOnTop || tilePriority2 || spriteColor === null)) {
                             color = tileColor2;
                             paletteBaseIndex = tilePaletteBaseIndex2;
@@ -1631,6 +1635,14 @@ export class F18A implements VDP {
 
     getVersion() {
         return F18A.VERSION;
+    }
+
+    drawTilePatternImage(canvas: HTMLCanvasElement) {
+
+    }
+
+    drawSpritePatternImage(canvas: HTMLCanvasElement) {
+
     }
 
     getState() {

@@ -600,6 +600,49 @@ export class TMS9918A implements VDP {
         return undefined;
     }
 
+    drawTilePatternImage(canvas: HTMLCanvasElement) {
+        const width = canvas.width = 256;
+        const height = canvas.height = 64;
+        const canvasContext = canvas.getContext("2d");
+        const
+            screenMode = this.screenMode,
+            textMode = this.textMode,
+            ram = this.ram,
+            colorTable = this.colorTable,
+            charPatternTable = this.charPatternTable,
+            colorTableMask = this.colorTableMask,
+            patternTableMask = this.patternTableMask,
+            palette = this.palette;
+        let
+            name = 0,
+            colorByte = 0,
+            patternByte = 0,
+            color = 0,
+            rgbColor = [];
+        for (let y = 0; y < height; y++) {
+            const rowOffset = !textMode ? (y >> 3) << 5 : (y >> 3) * 40;
+            const lineOffset = y & 7;
+            for (let x = 0; x < width; x++) {
+                color = 0;
+                switch (screenMode) {
+                    case ScreenMode.MODE_GRAPHICS:
+                        name = rowOffset + (x >> 3);
+                        colorByte = ram[colorTable + (name >> 3)];
+                        patternByte = ram[charPatternTable + (name << 3) + lineOffset];
+                        color = (patternByte & (0x80 >> (x & 7))) !== 0 ? (colorByte & 0xF0) >> 4 : colorByte & 0x0F;
+                        break;
+                }
+                rgbColor = palette[color];
+                canvasContext.fillStyle = "#" + Util.toHexByteShort(rgbColor[0]) + Util.toHexByteShort(rgbColor[1]) + Util.toHexByteShort(rgbColor[2]);
+                canvasContext.fillRect(x, y, 1, 1);
+            }
+        }
+    }
+
+    drawSpritePatternImage(canvas: HTMLCanvasElement) {
+
+    }
+
     getState(): object {
         return {
             ram: this.ram,

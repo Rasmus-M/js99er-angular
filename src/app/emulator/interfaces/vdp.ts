@@ -19,4 +19,6 @@ export interface VDP extends State, MemoryDevice {
     setFlicker(value: boolean): void;
     getGPU(): CPU;
     getState(): object;
+    drawTilePatternImage(canvas: HTMLCanvasElement);
+    drawSpritePatternImage(canvas: HTMLCanvasElement);
 }

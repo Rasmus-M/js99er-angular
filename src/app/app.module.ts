@@ -43,6 +43,7 @@ import {TapeComponent} from './components/tape/tape.component';
 import {SoftwareMenuComponent} from './components/software-menu/software-menu.component';
 import {MoreSoftwareComponent} from './components/more-software/more-software.component';
 import { AboutComponent } from './components/about/about.component';
+import { GraphicsComponent } from './components/graphics/graphics.component';
 
 const appRoutes: Routes = [
     {path: '', component: AppComponent},
@@ -61,7 +62,8 @@ const appRoutes: Routes = [
         TapeComponent,
         SoftwareMenuComponent,
         MoreSoftwareComponent,
-        AboutComponent
+        AboutComponent,
+        GraphicsComponent
     ],
     imports: [
         BrowserModule,
