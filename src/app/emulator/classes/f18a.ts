@@ -6,6 +6,7 @@ import {TI994A} from './ti994a';
 import {F18AGPU} from './f18agpu';
 import {Log, LogLevel} from '../../classes/log';
 import {Util} from '../../classes/util';
+import {ScreenMode} from "./tms9918a";
 
 export class F18A implements VDP {
 
@@ -1638,11 +1639,124 @@ export class F18A implements VDP {
     }
 
     drawTilePatternImage(canvas: HTMLCanvasElement, section: number, gap: boolean) {
-
+        const
+            baseWidth = 256,
+            width = canvas.width = baseWidth + (gap ? 32 : 0),
+            baseHeight = 64,
+            height = canvas.height = baseHeight + (gap ? 8 : 0),
+            canvasContext = canvas.getContext("2d"),
+            imageData = canvasContext.createImageData(width, height),
+            screenMode = this.screenMode,
+            ram = this.ram,
+            baseTableOffset = section << 11,
+            colorTable = this.colorTable,
+            charPatternTable = this.charPatternTable,
+            colorTableMask = this.colorTableMask,
+            patternTableMask = this.patternTableMask,
+            palette = this.palette,
+            fgColor = this.fgColor,
+            bgColor = this.bgColor,
+            imageDataData = imageData.data;
+        let
+            name: number,
+            tableOffset: number,
+            colorByte: number,
+            patternByte: number,
+            color: number,
+            rowNameOffset: number,
+            lineOffset: number,
+            pixelOffset: number,
+            rgbColor: number[],
+            imageDataAddr = 0;
+        for (let y = 0; y < baseHeight; y++) {
+            rowNameOffset = (y >> 3) << 5;
+            lineOffset = y & 7;
+            for (let x = 0; x < baseWidth; x++) {
+                color = 0;
+                pixelOffset = x & 7;
+                switch (screenMode) {
+                    case F18A.MODE_GRAPHICS:
+                        name = rowNameOffset + (x >> 3);
+                        colorByte = ram[colorTable + (name >> 3)];
+                        patternByte = ram[charPatternTable + (name << 3) + lineOffset];
+                        color = (patternByte & (0x80 >> pixelOffset)) !== 0 ? (colorByte & 0xF0) >> 4 : colorByte & 0x0F;
+                        break;
+                    case F18A.MODE_BITMAP:
+                        name = rowNameOffset + (x >> 3);
+                        tableOffset = baseTableOffset + (name << 3);
+                        colorByte = ram[colorTable + (tableOffset & colorTableMask) + lineOffset];
+                        patternByte = ram[charPatternTable + (tableOffset & patternTableMask) + lineOffset];
+                        color = (patternByte & (0x80 >> (x & 7))) !== 0 ? (colorByte & 0xF0) >> 4 : colorByte & 0x0F;
+                        break;
+                    case F18A.MODE_TEXT:
+                        name = rowNameOffset + (x >> 3);
+                        patternByte = ram[charPatternTable + (name << 3) + lineOffset];
+                        if (pixelOffset < 6) {
+                            color = (patternByte & (0x80 >> pixelOffset)) !== 0 ? fgColor : bgColor;
+                        } else {
+                            color = bgColor;
+                        }
+                        break;
+                }
+                rgbColor = palette[color];
+                imageDataData[imageDataAddr++] = rgbColor[0]; // R
+                imageDataData[imageDataAddr++] = rgbColor[1]; // G
+                imageDataData[imageDataAddr++] = rgbColor[2]; // B
+                imageDataData[imageDataAddr++] = 255; // Alpha
+                if (gap && pixelOffset === 7) {
+                    imageDataAddr += 4;
+                }
+            }
+            if (gap && lineOffset === 7) {
+                imageDataAddr += width * 4;
+            }
+        }
+        canvasContext.putImageData(imageData, 0, 0);
     }
 
     drawSpritePatternImage(canvas: HTMLCanvasElement, gap: boolean) {
-
+        const baseWidth = 256;
+        const width = canvas.width = baseWidth + (gap ? 16 : 0);
+        const baseHeight = 64;
+        const height = canvas.height = baseHeight + (gap ? 4 : 0);
+        const canvasContext = canvas.getContext("2d");
+        const imageData = canvasContext.createImageData(width, height);
+        const
+            ram = this.ram,
+            spritePatternTable = this.spritePatternTable,
+            palette = this.palette,
+            imageDataData = imageData.data;
+        let
+            pattern: number,
+            patternByte: number,
+            color: number,
+            rowPatternOffset: number,
+            lineOffset: number,
+            pixelOffset: number,
+            rgbColor: number[],
+            imageDataAddr = 0;
+        for (let y = 0; y < baseHeight; y++) {
+            rowPatternOffset = ((y >> 4) << 6) + ((y & 8) >> 3);
+            lineOffset = y & 7;
+            for (let x = 0; x < baseWidth; x++) {
+                pixelOffset = x & 7;
+                pattern = rowPatternOffset + ((x >> 3) << 1);
+                patternByte = ram[spritePatternTable + (pattern << 3) + lineOffset];
+                color = (patternByte & (0x80 >> pixelOffset)) !== 0 ? 0 : 15;
+                rgbColor = palette[color];
+                imageDataData[imageDataAddr++] = rgbColor[0]; // R
+                imageDataData[imageDataAddr++] = rgbColor[1]; // G
+                imageDataData[imageDataAddr++] = rgbColor[2]; // B
+                imageDataData[imageDataAddr++] = 255; // Alpha
+                if (gap && pixelOffset === 7 && (x & 8) === 8) {
+                    imageDataAddr += 4;
+                }
+            }
+            if (gap && lineOffset === 7 && (y & 8) === 8) {
+                imageDataAddr += width * 4;
+            }
+        }
+        canvasContext.putImageData(imageData, 0, 0);
     }
 
     getState() {
