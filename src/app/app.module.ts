@@ -33,7 +33,6 @@ import {ZipService} from './services/zip.service';
 import {DiskService} from './services/disk.service';
 import {CommandDispatcherService} from './services/command-dispatcher.service';
 import {ObjectLoaderService} from './services/object-loader.service';
-import {SoftwareMenuService} from './services/software-menu.service';
 import {SettingsService} from './services/settings.service';
 import {SettingsComponent} from './components/settings/settings.component';
 import {LogComponent} from './components/log/log.component';
@@ -102,7 +101,6 @@ const appRoutes: Routes = [
         CommandDispatcherService,
         EventDispatcherService,
         ObjectLoaderService,
-        SoftwareMenuService,
         SettingsService
     ],
     entryComponents: [

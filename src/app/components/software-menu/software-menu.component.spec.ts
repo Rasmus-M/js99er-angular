@@ -2,8 +2,7 @@ import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {SoftwareMenuComponent} from './software-menu.component';
 import {NO_ERRORS_SCHEMA} from "@angular/core";
-import {MatDialog, MatDialogModule, MatMenuModule} from "@angular/material";
-import {SoftwareMenuService} from "../../services/software-menu.service";
+import {MatDialogModule, MatMenuModule} from "@angular/material";
 import {ModuleService} from "../../services/module.service";
 import {HttpClient, HttpHandler} from "@angular/common/http";
 import {ZipService} from "../../services/zip.service";
@@ -18,7 +17,7 @@ describe('SoftwareMenuComponent', () => {
             schemas: [NO_ERRORS_SCHEMA],
             declarations: [SoftwareMenuComponent],
             imports: [MatMenuModule, MatDialogModule],
-            providers: [SoftwareMenuService, ModuleService, HttpClient, HttpHandler, ZipService, CommandDispatcherService]
+            providers: [ModuleService, HttpClient, HttpHandler, ZipService, CommandDispatcherService]
         })
             .compileComponents();
     }));

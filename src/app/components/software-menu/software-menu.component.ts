@@ -1,6 +1,7 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
 import {Software} from '../../classes/software';
-import {SoftwareMenuService} from '../../services/software-menu.service';
+import {ModuleService} from '../../services/module.service';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {Log} from '../../classes/log';
 import {MoreSoftwareComponent} from '../more-software/more-software.component';
@@ -19,14 +20,15 @@ export class SoftwareMenuComponent implements OnInit {
     private log: Log = Log.getLog();
 
     constructor(
-        private softwareMenuService: SoftwareMenuService,
+        private httpClient: HttpClient,
+        public dialog: MatDialog,
+        private moduleService: ModuleService,
         private moreSoftwareService: MoreSoftwareService,
-        private commandDispatcherService: CommandDispatcherService,
-        public dialog: MatDialog
+        private commandDispatcherService: CommandDispatcherService
     ) {}
 
     ngOnInit() {
-        this.softwareMenuService.getMenuData().subscribe(
+        this.httpClient.get("assets/software/index.json", {responseType: "json"}).subscribe(
             (menuData) => {
                 this.menuData = menuData;
             },
@@ -36,7 +38,7 @@ export class SoftwareMenuComponent implements OnInit {
 
     openSoftware(url) {
         if (url) {
-            this.softwareMenuService.loadModuleFromMenu(url).subscribe(
+            this.moduleService.loadModuleFromURL(url).subscribe(
                 (software: Software) => {
                     this.commandDispatcherService.loadSoftware(software, false);
                 },

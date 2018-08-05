@@ -46,6 +46,20 @@ export class ModuleService {
         }
     }
 
+    loadModuleFromURL(url: string): Observable<Software> {
+        if (url.substr(url.length - 3).toLowerCase() === 'rpk') {
+            return this.loadRPKModuleFromURL('assets/' + url);
+        } else if (url.substr(url.length - 3).toLowerCase() === 'bin') {
+            return this.loadBinModuleFromURL('assets/' + url);
+        } else if (url.substr(url.length - 4).toLowerCase() === 'json') {
+            return this.loadJSONModuleFromURL('assets/' + url);
+        } else {
+            const subject = new Subject<Software>();
+            subject.error("Invalid url: " + url);
+            return subject.asObservable();
+        }
+    }
+
     loadRPKModuleFromFile(file): Observable<Software> {
         return this.loadRPKOrZipModule(this.zipService.createBlobReader(file));
     }
@@ -86,13 +100,14 @@ export class ModuleService {
         layoutEntry.getData(writer, function (txt) {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(txt, 'text/xml');
-            const module: Software = new Software();
             const pcb = xmlDoc.getElementsByTagName('pcb')[0];
             const pcbType = pcb.getAttribute('type').toLowerCase();
-            module.inverted = pcbType === 'paged379i';
             const roms = xmlDoc.getElementsByTagName('rom');
             const sockets = xmlDoc.getElementsByTagName('socket');
+            const module: Software = new Software();
+            module.inverted = pcbType === 'paged379i';
             let filesToLoad = roms.length;
+            const romArray = [];
             for (let i = 0; i < roms.length; i++) {
                 const rom = roms[i];
                 const romId = rom.getAttribute('id');
@@ -115,27 +130,24 @@ export class ModuleService {
                             reader2.onload = function () {
                                 // reader.result contains the contents of blob as a typed array
                                 const byteArray = new Uint8Array(this.result);
-                                const plainArray = [];
-                                for (let i = 0; i < byteArray.length; i++) {
-                                    plainArray[i] = byteArray[i];
-                                }
                                 if (socketId.substr(0, 3).toLowerCase() === 'rom') {
-                                    log.info('ROM ' + romId + ' (' + socketId + '): \'' + filename + '\', ' + plainArray.length + ' bytes');
+                                    log.info('ROM ' + romId + ' (' + socketId + '): \'' + filename + '\', ' + byteArray.length + ' bytes');
                                     const addr = (socketId === 'rom2_socket') ? 0x2000 : 0;
-                                    const rom = [];
-                                    for (let i = 0; i < Math.min(plainArray.length, _pcbType === "paged" ? 0x2000 : plainArray.length); i++) {
-                                        rom[addr + i] = plainArray[i];
+                                    for (let i = 0; i < Math.min(byteArray.length, _pcbType === "paged" ? 0x2000 : byteArray.length); i++) {
+                                        romArray[addr + i] = byteArray[i];
                                     }
-                                    for (let i = plainArray.length; i < 0x2000; i++) {
-                                        rom[addr + i] = 0;
+                                    for (let i = byteArray.length; i < 0x2000; i++) {
+                                        romArray[addr + i] = 0;
                                     }
-                                    module.rom = new Uint8Array(rom);
                                 } else if (socketId.substr(0, 4).toLowerCase() === 'grom') {
-                                    log.info('GROM ' + romId + ' (' + socketId + '): \'' + filename + '\', ' + plainArray.length + ' bytes');
+                                    log.info('GROM ' + romId + ' (' + socketId + '): \'' + filename + '\', ' + byteArray.length + ' bytes');
                                     module.grom = byteArray;
                                 }
                                 filesToLoad--;
                                 if (filesToLoad === 0) {
+                                    if (romArray.length) {
+                                        module.rom = new Uint8Array(romArray);
+                                    }
                                     subject.next(module);
                                     subject.complete();
                                 }

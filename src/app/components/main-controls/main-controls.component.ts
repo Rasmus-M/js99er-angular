@@ -1,6 +1,5 @@
 import {Component, ElementRef, OnDestroy, OnInit} from '@angular/core';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
-import {SoftwareMenuService} from '../../services/software-menu.service';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {Subscription} from 'rxjs/Subscription';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
