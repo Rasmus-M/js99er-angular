@@ -582,13 +582,21 @@ export class TMS9918A implements VDP {
     }
 
     getCharAt(x: number, y: number) {
-        x -= 24;
-        y -= 24;
-        if (!this.textMode) {
-            return this.ram[this.nameTable + Math.floor(x / 8) + Math.floor(y / 8) * 32];
-        } else {
-            return this.ram[this.nameTable + Math.floor((x - 8) / 6) + Math.floor(y / 8) * 40];
+        const
+            drawWidth = !this.textMode ? 256 : 240,
+            drawHeight = 192,
+            hBorder = (this.width - drawWidth) >> 1,
+            vBorder = (this.height - drawHeight) >> 1;
+        x -= hBorder;
+        y -= vBorder;
+        if (x < drawWidth && y < drawHeight) {
+            if (!this.textMode) {
+                return this.ram[this.nameTable + (x >> 3) + (y >> 3) * 32];
+            } else {
+                return this.ram[this.nameTable + Math.floor(x / 6) + (y >> 3) * 40];
+            }
         }
+        return 0;
     }
 
     setFlicker(value: boolean) {
@@ -600,47 +608,115 @@ export class TMS9918A implements VDP {
         return undefined;
     }
 
-    drawTilePatternImage(canvas: HTMLCanvasElement) {
-        const width = canvas.width = 256;
-        const height = canvas.height = 64;
-        const canvasContext = canvas.getContext("2d");
+    drawTilePatternImage(canvas: HTMLCanvasElement, section: number, gap: boolean) {
         const
+            baseWidth = 256,
+            width = canvas.width = baseWidth + (gap ? 32 : 0),
+            baseHeight = 64,
+            height = canvas.height = baseHeight + (gap ? 8 : 0),
+            canvasContext = canvas.getContext("2d"),
+            imageData = canvasContext.createImageData(width, height),
             screenMode = this.screenMode,
             textMode = this.textMode,
             ram = this.ram,
+            baseTableOffset = section << 11,
             colorTable = this.colorTable,
             charPatternTable = this.charPatternTable,
             colorTableMask = this.colorTableMask,
             patternTableMask = this.patternTableMask,
-            palette = this.palette;
+            palette = this.palette,
+            imageDataData = imageData.data;
         let
-            name = 0,
-            colorByte = 0,
-            patternByte = 0,
-            color = 0,
-            rgbColor = [];
-        for (let y = 0; y < height; y++) {
-            const rowOffset = !textMode ? (y >> 3) << 5 : (y >> 3) * 40;
-            const lineOffset = y & 7;
-            for (let x = 0; x < width; x++) {
+            name: number,
+            tableOffset: number,
+            colorByte: number,
+            patternByte: number,
+            color: number,
+            rowNameOffset: number,
+            lineOffset: number,
+            pixelOffset: number,
+            rgbColor: number[],
+            imageDataAddr = 0;
+        for (let y = 0; y < baseHeight; y++) {
+            rowNameOffset = !textMode ? (y >> 3) << 5 : (y >> 3) * 40;
+            lineOffset = y & 7;
+            for (let x = 0; x < baseWidth; x++) {
                 color = 0;
+                pixelOffset = x & 7;
                 switch (screenMode) {
                     case ScreenMode.MODE_GRAPHICS:
-                        name = rowOffset + (x >> 3);
+                        name = rowNameOffset + (x >> 3);
                         colorByte = ram[colorTable + (name >> 3)];
                         patternByte = ram[charPatternTable + (name << 3) + lineOffset];
+                        color = (patternByte & (0x80 >> pixelOffset)) !== 0 ? (colorByte & 0xF0) >> 4 : colorByte & 0x0F;
+                        break;
+                    case ScreenMode.MODE_BITMAP:
+                        name = rowNameOffset + (x >> 3);
+                        tableOffset = baseTableOffset + (name << 3);
+                        colorByte = ram[colorTable + (tableOffset & colorTableMask) + lineOffset];
+                        patternByte = ram[charPatternTable + (tableOffset & patternTableMask) + lineOffset];
                         color = (patternByte & (0x80 >> (x & 7))) !== 0 ? (colorByte & 0xF0) >> 4 : colorByte & 0x0F;
                         break;
                 }
                 rgbColor = palette[color];
-                canvasContext.fillStyle = "#" + Util.toHexByteShort(rgbColor[0]) + Util.toHexByteShort(rgbColor[1]) + Util.toHexByteShort(rgbColor[2]);
-                canvasContext.fillRect(x, y, 1, 1);
+                imageDataData[imageDataAddr++] = rgbColor[0]; // R
+                imageDataData[imageDataAddr++] = rgbColor[1]; // G
+                imageDataData[imageDataAddr++] = rgbColor[2]; // B
+                imageDataData[imageDataAddr++] = 255; // Alpha
+                if (gap && pixelOffset === 7) {
+                    imageDataAddr += 4;
+                }
+            }
+            if (gap && lineOffset === 7) {
+                imageDataAddr += width * 4;
             }
         }
+        canvasContext.putImageData(imageData, 0, 0);
     }
 
-    drawSpritePatternImage(canvas: HTMLCanvasElement) {
-
+    drawSpritePatternImage(canvas: HTMLCanvasElement, gap: boolean) {
+        const baseWidth = 256;
+        const width = canvas.width = baseWidth + (gap ? 16 : 0);
+        const baseHeight = 64;
+        const height = canvas.height = baseHeight + (gap ? 4 : 0);
+        const canvasContext = canvas.getContext("2d");
+        const imageData = canvasContext.createImageData(width, height);
+        const
+            ram = this.ram,
+            spritePatternTable = this.spritePatternTable,
+            palette = this.palette,
+            imageDataData = imageData.data;
+        let
+            pattern: number,
+            patternByte: number,
+            color: number,
+            rowPatternOffset: number,
+            lineOffset: number,
+            pixelOffset: number,
+            rgbColor: number[],
+            imageDataAddr = 0;
+        for (let y = 0; y < baseHeight; y++) {
+            rowPatternOffset = ((y >> 4) << 6) + ((y & 8) >> 3);
+            lineOffset = y & 7;
+            for (let x = 0; x < baseWidth; x++) {
+                pixelOffset = x & 7;
+                pattern = rowPatternOffset + ((x >> 3) << 1);
+                patternByte = ram[spritePatternTable + (pattern << 3) + lineOffset];
+                color = (patternByte & (0x80 >> pixelOffset)) !== 0 ? 0 : 15;
+                rgbColor = palette[color];
+                imageDataData[imageDataAddr++] = rgbColor[0]; // R
+                imageDataData[imageDataAddr++] = rgbColor[1]; // G
+                imageDataData[imageDataAddr++] = rgbColor[2]; // B
+                imageDataData[imageDataAddr++] = 255; // Alpha
+                if (gap && pixelOffset === 7 && (x & 8) === 8) {
+                    imageDataAddr += 4;
+                }
+            }
+            if (gap && lineOffset === 7 && (y & 8) === 8) {
+                imageDataAddr += width * 4;
+            }
+        }
+        canvasContext.putImageData(imageData, 0, 0);
     }
 
     getState(): object {

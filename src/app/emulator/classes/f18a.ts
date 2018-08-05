@@ -1593,11 +1593,11 @@ export class F18A implements VDP {
             switch (this.screenMode) {
                 case F18A.MODE_GRAPHICS:
                 case F18A.MODE_BITMAP:
-                    return this.ram[this.nameTable + Math.floor(x / 8) + Math.floor(y / 8) * 32];
+                    return this.ram[this.nameTable + (x >> 3) + (y >> 3) * 32];
                 case F18A.MODE_TEXT:
-                    return this.ram[this.nameTable + Math.floor((x - 8) / 6) + Math.floor(y / 8) * 40];
+                    return this.ram[this.nameTable + Math.floor((x - 8) / 6) + (y >> 3) * 40];
                 case F18A.MODE_TEXT_80:
-                    return this.ram[this.nameTable + Math.floor((x - 16) / 6) + Math.floor(y / 8) * 80];
+                    return this.ram[this.nameTable + Math.floor((x - 16) / 6) + (y >> 3) * 80];
             }
         }
         return 0;
@@ -1637,11 +1637,11 @@ export class F18A implements VDP {
         return F18A.VERSION;
     }
 
-    drawTilePatternImage(canvas: HTMLCanvasElement) {
+    drawTilePatternImage(canvas: HTMLCanvasElement, section: number, gap: boolean) {
 
     }
 
-    drawSpritePatternImage(canvas: HTMLCanvasElement) {
+    drawSpritePatternImage(canvas: HTMLCanvasElement, gap: boolean) {
 
     }
 

@@ -1,8 +1,44 @@
-<div>
-    <h3>Tile patterns</h3>
-    <canvas id="tile-canvas" width="256" height="64"></canvas>
-</div>
-<div>
-    <h3>Sprite patterns</h3>
-    <canvas id="sprite-canvas" width="256" height="64"></canvas>
-</div>
+<mat-accordion>
+    <mat-expansion-panel [expanded]="true">
+        <mat-expansion-panel-header>
+            <mat-panel-title>
+                Tile patterns
+            </mat-panel-title>
+            <mat-panel-description>
+                Top
+            </mat-panel-description>
+        </mat-expansion-panel-header>
+        <canvas id="tile-canvas-top"></canvas>
+    </mat-expansion-panel>
+    <mat-expansion-panel>
+        <mat-expansion-panel-header>
+            <mat-panel-title>
+                Tile patterns
+            </mat-panel-title>
+            <mat-panel-description>
+                Middle
+            </mat-panel-description>
+        </mat-expansion-panel-header>
+        <canvas id="tile-canvas-middle"></canvas>
+    </mat-expansion-panel>
+    <mat-expansion-panel>
+        <mat-expansion-panel-header>
+            <mat-panel-title>
+                Tile patterns
+            </mat-panel-title>
+            <mat-panel-description>
+                Bottom
+            </mat-panel-description>
+        </mat-expansion-panel-header>
+        <canvas id="tile-canvas-bottom"></canvas>
+    </mat-expansion-panel>
+</mat-accordion>
+
+<mat-expansion-panel [expanded]="true">
+    <mat-expansion-panel-header>
+        <mat-panel-title>
+            Sprite pattern
+        </mat-panel-title>
+    </mat-expansion-panel-header>
+    <canvas id="sprite-canvas"></canvas>
+</mat-expansion-panel>

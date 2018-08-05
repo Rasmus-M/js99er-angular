@@ -16,7 +16,9 @@ export class GraphicsComponent implements OnInit, AfterViewInit, OnChanges {
     private ti994A: TI994A;
     private timerHandle: number;
     private eventSubscription: Subscription;
-    private tileCanvas: HTMLCanvasElement;
+    private tileCanvasTop: HTMLCanvasElement;
+    private tileCanvasMiddle: HTMLCanvasElement;
+    private tileCanvasBottom: HTMLCanvasElement;
     private spriteCanvas: HTMLCanvasElement;
 
     constructor(
@@ -30,7 +32,7 @@ export class GraphicsComponent implements OnInit, AfterViewInit, OnChanges {
 
     startUpdate() {
         if (!this.timerHandle) {
-            this.timerHandle = window.setInterval(this.updateView.bind(this), 500);
+            this.timerHandle = window.setInterval(this.updateView.bind(this), 200);
         }
     }
 
@@ -42,7 +44,9 @@ export class GraphicsComponent implements OnInit, AfterViewInit, OnChanges {
     }
 
     ngAfterViewInit() {
-        this.tileCanvas = this.element.nativeElement.querySelector('#tile-canvas');
+        this.tileCanvasTop = this.element.nativeElement.querySelector('#tile-canvas-top');
+        this.tileCanvasMiddle = this.element.nativeElement.querySelector('#tile-canvas-middle');
+        this.tileCanvasBottom = this.element.nativeElement.querySelector('#tile-canvas-bottom');
         this.spriteCanvas = this.element.nativeElement.querySelector('#sprite-canvas');
 
     }
@@ -70,8 +74,10 @@ export class GraphicsComponent implements OnInit, AfterViewInit, OnChanges {
 
     updateView() {
         if (this.visible) {
-            this.ti994A.getVDP().drawTilePatternImage(this.tileCanvas);
-            this.ti994A.getVDP().drawSpritePatternImage(this.spriteCanvas);
+            this.ti994A.getVDP().drawTilePatternImage(this.tileCanvasTop, 0, true);
+            this.ti994A.getVDP().drawTilePatternImage(this.tileCanvasMiddle, 1, true);
+            this.ti994A.getVDP().drawTilePatternImage(this.tileCanvasBottom, 2, true);
+            this.ti994A.getVDP().drawSpritePatternImage(this.spriteCanvas, true);
         }
     }
 }
