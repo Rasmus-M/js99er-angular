@@ -21,6 +21,11 @@ export class GraphicsComponent implements OnInit, AfterViewInit, OnChanges {
     private tileCanvasBottom: HTMLCanvasElement;
     private spriteCanvas: HTMLCanvasElement;
 
+    tileCanvasTopVisible = true;
+    tileCanvasMiddleVisible = false;
+    tileCanvasBottomVisible = false;
+    spriteCanvasVisible = true;
+
     constructor(
         private element: ElementRef,
         private eventDispatcherService: EventDispatcherService,
@@ -74,10 +79,19 @@ export class GraphicsComponent implements OnInit, AfterViewInit, OnChanges {
 
     updateView() {
         if (this.visible) {
-            this.ti994A.getVDP().drawTilePatternImage(this.tileCanvasTop, 0, true);
-            this.ti994A.getVDP().drawTilePatternImage(this.tileCanvasMiddle, 1, true);
-            this.ti994A.getVDP().drawTilePatternImage(this.tileCanvasBottom, 2, true);
-            this.ti994A.getVDP().drawSpritePatternImage(this.spriteCanvas, true);
+            const vdp = this.ti994A.getVDP();
+            if (this.tileCanvasTopVisible) {
+                vdp.drawTilePatternImage(this.tileCanvasTop, 0, true);
+            }
+            if (this.tileCanvasMiddleVisible) {
+                vdp.drawTilePatternImage(this.tileCanvasMiddle, 1, true);
+            }
+            if (this.tileCanvasBottomVisible) {
+                vdp.drawTilePatternImage(this.tileCanvasBottom, 2, true);
+            }
+            if (this.spriteCanvasVisible) {
+                vdp.drawSpritePatternImage(this.spriteCanvas, true);
+            }
         }
     }
 }

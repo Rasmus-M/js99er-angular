@@ -617,7 +617,6 @@ export class TMS9918A implements VDP {
             canvasContext = canvas.getContext("2d"),
             imageData = canvasContext.createImageData(width, height),
             screenMode = this.screenMode,
-            textMode = this.textMode,
             ram = this.ram,
             baseTableOffset = section << 11,
             colorTable = this.colorTable,
@@ -625,6 +624,8 @@ export class TMS9918A implements VDP {
             colorTableMask = this.colorTableMask,
             patternTableMask = this.patternTableMask,
             palette = this.palette,
+            fgColor = this.fgColor,
+            bgColor = this.bgColor,
             imageDataData = imageData.data;
         let
             name: number,
@@ -638,7 +639,7 @@ export class TMS9918A implements VDP {
             rgbColor: number[],
             imageDataAddr = 0;
         for (let y = 0; y < baseHeight; y++) {
-            rowNameOffset = !textMode ? (y >> 3) << 5 : (y >> 3) * 40;
+            rowNameOffset = (y >> 3) << 5;
             lineOffset = y & 7;
             for (let x = 0; x < baseWidth; x++) {
                 color = 0;
@@ -656,6 +657,15 @@ export class TMS9918A implements VDP {
                         colorByte = ram[colorTable + (tableOffset & colorTableMask) + lineOffset];
                         patternByte = ram[charPatternTable + (tableOffset & patternTableMask) + lineOffset];
                         color = (patternByte & (0x80 >> (x & 7))) !== 0 ? (colorByte & 0xF0) >> 4 : colorByte & 0x0F;
+                        break;
+                    case ScreenMode.MODE_TEXT:
+                        name = rowNameOffset + (x >> 3);
+                        patternByte = ram[charPatternTable + (name << 3) + lineOffset];
+                        if (pixelOffset < 6) {
+                            color = (patternByte & (0x80 >> pixelOffset)) !== 0 ? fgColor : bgColor;
+                        } else {
+                            color = bgColor;
+                        }
                         break;
                 }
                 rgbColor = palette[color];

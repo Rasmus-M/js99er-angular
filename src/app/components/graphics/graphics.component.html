@@ -1,5 +1,5 @@
 <mat-accordion>
-    <mat-expansion-panel [expanded]="true">
+    <mat-expansion-panel (opened)="tileCanvasTopVisible=true" (closed)="tileCanvasTopVisible=false" [expanded]="true">
         <mat-expansion-panel-header>
             <mat-panel-title>
                 Tile patterns
@@ -10,7 +10,7 @@
         </mat-expansion-panel-header>
         <canvas id="tile-canvas-top"></canvas>
     </mat-expansion-panel>
-    <mat-expansion-panel>
+    <mat-expansion-panel (opened)="tileCanvasMiddleVisible=true" (closed)="tileCanvasMiddleVisible=false">
         <mat-expansion-panel-header>
             <mat-panel-title>
                 Tile patterns
@@ -21,7 +21,7 @@
         </mat-expansion-panel-header>
         <canvas id="tile-canvas-middle"></canvas>
     </mat-expansion-panel>
-    <mat-expansion-panel>
+    <mat-expansion-panel (opened)="tileCanvasBottomVisible=true" (closed)="tileCanvasBottomVisible=false">
         <mat-expansion-panel-header>
             <mat-panel-title>
                 Tile patterns
@@ -34,7 +34,7 @@
     </mat-expansion-panel>
 </mat-accordion>
 
-<mat-expansion-panel [expanded]="true">
+<mat-expansion-panel (opened)="tileCanvasSpriteVisible=true" (closed)="tileCanvasSpriteVisible=false" [expanded]="true">
     <mat-expansion-panel-header>
         <mat-panel-title>
             Sprite pattern
