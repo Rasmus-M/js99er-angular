@@ -77,6 +77,26 @@ export class GraphicsComponent implements OnInit, AfterViewInit, OnChanges {
         }
     }
 
+    setTileCanvasTopVisible(visible: boolean) {
+        this.tileCanvasTopVisible = visible;
+        this.updateView();
+    }
+
+    setTileCanvasMiddleVisible(visible: boolean) {
+        this.tileCanvasMiddleVisible = visible;
+        this.updateView();
+    }
+
+    setTileCanvasBottomVisible(visible: boolean) {
+        this.tileCanvasBottomVisible = visible;
+        this.updateView();
+    }
+
+    setSpriteCanvasVisible(visible: boolean) {
+        this.spriteCanvasVisible = visible;
+        this.updateView();
+    }
+
     updateView() {
         if (this.visible) {
             const vdp = this.ti994A.getVDP();

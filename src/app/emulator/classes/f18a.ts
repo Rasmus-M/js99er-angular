@@ -1715,26 +1715,33 @@ export class F18A implements VDP {
     }
 
     drawSpritePatternImage(canvas: HTMLCanvasElement, gap: boolean) {
-        const baseWidth = 256;
-        const width = canvas.width = baseWidth + (gap ? 16 : 0);
-        const baseHeight = 64;
-        const height = canvas.height = baseHeight + (gap ? 4 : 0);
-        const canvasContext = canvas.getContext("2d");
-        const imageData = canvasContext.createImageData(width, height);
         const
+            baseWidth = 256,
+            width = canvas.width = baseWidth + (gap ? 16 : 0),
+            baseHeight = 64,
+            height = canvas.height = baseHeight + (gap ? 4 : 0),
+            canvasContext = canvas.getContext("2d"),
+            imageData = canvasContext.createImageData(width, height),
             ram = this.ram,
             spritePatternTable = this.spritePatternTable,
+            spriteAttributeTable = this.spriteAttributeTable,
             palette = this.palette,
+            patternColorMap = {},
             imageDataData = imageData.data;
         let
             pattern: number,
             patternByte: number,
-            color: number,
             rowPatternOffset: number,
             lineOffset: number,
             pixelOffset: number,
             rgbColor: number[],
             imageDataAddr = 0;
+        for (let i = 0; i < 128 && ram[spriteAttributeTable + i] !== 0xd0; i += 4) {
+            pattern = ram[spriteAttributeTable + i + 2];
+            if (patternColorMap[pattern] === undefined) {
+                patternColorMap[pattern] = ram[spriteAttributeTable + i + 3] & 0x0f;
+            }
+        }
         for (let y = 0; y < baseHeight; y++) {
             rowPatternOffset = ((y >> 4) << 6) + ((y & 8) >> 3);
             lineOffset = y & 7;
@@ -1742,8 +1749,7 @@ export class F18A implements VDP {
                 pixelOffset = x & 7;
                 pattern = rowPatternOffset + ((x >> 3) << 1);
                 patternByte = ram[spritePatternTable + (pattern << 3) + lineOffset];
-                color = (patternByte & (0x80 >> pixelOffset)) !== 0 ? 0 : 15;
-                rgbColor = palette[color];
+                rgbColor = (patternByte & (0x80 >> pixelOffset)) !== 0 ? palette[(patternColorMap[pattern & 0xfc] || 0)] : [224, 224, 255];
                 imageDataData[imageDataAddr++] = rgbColor[0]; // R
                 imageDataData[imageDataAddr++] = rgbColor[1]; // G
                 imageDataData[imageDataAddr++] = rgbColor[2]; // B
