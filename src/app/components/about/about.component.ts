@@ -8,7 +8,8 @@ import {Component, Input, OnInit} from '@angular/core';
 export class AboutComponent implements OnInit {
 
     @Input() title: string;
-    @Input() version: number;
+    @Input() version: string;
+    @Input() date: string;
 
     constructor() {
     }
