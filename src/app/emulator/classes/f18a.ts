@@ -209,6 +209,8 @@ export class F18A implements VDP {
 
     private gpu: F18AGPU;
 
+    private spritePatternColorMap: {};
+
     private log: Log = Log.getLog();
 
     constructor(canvas: HTMLCanvasElement, console: TI994A, settings: Settings) {
@@ -343,6 +345,8 @@ export class F18A implements VDP {
             this.gpu = new F18AGPU(this);
         }
         this.gpu.reset();
+
+        this.spritePatternColorMap = {};
     }
 
     resetRegs() {
@@ -1653,6 +1657,8 @@ export class F18A implements VDP {
             charPatternTable = this.charPatternTable,
             colorTableMask = this.colorTableMask,
             patternTableMask = this.patternTableMask,
+            tileColorMode = this.tileColorMode,
+            tilePaletteSelect = this.tilePaletteSelect,
             palette = this.palette,
             fgColor = this.fgColor,
             bgColor = this.bgColor,
@@ -1660,12 +1666,16 @@ export class F18A implements VDP {
         let
             name: number,
             tableOffset: number,
+            tileAttributeByte: number,
             colorByte: number,
+            bit: number,
+            transparentColor0: boolean,
             patternByte: number,
-            color: number,
+            patternAddr: number,
             rowNameOffset: number,
             lineOffset: number,
             pixelOffset: number,
+            color: number,
             rgbColor: number[],
             imageDataAddr = 0;
         for (let y = 0; y < baseHeight; y++) {
@@ -1677,9 +1687,46 @@ export class F18A implements VDP {
                 switch (screenMode) {
                     case F18A.MODE_GRAPHICS:
                         name = rowNameOffset + (x >> 3);
-                        colorByte = ram[colorTable + (name >> 3)];
-                        patternByte = ram[charPatternTable + (name << 3) + lineOffset];
-                        color = (patternByte & (0x80 >> pixelOffset)) !== 0 ? (colorByte & 0xF0) >> 4 : colorByte & 0x0F;
+                        if (tileColorMode !== F18A.COLOR_MODE_NORMAL) {
+                            tileAttributeByte = this.ram[colorTable + name];
+                            if ((tileAttributeByte & 0x40) !== 0) {
+                                // Flip X
+                                pixelOffset = 7 - pixelOffset;
+                            }
+                            if ((tileAttributeByte & 0x20) !== 0) {
+                                // Flip y
+                                lineOffset = 7 - lineOffset;
+                            }
+                            transparentColor0 = (tileAttributeByte & 0x10) !== 0;
+                        }
+                        bit = 0x80 >> pixelOffset;
+                        patternAddr = this.charPatternTable + (name << 3) + lineOffset;
+                        patternByte = this.ram[patternAddr];
+                        switch (this.tileColorMode) {
+                            case F18A.COLOR_MODE_NORMAL:
+                                const colorSet = this.ram[colorTable + (name >> 3)];
+                                color = (patternByte & bit) !== 0 ? (colorSet & 0xF0) >> 4 : colorSet & 0x0F +
+                                    tilePaletteSelect;
+                                transparentColor0 = true;
+                                break;
+                            case F18A.COLOR_MODE_ECM_1:
+                                color = ((patternByte & bit) >> (7 - pixelOffset)) +
+                                    (tilePaletteSelect & 0x20) | ((tileAttributeByte & 0x0f) << 1);
+                                break;
+                            case F18A.COLOR_MODE_ECM_2:
+                                color =
+                                    (((patternByte & bit) >> (7 - pixelOffset)) |
+                                    (((this.ram[patternAddr + this.tilePlaneOffset] & bit) >> (7 - pixelOffset)) << 1)) +
+                                    ((tileAttributeByte & 0x0f) << 2);
+                                break;
+                            case F18A.COLOR_MODE_ECM_3:
+                                color =
+                                    (((patternByte & bit) >> (7 - pixelOffset)) |
+                                    (((this.ram[patternAddr + this.tilePlaneOffset] & bit) >> (7 - pixelOffset)) << 1) |
+                                    (((this.ram[patternAddr + (this.tilePlaneOffset << 1)] & bit) >> (7 - pixelOffset)) << 2)) +
+                                    ((tileAttributeByte & 0x0e) << 2);
+                                break;
+                        }
                         break;
                     case F18A.MODE_BITMAP:
                         name = rowNameOffset + (x >> 3);
@@ -1725,21 +1772,53 @@ export class F18A implements VDP {
             ram = this.ram,
             spritePatternTable = this.spritePatternTable,
             spriteAttributeTable = this.spriteAttributeTable,
+            spriteColorMode = this.spriteColorMode,
+            spritePaletteSelect = this.spritePaletteSelect,
+            spritePlaneOffset = this.spritePlaneOffset,
+            drawHeight = this.drawHeight - (this.realSpriteYCoord ? 0 : 1),
+            maxSpriteAttrAddr = (this.maxSprites << 2),
+            row30 = this.row30Enabled,
             palette = this.palette,
-            patternColorMap = {},
+            patternColorMap = this.spritePatternColorMap,
             imageDataData = imageData.data;
         let
             pattern: number,
+            patternAddr: number,
             patternByte: number,
+            patternByte1: number,
+            patternByte2: number,
             rowPatternOffset: number,
             lineOffset: number,
             pixelOffset: number,
+            bit: number,
+            bitShift: number,
+            baseColor: number,
+            paletteBaseIndex: number,
+            color: number,
+            pixelOn: boolean,
+            colorMapEntry: {paletteBaseIndex: number, baseColor: number},
             rgbColor: number[],
             imageDataAddr = 0;
-        for (let i = 0; i < 128 && ram[spriteAttributeTable + i] !== 0xd0; i += 4) {
-            pattern = ram[spriteAttributeTable + i + 2];
-            if (patternColorMap[pattern] === undefined) {
-                patternColorMap[pattern] = ram[spriteAttributeTable + i + 3] & 0x0f;
+        for (let i = 0; (row30 || ram[spriteAttributeTable + i] !== 0xd0) && i < maxSpriteAttrAddr; i += 4) {
+            if (ram[spriteAttributeTable + i] < drawHeight) {
+                baseColor = ram[spriteAttributeTable + i + 3] & 0x0f;
+                paletteBaseIndex = 0;
+                switch (spriteColorMode) {
+                    case F18A.COLOR_MODE_NORMAL:
+                        paletteBaseIndex = spritePaletteSelect;
+                        break;
+                    case F18A.COLOR_MODE_ECM_1:
+                        paletteBaseIndex = (spritePaletteSelect & 0x20) | (baseColor << 1);
+                        break;
+                    case F18A.COLOR_MODE_ECM_2:
+                        paletteBaseIndex = (baseColor << 2);
+                        break;
+                    case F18A.COLOR_MODE_ECM_3:
+                        paletteBaseIndex = ((baseColor & 0x0e) << 2);
+                        break;
+                }
+                pattern = ram[spriteAttributeTable + i + 2];
+                patternColorMap[pattern] = {paletteBaseIndex: paletteBaseIndex, baseColor: baseColor};
             }
         }
         for (let y = 0; y < baseHeight; y++) {
@@ -1747,9 +1826,46 @@ export class F18A implements VDP {
             lineOffset = y & 7;
             for (let x = 0; x < baseWidth; x++) {
                 pixelOffset = x & 7;
+                bitShift = 7 - pixelOffset;
+                bit = 0x80 >> pixelOffset;
                 pattern = rowPatternOffset + ((x >> 3) << 1);
-                patternByte = ram[spritePatternTable + (pattern << 3) + lineOffset];
-                rgbColor = (patternByte & (0x80 >> pixelOffset)) !== 0 ? palette[(patternColorMap[pattern & 0xfc] || 0)] : [224, 224, 255];
+                patternAddr = spritePatternTable + (pattern << 3) + lineOffset;
+                patternByte = ram[patternAddr];
+                patternByte1 = ram[patternAddr + spritePlaneOffset];
+                patternByte2 = ram[patternAddr + (spritePlaneOffset << 1)];
+                color = 0;
+                colorMapEntry = patternColorMap[pattern & 0xfc];
+                switch (spriteColorMode) {
+                    case F18A.COLOR_MODE_NORMAL:
+                        pixelOn = (patternByte & bit) !== 0;
+                        if (pixelOn && colorMapEntry) {
+                            color = colorMapEntry.baseColor;
+                        }
+                        break;
+                    case F18A.COLOR_MODE_ECM_1:
+                        color = (patternByte & bit) >> bitShift;
+                        break;
+                    case F18A.COLOR_MODE_ECM_2:
+                        color =
+                            ((patternByte & bit) >> bitShift) |
+                            (((patternByte1 & bit) >> bitShift) << 1);
+                        break;
+                    case F18A.COLOR_MODE_ECM_3:
+                        color =
+                            ((patternByte & bit) >> bitShift) |
+                            (((patternByte1 & bit) >> bitShift) << 1) |
+                            (((patternByte2 & bit) >> bitShift) << 2);
+                        break;
+                }
+                if (color || pixelOn) {
+                    if (colorMapEntry) {
+                        rgbColor = palette[color + colorMapEntry.paletteBaseIndex];
+                    } else {
+                        rgbColor = palette[color + spritePaletteSelect];
+                    }
+                } else {
+                   rgbColor = [224, 224, 255];
+                }
                 imageDataData[imageDataAddr++] = rgbColor[0]; // R
                 imageDataData[imageDataAddr++] = rgbColor[1]; // G
                 imageDataData[imageDataAddr++] = rgbColor[2]; // B

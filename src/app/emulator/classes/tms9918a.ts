@@ -74,6 +74,8 @@ export class TMS9918A implements VDP {
     private width: number;
     private height: number;
 
+    private spritePatternColorMap: {};
+
     private log: Log = Log.getLog();
 
     constructor(canvas: HTMLCanvasElement, console: TI994A, settings: Settings) {
@@ -125,6 +127,8 @@ export class TMS9918A implements VDP {
         this.imageData = this.canvasContext.getImageData(0, 0, this.canvas.width, this.canvas.height);
         this.width = this.canvas.width;
         this.height = this.canvas.height;
+
+        this.spritePatternColorMap = {};
     }
 
     drawFrame(timestamp: number) {
@@ -696,7 +700,7 @@ export class TMS9918A implements VDP {
             spritePatternTable = this.spritePatternTable,
             spriteAttributeTable = this.spriteAttributeTable,
             palette = this.palette,
-            patternColorMap = {},
+            patternColorMap = this.spritePatternColorMap,
             imageDataData = imageData.data;
         let
             pattern: number,
@@ -707,8 +711,8 @@ export class TMS9918A implements VDP {
             rgbColor: number[],
             imageDataAddr = 0;
         for (let i = 0; i < 128 && ram[spriteAttributeTable + i] !== 0xd0; i += 4) {
-            pattern = ram[spriteAttributeTable + i + 2];
-            if (patternColorMap[pattern] === undefined) {
+            if (ram[spriteAttributeTable] < 0xbf) {
+                pattern = ram[spriteAttributeTable + i + 2];
                 patternColorMap[pattern] = ram[spriteAttributeTable + i + 3] & 0x0f;
             }
         }
