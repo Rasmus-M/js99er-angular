@@ -16,6 +16,7 @@ export class GraphicsComponent implements OnInit, AfterViewInit, OnChanges {
     private ti994A: TI994A;
     private timerHandle: number;
     private eventSubscription: Subscription;
+    private paletteCanvas: HTMLCanvasElement;
     private tileCanvasTop: HTMLCanvasElement;
     private tileCanvasMiddle: HTMLCanvasElement;
     private tileCanvasBottom: HTMLCanvasElement;
@@ -49,6 +50,7 @@ export class GraphicsComponent implements OnInit, AfterViewInit, OnChanges {
     }
 
     ngAfterViewInit() {
+        this.paletteCanvas = this.element.nativeElement.querySelector('#palette-canvas');
         this.tileCanvasTop = this.element.nativeElement.querySelector('#tile-canvas-top');
         this.tileCanvasMiddle = this.element.nativeElement.querySelector('#tile-canvas-middle');
         this.tileCanvasBottom = this.element.nativeElement.querySelector('#tile-canvas-bottom');
@@ -100,6 +102,7 @@ export class GraphicsComponent implements OnInit, AfterViewInit, OnChanges {
     updateView() {
         if (this.visible) {
             const vdp = this.ti994A.getVDP();
+            vdp.drawPaletteImage(this.paletteCanvas);
             if (this.tileCanvasTopVisible) {
                 vdp.drawTilePatternImage(this.tileCanvasTop, 0, true);
             }

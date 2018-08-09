@@ -1642,6 +1642,25 @@ export class F18A implements VDP {
         return F18A.VERSION;
     }
 
+    drawPaletteImage(canvas: HTMLCanvasElement): void {
+        const
+            size = 16,
+            width = canvas.width = 32 * size + 32,
+            height = canvas.height = 2 * size + 2,
+            canvasContext = canvas.getContext("2d");
+        canvasContext.fillStyle = "rgba(255, 255, 255, 1)";
+        canvasContext.fillRect(0, 0, width, height);
+        let color = 0;
+        for (let y = 0; y < height; y += size + 1) {
+            for (let x = 0; x < width; x += size + 1) {
+                const rgbColor  = this.palette[color];
+                canvasContext.fillStyle = "rgba(" + rgbColor[0] + "," + rgbColor[1] + "," + rgbColor[2] + ",1)";
+                canvasContext.fillRect(x, y, size, size);
+                color++;
+            }
+        }
+    }
+
     drawTilePatternImage(canvas: HTMLCanvasElement, section: number, gap: boolean) {
         const
             baseWidth = 256,

@@ -612,6 +612,23 @@ export class TMS9918A implements VDP {
         return undefined;
     }
 
+    drawPaletteImage(canvas: HTMLCanvasElement): void {
+        const
+            size = 32,
+            width = canvas.width = 16 * size + 16,
+            height = canvas.height = size,
+            canvasContext = canvas.getContext("2d");
+        canvasContext.fillStyle = "rgba(255, 255, 255, 1)";
+        canvasContext.fillRect(0, 0, width, height);
+        let color = 0;
+        for (let x = 0; x < width; x += size + 1) {
+            const rgbColor  = this.palette[color];
+            canvasContext.fillStyle = "rgba(" + rgbColor[0] + "," + rgbColor[1] + "," + rgbColor[2] + ",1)";
+            canvasContext.fillRect(x, 0, size, size);
+            color++;
+        }
+    }
+
     drawTilePatternImage(canvas: HTMLCanvasElement, section: number, gap: boolean) {
         const
             baseWidth = 256,
