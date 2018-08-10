@@ -31,6 +31,7 @@ export class AudioService {
 
     static resumeSound() {
         if (AudioService.audioContext && AudioService.audioContext.state !== "running") {
+            console.log("Resume sound");
             AudioService.audioContext.resume();
         }
     }

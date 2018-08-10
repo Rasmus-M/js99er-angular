@@ -1,4 +1,4 @@
-import {Component, ElementRef, OnDestroy, OnInit} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit} from '@angular/core';
 import {CommandDispatcherService} from './services/command-dispatcher.service';
 import {Setting, Settings} from './classes/settings';
 import {DiskImage} from './emulator/classes/diskimage';
@@ -19,13 +19,14 @@ import {Software} from './classes/software';
 import {MoreSoftwareService} from './services/more-software.service';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mergeMap';
+import * as $ from 'jquery';
 
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit, OnDestroy {
+export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
     diskImages: DiskImage[];
     ti994A: TI994A;
@@ -61,6 +62,12 @@ export class AppComponent implements OnInit, OnDestroy {
         this.routerSubscription = this.router.events.subscribe(this.onRouterEvent.bind(this));
         this.commandSubscription = this.commandDispatcherService.subscribe(this.onCommand.bind(this));
         this.eventSubscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
+    }
+
+    ngAfterViewInit(): void {
+        $(this.element.nativeElement).one("click keydown touchstart", function () {
+            AudioService.resumeSound();
+        });
     }
 
     onRouterEvent(event: RouterEvent) {
