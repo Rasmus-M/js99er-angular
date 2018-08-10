@@ -33,8 +33,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     tabIndex: number;
 
     title = "JS99'er";
-    version = "7.1.1";
-    date = "8 August, 2018";
+    version = "7.1.2";
+    date = "10 August, 2018";
 
     private routerSubscription: Subscription;
     private commandSubscription: Subscription;
