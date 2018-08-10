@@ -322,6 +322,11 @@
                     "type": "ITEM",
                     "name": "Monkey Island Demo",
                     "url": "software/f18a-monkey8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Alex Kidd on Miracle Island Demo",
+                    "url": "software/alexkidd.rpk"
                 }
             ]
         },
