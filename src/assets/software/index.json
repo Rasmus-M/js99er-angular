@@ -320,13 +320,18 @@
                 },
                 {
                     "type": "ITEM",
-                    "name": "Monkey Island Demo",
+                    "name": "Monkey Island demo",
                     "url": "software/f18a-monkey8.bin"
                 },
                 {
                     "type": "ITEM",
-                    "name": "Alex Kidd on Miracle Island Demo",
+                    "name": "Alex Kidd on Miracle Island demo",
                     "url": "software/alexkidd.rpk"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Raycaster demo",
+                    "url": "software/raycaster8.bin"
                 }
             ]
         },
