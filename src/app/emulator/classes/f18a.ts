@@ -1724,7 +1724,7 @@ export class F18A implements VDP {
                         switch (this.tileColorMode) {
                             case F18A.COLOR_MODE_NORMAL:
                                 const colorSet = this.ram[colorTable + (name >> 3)];
-                                color = (patternByte & bit) !== 0 ? (colorSet & 0xF0) >> 4 : colorSet & 0x0F +
+                                color = (patternByte & bit) !== 0 ? (colorSet & 0xF0) >> 4 : (colorSet & 0x0F || bgColor) +
                                     tilePaletteSelect;
                                 transparentColor0 = true;
                                 break;
