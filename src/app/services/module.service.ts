@@ -7,6 +7,9 @@ import {Subject} from 'rxjs/Subject';
 import {ZipService} from './zip.service';
 import {Util} from '../classes/util';
 import {forkJoin} from "rxjs";
+import * as zip from 'zip-js/WebContent/zip.js';
+import Entry = zip.Entry;
+import Reader = zip.Reader;
 
 @Injectable()
 export class ModuleService {
@@ -20,7 +23,7 @@ export class ModuleService {
         this.zipService = zipService;
     }
 
-    private static hexArrayToByteArray(hexArray) {
+    private static hexArrayToByteArray(hexArray: string[]) {
         const binArray = [];
         let n = 0;
         for (let i = 0; i < hexArray.length; i++) {
@@ -32,7 +35,7 @@ export class ModuleService {
         return new Uint8Array(binArray);
     }
 
-    loadModuleFromFile(file): Observable<Software> {
+    loadModuleFromFile(file: File): Observable<Software> {
         let extension = file.name.split('.').pop();
         extension = extension ? extension.toLowerCase() : "";
         if (extension != null && extension !== "rpk" && extension !== "zip" && extension !== "bin") {
@@ -61,15 +64,15 @@ export class ModuleService {
         }
     }
 
-    loadRPKModuleFromFile(file): Observable<Software> {
+    loadRPKModuleFromFile(file: File): Observable<Software> {
         return this.loadRPKOrZipModule(this.zipService.createBlobReader(file));
     }
 
-    loadRPKModuleFromURL(url): Observable<Software> {
+    loadRPKModuleFromURL(url: string): Observable<Software> {
         return this.loadRPKOrZipModule(this.zipService.createHttpReader(url));
     }
 
-    loadRPKOrZipModule(reader): Observable<Software> {
+    loadRPKOrZipModule(reader: Reader): Observable<Software> {
         const subject = new Subject<Software>();
         const self = this;
         this.zipService.createReader(reader, (zipReader) => {
@@ -94,7 +97,7 @@ export class ModuleService {
         return subject.asObservable();
     }
 
-    loadRPKModule(layoutEntry, entries: any[], subject: Subject<Software>) {
+    loadRPKModule(layoutEntry: Entry, entries: Entry[], subject: Subject<Software>) {
         const
             self = this,
             zipService = this.zipService,
@@ -160,7 +163,7 @@ export class ModuleService {
         }
     }
 
-    private loadRPKFile(entries, filename, romId, socketId): Observable<Software> {
+    private loadRPKFile(entries: Entry[], filename: string, romId: string, socketId: string): Observable<Software> {
         const
             subject = new Subject<Software>(),
             log = Log.getLog(),
@@ -192,7 +195,7 @@ export class ModuleService {
         return subject.asObservable();
     }
 
-    loadZipModule(entries: any[], subject: Subject<Software>) {
+    loadZipModule(entries: Entry[], subject: Subject<Software>) {
         const log = Log.getLog();
         const zipService = this.zipService;
         const module: Software = new Software();
@@ -277,7 +280,7 @@ export class ModuleService {
         return subject.asObservable();
     }
 
-    loadJSONModuleFromURL(url): Observable<Software> {
+    loadJSONModuleFromURL(url: string): Observable<Software> {
         const subject = new Subject<Software>();
         const self = this;
         this.httpClient.get(url, {responseType: 'json'}).subscribe(

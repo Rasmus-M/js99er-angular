@@ -1,7 +1,12 @@
 import {Injectable} from '@angular/core';
+import * as zip from 'zip-js/WebContent/zip.js';
+import BlobReader = zip.BlobReader;
+import Reader = zip.Reader;
+import TextWriter = zip.TextWriter;
+import BlobWriter = zip.BlobWriter;
 
 // Modification of zip.js HttpReader that uses GET instead of HEAD
-class HttpReader {
+class HttpReader implements zip.HttpReader {
 
     url: string;
     size = 0;
@@ -55,29 +60,30 @@ class HttpReader {
 @Injectable()
 export class ZipService {
 
-    private zip = window.zip;
+    private zip = zip.zip;
 
     constructor() {
         this.zip.workerScriptsPath = './assets/scripts/';
+        console.log(this.zip);
     }
 
-    createBlobReader(file: File) {
+    createBlobReader(file: File): BlobReader {
         return new this.zip.BlobReader(file);
     }
 
-    createHttpReader(url: string) {
+    createHttpReader(url: string): HttpReader {
         return new HttpReader(url);
     }
 
-    createReader(reader: any, callback: (zipReader) => void, onerror: (err: any) => void) {
+    createReader(reader: any, callback: (zipReader) => void, onerror: (err: any) => void): Reader {
         return this.zip.createReader(reader, callback, onerror);
     }
 
-    createTextWriter(encoding: string) {
+    createTextWriter(encoding: string): TextWriter {
         return new this.zip.TextWriter('ISO-8859-1');
     }
 
-    createBlobWriter() {
+    createBlobWriter(): BlobWriter {
         return new this.zip.BlobWriter();
     }
 }
