@@ -73,8 +73,9 @@ export class ModuleService {
     }
 
     loadRPKOrZipModule(reader: Reader): Observable<Software> {
-        const subject = new Subject<Software>();
-        const self = this;
+        const
+            subject = new Subject<Software>(),
+            self = this;
         this.zipService.createReader(reader, (zipReader) => {
             zipReader.getEntries(function (entries) {
                 let layoutEntry = null;
@@ -110,9 +111,9 @@ export class ModuleService {
                 pcbType = pcb.getAttribute('type').toLowerCase(),
                 roms = xmlDoc.getElementsByTagName('rom'),
                 sockets = xmlDoc.getElementsByTagName('socket'),
-                module: Software = new Software();
+                module: Software = new Software(),
+                observables = [];
             module.inverted = pcbType === 'paged379i';
-            const observables = [];
             for (let i = 0; i < roms.length; i++) {
                 const rom = roms[i];
                 const romId = rom.getAttribute('id');
@@ -123,20 +124,25 @@ export class ModuleService {
                         socketId = sockets[j].getAttribute('id');
                     }
                 }
-                observables.push(self.loadRPKFile(entries, filename, romId, socketId));
+                let entry: Entry = null;
+                for (let j = 0; j < entries.length && entry == null; j++) {
+                    if (entries[j].filename === filename) {
+                        entry = entries[j];
+                    }
+                }
+                observables.push(self.loadRPKEntry(entry, filename, romId, socketId));
             }
             forkJoin(observables).subscribe(
-                (parts: Software[]) => {
+                (softwares: Software[]) => {
                     const romArray: number[] = [];
-                    for (let i = 0; i < parts.length; i++) {
-                        const software: Software = parts[i];
+                    softwares.forEach((software: Software) => {
                         if (software.grom) {
                             module.grom = software.grom;
                         } else if (software.rom) {
                             const offset = (software.socketId === 'rom2_socket') ? 0x2000 : 0;
                             self.insertROM(romArray, software.rom, offset);
                         }
-                    }
+                    });
                     if (romArray.length) {
                         module.rom = new Uint8Array(romArray);
                     }
@@ -145,11 +151,39 @@ export class ModuleService {
                 },
                 subject.error
             );
-        }, function () {
+        }, function (progress, total) {
             // On progress
         }, function (error) {
             subject.error(error);
         });
+    }
+
+    private loadRPKEntry(entry: Entry, filename: string, romId: string, socketId: string): Observable<Software> {
+        const
+            subject = new Subject<Software>(),
+            zipService = this.zipService,
+            blobWriter = zipService.createBlobWriter(),
+            log = Log.getLog();
+        entry.getData(blobWriter, function (blob) {
+            const reader = new FileReader();
+            reader.onload = function () {
+                // reader.result contains the contents of blob as a typed array
+                const byteArray = new Uint8Array(reader.result);
+                const software = new Software();
+                if (socketId.substr(0, 3).toLowerCase() === 'rom') {
+                    log.info('ROM ' + romId + ' (' + socketId + '): \'' + filename + '\', ' + byteArray.length + ' bytes');
+                    software.rom = byteArray;
+                    software.socketId = socketId;
+                } else if (socketId.substr(0, 4).toLowerCase() === 'grom') {
+                    log.info('GROM ' + romId + ' (' + socketId + '): \'' + filename + '\', ' + byteArray.length + ' bytes');
+                    software.grom = byteArray;
+                }
+                subject.next(software);
+                subject.complete();
+            };
+            reader.readAsArrayBuffer(blob);
+        });
+        return subject.asObservable();
     }
 
     private insertROM(romArray: number[], rom: Uint8Array, offset: number) {
@@ -163,85 +197,77 @@ export class ModuleService {
         }
     }
 
-    private loadRPKFile(entries: Entry[], filename: string, romId: string, socketId: string): Observable<Software> {
+    loadZipModule(entries: Entry[], subject: Subject<Software>) {
+        const
+            self = this,
+            log = Log.getLog(),
+            zipService = this.zipService,
+            module: Software = new Software(),
+            observables: Observable<Software>[] = [];
+        entries.forEach(function (entry) {
+            log.info(entry.filename);
+            observables.push(self.loadZipEntry(entry));
+        });
+        forkJoin(observables).subscribe(
+            (softwares: Software[]) => {
+                softwares.forEach((software: Software) => {
+                    if (software.grom) {
+                        module.grom = software.grom;
+                    } else if (software.rom) {
+                        module.rom = software.rom;
+                        module.inverted = software.inverted;
+                    }
+                });
+                subject.next(module);
+                subject.complete();
+            },
+            subject.error
+        );
+    }
+
+    loadZipEntry(entry: Entry): Observable<Software> {
         const
             subject = new Subject<Software>(),
-            log = Log.getLog(),
+            software = new Software(),
+            baseFileName = entry.filename.split('.')[0],
+            extension = entry.filename.split('.')[1],
             zipService = this.zipService;
-        entries.forEach(function (entry) {
-            if (entry.filename === filename) {
-                const blobWriter = zipService.createBlobWriter();
-                entry.getData(blobWriter, function (blob) {
-                    const reader = new FileReader();
-                    reader.onload = function () {
-                        // reader.result contains the contents of blob as a typed array
-                        const byteArray = new Uint8Array(this.result);
-                        const software = new Software();
-                        if (socketId.substr(0, 3).toLowerCase() === 'rom') {
-                            log.info('ROM ' + romId + ' (' + socketId + '): \'' + filename + '\', ' + byteArray.length + ' bytes');
-                            software.rom = byteArray;
-                            software.socketId = socketId;
-                        } else if (socketId.substr(0, 4).toLowerCase() === 'grom') {
-                            log.info('GROM ' + romId + ' (' + socketId + '): \'' + filename + '\', ' + byteArray.length + ' bytes');
-                            software.grom = byteArray;
-                        }
-                        subject.next(software);
-                        subject.complete();
-                    };
-                    reader.readAsArrayBuffer(blob);
-                });
-            }
-        });
+        if (extension === 'bin') {
+            const grom = baseFileName && baseFileName.charAt(baseFileName.length - 1) === 'g';
+            software.inverted = baseFileName && baseFileName.charAt(baseFileName.length - 1) === '3';
+            const blobWriter = zipService.createBlobWriter();
+            entry.getData(blobWriter, function (blob) {
+                const reader = new FileReader();
+                reader.onload = function () {
+                    // reader.result contains the contents of blob as a typed array
+                    const byteArray = new Uint8Array(reader.result);
+                    if (grom) {
+                        software.grom = byteArray;
+                    } else {
+                        software.rom = byteArray;
+                    }
+                    subject.next(software);
+                    subject.complete();
+                };
+                reader.readAsArrayBuffer(blob);
+            }, function () {
+                // On progress
+            }, function (error) {
+                subject.error(error);
+            });
+        }
         return subject.asObservable();
     }
 
-    loadZipModule(entries: Entry[], subject: Subject<Software>) {
-        const log = Log.getLog();
-        const zipService = this.zipService;
-        const module: Software = new Software();
-        let filesToLoad = 0;
-        entries.forEach(function (entry) {
-            log.info(entry.filename);
-            const baseFileName = entry.filename.split('.')[0];
-            const extension = entry.filename.split('.')[1];
-            if (extension === 'bin') {
-                filesToLoad++;
-                const grom = baseFileName && baseFileName.charAt(baseFileName.length - 1) === 'g';
-                module.inverted = baseFileName && baseFileName.charAt(baseFileName.length - 1) === '3';
-                const blobWriter = zipService.createBlobWriter();
-                entry.getData(blobWriter, function (blob) {
-                    const reader2 = new FileReader();
-                    reader2.onload = function () {
-                        // reader.result contains the contents of blob as a typed array
-                        const byteArray = new Uint8Array(this.result);
-                        if (grom) {
-                            module.grom = byteArray;
-                        } else {
-                            module.rom = byteArray;
-                        }
-                        filesToLoad--;
-                        if (filesToLoad <= 0) {
-                            subject.next(module);
-                        }
-                    };
-                    reader2.readAsArrayBuffer(blob);
-                }, function () {
-                    // On progress
-                }, function (error) {
-                    subject.error(error);
-                });
-            }
-        });
-    }
-
     loadBinModuleFromFile(file: File): Observable<Software> {
-        const subject = new Subject<Software>();
-        const baseFileName = file.name.split('.')[0];
-        const inverted = baseFileName && baseFileName.charAt(baseFileName.length - 1) === '3';
-        const grom = baseFileName && baseFileName.charAt(baseFileName.length - 1) === 'g';
-        const reader = new FileReader();
+        const
+            subject = new Subject<Software>(),
+            baseFileName = file.name.split('.')[0],
+            inverted = baseFileName && baseFileName.charAt(baseFileName.length - 1) === '3',
+            grom = baseFileName && baseFileName.charAt(baseFileName.length - 1) === 'g',
+            reader = new FileReader();
         reader.onload = function () {
-            const byteArray = new Uint8Array(this.result);
+            const byteArray = new Uint8Array(reader.result);
             const module: Software = new Software();
             if (grom) {
                 module.grom = byteArray;
