@@ -6,6 +6,7 @@ import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {ZipService} from './zip.service';
 import {Util} from '../classes/util';
+import {forkJoin} from "rxjs";
 
 @Injectable()
 export class ModuleService {
@@ -94,70 +95,101 @@ export class ModuleService {
     }
 
     loadRPKModule(layoutEntry, entries: any[], subject: Subject<Software>) {
-        const log = Log.getLog();
-        const zipService = this.zipService;
-        const writer = zipService.createTextWriter('ISO-8859-1');
+        const
+            self = this,
+            zipService = this.zipService,
+            writer = zipService.createTextWriter('ISO-8859-1');
         layoutEntry.getData(writer, function (txt) {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(txt, 'text/xml');
-            const pcb = xmlDoc.getElementsByTagName('pcb')[0];
-            const pcbType = pcb.getAttribute('type').toLowerCase();
-            const roms = xmlDoc.getElementsByTagName('rom');
-            const sockets = xmlDoc.getElementsByTagName('socket');
-            const module: Software = new Software();
+            const
+                parser = new DOMParser(),
+                xmlDoc = parser.parseFromString(txt, 'text/xml'),
+                pcb = xmlDoc.getElementsByTagName('pcb')[0],
+                pcbType = pcb.getAttribute('type').toLowerCase(),
+                roms = xmlDoc.getElementsByTagName('rom'),
+                sockets = xmlDoc.getElementsByTagName('socket'),
+                module: Software = new Software();
             module.inverted = pcbType === 'paged379i';
-            let filesToLoad = roms.length;
-            const romArray = [];
+            const observables = [];
             for (let i = 0; i < roms.length; i++) {
                 const rom = roms[i];
                 const romId = rom.getAttribute('id');
                 const filename = rom.getAttribute('file');
                 let socketId = null;
-                for (let j = 0; j < sockets.length; j++) {
+                for (let j = 0; j < sockets.length && !socketId; j++) {
                     if (sockets[j].getAttribute('uses') === romId) {
                         socketId = sockets[j].getAttribute('id');
                     }
                 }
-                loadRPKFile(entries, filename, romId, socketId, pcbType);
+                observables.push(self.loadRPKFile(entries, filename, romId, socketId));
             }
-
-            function loadRPKFile(_entries, filename, romId, socketId, _pcbType) {
-                _entries.forEach(function (entry) {
-                    if (entry.filename === filename) {
-                        const blobWriter = zipService.createBlobWriter();
-                        entry.getData(blobWriter, function (blob) {
-                            const reader2 = new FileReader();
-                            reader2.onload = function () {
-                                // reader.result contains the contents of blob as a typed array
-                                const byteArray = new Uint8Array(this.result);
-                                if (socketId.substr(0, 3).toLowerCase() === 'rom') {
-                                    log.info('ROM ' + romId + ' (' + socketId + '): \'' + filename + '\', ' + byteArray.length + ' bytes');
-                                    const addr = (socketId === 'rom2_socket') ? 0x2000 : 0;
-                                    for (let i = 0; i < Math.min(byteArray.length, _pcbType === "paged" ? 0x2000 : byteArray.length); i++) {
-                                        romArray[addr + i] = byteArray[i];
-                                    }
-                                    for (let i = byteArray.length; i < 0x2000; i++) {
-                                        romArray[addr + i] = 0;
-                                    }
-                                } else if (socketId.substr(0, 4).toLowerCase() === 'grom') {
-                                    log.info('GROM ' + romId + ' (' + socketId + '): \'' + filename + '\', ' + byteArray.length + ' bytes');
-                                    module.grom = byteArray;
-                                }
-                                filesToLoad--;
-                                if (filesToLoad === 0) {
-                                    if (romArray.length) {
-                                        module.rom = new Uint8Array(romArray);
-                                    }
-                                    subject.next(module);
-                                    subject.complete();
-                                }
-                            };
-                            reader2.readAsArrayBuffer(blob);
-                        });
+            forkJoin(observables).subscribe(
+                (parts: Software[]) => {
+                    const romArray: number[] = [];
+                    for (let i = 0; i < parts.length; i++) {
+                        const software: Software = parts[i];
+                        if (software.grom) {
+                            module.grom = software.grom;
+                        } else if (software.rom) {
+                            const offset = (software.socketId === 'rom2_socket') ? 0x2000 : 0;
+                            self.insertROM(romArray, software.rom, offset);
+                        }
                     }
+                    if (romArray.length) {
+                        module.rom = new Uint8Array(romArray);
+                    }
+                    subject.next(module);
+                    subject.complete();
+                },
+                subject.error
+            );
+        }, function () {
+            // On progress
+        }, function (error) {
+            subject.error(error);
+        });
+    }
+
+    private insertROM(romArray: number[], rom: Uint8Array, offset: number) {
+        if (romArray.length < offset) {
+            for (let i = 0; i < offset; i++) {
+                romArray[i] = 0;
+            }
+        }
+        for (let i = 0; i < Math.max(rom.length, 0x2000); i++) {
+            romArray[offset + i] = i < rom.length ? rom[i] : 0;
+        }
+    }
+
+    private loadRPKFile(entries, filename, romId, socketId): Observable<Software> {
+        const
+            subject = new Subject<Software>(),
+            log = Log.getLog(),
+            zipService = this.zipService;
+        entries.forEach(function (entry) {
+            if (entry.filename === filename) {
+                const blobWriter = zipService.createBlobWriter();
+                entry.getData(blobWriter, function (blob) {
+                    const reader = new FileReader();
+                    reader.onload = function () {
+                        // reader.result contains the contents of blob as a typed array
+                        const byteArray = new Uint8Array(this.result);
+                        const software = new Software();
+                        if (socketId.substr(0, 3).toLowerCase() === 'rom') {
+                            log.info('ROM ' + romId + ' (' + socketId + '): \'' + filename + '\', ' + byteArray.length + ' bytes');
+                            software.rom = byteArray;
+                            software.socketId = socketId;
+                        } else if (socketId.substr(0, 4).toLowerCase() === 'grom') {
+                            log.info('GROM ' + romId + ' (' + socketId + '): \'' + filename + '\', ' + byteArray.length + ' bytes');
+                            software.grom = byteArray;
+                        }
+                        subject.next(software);
+                        subject.complete();
+                    };
+                    reader.readAsArrayBuffer(blob);
                 });
             }
         });
+        return subject.asObservable();
     }
 
     loadZipModule(entries: any[], subject: Subject<Software>) {
@@ -190,6 +222,10 @@ export class ModuleService {
                         }
                     };
                     reader2.readAsArrayBuffer(blob);
+                }, function () {
+                    // On progress
+                }, function (error) {
+                    subject.error(error);
                 });
             }
         });
