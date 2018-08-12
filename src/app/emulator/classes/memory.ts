@@ -97,9 +97,7 @@ export class Memory implements State, MemoryDevice {
 
         // ROM
         this.rom = new Uint8Array(System.ROM);
-        this.rom[0x14a7] = 0x03; // Fix cassette sync (LI instead of CI)
-        this.rom[0x14a9] = 0x37; // Cassette read time (original 0x1f)
-        this.rom[0x1353] = 0x1f; // Cassette write time (original 0x23)
+        this.patchROMForTapeUsage();
 
         if (!keepCart) {
             // GROM
@@ -134,6 +132,12 @@ export class Memory implements State, MemoryDevice {
         }
 
         this.buildMemoryMap();
+    }
+
+    patchROMForTapeUsage() {
+        this.rom[0x14a7] = 0x03; // Fix cassette sync (LI instead of CI)
+        this.rom[0x14a9] = 0x37; // Cassette read time (original 0x1f)
+        this.rom[0x1353] = 0x1f; // Cassette write time (original 0x23)
     }
 
     private buildMemoryMap() {
