@@ -524,6 +524,10 @@ export class TMS9918A implements VDP {
         return this.ram;
     }
 
+    getRegister(r: number): number {
+        return this.registers[r];
+    }
+
     private colorTableSize() {
         if (this.screenMode === ScreenMode.MODE_GRAPHICS) {
             return 0x20;

@@ -1505,7 +1505,7 @@ export class F18A implements VDP {
         return this.ram;
     }
 
-    getCurrentScanline() {
+   getCurrentScanline() {
         if (this.currentScanline !== null) {
             this.log.debug("Get scanline=" + this.currentScanline);
             return this.currentScanline;

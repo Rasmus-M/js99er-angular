@@ -3,6 +3,7 @@ import {Subscription} from "rxjs";
 import {TI994A} from "../../emulator/classes/ti994a";
 import {ConsoleEvent, ConsoleEventType} from "../../classes/consoleevent";
 import {EventDispatcherService} from "../../services/event-dispatcher.service";
+import {saveAs} from 'file-saver';
 
 @Component({
     selector: 'app-graphics',
@@ -116,5 +117,19 @@ export class GraphicsComponent implements OnInit, AfterViewInit, OnChanges {
                 vdp.drawSpritePatternImage(this.spriteCanvas, true);
             }
         }
+    }
+
+    dumpRAM() {
+        const output = new Uint8Array(0x4008);
+        const vdp = this.ti994A.getVDP();
+        const vdpRAM = vdp.getRAM();
+        for (let i = 0; i < 0x4000; i++) {
+            output[i] = vdpRAM[i];
+        }
+        for (let r = 0; r < 8; r++) {
+            output[0x4000 + r] = vdp.getRegister(r);
+        }
+        const blob = new Blob([output], { type: "application/octet-stream" });
+        saveAs(blob, "vdpram.bin");
     }
 }

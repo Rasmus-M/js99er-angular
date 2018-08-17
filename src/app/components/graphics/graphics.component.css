@@ -1,3 +1,23 @@
 canvas {
     width: 100%;
 }
+
+.panels {
+    grid-area: panels;
+    overflow-y: auto;
+}
+
+.toolbar {
+    grid-area: toolbar;
+}
+
+.graphics {
+    display: grid;
+    height: 100%;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+    grid-template-areas:
+        "panels"
+        "toolbar";
+    grid-row-gap: 8px;
+}
