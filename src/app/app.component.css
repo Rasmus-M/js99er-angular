@@ -36,7 +36,22 @@
     }
 }
 
-@media (max-aspect-ratio: 14/9) {
+@media (min-aspect-ratio: 10/9) and (max-aspect-ratio: 14/9) {
+    .app {
+        display: grid;
+        --consoleHeight: calc(100vh - 96px);
+        --consoleWidth: calc(var(--consoleHeight) * 4 / 3);
+        grid-template-columns: 1fr;
+        grid-template-rows: var(--consoleHeight) auto 600px;
+        grid-template-areas:
+            "console"
+            "main_controls"
+            "side_panel";
+        grid-row-gap: 8px;
+    }
+}
+
+@media (max-aspect-ratio: 10/9) {
     .app {
         display: grid;
         --consoleWidth: calc(100vw - 20px);
