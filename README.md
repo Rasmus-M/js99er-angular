@@ -1,8 +1,17 @@
 # JS99'er
 
-This is a new version of js99er.net developed using Angular and TypeScript. Try it [here](http://js99er.net/beta).
+This is the new version of js99er.net developed using Angular and TypeScript. Try it [here](https://js99er.net/beta).
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.7.3.
+
+## Setting up the development environment
+
+* Clone the repository to a folder on your computer
+* Install [Node.js](https://nodejs.org) 
+* Install Angular CLI: ``npm install -g @angular/cli``
+* Change to the directory containing the source code and install the dependencies: ``npm install``
+* Run js99er locally by typing: ``ng serve``
+* Open a browser and enter the address: ``http://localhost:4200``
 
 ## Development server
 
