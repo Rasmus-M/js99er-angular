@@ -64,7 +64,6 @@ export class ZipService {
 
     constructor() {
         this.zip.workerScriptsPath = './assets/scripts/';
-        console.log(this.zip);
     }
 
     createBlobReader(file: File): BlobReader {
