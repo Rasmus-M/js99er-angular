@@ -25,14 +25,14 @@ export class Log {
     }
 
     constructor() {
-    }
-
-    init(element: HTMLElement) {
-        this.element = element;
         const that = this;
         setInterval(function () {
             that.flushBuffer();
         }, 1000);
+    }
+
+    init(element: HTMLElement) {
+        this.element = element;
     }
 
     print(obj) {
