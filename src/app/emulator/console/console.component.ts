@@ -48,6 +48,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngAfterViewInit() {
         this.canvas = this.element.nativeElement.querySelector('canvas');
+        $(this.canvas).toggleClass("pixelated", this.settingsService.isPixelatedEnabled());
         this.ti994A = this.consoleFactoryService.create(document, this.canvas, this.diskImages, this.settingsService.getSettings(), this.onBreakpoint.bind(this));
         this.eventDispatcherService.ready(this.ti994A);
         this.softwareService.loadModuleFromURL("software/extended_basic.rpk").subscribe(
