@@ -227,8 +227,14 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngOnDestroy() {
-        this.routerSubscription.unsubscribe();
-        this.commandSubscription.unsubscribe();
-        this.eventSubscription.unsubscribe();
+        if (this.routerSubscription) {
+            this.routerSubscription.unsubscribe();
+        }
+        if (this.commandSubscription) {
+            this.commandSubscription.unsubscribe();
+        }
+        if (this.eventSubscription) {
+            this.eventSubscription.unsubscribe();
+        }
     }
 }
