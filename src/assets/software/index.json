@@ -23,6 +23,11 @@
             "items": [
                 {
                     "type": "ITEM",
+                    "name": "4A DOS",
+                    "url": "software/4ados.rpk"
+                },
+                {
+                    "type": "ITEM",
                     "name": "Mini Memory",
                     "url": "software/minimem.json"
                 },
