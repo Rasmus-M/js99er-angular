@@ -64,14 +64,21 @@ export class DiskService {
                     // Zip file
                     this.zipService.createReader(this.zipService.createBlobReader(file), function (zipReader) {
                         zipReader.getEntries(function (entries) {
+                            const observables: Observable<DiskImage>[] = [];
                             entries.forEach(entry => {
                                 if (!entry.directory) {
-                                    const blobWriter = service.zipService.createBlobWriter();
-                                    entry.getData(blobWriter, function (blob) {
-                                        service.loadDiskFile(entry.filename, blob, diskDrive).subscribe(subject);
-                                    });
+                                    observables.push(service.loadDiskFileFromZipEntry(entry, diskDrive));
                                 }
                             });
+                            forkJoin(observables).subscribe(
+                                function (diskImages: DiskImage[]) {
+                                    subject.next(diskImages.length ? diskImages[0] : null);
+                                },
+                                function (message) {
+                                    log.error(message);
+                                    subject.error(message);
+                                }
+                            );
                         });
                     }, function (message) {
                         log.error(message);
@@ -94,14 +101,24 @@ export class DiskService {
                     reader.readAsText(file);
                 } else {
                     // Single file (DSK image, TIFILE, V9T9)
-                    service.loadDiskFile(file.name, file, diskDrive).subscribe(subject);
+                    service.loadDiskFile(file.name, file, diskDrive, true).subscribe(subject);
                 }
             }
         }
         return subject.asObservable();
     }
 
-    loadDiskFile(filename, file: File, diskDrive: DiskDrive): Observable<DiskImage> {
+    loadDiskFileFromZipEntry(entry, diskDrive: DiskDrive): Observable<DiskImage> {
+        const subject = new Subject<DiskImage>();
+        const service = this;
+        const blobWriter = this.zipService.createBlobWriter();
+        entry.getData(blobWriter, function (blob) {
+            service.loadDiskFile(entry.filename.split('/').pop(), blob, diskDrive, false).subscribe(subject);
+        });
+        return subject.asObservable();
+    }
+
+    loadDiskFile(filename, file: File, diskDrive: DiskDrive, acceptDiskImage: boolean): Observable<DiskImage> {
         const subject = new Subject<DiskImage>();
         const reader = new FileReader();
         const service = this;
@@ -109,13 +126,16 @@ export class DiskService {
             // reader.result contains the contents of blob as a typed array
             const fileBuffer = new Uint8Array(this.result);
             let diskImage;
-            if (fileBuffer.length >= 16 && fileBuffer[0x0D] === 0x44 && fileBuffer[0x0E] === 0x53 && fileBuffer[0x0F] === 0x4B) {
+            if (acceptDiskImage && fileBuffer.length >= 16 && fileBuffer[0x0D] === 0x44 && fileBuffer[0x0E] === 0x53 && fileBuffer[0x0F] === 0x4B) {
                 diskImage = diskDrive.loadDSKFile(filename, fileBuffer, service.onDiskImageChanged.bind(service));
             } else {
                 diskImage = diskDrive.getDiskImage();
-                if (diskImage != null) {
-                    diskImage.loadTIFile(filename, fileBuffer, false);
+                if (!diskImage) {
+                    diskImage = service.addDisk();
+                    diskDrive.setDiskImage(diskImage);
+                    service.eventDispatcherService.diskInserted(diskDrive, diskImage);
                 }
+                diskImage.loadTIFile(filename, fileBuffer, false);
             }
             subject.next(diskImage);
         };
@@ -126,9 +146,10 @@ export class DiskService {
         return subject.asObservable();
     }
 
-    addDisk() {
+    addDisk(): DiskImage {
         const diskImage: DiskImage = this.createDiskImage("New disk");
         this.eventDispatcherService.diskAdded(diskImage);
+        return diskImage;
     }
 
     deleteDisk(diskImage: DiskImage) {

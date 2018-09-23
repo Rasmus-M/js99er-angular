@@ -207,7 +207,6 @@ export class DiskImage implements State {
                             }
                         }
                     } else {
-                        this.log.info("Sectors=" + sectors);
                         for (sector = 0; sector < sectors; sector++) {
                             let i = sectorOffset + sector * 256;
                             let sectorBytesLeft = 256;
