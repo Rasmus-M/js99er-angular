@@ -46,13 +46,16 @@ export class MoreSoftwareService {
         const subject = new Subject<Software>();
         this.getIndex().subscribe(
             (carts: Software[]) => {
-                for (let i = 0; i < carts.length; i++) {
-                    const cart: Software = carts[i];
+                let found = false;
+                carts.forEach((cart) => {
                     if (cart.name.toLowerCase() === name.toLowerCase()) {
                         subject.next(cart);
+                        found = true;
                     }
+                });
+                if (!found) {
+                    subject.error("Cart not found: " + name);
                 }
-                subject.error("Cart not found: " + name);
             },
             subject.error
         );

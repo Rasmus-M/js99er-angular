@@ -33,8 +33,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     tabIndex: number;
 
     title = "JS99'er";
-    version = "7.1.7";
-    date = "23 September, 2018";
+    version = "7.1.8";
+    date = "24 September, 2018";
 
     private routerSubscription: Subscription;
     private commandSubscription: Subscription;
@@ -72,24 +72,28 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
     onRouterEvent(event: RouterEvent) {
         if (event instanceof NavigationStart) {
-            const cartName = decodeURI(event.url.split("/").pop());
-            if (cartName) {
-                this.log.info("Load cart: " + cartName);
-                this.moreSoftwareService.getByName(cartName).subscribe(
-                    (cart: Software) => {
-                        this.moduleService.loadRPKModuleFromURL("assets/" + cart.url).subscribe(
-                            (software: Software) => {
-                                this.commandDispatcherService.loadSoftware(software, true);
-                            },
-                            (error) => {
-                                this.log.error(error + " " + cart.url);
-                            }
-                        );
-                    },
-                    (error) => {
-                        this.log.error(error);
-                    }
-                );
+            const segment = event.url.split("#").pop();
+            if (segment.match(/\/cart\/\w+/)) {
+                let cartName = decodeURI(segment.split("/").pop());
+                if (cartName) {
+                    cartName = cartName.replace('_', ' ');
+                    this.log.info("Load cart: " + cartName);
+                    this.moreSoftwareService.getByName(cartName).subscribe(
+                        (cart: Software) => {
+                            this.moduleService.loadRPKModuleFromURL("assets/" + cart.url).subscribe(
+                                (software: Software) => {
+                                    this.commandDispatcherService.loadSoftware(software, true);
+                                },
+                                (error) => {
+                                    this.log.error(error + " " + cart.url);
+                                }
+                            );
+                        },
+                        (error) => {
+                            this.log.error(error);
+                        }
+                    );
+                }
             }
         }
     }
