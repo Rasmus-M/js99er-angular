@@ -170,19 +170,17 @@ export class TI994A implements Console, State {
     }
 
     start(fast) {
+        this.cpuSpeed = fast ? 2 : 1;
         if (!this.isRunning()) {
-            this.cpuSpeed = fast ? 2 : 1;
             this.cpu.setSuspended(false);
             this.tape.setPaused(false);
             this.keyboard.start();
-            const self = this;
             this.frameInterval = window.setInterval(
-                function () {
-                    if (self.frameCount < TI994A.FRAMES_TO_RUN) {
-                        // self.frame();
-                        self.frame();
+                () => {
+                    if (this.frameCount < TI994A.FRAMES_TO_RUN) {
+                        this.frame();
                     } else {
-                        self.stop();
+                        this.stop();
                     }
                 },
                 TI994A.FRAME_MS
@@ -190,8 +188,8 @@ export class TI994A implements Console, State {
             this.resetFps();
             this.printFps();
             this.fpsInterval = window.setInterval(
-                function () {
-                    self.printFps();
+                () => {
+                    this.printFps();
                 },
                 TI994A.FPS_MS
             );

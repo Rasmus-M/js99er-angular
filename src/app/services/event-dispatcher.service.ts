@@ -28,8 +28,8 @@ export class EventDispatcherService {
         this.sendAsyncEvent(ConsoleEventType.READY, ti994A);
     }
 
-    started() {
-        this.sendAsyncEvent(ConsoleEventType.STARTED, null);
+    started(fast: boolean) {
+        this.sendAsyncEvent(ConsoleEventType.STARTED, fast);
     }
 
     stopped() {

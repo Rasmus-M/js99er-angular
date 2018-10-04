@@ -1,6 +1,6 @@
 <mat-toolbar class="toolbar">
-    <button mat-raised-button color="primary" class="toolbar-button" (click)="start()" [disabled]="running"><fa name="play"></fa> Start</button>
-    <button mat-raised-button class="toolbar-button" (click)="fast()" [disabled]="running"><fa name="forward"></fa> Fast</button>
+    <button mat-raised-button color="primary" class="toolbar-button" (click)="start()" [disabled]="running && !runningFast"><fa name="play"></fa> Start</button>
+    <button mat-raised-button class="toolbar-button" (click)="fast()" [disabled]="running && runningFast"><fa name="forward"></fa> Fast</button>
     <button mat-raised-button class="toolbar-button" (click)="frame()" [disabled]="running"><fa name="fast-forward"></fa> Frame</button>
     <button mat-raised-button class="toolbar-button" (click)="step()" [disabled]="running"><fa name="step-forward"></fa> Step</button>
     <button mat-raised-button class="toolbar-button" (click)="stop()" [disabled]="!running"><fa name="pause"></fa> Pause</button>

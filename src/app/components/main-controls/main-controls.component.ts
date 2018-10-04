@@ -12,6 +12,7 @@ import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
 export class MainControlsComponent implements OnInit, OnDestroy {
 
     running = false;
+    runningFast = false;
     driveIndex = 0;
 
     private subscription: Subscription;
@@ -82,6 +83,7 @@ export class MainControlsComponent implements OnInit, OnDestroy {
         switch (event.type) {
             case ConsoleEventType.STARTED:
                 this.running = true;
+                this.runningFast = event.data;
                 break;
             case ConsoleEventType.STOPPED:
                 this.running = false;
