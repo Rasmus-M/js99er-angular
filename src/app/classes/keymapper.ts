@@ -69,7 +69,7 @@ export class Keymapper {
         {code: "Escape", keyCode: 27, tiKeys: [{col: 0, row: 7}, {col: 1, row: 6}]},
         {code: "Backspace", keyCode: 8, tiKeys: [{col: 0, row: 7}, {col: 1, row: 8}]},
         {code: "Delete", keyCode: 46, tiKeys: [{col: 0, row: 7}, {col: 5, row: 7}]},
-        {code: "Insert", keyCode: 45, tiKeys: [{col: 0, row: 7}, {col: 5, row: 7}]},
+        {code: "Insert", keyCode: 45, tiKeys: [{col: 0, row: 7}, {col: 1, row: 7}]},
         {code: "CapsLock", keyCode: 0, tiKeys: []},
         /*
         {code: "Backquote", keyCode: 0, tiKeys: []},
