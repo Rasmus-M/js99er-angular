@@ -5,11 +5,11 @@ export enum Setting {
     F18A = 3,
     FLICKER = 4,
     PC_KEYBOARD = 5,
-    MAP_ARROW_KEYS = 5,
-    GOOGLE_DRIVE = 6,
-    AMS = 7,
-    GRAM = 8,
-    PIXELATED = 9
+    MAP_ARROW_KEYS = 6,
+    GOOGLE_DRIVE = 7,
+    AMS = 8,
+    GRAM = 9,
+    PIXELATED = 10
 }
 
 export class Settings {
