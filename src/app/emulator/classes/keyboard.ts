@@ -41,8 +41,8 @@ export class Keyboard implements State {
 
     reset() {
         for (let col = 0; col < 8; col++) {
-            for (let addr = 3; addr <= 10; addr++) {
-                this.columns[col][addr] = false;
+            for (let row = 3; row <= 10; row++) {
+                this.columns[col][row] = false;
             }
         }
         if (!this.joystick1) {
@@ -174,7 +174,7 @@ export class Keyboard implements State {
 
     // For PC keyboard
     private keyEventPC(evt: KeyboardEvent | any, down: boolean) {
-        console.log(evt.keyCode, evt.charCode, evt.code, evt.key);
+        // console.log(evt.keyCode, evt.charCode, evt.code, evt.key);
         let key: Key;
         if (evt.key) {
             key = KeyMapper.getKeyFromKey(evt.key);
@@ -267,15 +267,15 @@ export class Keyboard implements State {
         this.columns[tiKey.col][tiKey.row] = down;
     }
 
-    isKeyDown(col: number, addr: number): boolean {
-        // This is necessary in order for the Joystick in Donkey Kong to work
+    isKeyDown(col: number, row: number): boolean {
+        // This check is necessary in order for the Joystick in Donkey Kong to work
         if (col === 6 || col === 7) {
             this.joystickActive = 250;
         } else if (this.joystickActive > 0) {
             this.joystickActive--;
         }
         //
-        return this.columns[col][addr];
+        return this.columns[col][row];
     }
 
     isAlphaLockDown(): boolean {
