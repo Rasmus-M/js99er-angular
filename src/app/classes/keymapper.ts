@@ -3,7 +3,7 @@ export interface Key {
     key?: string;
     keyCode?: number;
     charCode?: number;
-    tiKeys: (TIKey | {col: number, row: number})[];
+    tiKeys: TIKey[];
 }
 
 /*
