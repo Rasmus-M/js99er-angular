@@ -163,7 +163,7 @@ export class Keyboard implements State {
             key.tiKeys.forEach((tiKey) => {
                 this.setTIKeyDown(tiKey, down);
             });
-            this.handleOtherKeys(key.code, down);
+            this.handleAdditionalKeys(key.code, down);
         }
         if (!key || this.handledByBrowser()) {
             // Let browser handle unused keys
@@ -189,7 +189,7 @@ export class Keyboard implements State {
             key.tiKeys.forEach((tiKey) => {
                 this.setTIKeyDown(tiKey, down);
             });
-            this.handleOtherKeys(key.key, down);
+            this.handleAdditionalKeys(key.key, down);
             // Handle Fctn + S/D/E/X
             if (fctn && ['s', 'd', 'e', 'x'].indexOf(key.key.toLowerCase()) !== -1) {
                 this.setTIKeyDown(TIKey.Fctn, true);
@@ -208,34 +208,44 @@ export class Keyboard implements State {
             (this.isTIKeyDown(TIKey.Ctrl) && this.isTIKeyDown(TIKey.KeyV)));  // Ctrl + V (paste)
     }
 
-    private handleOtherKeys(code: string, down: boolean) {
+    private handleAdditionalKeys(code: string, down: boolean) {
         switch (code) {
             case 'Tab':
-                if (Keyboard.EMULATE_JOYSTICK_2) { this.setTIKeyDown(TIKey.J2Fire, down); }
+                if (Keyboard.EMULATE_JOYSTICK_2) {
+                    this.setTIKeyDown(TIKey.J2Fire, down);
+                }
                 break;
             case 'ArrowLeft':
-                if (Keyboard.EMULATE_JOYSTICK_2) { this.setTIKeyDown(TIKey.J2Left, down); }
+                if (Keyboard.EMULATE_JOYSTICK_2) {
+                    this.setTIKeyDown(TIKey.J2Left, down);
+                }
                 if (this.mapArrowKeysToFctnSDEX && this.joystickActive === 0) {
                     this.setTIKeyDown(TIKey.Fctn, down);
                     this.setTIKeyDown(TIKey.KeyS, down);
                 }
                 break;
             case 'ArrowRight':
-                if (Keyboard.EMULATE_JOYSTICK_2) { this.setTIKeyDown(TIKey.J2Right, down); }
+                if (Keyboard.EMULATE_JOYSTICK_2) {
+                    this.setTIKeyDown(TIKey.J2Right, down);
+                }
                 if (this.mapArrowKeysToFctnSDEX && this.joystickActive === 0) {
                     this.setTIKeyDown(TIKey.Fctn, down);
                     this.setTIKeyDown(TIKey.KeyD, down);
                 }
                 break;
             case 'ArrowDown':
-                if (Keyboard.EMULATE_JOYSTICK_2) { this.setTIKeyDown(TIKey.J2Down, down); }
+                if (Keyboard.EMULATE_JOYSTICK_2) {
+                    this.setTIKeyDown(TIKey.J2Down, down);
+                }
                 if (this.mapArrowKeysToFctnSDEX && this.joystickActive === 0) {
                     this.setTIKeyDown(TIKey.Fctn, down);
                     this.setTIKeyDown(TIKey.KeyX, down);
                 }
                 break;
             case 'ArrowUp':
-                if (Keyboard.EMULATE_JOYSTICK_2) { this.setTIKeyDown(TIKey.J2Up, down); }
+                if (Keyboard.EMULATE_JOYSTICK_2) {
+                    this.setTIKeyDown(TIKey.J2Up, down);
+                }
                 if (this.mapArrowKeysToFctnSDEX && this.joystickActive === 0) {
                     this.setTIKeyDown(TIKey.Fctn, down);
                     this.setTIKeyDown(TIKey.KeyE, down);
@@ -249,11 +259,11 @@ export class Keyboard implements State {
         }
     }
 
-    isTIKeyDown(tiKey: TIKey) {
+    private isTIKeyDown(tiKey: TIKey) {
         return this.columns[tiKey.col][tiKey.row];
     }
 
-    setTIKeyDown(tiKey: TIKey, down: boolean) {
+    private setTIKeyDown(tiKey: TIKey, down: boolean) {
         this.columns[tiKey.col][tiKey.row] = down;
     }
 
