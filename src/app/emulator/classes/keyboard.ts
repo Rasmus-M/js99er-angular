@@ -2,7 +2,7 @@ import {Log} from '../../classes/log';
 import {Joystick} from './joystick';
 import {State} from '../interfaces/state';
 import {Settings} from '../../classes/settings';
-import {Key, KeyMapper} from "../../classes/keymapper";
+import {Key, KeyMapper, TIKey} from "../../classes/keymapper";
 
 export class Keyboard implements State {
 
@@ -24,7 +24,6 @@ export class Keyboard implements State {
 
     private keydownListener: EventListener;
     private keyupListener: EventListener;
-    private keypressListener: EventListener;
     private pasteListener: EventListener;
 
     private log: Log = Log.getLog();
@@ -98,12 +97,6 @@ export class Keyboard implements State {
                 };
                 this.document.addEventListener("keydown", this.keydownListener);
             }
-            if (!this.keypressListener) {
-                this.keypressListener = (evt: KeyboardEvent) => {
-                    this.keyPressEvent(evt);
-                };
-                this.document.addEventListener("keypress", this.keypressListener);
-            }
             if (!this.keyupListener) {
                 this.keyupListener = (evt: KeyboardEvent) => {
                     this.keyEventPC(evt, false);
@@ -124,10 +117,6 @@ export class Keyboard implements State {
         if (this.keyupListener) {
             this.document.removeEventListener("keyup", this.keyupListener);
             this.keyupListener = null;
-        }
-        if (this.keypressListener) {
-            this.document.removeEventListener("keypress", this.keypressListener);
-            this.keypressListener = null;
         }
         if (this.keydownListener) {
             this.document.removeEventListener("keydown", this.keydownListener);
@@ -172,16 +161,11 @@ export class Keyboard implements State {
         }
         if (key) {
             key.tiKeys.forEach((tiKey) => {
-                this.columns[tiKey.col][tiKey.row] = down;
+                this.setTIKeyDown(tiKey, down);
             });
             this.handleOtherKeys(key.code, down);
         }
-        if (
-            !key || // Unused key
-            (this.columns[0][8] && this.columns[0][9] && this.columns[2][5]) || // Ctrl + Shift + I (Developer console)
-            (this.columns[0][9] && this.columns[2][10]) ||                      // Ctrl + C (copy)
-            (this.columns[0][9] && this.columns[3][10])                         // Ctrl + V (paste)
-        ) {
+        if (!key || this.handledByBrowser()) {
             // Let browser handle unused keys
             return;
         }
@@ -190,69 +174,71 @@ export class Keyboard implements State {
 
     // For PC keyboard
     private keyEventPC(evt: KeyboardEvent | any, down: boolean) {
-        console.log(evt.keyCode, evt.code, evt.key);
-        const key = KeyMapper.getKeyFromKey(evt.key);
+        console.log(evt.keyCode, evt.charCode, evt.code, evt.key);
+        let key: Key;
+        if (evt.key) {
+            key = KeyMapper.getKeyFromKey(evt.key);
+        } else if (evt.keyCode) {
+            key = KeyMapper.getKeyFromKeyCode(evt.keyCode);
+        }
         if (key) {
-            const fctn = this.columns[0][7];
-            this.columns[0][7] = false; // Fctn
-            this.columns[0][8] = false; // Shift
-            this.columns[0][9] = false; // Ctrl
+            const fctn = this.isTIKeyDown(TIKey.Fctn);
+            this.setTIKeyDown(TIKey.Fctn, false);
+            this.setTIKeyDown(TIKey.Shift, false);
+            this.setTIKeyDown(TIKey.Ctrl, false);
             key.tiKeys.forEach((tiKey) => {
-                this.columns[tiKey.col][tiKey.row] = down;
+                this.setTIKeyDown(tiKey, down);
             });
             this.handleOtherKeys(key.key, down);
-            // Handle Alt + S/D/E/X
+            // Handle Fctn + S/D/E/X
             if (fctn && ['s', 'd', 'e', 'x'].indexOf(key.key.toLowerCase()) !== -1) {
-                this.columns[0][7] = true;
+                this.setTIKeyDown(TIKey.Fctn, true);
             }
         }
-        if (
-            !key || // Unused key
-            (this.columns[0][8] && this.columns[0][9] && this.columns[2][5]) || // Ctrl + Shift + I (Developer console)
-            (this.columns[0][9] && this.columns[2][10]) ||                      // Ctrl + C (copy)
-            (this.columns[0][9] && this.columns[3][10])                         // Ctrl + V (paste)
-        ) {
+        if (!key || this.handledByBrowser()) {
             // Let browser handle unused keys
             return;
         }
         evt.preventDefault();
     }
 
+    private handledByBrowser() {
+        return (this.isTIKeyDown(TIKey.Ctrl) && this.isTIKeyDown(TIKey.Shift) && this.isTIKeyDown(TIKey.KeyI) || // Ctrl + Shift + I (Developer console)
+            (this.isTIKeyDown(TIKey.Ctrl) && this.isTIKeyDown(TIKey.KeyC)) || // Ctrl + C (copy)
+            (this.isTIKeyDown(TIKey.Ctrl) && this.isTIKeyDown(TIKey.KeyV)));  // Ctrl + V (paste)
+    }
+
     private handleOtherKeys(code: string, down: boolean) {
         switch (code) {
             case 'Tab':
-                if (Keyboard.EMULATE_JOYSTICK_2) { this.columns[7][3] = down; }
+                if (Keyboard.EMULATE_JOYSTICK_2) { this.setTIKeyDown(TIKey.J2Fire, down); }
                 break;
             case 'ArrowLeft':
-                if (Keyboard.EMULATE_JOYSTICK_2) { this.columns[7][4] = down; }
+                if (Keyboard.EMULATE_JOYSTICK_2) { this.setTIKeyDown(TIKey.J2Left, down); }
                 if (this.mapArrowKeysToFctnSDEX && this.joystickActive === 0) {
-                    // Left arrow
-                    this.columns[0][7] = down; // Fctn
-                    this.columns[1][8] = down; // S
+                    this.setTIKeyDown(TIKey.Fctn, down);
+                    this.setTIKeyDown(TIKey.KeyS, down);
                 }
                 break;
             case 'ArrowRight':
-                if (Keyboard.EMULATE_JOYSTICK_2) { this.columns[7][5] = down; }
+                if (Keyboard.EMULATE_JOYSTICK_2) { this.setTIKeyDown(TIKey.J2Right, down); }
                 if (this.mapArrowKeysToFctnSDEX && this.joystickActive === 0) {
-                    // Right arrow
-                    this.columns[0][7] = down; // Fctn
-                    this.columns[2][8] = down; // D
+                    this.setTIKeyDown(TIKey.Fctn, down);
+                    this.setTIKeyDown(TIKey.KeyD, down);
                 }
                 break;
             case 'ArrowDown':
-                if (Keyboard.EMULATE_JOYSTICK_2) { this.columns[7][6] = down; }
+                if (Keyboard.EMULATE_JOYSTICK_2) { this.setTIKeyDown(TIKey.J2Down, down); }
                 if (this.mapArrowKeysToFctnSDEX && this.joystickActive === 0) {
-                    // Down arrow
-                    this.columns[0][7] = down; // Fctn
-                    this.columns[1][10] = down; // X
+                    this.setTIKeyDown(TIKey.Fctn, down);
+                    this.setTIKeyDown(TIKey.KeyX, down);
                 }
                 break;
-            case 'ArrowUp':  // Up arrow -> J1 Up
-                if (Keyboard.EMULATE_JOYSTICK_2) { this.columns[7][7] = down; }
+            case 'ArrowUp':
+                if (Keyboard.EMULATE_JOYSTICK_2) { this.setTIKeyDown(TIKey.J2Up, down); }
                 if (this.mapArrowKeysToFctnSDEX && this.joystickActive === 0) {
-                    // Up arrow
-                    this.columns[0][7] = down; // Fctn
-                    this.columns[2][9] = down; // E
+                    this.setTIKeyDown(TIKey.Fctn, down);
+                    this.setTIKeyDown(TIKey.KeyE, down);
                 }
                 break;
             case 'CapsLock':
@@ -263,19 +249,12 @@ export class Keyboard implements State {
         }
     }
 
-    // For PC keyboard
-    private keyPressEvent(evt: KeyboardEvent | any) {
-        // let capsLock = null;
-        // if (charCode >= 65 && charCode <= 90) {
-        //     capsLock = !evt.shiftKey;
-        // } else if (charCode >= 97 && charCode <= 122) {
-        //     capsLock = evt.shiftKey;
-        // }
-        // if (capsLock != null) {
-        //     // this.log.info("Caps Lock " + (capsLock ? "on" : "off"));
-        //     this.alphaLock = (capsLock || this.pcKeyboardEnabled) && !(capsLock && this.pcKeyboardEnabled);
-        // }
-        // evt.preventDefault();
+    isTIKeyDown(tiKey: TIKey) {
+        return this.columns[tiKey.col][tiKey.row];
+    }
+
+    setTIKeyDown(tiKey: TIKey, down: boolean) {
+        this.columns[tiKey.col][tiKey.row] = down;
     }
 
     isKeyDown(col: number, addr: number): boolean {
