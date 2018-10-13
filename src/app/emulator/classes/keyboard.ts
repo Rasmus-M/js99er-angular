@@ -17,8 +17,10 @@ export class Keyboard implements State {
     private joystick1: Joystick;
     private joystick2: Joystick;
     private joystickActive: number;
+    private joystickHandle: number;
     private keyCode: number;
     private alphaLock: boolean;
+    private keyHandles: {};
     private pasteBuffer: string;
     private pasteIndex: number;
 
@@ -37,25 +39,37 @@ export class Keyboard implements State {
         for (let col = 0; col < 8; col++) {
             this.columns[col] = [];
         }
+        this.keyHandles = {};
     }
 
     reset() {
-        for (let col = 0; col < 8; col++) {
-            for (let row = 3; row <= 10; row++) {
-                this.columns[col][row] = false;
-            }
-        }
+        this.resetKeyMap();
         if (!this.joystick1) {
             this.joystick1 = new Joystick(this.columns[6], 0);
         }
         if (!this.joystick2) {
             this.joystick2 = new Joystick(this.columns[7], 1);
         }
-        this.joystickActive = 250;
+        this.joystickActive = 0;
+        if (!this.joystickHandle) {
+            this.joystickHandle = window.setInterval(
+                () => {
+                    this.joystickActiveCountdown();
+                }, 100
+            );
+        }
         this.keyCode = 0;
         this.alphaLock = true;
         this.pasteBuffer = null;
         this.pasteIndex = 0;
+    }
+
+    private resetKeyMap() {
+        for (let col = 0; col < 8; col++) {
+            for (let row = 3; row <= 10; row++) {
+                this.columns[col][row] = false;
+            }
+        }
     }
 
     start() {
@@ -185,9 +199,21 @@ export class Keyboard implements State {
             const fctn = this.isTIKeyDown(TIKey.Fctn);
             this.setTIKeyDown(TIKey.Fctn, false);
             this.setTIKeyDown(TIKey.Shift, false);
-            this.setTIKeyDown(TIKey.Ctrl, false);
             key.tiKeys.forEach((tiKey) => {
                 this.setTIKeyDown(tiKey, down);
+                if (!tiKey.isSticky()) {
+                    const handle = this.keyHandles[key.key];
+                    if (handle) {
+                        window.clearTimeout(handle);
+                    }
+                    if (down) {
+                        this.keyHandles[key.key] = window.setTimeout(
+                            () => {
+                                this.setTIKeyDown(tiKey, false);
+                            }, Keyboard.KEYPRESS_DURATION
+                        );
+                    }
+                }
             });
             this.handleAdditionalKeys(key.key, down);
             // Handle Fctn + S/D/E/X
@@ -268,13 +294,9 @@ export class Keyboard implements State {
     }
 
     isKeyDown(col: number, row: number): boolean {
-        // This check is necessary in order for the Joystick in Donkey Kong to work
         if (col === 6 || col === 7) {
-            this.joystickActive = 250;
-        } else if (this.joystickActive > 0) {
-            this.joystickActive--;
+            this.joystickActive = 10;
         }
-        //
         return this.columns[col][row];
     }
 
@@ -283,20 +305,25 @@ export class Keyboard implements State {
         return this.alphaLock;
     }
 
+    private joystickActiveCountdown() {
+        if (this.joystickActive > 0) {
+            this.joystickActive--;
+        }
+    }
+
     simulateKeyPresses(keyString: string, callback: () => void) {
         if (keyString.length > 0) {
             const pause = keyString.charAt(0) === "§";
-            const that = this;
             if (!pause) {
                 const charCode = keyString.charCodeAt(0);
                 this.simulateKeyPress(charCode > 96 ? charCode - 32 : charCode, () => {
                     window.setTimeout(() => {
-                        that.simulateKeyPresses(keyString.substr(1), callback);
+                        this.simulateKeyPresses(keyString.substr(1), callback);
                     }, Keyboard.KEYPRESS_DURATION);
                 });
             } else {
                 window.setTimeout(() => {
-                    that.simulateKeyPresses(keyString.substr(1), callback);
+                    this.simulateKeyPresses(keyString.substr(1), callback);
                 }, 1000);
             }
         } else if (callback) {
@@ -305,12 +332,12 @@ export class Keyboard implements State {
     }
 
     simulateKeyPress(keyCode: number, callback: () => void) {
-        // this.log.info(keyCode);
         this.simulateKeyDown(keyCode);
-        const that = this;
         window.setTimeout(() => {
-            that.simulateKeyUp(keyCode);
-            if (callback) { callback(); }
+            this.simulateKeyUp(keyCode);
+            if (callback) {
+                callback();
+            }
         }, Keyboard.KEYPRESS_DURATION);
     }
 
@@ -318,24 +345,29 @@ export class Keyboard implements State {
     virtualKeyPress(keyCode: number) {
         this.virtualKeyDown(keyCode);
         if (keyCode !== 16 && keyCode !== 17 && keyCode !== 18) {
-            const that = this;
             window.setTimeout(() => {
-                that.virtualKeyUp(keyCode);
+                this.virtualKeyUp(keyCode);
             }, Keyboard.KEYPRESS_DURATION);
         }
     }
 
     private virtualKeyDown(keyCode: number) {
         this.simulateKeyDown(keyCode);
-        const that = this;
         if (keyCode !== 16) {
-            window.setTimeout(() => { that.simulateKeyUp(16); }, Keyboard.KEYPRESS_DURATION);
+            window.setTimeout(() => {
+                this.simulateKeyUp(16);
+            }, Keyboard.KEYPRESS_DURATION);
+
         }
         if (keyCode !== 17) {
-            window.setTimeout(() => { that.simulateKeyUp(17); }, Keyboard.KEYPRESS_DURATION);
+            window.setTimeout(() => {
+                this.simulateKeyUp(17);
+            }, Keyboard.KEYPRESS_DURATION);
         }
         if (keyCode !== 18) {
-            window.setTimeout(() => { that.simulateKeyUp(18); }, Keyboard.KEYPRESS_DURATION);
+            window.setTimeout(() => {
+                this.simulateKeyUp(18);
+            }, Keyboard.KEYPRESS_DURATION);
         }
     }
 

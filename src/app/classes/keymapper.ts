@@ -21,69 +21,75 @@ export interface Key {
 
 export class TIKey {
 
-    static Equal =      new TIKey(0, 3);
-    static Space =      new TIKey(0, 4);
-    static Enter =      new TIKey(0, 5);
-    static Fctn =       new TIKey(0, 7);
-    static Shift =      new TIKey(0, 8);
-    static Ctrl =       new TIKey(0, 9);
-    static Period =     new TIKey(1, 3);
-    static KeyL =       new TIKey(1, 4);
-    static KeyO =       new TIKey(1, 5);
-    static Digit9 =     new TIKey(1, 6);
-    static Digit2 =     new TIKey(1, 7);
-    static KeyS =       new TIKey(1, 8);
-    static KeyW =       new TIKey(1, 9);
-    static KeyX =       new TIKey(1, 10);
-    static Comma =      new TIKey(2, 3);
-    static KeyK =       new TIKey(2, 4);
-    static KeyI =       new TIKey(2, 5);
-    static Digit8 =     new TIKey(2, 6);
-    static Digit3 =     new TIKey(2, 7);
-    static KeyD =       new TIKey(2, 8);
-    static KeyE =       new TIKey(2, 9);
-    static KeyC =       new TIKey(2, 10);
-    static KeyM =       new TIKey(3, 3);
-    static KeyJ =       new TIKey(3, 4);
-    static KeyU =       new TIKey(3, 5);
-    static Digit7 =     new TIKey(3, 6);
-    static Digit4 =     new TIKey(3, 7);
-    static KeyF =       new TIKey(3, 8);
-    static KeyR =       new TIKey(3, 9);
-    static KeyV =       new TIKey(3, 10);
-    static KeyN =       new TIKey(4, 3);
-    static KeyH =       new TIKey(4, 4);
-    static KeyY =       new TIKey(4, 5);
-    static Digit6 =     new TIKey(4, 6);
-    static Digit5 =     new TIKey(4, 7);
-    static KeyG =       new TIKey(4, 8);
-    static KeyT =       new TIKey(4, 9);
-    static KeyB =       new TIKey(4, 10);
-    static Slash =      new TIKey(5, 3);
-    static Semicolon =  new TIKey(5, 4);
-    static KeyP =       new TIKey(5, 5);
-    static Digit0 =     new TIKey(5, 6);
-    static Digit1 =     new TIKey(5, 7);
-    static KeyA =       new TIKey(5, 8);
-    static KeyQ =       new TIKey(5, 9);
-    static KeyZ =       new TIKey(5, 10);
-    static J1Fire =     new TIKey(6, 3);
-    static J1Left =     new TIKey(6, 4);
-    static J1Right =    new TIKey(6, 5);
-    static J1Down =     new TIKey(6, 6);
-    static J1Up =       new TIKey(6, 7);
-    static J2Fire =     new TIKey(7, 3);
-    static J2Left =     new TIKey(7, 4);
-    static J2Right =    new TIKey(7, 5);
-    static J2Down =     new TIKey(7, 6);
-    static J2Up =       new TIKey(7, 7);
+    static Equal =      new TIKey(0, 3, false);
+    static Space =      new TIKey(0, 4, false);
+    static Enter =      new TIKey(0, 5, false);
+    static Fctn =       new TIKey(0, 7, true);
+    static Shift =      new TIKey(0, 8, true);
+    static Ctrl =       new TIKey(0, 9, true);
+    static Period =     new TIKey(1, 3, false);
+    static KeyL =       new TIKey(1, 4, false);
+    static KeyO =       new TIKey(1, 5, false);
+    static Digit9 =     new TIKey(1, 6, false);
+    static Digit2 =     new TIKey(1, 7, false);
+    static KeyS =       new TIKey(1, 8, false);
+    static KeyW =       new TIKey(1, 9, false);
+    static KeyX =       new TIKey(1, 10, false);
+    static Comma =      new TIKey(2, 3, false);
+    static KeyK =       new TIKey(2, 4, false);
+    static KeyI =       new TIKey(2, 5, false);
+    static Digit8 =     new TIKey(2, 6, false);
+    static Digit3 =     new TIKey(2, 7, false);
+    static KeyD =       new TIKey(2, 8, false);
+    static KeyE =       new TIKey(2, 9, false);
+    static KeyC =       new TIKey(2, 10, false);
+    static KeyM =       new TIKey(3, 3, false);
+    static KeyJ =       new TIKey(3, 4, false);
+    static KeyU =       new TIKey(3, 5, false);
+    static Digit7 =     new TIKey(3, 6, false);
+    static Digit4 =     new TIKey(3, 7, false);
+    static KeyF =       new TIKey(3, 8, false);
+    static KeyR =       new TIKey(3, 9, false);
+    static KeyV =       new TIKey(3, 10, false);
+    static KeyN =       new TIKey(4, 3, false);
+    static KeyH =       new TIKey(4, 4, false);
+    static KeyY =       new TIKey(4, 5, false);
+    static Digit6 =     new TIKey(4, 6, false);
+    static Digit5 =     new TIKey(4, 7, false);
+    static KeyG =       new TIKey(4, 8, false);
+    static KeyT =       new TIKey(4, 9, false);
+    static KeyB =       new TIKey(4, 10, false);
+    static Slash =      new TIKey(5, 3, false);
+    static Semicolon =  new TIKey(5, 4, false);
+    static KeyP =       new TIKey(5, 5, false);
+    static Digit0 =     new TIKey(5, 6, false);
+    static Digit1 =     new TIKey(5, 7, false);
+    static KeyA =       new TIKey(5, 8, false);
+    static KeyQ =       new TIKey(5, 9, false);
+    static KeyZ =       new TIKey(5, 10, false);
+    static J1Fire =     new TIKey(6, 3, true);
+    static J1Left =     new TIKey(6, 4, true);
+    static J1Right =    new TIKey(6, 5, true);
+    static J1Down =     new TIKey(6, 6, true);
+    static J1Up =       new TIKey(6, 7, true);
+    static J2Fire =     new TIKey(7, 3, true);
+    static J2Left =     new TIKey(7, 4, true);
+    static J2Right =    new TIKey(7, 5, true);
+    static J2Down =     new TIKey(7, 6, true);
+    static J2Up =       new TIKey(7, 7, true);
 
     row: number;
     col: number;
+    sticky: boolean;
 
-    constructor(col: number, row: number) {
+    constructor(col: number, row: number, modifier: boolean) {
         this.row = row;
         this.col = col;
+        this.sticky = modifier;
+    }
+
+    isSticky(): boolean {
+        return this.sticky;
     }
 }
 
