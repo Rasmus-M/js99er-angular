@@ -286,6 +286,9 @@ export class Memory implements State, MemoryDevice {
     private setCurrentCartBank(bank: number) {
         this.currentCartBank = bank;
         this.cartAddrOffset = this.currentCartBank * 0x2000 - 0x6000;
+        if (!this.cartRAMFG99Paged) {
+            this.setCurrentCartRAMBank(bank);
+        }
         // this.log.info("Cartridge ROM bank selected: " + this.currentCartBank);
     }
 
