@@ -80,6 +80,11 @@
                     "type": "ITEM",
                     "name": "Jumpstart for xas99",
                     "url": "software/jumpstart.rpk"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "SuperSpace II",
+                    "url": "software/super-space-ii.json"
                 }
             ]
         },

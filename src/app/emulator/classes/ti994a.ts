@@ -338,7 +338,7 @@ export class TI994A implements Console, State {
                 sw.cruBankSwitched,
                 sw.ramAt6000,
                 sw.ramAt7000,
-                sw.ramPaged
+                sw.ramFG99Paged
             );
         }
         if (sw.grom) {

@@ -36,7 +36,7 @@ export class Software {
     private _groms: Uint8Array[];
     private _ramAt6000 = false;
     private _ramAt7000 = false;
-    private _ramPaged: boolean;
+    private _ramFG99Paged: boolean;
     private _startAddress: number;
     private _workspaceAddress: number;
     private _memoryBlocks: MemoryBlock[];
@@ -117,12 +117,12 @@ export class Software {
         this._ramAt7000 = value;
     }
 
-    get ramPaged(): boolean {
-        return this._ramPaged;
+    get ramFG99Paged(): boolean {
+        return this._ramFG99Paged;
     }
 
-    set ramPaged(value: boolean) {
-        this._ramPaged = value;
+    set ramFG99Paged(value: boolean) {
+        this._ramFG99Paged = value;
     }
 
     get startAddress(): number {

@@ -114,7 +114,7 @@ export class ModuleService {
                 module: Software = new Software(),
                 observables = [];
             module.inverted = pcbType === 'paged379i';
-            module.cruBankSwitched = pcbType === "pagedcru";
+            module.cruBankSwitched = pcbType === "pagedcru" || pcbType === "super";
             for (let i = 0; i < roms.length; i++) {
                 const rom = roms[i];
                 const romId = rom.getAttribute('id');
@@ -273,11 +273,11 @@ export class ModuleService {
             if (grom) {
                 module.grom = byteArray;
             } else {
-                const ramPaged = (byteArray[3] === 0x52);
+                const ramFG99Paged = (byteArray[3] === 0x52);
                 module.inverted = inverted;
                 module.rom = byteArray;
-                module.ramAt7000 = ramPaged;
-                module.ramPaged = ramPaged;
+                module.ramAt7000 = ramFG99Paged;
+                module.ramFG99Paged = ramFG99Paged;
             }
             subject.next(module);
         };
@@ -314,7 +314,7 @@ export class ModuleService {
             (data: any) => {
                 const software = new Software();
                 software.inverted = data.inverted;
-                // software.cruBankSwitched = data.cruBankSwitched;
+                software.cruBankSwitched = data.cruBankSwitched;
                 if (data.startAddress) {
                     software.startAddress = Util.parseNumber(data.startAddress);
                 }

@@ -56,7 +56,7 @@ export class Memory implements State, MemoryDevice {
     private cartBankCount: number;
     private currentCartBank: number;
     private cartAddrOffset: number;
-    private cartRAMPaged: boolean;
+    private cartRAMFG99Paged: boolean;
     private currentCartRAMBank: number;
     private cartAddrRAMOffset: number;
 
@@ -119,7 +119,7 @@ export class Memory implements State, MemoryDevice {
             this.cartBankCount = 0;
             this.currentCartBank = 0;
             this.cartAddrOffset = -0x6000;
-            this.cartRAMPaged = false;
+            this.cartRAMFG99Paged = false;
             this.currentCartRAMBank = 0;
             this.cartAddrRAMOffset = -0x6000;
         }
@@ -230,7 +230,7 @@ export class Memory implements State, MemoryDevice {
         }
     }
 
-    setCartridgeImage(byteArray: Uint8Array, inverted: boolean, cruBankSwitched: boolean, ramAt6000: boolean, ramAt7000: boolean, ramPaged: boolean) {
+    setCartridgeImage(byteArray: Uint8Array, inverted: boolean, cruBankSwitched: boolean, ramAt6000: boolean, ramAt7000: boolean, ramFG99Paged: boolean) {
         let i;
         const length = ((byteArray.length / 0x2000) + (byteArray.length % 0x2000 === 0 ? 0 : 1)) * 0x2000;
         this.log.info('Cartridge size: ' + Util.toHexWord(length));
@@ -243,8 +243,8 @@ export class Memory implements State, MemoryDevice {
         this.cartBankCount = this.cartImage.length / 0x2000;
         this.currentCartBank = 0;
         this.cartAddrOffset = -0x6000;
-        this.cartRAMPaged = ramPaged;
-        if (ramPaged) {
+        this.cartRAMFG99Paged = ramFG99Paged;
+        if (ramFG99Paged) {
             this.log.info('Paged RAM cart found.');
             this.currentCartRAMBank = 0;
             this.cartAddrRAMOffset = -0x6000;
@@ -353,7 +353,7 @@ export class Memory implements State, MemoryDevice {
         cpu.addCycles(4);
         if (!this.cartCRUBankSwitched) {
             let bank = (addr >> 1) & (this.cartBankCount - 1);
-            if (!this.cartRAMPaged || addr < 0x6800) {
+            if (!this.cartRAMFG99Paged || addr < 0x6800) {
                 if (this.cartInverted) {
                     bank = this.cartBankCount - bank - 1;
                 }
@@ -529,7 +529,7 @@ export class Memory implements State, MemoryDevice {
             return this.cartImage ? this.cartImage[addr + this.cartAddrOffset] || 0 : 0;
         }
         if (addr < 0x8000) {
-            if (this.cartRAMPaged) {
+            if (this.cartRAMFG99Paged) {
                 return this.cartImage ? this.cartImage[addr + this.cartAddrRAMOffset] : 0;
             } else {
                 return this.cartImage ? this.cartImage[addr + this.cartAddrOffset] : 0;
@@ -575,7 +575,7 @@ export class Memory implements State, MemoryDevice {
             return this.cartImage ? (this.cartImage[addr + this.cartAddrOffset] << 8) | this.cartImage[addr + this.cartAddrOffset + 1] : 0;
         }
         if (addr < 0x8000) {
-            if (this.cartRAMPaged) {
+            if (this.cartRAMFG99Paged) {
                 return this.cartImage ? (this.cartImage[addr + this.cartAddrRAMOffset] << 8) | this.cartImage[addr + this.cartAddrRAMOffset + 1] : 0;
             } else {
                 return this.cartImage ? (this.cartImage[addr + this.cartAddrOffset] << 8) | this.cartImage[addr + this.cartAddrOffset + 1] : 0;
@@ -620,7 +620,7 @@ export class Memory implements State, MemoryDevice {
     getStatusString(): string {
         return 'GROM:' + Util.toHexWord(this.gromAddress) + ' (bank:' + ((this.gromAddress & 0xE000) >> 13) +
             ', addr:' + Util.toHexWord(this.gromAddress & 0x1FFF) + ') ' +
-            (this.cartImage ? 'CART: bank ' + this.currentCartBank + (this.cartRAMPaged ? '/' + this.currentCartRAMBank : '') + ' of ' + this.cartBankCount : '') +
+            (this.cartImage ? 'CART: bank ' + this.currentCartBank + (this.cartRAMFG99Paged ? '/' + this.currentCartRAMBank : '') + ' of ' + this.cartBankCount : '') +
             (this.enableAMS ? '\nAMS Regs: ' + this.ams.getStatusString() : '');
     }
 
@@ -704,7 +704,7 @@ export class Memory implements State, MemoryDevice {
             cartBankCount: this.cartBankCount,
             currentCartBank: this.currentCartBank,
             cartAddrOffset: this.cartAddrOffset,
-            cartRAMPaged: this.cartRAMPaged,
+            cartRAMFG99Paged: this.cartRAMFG99Paged,
             currentCartRAMBank: this.currentCartRAMBank,
             cartAddrRAMOffset: this.cartAddrRAMOffset,
             peripheralROMs: this.peripheralROMs,
@@ -732,7 +732,7 @@ export class Memory implements State, MemoryDevice {
         this.cartBankCount = state.cartBankCount;
         this.currentCartBank = state.currentCartBank;
         this.cartAddrOffset = state.cartAddrOffset;
-        this.cartRAMPaged = state.cartRAMPaged;
+        this.cartRAMFG99Paged = state.cartRAMFG99Paged;
         this.currentCartRAMBank = state.currentCartRAMBank;
         this.cartAddrRAMOffset = state.cartAddrRAMOffset;
         this.peripheralROMs = state.peripheralROMs;
