@@ -89,18 +89,18 @@ export class CRU implements State {
     }
 
     writeBit(addr: number, value: boolean) {
+        const r12Addr = addr << 1;
         if (addr >= 0x800) {
             // DSR space
-            addr <<= 1; // Convert to R12 space i.e. >= >1000
-            if ((addr & 0xff) === 0) {
+            if ((r12Addr & 0xff) === 0) {
                 // Enable DSR ROM
-                const dsr = (addr >> 8) & 0xf; // 256
+                const dsr = (r12Addr >> 8) & 0xf;
                 // this.log.info("DSR ROM " + dsr + " " + (bit ? "enabled" : "disabled") + ".");
                 this.memory.setPeripheralROM(dsr, value);
             }
             // AMS
-            if (addr >= 0x1e00 && addr < 0x1f00 && this.memory.isAMSEnabled()) {
-                const bitNo = (addr & 0x000e) >> 1;
+            if (r12Addr >= 0x1e00 && r12Addr < 0x1f00 && this.memory.isAMSEnabled()) {
+                const bitNo = (r12Addr & 0x000e) >> 1;
                 if (bitNo === 0) {
                     // Controls access to mapping registers
                     this.memory.getAMS().setRegisterAccess(value);
@@ -146,6 +146,12 @@ export class CRU implements State {
                this.tape.setAudioGate(value, this.cpu.getCycles());
             } else if (addr === 25) {
                 this.tape.write(value, this.timerInterruptCount);
+            } else if ((addr & 0xfc00) === 0x0400) {
+                const bit = (addr & 0x000f);
+                if (value && bit > 0) {
+                    const bank = (bit - 1) >> 1;
+                    this.memory.setCRUCartBank(bank);
+                }
             }
             // this.log.info("Write CRU address " + addr.toHexWord() + ": " + bit);
             this.cru[addr] = value;

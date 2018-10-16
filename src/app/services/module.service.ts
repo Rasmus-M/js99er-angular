@@ -114,6 +114,7 @@ export class ModuleService {
                 module: Software = new Software(),
                 observables = [];
             module.inverted = pcbType === 'paged379i';
+            module.cruBankSwitched = pcbType === "pagedcru";
             for (let i = 0; i < roms.length; i++) {
                 const rom = roms[i];
                 const romId = rom.getAttribute('id');

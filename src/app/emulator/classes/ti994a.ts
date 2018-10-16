@@ -335,6 +335,7 @@ export class TI994A implements Console, State {
             this.memory.setCartridgeImage(
                 sw.rom,
                 sw.inverted,
+                sw.cruBankSwitched,
                 sw.ramAt6000,
                 sw.ramAt7000,
                 sw.ramPaged

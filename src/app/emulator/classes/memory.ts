@@ -52,6 +52,7 @@ export class Memory implements State, MemoryDevice {
 
     private cartImage: Uint8Array;
     private cartInverted: boolean;
+    private cartCRUBankSwitched: boolean;
     private cartBankCount: number;
     private currentCartBank: number;
     private cartAddrOffset: number;
@@ -114,6 +115,7 @@ export class Memory implements State, MemoryDevice {
             // Cartridge
             this.cartImage = null;
             this.cartInverted = false;
+            this.cartCRUBankSwitched = false;
             this.cartBankCount = 0;
             this.currentCartBank = 0;
             this.cartAddrOffset = -0x6000;
@@ -228,7 +230,7 @@ export class Memory implements State, MemoryDevice {
         }
     }
 
-    setCartridgeImage(byteArray: Uint8Array, inverted: boolean, ramAt6000: boolean, ramAt7000: boolean, ramPaged: boolean) {
+    setCartridgeImage(byteArray: Uint8Array, inverted: boolean, cruBankSwitched: boolean, ramAt6000: boolean, ramAt7000: boolean, ramPaged: boolean) {
         let i;
         const length = ((byteArray.length / 0x2000) + (byteArray.length % 0x2000 === 0 ? 0 : 1)) * 0x2000;
         this.log.info('Cartridge size: ' + Util.toHexWord(length));
@@ -237,6 +239,7 @@ export class Memory implements State, MemoryDevice {
             this.cartImage[i] = i < byteArray.length ? byteArray[i] : 0;
         }
         this.cartInverted = inverted;
+        this.cartCRUBankSwitched = cruBankSwitched;
         this.cartBankCount = this.cartImage.length / 0x2000;
         this.currentCartBank = 0;
         this.cartAddrOffset = -0x6000;
@@ -272,6 +275,24 @@ export class Memory implements State, MemoryDevice {
         } else {
             this.peripheralROMEnabled = false;
         }
+    }
+
+    setCRUCartBank(bank: number) {
+        if (this.cartCRUBankSwitched) {
+            this.setCurrentCartBank(bank);
+        }
+    }
+
+    private setCurrentCartBank(bank: number) {
+        this.currentCartBank = bank;
+        this.cartAddrOffset = this.currentCartBank * 0x2000 - 0x6000;
+        // this.log.info("Cartridge ROM bank selected: " + this.currentCartBank);
+    }
+
+    private setCurrentCartRAMBank(bank: number) {
+        this.currentCartRAMBank = bank;
+        this.cartAddrRAMOffset = this.currentCartRAMBank * 0x2000 - 0x6000;
+        // this.log.info("Cartridge RAM bank selected: " + this.currentCartRAMBank);
     }
 
     private readROM(addr: number, cpu: CPU): number {
@@ -330,17 +351,16 @@ export class Memory implements State, MemoryDevice {
 
     private writeCartridgeROM(addr: number, w: number, cpu: CPU) {
         cpu.addCycles(4);
-        if (!this.cartRAMPaged || addr < 0x6800) {
-            this.currentCartBank = (addr >> 1) & (this.cartBankCount - 1);
-            if (this.cartInverted) {
-                this.currentCartBank = this.cartBankCount - this.currentCartBank - 1;
+        if (!this.cartCRUBankSwitched) {
+            let bank = (addr >> 1) & (this.cartBankCount - 1);
+            if (!this.cartRAMPaged || addr < 0x6800) {
+                if (this.cartInverted) {
+                    bank = this.cartBankCount - bank - 1;
+                }
+                this.setCurrentCartBank(bank);
+            } else {
+                this.setCurrentCartRAMBank(bank);
             }
-            this.cartAddrOffset = this.currentCartBank * 0x2000 - 0x6000;
-            // this.log.info("Cartridge ROM bank selected: " + this.currentCartBank);
-        } else {
-            this.currentCartRAMBank = (addr >> 1) & (this.cartBankCount - 1);
-            this.cartAddrRAMOffset = this.currentCartRAMBank * 0x2000 - 0x6000;
-            // this.log.info("Cartridge RAM bank selected: " + this.currentCartRAMBank);
         }
     }
 

@@ -29,6 +29,7 @@ export class Software {
 
     private _name: string;
     private _inverted: boolean;
+    private _cruBankSwitched: boolean;
     private _url: string;
     private _rom: Uint8Array;
     private _grom: Uint8Array;
@@ -58,6 +59,14 @@ export class Software {
 
     set inverted(value: boolean) {
         this._inverted = value;
+    }
+
+    get cruBankSwitched(): boolean {
+        return this._cruBankSwitched;
+    }
+
+    set cruBankSwitched(value: boolean) {
+        this._cruBankSwitched = value;
     }
 
     get url(): string {
