@@ -314,6 +314,7 @@ export class ModuleService {
             (data: any) => {
                 const software = new Software();
                 software.inverted = data.inverted;
+                // software.cruBankSwitched = data.cruBankSwitched;
                 if (data.startAddress) {
                     software.startAddress = Util.parseNumber(data.startAddress);
                 }
@@ -338,8 +339,8 @@ export class ModuleService {
                         );
                     }
                 }
-                software.ramAt6000 = data.ramAt6000 === 'true';
-                software.ramAt7000 = data.ramAt7000 === 'true';
+                software.ramAt6000 = data.ramAt6000;
+                software.ramAt7000 = data.ramAt7000;
                 subject.next(software);
             },
             (error) => {
