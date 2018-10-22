@@ -564,7 +564,6 @@ export class DiskDrive implements State {
                             if (file.isEOF()) {
                                 fileStatus |= DiskDrive.STATUS_EOF;
                             }
-
                         } else {
                             fileStatus |= DiskDrive.STATUS_NO_SUCH_FILE;
                         }

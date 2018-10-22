@@ -475,7 +475,26 @@ export class GoogleDrive {
                             break;
                         case OpCode.STATUS:
                             that.log.info("Op-code " + opCode + ": STATUS");
-                            callback(0, DiskError.ILLEGAL_OPERATION);
+                            let fileStatus = 0;
+                            file = that.diskImage.getFile(fileName);
+                            if (file != null) {
+                                if (file.getDataType() === DataType.INTERNAL) {
+                                    fileStatus |= DiskDrive.STATUS_INTERNAL;
+                                }
+                                if (file.getFileType() === FileType.PROGRAM) {
+                                    fileStatus |= DiskDrive.STATUS_PROGRAM;
+                                }
+                                if (file.getRecordType() === RecordType.VARIABLE) {
+                                    fileStatus |= DiskDrive.STATUS_VARIABLE;
+                                }
+                                if (file.isEOF()) {
+                                    fileStatus |= DiskDrive.STATUS_EOF;
+                                }
+                            } else {
+                                fileStatus |= DiskDrive.STATUS_NO_SUCH_FILE;
+                            }
+                            that.ram[pabAddr + 8] = fileStatus;
+                            callback(0, 0);
                             break;
                         default:
                             that.log.error("Unknown DSR op-code: " + opCode);
