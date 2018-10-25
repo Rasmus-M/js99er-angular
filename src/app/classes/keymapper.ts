@@ -270,7 +270,6 @@ export class KeyMapper {
         {key: "ArrowLeft", keyCode: 37, tiKeys: [TIKey.J1Left]},
         {key: "ArrowRight", keyCode: 39, tiKeys: [TIKey.J1Right]},
         {key: "ArrowUp", keyCode: 38, tiKeys: [TIKey.J1Up]},
-        /*
         {key: "F1", keyCode: 112, tiKeys: [TIKey.Fctn, TIKey.Digit1]},
         {key: "F2", keyCode: 113, tiKeys: [TIKey.Fctn, TIKey.Digit2]},
         {key: "F3", keyCode: 114, tiKeys: [TIKey.Fctn, TIKey.Digit3]},
@@ -281,7 +280,6 @@ export class KeyMapper {
         {key: "F8", keyCode: 119, tiKeys: [TIKey.Fctn, TIKey.Digit8]},
         {key: "F9", keyCode: 120, tiKeys: [TIKey.Fctn, TIKey.Digit9]},
         {key: "F10", keyCode: 21, tiKeys: [TIKey.Fctn, TIKey.Digit0]},
-        */
         {key: "CapsLock", keyCode: 20, tiKeys: []}
     ];
 
