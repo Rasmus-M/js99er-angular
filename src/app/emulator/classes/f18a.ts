@@ -1566,7 +1566,7 @@ export class F18A implements VDP {
         let lineNo = 0;
         let line = "";
         for (let i = 0; i < length; addr++, i++) {
-            if (anchorAddr && anchorAddr === addr) {
+            if (anchorAddr === addr) {
                 anchorLine = lineNo;
             }
             if ((i & 0xF) === 0) {
