@@ -39,6 +39,10 @@ export class CommandDispatcherService {
         this.commandSubject.next(new Command(CommandType.STEP, null));
     }
 
+    stepOver() {
+        this.commandSubject.next(new Command(CommandType.STEP_OVER, null));
+    }
+
     stop() {
         this.commandSubject.next(new Command(CommandType.STOP, null));
     }

@@ -15,6 +15,7 @@ export interface Console {
     reset(keepCart: boolean);
     frame();
     step();
+    stepOver();
     stop();
     loadSoftware(software: Software);
     getDiskDrives(): DiskDrive[];

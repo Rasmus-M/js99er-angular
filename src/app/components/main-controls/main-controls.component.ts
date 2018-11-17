@@ -39,8 +39,12 @@ export class MainControlsComponent implements OnInit, OnDestroy {
         this.commandDispatcherService.frame();
     }
 
-    step() {
-        this.commandDispatcherService.step();
+    step(event: MouseEvent) {
+        if (event.shiftKey) {
+            this.commandDispatcherService.stepOver();
+        } else {
+            this.commandDispatcherService.step();
+        }
     }
 
     stop() {

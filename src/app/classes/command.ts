@@ -3,6 +3,7 @@ export enum CommandType {
     FAST = "Fast",
     FRAME = "Frame",
     STEP = "Step",
+    STEP_OVER = "Step over",
     STOP = "Stop",
     RESET = "Reset",
     LOAD_MODULE = "Load module",

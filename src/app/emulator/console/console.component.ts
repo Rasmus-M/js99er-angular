@@ -83,6 +83,11 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         this.eventDispatcherService.stopped();
     }
 
+    stepOver() {
+        this.ti994A.stepOver();
+        this.eventDispatcherService.stopped();
+    }
+
     stop() {
         this.ti994A.stop();
         this.eventDispatcherService.stopped();
@@ -101,6 +106,9 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                 break;
             case CommandType.STEP:
                 this.step();
+                break;
+            case CommandType.STEP_OVER:
+                this.stepOver();
                 break;
             case CommandType.STOP:
                 this.stop();
