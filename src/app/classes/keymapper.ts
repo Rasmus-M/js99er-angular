@@ -279,7 +279,7 @@ export class KeyMapper {
         {key: "F7", keyCode: 118, tiKeys: [TIKey.Fctn, TIKey.Digit7]},
         {key: "F8", keyCode: 119, tiKeys: [TIKey.Fctn, TIKey.Digit8]},
         {key: "F9", keyCode: 120, tiKeys: [TIKey.Fctn, TIKey.Digit9]},
-        {key: "F10", keyCode: 21, tiKeys: [TIKey.Fctn, TIKey.Digit0]},
+        {key: "F10", keyCode: 21, tiKeys: [TIKey.Fctn, TIKey.Equal]},
         {key: "CapsLock", keyCode: 20, tiKeys: []}
     ];
 
