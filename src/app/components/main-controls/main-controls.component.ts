@@ -102,7 +102,8 @@ export class MainControlsComponent implements OnInit, OnDestroy {
                 this.running = false;
                 break;
             case ConsoleEventType.SCREENSHOT_TAKEN:
-                this.download(event.data, "screenshot.png");
+
+                this.download(event.data, "js99er-" + this.getDateTime() + ".png");
                 break;
             case ConsoleEventType.DISK_DRIVE_CHANGED:
                 this.driveIndex = event.data;
@@ -117,9 +118,19 @@ export class MainControlsComponent implements OnInit, OnDestroy {
                     type: 'video/webm'
                 });
                 const url = URL.createObjectURL(blob);
-                this.download(url, 'recording.webm');
+                this.download(url, "js99er-" + this.getDateTime() + ".webm");
                 break;
         }
+    }
+
+    getDateTime() {
+        const date = new Date();
+        return date.getFullYear().toString() +
+            (date.getMonth() + 1).toString().padStart(2, "0") +
+            date.getDate().toString().padStart(2, "0") +
+            date.getHours().toString().padStart(2, "0") +
+            date.getMinutes().toString().padStart(2, "0") +
+            date.getSeconds().toString().padStart(2, "0");
     }
 
     download(url, fileName) {
