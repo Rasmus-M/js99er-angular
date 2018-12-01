@@ -146,4 +146,12 @@ export class CommandDispatcherService {
     startKeyboard() {
         this.commandSubject.next(new Command(CommandType.START_KEYBOARD, null));
     }
+
+    startRecording() {
+        this.commandSubject.next(new Command(CommandType.START_RECORDING, null));
+    }
+
+    stopRecording() {
+        this.commandSubject.next(new Command(CommandType.STOP_RECORDING, null));
+    }
 }

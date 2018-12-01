@@ -29,7 +29,9 @@ export enum CommandType {
     SAVE_STATE = "Save state",
     RESTORE_STATE = "Restore state",
     STOP_KEYBOARD = "Stop keyboard",
-    START_KEYBOARD = "Start keyboard"
+    START_KEYBOARD = "Start keyboard",
+    START_RECORDING = "Start recording",
+    STOP_RECORDING = "Stop recording"
 }
 
 export class Command {

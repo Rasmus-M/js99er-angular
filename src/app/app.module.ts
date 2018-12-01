@@ -18,7 +18,7 @@ import {
     MatTableModule,
     MatTabsModule,
     MatToolbarModule,
-    MatExpansionModule
+    MatExpansionModule, MatButtonToggleModule
 } from '@angular/material';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import { RouterModule, Routes } from '@angular/router';

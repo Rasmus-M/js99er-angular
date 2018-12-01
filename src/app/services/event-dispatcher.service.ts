@@ -92,6 +92,14 @@ export class EventDispatcherService {
         this.sendAsyncEvent(ConsoleEventType.STATE_RESTORED, null);
     }
 
+    recordingStarted() {
+        this.sendAsyncEvent(ConsoleEventType.RECORDING_STARTED, null);
+    }
+
+    recordingStopped(recordings: Blob[]) {
+        this.sendAsyncEvent(ConsoleEventType.RECORDING_STOPPED, recordings);
+    }
+
     sendAsyncEvent(eventType: ConsoleEventType, data: any) {
         window.setTimeout(
             () => {

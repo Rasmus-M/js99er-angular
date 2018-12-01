@@ -45,7 +45,7 @@ export class Database {
 
             request.onsuccess = function () {
                 that.log.info("Database opened OK.");
-                that.db = IDBDatabase = request.result;
+                that.db = request.result as IDBDatabase;
                 if (callback) { callback(true); }
             };
 

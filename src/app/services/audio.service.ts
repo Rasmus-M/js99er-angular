@@ -18,14 +18,15 @@ export class AudioService {
     private tape: Tape;
     private sampleRate: number;
     private bufferSize: number;
-    private vdpSampleBuffer: Int8Array;
-    private vdpScriptProcessor: ScriptProcessorNode;
+    private psgSampleBuffer: Int8Array;
+    private psgScriptProcessor: ScriptProcessorNode;
     private speechScale: number;
     private speechSampleBuffer: Int16Array;
     private speechScriptProcessor: ScriptProcessorNode;
     private speechFilter: BiquadFilterNode;
     private tapeScriptProcessor: ScriptProcessorNode;
     private tapeFilter: BiquadFilterNode;
+    private mediaStreamDestination: MediaStreamAudioDestinationNode;
 
     private log: Log = Log.getLog();
 
@@ -53,9 +54,9 @@ export class AudioService {
             const that = this;
             if (psgDev) {
                 psgDev.setSampleRate(this.sampleRate);
-                this.vdpSampleBuffer = new Int8Array(this.bufferSize);
-                this.vdpScriptProcessor = AudioService.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
-                this.vdpScriptProcessor.onaudioprocess = function (event) { that.onPSGAudioProcess(event); };
+                this.psgSampleBuffer = new Int8Array(this.bufferSize);
+                this.psgScriptProcessor = AudioService.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
+                this.psgScriptProcessor.onaudioprocess = function (event) { that.onPSGAudioProcess(event); };
             }
             if (speechDev) {
                 const speechSampleRate = TMS5220.SAMPLE_RATE;
@@ -74,6 +75,7 @@ export class AudioService {
                 this.tapeFilter.type = "lowpass";
                 this.tapeFilter.frequency.value = 4000;
             }
+            this.mediaStreamDestination = AudioService.audioContext.createMediaStreamDestination();
             this.setSoundEnabled(enabled);
         } else {
             this.log.warn("Web Audio API not supported by this browser.");
@@ -84,10 +86,10 @@ export class AudioService {
         // Get Float32Array output buffer
         const out = event.outputBuffer.getChannelData(0);
         // Get Int8Array input buffer
-        this.psgDev.update(this.vdpSampleBuffer, this.bufferSize);
+        this.psgDev.update(this.psgSampleBuffer, this.bufferSize);
         // Process buffer conversion
         for (let i = 0; i < this.bufferSize; i++) {
-            out[i] = this.vdpSampleBuffer[i] / 256.0;
+            out[i] = this.psgSampleBuffer[i] / 256.0;
         }
     }
 
@@ -125,20 +127,22 @@ export class AudioService {
         const oldEnabled = this.enabled;
         if (AudioService.audioContext) {
             if (enabled && !this.enabled) {
-                if (this.vdpScriptProcessor) {
-                    this.vdpScriptProcessor.connect(AudioService.audioContext.destination);
+                if (this.psgScriptProcessor) {
+                    this.psgScriptProcessor.connect(AudioService.audioContext.destination);
+                    this.psgScriptProcessor.connect(this.mediaStreamDestination);
                 }
                 if (this.speechScriptProcessor) {
                     this.speechScriptProcessor.connect(this.speechFilter);
                     this.speechFilter.connect(AudioService.audioContext.destination);
+                    this.speechScriptProcessor.connect(this.mediaStreamDestination);
                 }
                 if (this.tapeScriptProcessor) {
                     this.tapeScriptProcessor.connect(this.tapeFilter);
                     this.tapeFilter.connect(AudioService.audioContext.destination);
                 }
             } else if (!enabled && this.enabled) {
-                if (this.vdpScriptProcessor) {
-                    this.vdpScriptProcessor.disconnect();
+                if (this.psgScriptProcessor) {
+                    this.psgScriptProcessor.disconnect();
                 }
                 if (this.speechScriptProcessor) {
                     this.speechScriptProcessor.disconnect();
@@ -151,5 +155,9 @@ export class AudioService {
         }
         this.enabled = enabled;
         return oldEnabled;
+    }
+
+    getMediaStream(): MediaStream {
+        return this.mediaStreamDestination && this.mediaStreamDestination.stream;
     }
 }

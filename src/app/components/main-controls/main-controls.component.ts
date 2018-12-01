@@ -13,6 +13,8 @@ export class MainControlsComponent implements OnInit, OnDestroy {
 
     running = false;
     runningFast = false;
+    recording = false;
+
     driveIndex = 0;
 
     private subscription: Subscription;
@@ -49,6 +51,9 @@ export class MainControlsComponent implements OnInit, OnDestroy {
 
     stop() {
         this.commandDispatcherService.stop();
+        if (this.recording) {
+            this.commandDispatcherService.stopRecording();
+        }
     }
 
     reset() {
@@ -83,6 +88,10 @@ export class MainControlsComponent implements OnInit, OnDestroy {
         this.commandDispatcherService.restoreState();
     }
 
+    record() {
+        this.commandDispatcherService.startRecording();
+    }
+
     onEvent(event: ConsoleEvent) {
         switch (event.type) {
             case ConsoleEventType.STARTED:
@@ -93,12 +102,32 @@ export class MainControlsComponent implements OnInit, OnDestroy {
                 this.running = false;
                 break;
             case ConsoleEventType.SCREENSHOT_TAKEN:
-                this.element.nativeElement.querySelector("#btnScreenshot").href = event.data;
+                this.download(event.data, "screenshot.png");
                 break;
             case ConsoleEventType.DISK_DRIVE_CHANGED:
                 this.driveIndex = event.data;
                 break;
+            case ConsoleEventType.RECORDING_STARTED:
+                this.recording = true;
+                break;
+            case ConsoleEventType.RECORDING_STOPPED:
+                this.recording = false;
+                const recordings: Blob[] = event.data;
+                const blob = new Blob(recordings, {
+                    type: 'video/webm'
+                });
+                const url = URL.createObjectURL(blob);
+                this.download(url, 'recording.webm');
+                break;
         }
+    }
+
+    download(url, fileName) {
+        const a = this.element.nativeElement.querySelector("#download-link");
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        window.URL.revokeObjectURL(url);
     }
 
     ngOnDestroy() {

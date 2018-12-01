@@ -699,7 +699,7 @@ export class GoogleDrive {
                 'parents': [{'id': parent}]
             };
 
-            const base64Data = btoa(reader.result);
+            const base64Data = btoa(reader.result as string);
             const multipartRequestBody =
                 delimiter +
                 'Content-Type: application/json\r\n\r\n' +
@@ -734,7 +734,7 @@ export class GoogleDrive {
         reader.onload = (e) => {
             this.getFile(fileId, (metadata) => {
                 const contentType = "application/octet-stream";
-                const base64Data = btoa(reader.result);
+                const base64Data = btoa(reader.result as string);
                 const multipartRequestBody =
                     delimiter +
                     'Content-Type: application/json\r\n\r\n' +

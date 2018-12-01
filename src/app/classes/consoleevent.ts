@@ -15,7 +15,9 @@ export enum ConsoleEventType {
     TAPE_PLAYING = "Tape playing",
     TAPE_REWOUND = "Tape rewound",
     SETTINGS_RESTORED = "Settings restored",
-    STATE_RESTORED = "State restored"
+    STATE_RESTORED = "State restored",
+    RECORDING_STARTED = "Recording started",
+    RECORDING_STOPPED = "Recording stopped",
 }
 
 export class ConsoleEvent {

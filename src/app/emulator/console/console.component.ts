@@ -16,6 +16,7 @@ import {Tape} from '../classes/tape';
 import {Software} from '../../classes/software';
 import {ConsoleFactoryService} from "../services/console-factory.service";
 import {Console} from "../interfaces/console";
+import {AudioService} from "../../services/audio.service";
 
 @Component({
     selector: 'app-console',
@@ -28,6 +29,9 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
 
     private ti994A: Console;
     private canvas: HTMLCanvasElement;
+    // @ts-ignore
+    private mediaRecorder: MediaRecorder;
+    private recordings: Blob[];
     private subscription: Subscription;
     private log: Log = Log.getLog();
 
@@ -38,7 +42,8 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         private softwareService: ModuleService,
         private diskService: DiskService,
         private settingsService: SettingsService,
-        private consoleFactoryService: ConsoleFactoryService
+        private consoleFactoryService: ConsoleFactoryService,
+        private audioService: AudioService
     ) {
     }
 
@@ -266,7 +271,33 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
             case CommandType.START_KEYBOARD:
                 this.ti994A.getKeyboard().start();
                 break;
+            case CommandType.START_RECORDING:
+                const stream = this.canvas.captureStream();
+                const audioStream = this.audioService.getMediaStream();
+                if (audioStream) {
+                    stream.addTrack(audioStream.getTracks()[0]);
+                }
+                this.recordings = [];
+                // @ts-ignore
+                this.mediaRecorder = new MediaRecorder(stream, {mimeType: 'video/webm; codecs=vp9'});
+                this.mediaRecorder.ondataavailable = this.onMediaRecorderDataAvailable.bind(this);
+                this.mediaRecorder.onstop = this.onMediaRecorderStopped.bind(this);
+                this.mediaRecorder.start();
+                this.eventDispatcherService.recordingStarted();
+                break;
+            case CommandType.STOP_RECORDING:
+                this.mediaRecorder.stop();
+                break;
         }
+    }
+
+    // @ts-ignore
+    onMediaRecorderDataAvailable(event: BlobEvent) {
+        this.recordings.push(event.data);
+    }
+
+    onMediaRecorderStopped(event: Event) {
+        this.eventDispatcherService.recordingStopped(this.recordings);
     }
 
     onCanvasClick(evt) {

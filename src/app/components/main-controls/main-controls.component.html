@@ -1,9 +1,10 @@
 <mat-toolbar class="toolbar">
+    <button mat-raised-button color="warn" class="toolbar-button" (click)="record()" [disabled]="recording || !running"><fa name="circle"></fa> Rec</button>
     <button mat-raised-button color="primary" class="toolbar-button" (click)="start()" [disabled]="running && !runningFast"><fa name="play"></fa> Start</button>
     <button mat-raised-button class="toolbar-button" (click)="fast()" [disabled]="running && runningFast"><fa name="forward"></fa> Fast</button>
     <button mat-raised-button class="toolbar-button" (click)="frame()" [disabled]="running"><fa name="fast-forward"></fa> Frame</button>
     <button mat-raised-button class="toolbar-button" (click)="step($event)" [disabled]="running"><fa name="step-forward"></fa> Step</button>
-    <button mat-raised-button class="toolbar-button" (click)="stop()" [disabled]="!running"><fa name="pause"></fa> Pause</button>
+    <button mat-raised-button class="toolbar-button" (click)="stop()" [disabled]="!running"><fa name="stop"></fa> Stop</button>
     <button mat-raised-button color="warn" class="toolbar-button" (click)="reset()"><fa name="refresh"></fa> Reset</button>
     <span class="margin-right"></span>
     <button mat-raised-button class="toolbar-button" (click)="fileInputModule.click()">
@@ -14,8 +15,9 @@
     </button>
     <app-software-menu class="toolbar-button"></app-software-menu>
     <span class="margin-right"></span>
-    <a mat-raised-button class="toolbar-button" (click)="screenshot()" download="screenshot.png" id="btnScreenshot"><fa name="camera"></fa> Screenshot</a>
+    <a mat-raised-button class="toolbar-button" (click)="screenshot()"><fa name="camera"></fa> Screenshot</a>
     <span class="margin-right"></span>
     <button mat-raised-button class="toolbar-button" (click)="saveState()"><fa name="download"></fa> Save State</button>
     <button mat-raised-button class="toolbar-button" (click)="restoreState()"><fa name="upload"></fa> Restore State</button>
 </mat-toolbar>
+<a id="download-link" style="display: none"></a>

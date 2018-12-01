@@ -169,7 +169,7 @@ export class ModuleService {
             const reader = new FileReader();
             reader.onload = function () {
                 // reader.result contains the contents of blob as a typed array
-                const byteArray = new Uint8Array(reader.result);
+                const byteArray = new Uint8Array(reader.result as ArrayBuffer);
                 const software = new Software();
                 if (socketId.substr(0, 3).toLowerCase() === 'rom') {
                     log.info('ROM ' + romId + ' (' + socketId + '): \'' + filename + '\', ' + byteArray.length + ' bytes');
@@ -241,7 +241,8 @@ export class ModuleService {
                 const reader = new FileReader();
                 reader.onload = function () {
                     // reader.result contains the contents of blob as a typed array
-                    const byteArray = new Uint8Array(reader.result);
+                    const result: ArrayBuffer = reader.result as ArrayBuffer;
+                    const byteArray = new Uint8Array(result);
                     if (grom) {
                         software.grom = byteArray;
                     } else {
@@ -268,7 +269,7 @@ export class ModuleService {
             grom = baseFileName && baseFileName.charAt(baseFileName.length - 1) === 'g',
             reader = new FileReader();
         reader.onload = function () {
-            const byteArray = new Uint8Array(reader.result);
+            const byteArray = new Uint8Array(reader.result as ArrayBuffer);
             const module: Software = new Software();
             if (grom) {
                 module.grom = byteArray;

@@ -79,7 +79,7 @@ export class TapeComponent implements OnInit, OnDestroy {
             const reader = new FileReader();
             const that = this;
             reader.onload = function () {
-                that.commandDispatcherService.openTape(reader.result);
+                that.commandDispatcherService.openTape(reader.result as ArrayBuffer);
             };
             reader.onerror = function () {
                 that.log.error(reader.error.name);

@@ -89,7 +89,7 @@ export class DiskService {
                     log.info('Loading object file.');
                     const reader = new FileReader();
                     reader.onload = function () {
-                        service.objectLoaderService.loadObjFile(reader.result);
+                        service.objectLoaderService.loadObjFile(reader.result as string);
                         service.commandDispatcherService.loadSoftware(
                             service.objectLoaderService.getSoftware(), false
                         );
@@ -124,7 +124,7 @@ export class DiskService {
         const service = this;
         reader.onload = function () {
             // reader.result contains the contents of blob as a typed array
-            const fileBuffer = new Uint8Array(this.result);
+            const fileBuffer = new Uint8Array(this.result as ArrayBuffer);
             let diskImage;
             if (acceptDiskImage && fileBuffer.length >= 16 && fileBuffer[0x0D] === 0x44 && fileBuffer[0x0E] === 0x53 && fileBuffer[0x0F] === 0x4B) {
                 diskImage = diskDrive.loadDSKFile(filename, fileBuffer, service.onDiskImageChanged.bind(service));
