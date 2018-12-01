@@ -102,7 +102,6 @@ export class MainControlsComponent implements OnInit, OnDestroy {
                 this.running = false;
                 break;
             case ConsoleEventType.SCREENSHOT_TAKEN:
-
                 this.download(event.data, "js99er-" + this.getDateTime() + ".png");
                 break;
             case ConsoleEventType.DISK_DRIVE_CHANGED:
