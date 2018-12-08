@@ -175,6 +175,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         } else {
             this.debuggerAddress = Util.toHexWordShort(value);
         }
+        this.commandDispatcherService.startKeyboard();
         this.updateDebugger();
     }
 
