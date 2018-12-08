@@ -175,7 +175,6 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         } else {
             this.debuggerAddress = Util.toHexWordShort(value);
         }
-        this.commandDispatcherService.startKeyboard();
         this.updateDebugger();
     }
 
@@ -188,12 +187,15 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             this.commandDispatcherService.setBreakpoint(addr);
             this.breakpointAddress = Util.toHexWordShort(value);
         }
-        this.commandDispatcherService.startKeyboard();
         this.updateDebugger();
     }
 
     onTextFocus() {
         this.commandDispatcherService.stopKeyboard();
+    }
+
+    onTextBlur() {
+        this.commandDispatcherService.startKeyboard();
     }
 
     ngOnDestroy() {

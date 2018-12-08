@@ -18,13 +18,13 @@
         <span class="margin-right"></span>
         <mat-form-field class="address-entry">
             <span matPrefix>&gt;</span>
-            <input matInput placeholder="View Address" maxlength="5" [ngModel]="debuggerAddress" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onDebuggerAddressChanged($event)" (focus)="onTextFocus()">
+            <input matInput placeholder="View Address" maxlength="5" [ngModel]="debuggerAddress" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onDebuggerAddressChanged($event)" (focus)="onTextFocus()" (blur)="onTextBlur()">
             <mat-hint>Hexadecimal</mat-hint>
         </mat-form-field>
         <span class="margin-right"></span>
         <mat-form-field class="address-entry">
             <span matPrefix>&gt;</span>
-            <input matInput placeholder="Breakpoint" maxlength="5" [ngModel]="breakpointAddress" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onBreakpointAddressChanged($event)" (focus)="onTextFocus()">
+            <input matInput placeholder="Breakpoint" maxlength="5" [ngModel]="breakpointAddress" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onBreakpointAddressChanged($event)" (focus)="onTextFocus()" (blur)="onTextBlur()">
             <mat-hint>Hexadecimal</mat-hint>
         </mat-form-field>
     </div>
