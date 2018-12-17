@@ -33,7 +33,14 @@ export class AudioService {
     static resumeSound() {
         if (AudioService.audioContext && AudioService.audioContext.state !== "running") {
             console.log("Resume sound");
-            AudioService.audioContext.resume();
+            AudioService.audioContext.resume().then(
+                () => {
+                    console.log("Resumed");
+                },
+                (error) => {
+                    console.log(error);
+                }
+            );
         }
     }
 
@@ -56,21 +63,21 @@ export class AudioService {
                 psgDev.setSampleRate(this.sampleRate);
                 this.psgSampleBuffer = new Int8Array(this.bufferSize);
                 this.psgScriptProcessor = AudioService.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
-                this.psgScriptProcessor.onaudioprocess = function (event) { that.onPSGAudioProcess(event); };
+                this.psgScriptProcessor.addEventListener("audioprocess", function (event) { that.onPSGAudioProcess(event); });
             }
             if (speechDev) {
                 const speechSampleRate = TMS5220.SAMPLE_RATE;
                 this.speechScale = this.sampleRate / speechSampleRate;
                 this.speechSampleBuffer = new Int16Array(Math.floor(this.bufferSize / this.speechScale) + 1);
                 this.speechScriptProcessor = AudioService.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
-                this.speechScriptProcessor.onaudioprocess = function (event) { that.onSpeechAudioProcess(event); };
+                this.speechScriptProcessor.addEventListener("audioprocess", function (event) { that.onSpeechAudioProcess(event); });
                 this.speechFilter = AudioService.audioContext.createBiquadFilter();
                 this.speechFilter.type = "lowpass";
                 this.speechFilter.frequency.value = speechSampleRate / 2;
             }
             if (tape) {
                 this.tapeScriptProcessor = AudioService.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
-                this.tapeScriptProcessor.onaudioprocess = function (event) { that.onTapeAudioProcess(event); };
+                this.tapeScriptProcessor.addEventListener("audioprocess", function (event) { that.onTapeAudioProcess(event); });
                 this.tapeFilter = AudioService.audioContext.createBiquadFilter();
                 this.tapeFilter.type = "lowpass";
                 this.tapeFilter.frequency.value = 4000;
@@ -82,18 +89,18 @@ export class AudioService {
         }
     }
 
-    onPSGAudioProcess(event) {
+    onPSGAudioProcess(event: AudioProcessingEvent) {
         // Get Float32Array output buffer
         const out = event.outputBuffer.getChannelData(0);
         // Get Int8Array input buffer
         this.psgDev.update(this.psgSampleBuffer, this.bufferSize);
         // Process buffer conversion
         for (let i = 0; i < this.bufferSize; i++) {
-            out[i] = this.psgSampleBuffer[i] / 256.0;
+            out[i] = this.psgSampleBuffer[i] / 128.0;
         }
     }
 
-    onSpeechAudioProcess(event) {
+    onSpeechAudioProcess(event: AudioProcessingEvent) {
         // Get Float32Array output buffer
         const out = event.outputBuffer.getChannelData(0);
         // Get Int16Array input buffer
@@ -117,7 +124,7 @@ export class AudioService {
         }
     }
 
-    onTapeAudioProcess(event) {
+    onTapeAudioProcess(event: AudioProcessingEvent) {
         const out = event.outputBuffer.getChannelData(0);
         this.tape.updateSoundBuffer(out);
     }
