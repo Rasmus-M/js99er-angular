@@ -194,6 +194,11 @@
                     "type": "ITEM",
                     "name": "Flying Shark",
                     "url": "software/flying-shark-v1.2.rpk"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Pyjamarama",
+                    "url": "software/pyjamarama.rpk"
                 }
             ]
         },

@@ -45,3 +45,4 @@ Thumbs.db
 
 # Source files
 /src/assets/carts/
+!/src/assets/carts/index.json
