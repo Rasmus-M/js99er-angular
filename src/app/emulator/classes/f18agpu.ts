@@ -1481,7 +1481,7 @@ export class F18AGPU implements CPU {
         let x3 = this.readMemoryWord(this.D);
 
         if (x2 > x3) {		// x2 can not be zero because they're unsigned
-            x3 = (x3 << 16) | this.readMemoryWord(this.D + 2);
+            x3 = x3 * 65536 + this.readMemoryWord(this.D + 2); // Cannot use shift here because then we get a 32-bit signed integer
             let x1 = x3 / x2;
             this.writeMemoryWord(this.D, x1 & 0xFFFF);
             x1 = x3 % x2;
