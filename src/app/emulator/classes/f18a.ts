@@ -938,12 +938,14 @@ export class F18A implements VDP {
                                             (((spritePatternByte2 & spriteBit) >> spriteBitShift2) << 2);
                                         break;
                                 }
-                                if (sprColor > 0 || pixelOn) {
+                                if (pixelOn) {
                                     let x2 = spriteX + ((spriteFlipX ? spriteDimensionX - (dx + spriteBitShift1) - 1 : dx + spriteBitShift1) << spriteMag);
                                     if (x2 >= 0 && x2 < this.drawWidth) {
                                         if (spriteColorBuffer[x2] === 0) {
-                                            spriteColorBuffer[x2] = sprColor + 1; // Add one here so 0 means uninitialized. Subtract one before drawing.
-                                            spritePaletteBaseIndexBuffer[x2] = sprPaletteBaseIndex;
+                                            if (sprColor !== 0) {
+                                                spriteColorBuffer[x2] = sprColor + 1; // Add one here so 0 means uninitialized. Subtract one before drawing.
+                                                spritePaletteBaseIndexBuffer[x2] = sprPaletteBaseIndex;
+                                            }
                                         } else {
                                             this.collision = true;
                                         }
@@ -952,8 +954,10 @@ export class F18A implements VDP {
                                         x2++;
                                         if (x2 >= 0 && x2 < this.drawWidth) {
                                             if (spriteColorBuffer[x2] === 0) {
-                                                spriteColorBuffer[x2] = sprColor + 1; // Add one here so 0 means uninitialized. Subtract one before drawing.
-                                                spritePaletteBaseIndexBuffer[x2] = sprPaletteBaseIndex;
+                                                if (sprColor !== 0) {
+                                                    spriteColorBuffer[x2] = sprColor + 1; // Add one here so 0 means uninitialized. Subtract one before drawing.
+                                                    spritePaletteBaseIndexBuffer[x2] = sprPaletteBaseIndex;
+                                                }
                                             } else {
                                                 this.collision = true;
                                             }
