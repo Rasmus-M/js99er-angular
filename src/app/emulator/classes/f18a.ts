@@ -938,7 +938,7 @@ export class F18A implements VDP {
                                             (((spritePatternByte2 & spriteBit) >> spriteBitShift2) << 2);
                                         break;
                                 }
-                                if (pixelOn) {
+                                if (sprColor > 0 || pixelOn) {
                                     let x2 = spriteX + ((spriteFlipX ? spriteDimensionX - (dx + spriteBitShift1) - 1 : dx + spriteBitShift1) << spriteMag);
                                     if (x2 >= 0 && x2 < this.drawWidth) {
                                         if (spriteColorBuffer[x2] === 0) {

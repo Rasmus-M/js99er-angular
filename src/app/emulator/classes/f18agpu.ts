@@ -153,16 +153,35 @@ export class F18AGPU implements CPU {
     }
 
     reset() {
-        this.cpuIdle = true;
+        this.intReset();
+
         this.vdpRAM = this.f18a.getRAM();
         this.WP = 0xF000; // Place workspace in an unused part of the memory space
         for (let i = 0; i < 32; i++) {
             this.vdpRAM[this.WP + i] = 0;
         }
 
+        // Flash RAM
+        if (!this.flash) {
+            const gpu = this;
+            this.flash = new F18AFlash(function (restored) {
+                if (restored) {
+                    gpu.flashLoaded = true;
+                }
+            });
+        } else {
+            this.flash.reset();
+        }
+
+        this.preload();
+    }
+
+    intReset() {
+        this.cpuIdle = true;
+
         // Internal registers
         this.PC = 0;
-        this.ST = 0;
+        this.ST = 0x01c0;
         this.flagX = 0;
 
         // Operands
@@ -173,29 +192,10 @@ export class F18AGPU implements CPU {
         this.B = 0;
         this.nPostInc = [0, 0];
 
-        // Counters
-        this.cycles = 0;
-
         // Misc
-        this.breakpoint = null;
-        this.otherBreakpoint = null;
+        this.cycles = 0;
+        this.cyclesRemaining = 0;
         this.illegalCount = 0;
-
-        // Flash RAM
-        if (!this.flash) {
-            const gpu = this;
-            this.flash = new F18AFlash(function (restored) {
-                if (restored) {
-                    gpu.flashLoaded = true;
-                    gpu.preload();
-                }
-            });
-        } else {
-            this.flash.reset();
-            this.preload();
-        }
-
-        this.intReset();
     }
 
     preload() {
@@ -203,24 +203,7 @@ export class F18AGPU implements CPU {
         for (let a = 0; a < preload.length; a++) {
             this.vdpRAM[0x4000 + a] = preload[a];
         }
-        console.log("Set GPU PC");
         this.setPC(0x4000);
-    }
-
-    intReset() {
-        this.cpuIdle = true;
-        this.PC = 0x4000;
-        this.ST = 0x01C0;
-        this.flagX = 0;
-        this.Ts = 0;
-        this.Td = 0;
-        this.D = 0;
-        this.S = 0;
-        this.B = 0;
-        this.nPostInc = [0, 0];
-        this.cycles = 0;
-        this.cyclesRemaining = 0;
-        this.illegalCount = 0;
     }
 
     // Build the word status lookup table
@@ -330,7 +313,7 @@ export class F18AGPU implements CPU {
     }
 
     setWP(value) {
-        this.log.warn("setWP not implemeneted.");
+        this.log.warn("setWP not implemented.");
     }
 
     inctPC() {
