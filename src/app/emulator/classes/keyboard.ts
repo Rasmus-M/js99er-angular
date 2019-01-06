@@ -197,8 +197,10 @@ export class Keyboard implements State {
         }
         if (key) {
             const fctn = this.isTIKeyDown(TIKey.Fctn);
+            const ctrl = this.isTIKeyDown(TIKey.Ctrl);
             this.setTIKeyDown(TIKey.Fctn, false);
             this.setTIKeyDown(TIKey.Shift, false);
+            this.setTIKeyDown(TIKey.Ctrl, false);
             key.tiKeys.forEach((tiKey) => {
                 this.setTIKeyDown(tiKey, down);
                 if (!tiKey.isSticky()) {
@@ -219,6 +221,10 @@ export class Keyboard implements State {
             // Handle Fctn + S/D/E/X
             if (fctn && ['s', 'd', 'e', 'x'].indexOf(key.key.toLowerCase()) !== -1) {
                 this.setTIKeyDown(TIKey.Fctn, true);
+            }
+            // Handle Ctrl + C/V
+            if (ctrl && ['c', 'v'].indexOf(key.key.toLowerCase()) !== -1) {
+                this.setTIKeyDown(TIKey.Ctrl, true);
             }
         }
         if (!key || this.handledByBrowser()) {
