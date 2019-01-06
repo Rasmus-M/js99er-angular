@@ -588,7 +588,7 @@ export class TMS5220 implements Speech {
         /* BL is set if neither byte 9 nor 8 of the fifo are in use; this
          translates to having fifo_count (which ranges from 0 bytes in use to 16
          bytes used) being less than or equal to 8. Victory/Victorba depends on this. */
-        if (this.m_fifo_count <= TMS5220.FIFO_SIZE / 2) {
+        if (this.m_fifo_count <= 8) { // RM: Using TMS5220.FIFO_SIZE / 2 doesn't work with XB CALL SAY(,A$)
             // generate an interrupt if necessary; if /BL was inactive and is now active, set int.
             if (!this.m_buffer_low) {
                 this.set_interrupt_state(1);
