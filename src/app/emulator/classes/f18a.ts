@@ -6,11 +6,10 @@ import {TI994A} from './ti994a';
 import {F18AGPU} from './f18agpu';
 import {Log, LogLevel} from '../../classes/log';
 import {Util} from '../../classes/util';
-import {ScreenMode} from "./tms9918a";
 
 export class F18A implements VDP {
 
-    static VERSION = 0x18;
+    static VERSION = 0x19;
 
     static MAX_SCANLINE_SPRITES_JUMPER = true;
     static SCANLINES_JUMPER = false;
@@ -223,7 +222,7 @@ export class F18A implements VDP {
         imageObj.onload = () => {
             this.splashImage = imageObj;
         };
-        imageObj.src = 'assets/images/f18a_bitmap_v1.8.png';
+        imageObj.src = 'assets/images/f18a_bitmap_v' + this.getVersionNoString() + '.png';
 
         this.log.info("F18A emulation enabled");
     }
@@ -1242,8 +1241,9 @@ export class F18A implements VDP {
                 this.tileColorMode = (this.registers[49] & 0x30) >> 4;
                 this.log.info("F18A Enhanced Color Mode " + this.tileColorMode + " selected for tiles.");
                 this.realSpriteYCoord = (this.registers[49] & 0x08) !== 0;
-                // this.log.info("Real Y coord: " + this.realSpriteYCoord);
-                this.spriteLinkingEnabled = (this.registers[49] & 0x04) !== 0;
+                if (this.getVersion() <= 0x18) {
+                    this.spriteLinkingEnabled = (this.registers[49] & 0x04) !== 0;
+                }
                 this.spriteColorMode = this.registers[49] & 0x03;
                 this.log.info("F18A Enhanced Color Mode " + this.spriteColorMode + " selected for sprites.");
                 break;
@@ -1316,12 +1316,14 @@ export class F18A implements VDP {
                 this.updateMode(this.registers[0], this.registers[1]);
                 break;
             case 58:
-                let gromClock = this.registers[58] & 0x0F;
-                if (gromClock < 7) {
-                    gromClock = 6;
+                if (this.getVersion() <= 0x18) {
+                    let gromClock = this.registers[58] & 0x0F;
+                    if (gromClock < 7) {
+                        gromClock = 6;
+                    }
+                    gromClock = (gromClock << 4) | 0x0F;
+                    this.psg.setGROMClock(gromClock);
                 }
-                gromClock = (gromClock << 4) | 0x0F;
-                this.psg.setGROMClock(gromClock);
                 break;
             default:
                 this.log.info("Write " + Util.toHexByte(this.registers[reg]) + " to F18A register " + reg + " (" + Util.toHexByte(reg) + ").");
@@ -1427,7 +1429,7 @@ export class F18A implements VDP {
                 this.paletteRegisterData = b;
             } else {
                 // Read second byte
-                this.palette[this.paletteRegisterNo][0] = this.paletteRegisterData * 17;
+                this.palette[this.paletteRegisterNo][0] = (this.paletteRegisterData & 0x0f) * 17;
                 this.palette[this.paletteRegisterNo][1] = ((b & 0xf0) >> 4) * 17;
                 this.palette[this.paletteRegisterNo][2] = (b & 0x0f) * 17;
                 // this.log.info("F18A palette register " + this.paletteRegisterNo.toHexByte() + " set to " + (this.paletteRegisterData << 8 | b).toHexWord());
@@ -1490,7 +1492,7 @@ export class F18A implements VDP {
                 return ((this.counterSnap / 1000) & 0xff00) >> 8;
             case 14:
                 // Version
-                return F18A.VERSION;
+                return this.getVersion();
             case 15:
                 // Status register number
                 return this.registers[15];
@@ -1644,6 +1646,11 @@ export class F18A implements VDP {
 
     getVersion() {
         return F18A.VERSION;
+    }
+
+    getVersionNoString() {
+        const version = this.getVersion();
+        return ((version >> 4) & 0x0f) + "." + (version & 0x0f);
     }
 
     drawPaletteImage(canvas: HTMLCanvasElement): void {
