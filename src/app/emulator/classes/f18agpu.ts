@@ -592,6 +592,16 @@ export class F18AGPU implements CPU {
         return (this.readMemoryByte(addr) << 8) | this.readMemoryByte(addr + 1);
     }
 
+    /*
+    -- VRAM 14-bit, 16K @ >0000 to >3FFF (0011 1111 1111 1111)
+    -- GRAM 11-bit, 2K  @ >4000 to >47FF (0100 x111 1111 1111)
+    -- PRAM  7-bit, 128 @ >5000 to >5x7F (0101 xxxx x111 1111)
+    -- VREG  6-bit, 64  @ >6000 to >6x3F (0110 xxxx xx11 1111)
+    -- current scanline @ >7000 to >7xx0 (0111 xxxx xxxx xxx0)
+    -- blanking         @ >7001 to >7xx1 (0111 xxxx xxxx xxx1)
+    -- DMA              @ >8000 to >8xx7 (1000 xxxx xxxx 0111)
+    -- F18A version     @ >A000 to >Axxx (1010 xxxx xxxx xxxx)
+    */
     readMemoryByte(addr: number): number {
         // GPU register
         if (addr >= this.WP) {
@@ -632,8 +642,7 @@ export class F18AGPU implements CPU {
         }
         // DMA
         if (addr < 0x9000) {
-            // TODO: can you read the DMA?
-            return 0;
+            return this.vdpRAM[addr & 0x8007];
         } else if (addr < 0xA000) {
             return 0;
         } else if (addr < 0xB000) {
