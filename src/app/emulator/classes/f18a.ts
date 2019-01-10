@@ -1571,6 +1571,7 @@ export class F18A implements VDP {
         let addr = start;
         let lineNo = 0;
         let line = "";
+        let ascii = "";
         for (let i = 0; i < length; addr++, i++) {
             if (anchorAddr === addr) {
                 anchorLine = lineNo;
@@ -1578,10 +1579,14 @@ export class F18A implements VDP {
             if ((i & 0xF) === 0) {
                 line += Util.toHexWord(addr) + ': ';
             }
-            line += Util.toHexByteShort(this.ram[addr]);
+            const byte = this.ram[addr];
+            line += Util.toHexByteShort(byte);
+            ascii += byte >= 32 && byte < 127 ? String.fromCharCode(byte) : "\u25a1";
             if ((i & 0xF) === 0xF) {
+                line += " " + ascii;
                 lines.push(line);
                 line = "";
+                ascii = "";
                 lineNo++;
             } else {
                 line += ' ';
