@@ -20,6 +20,7 @@ import {forkJoin} from "rxjs";
 export class DiskService {
 
     private diskImages: DiskImage[] = [];
+    private diskImageCharCode = 65;
     private commandSubscription: Subscription;
     private eventSubscription: Subscription;
     private log: Log = Log.getLog();
@@ -36,9 +37,9 @@ export class DiskService {
     }
 
     createDefaultDiskImages(): DiskImage[] {
-        this.createDiskImage('Floppy disk A');
-        this.createDiskImage('Floppy disk B');
-        this.createDiskImage('Floppy disk C');
+        for (let i = 0; i < 3; i++) {
+            this.createDiskImage('Disk ' + String.fromCharCode(this.diskImageCharCode++));
+        }
         return this.diskImages;
     }
 
@@ -147,7 +148,7 @@ export class DiskService {
     }
 
     addDisk(): DiskImage {
-        const diskImage: DiskImage = this.createDiskImage("New disk");
+        const diskImage: DiskImage = this.createDiskImage('Disk ' + String.fromCharCode(this.diskImageCharCode++));
         this.eventDispatcherService.diskAdded(diskImage);
         return diskImage;
     }

@@ -493,7 +493,7 @@ export class DiskImage implements State {
     }
 
     writeString(data: number[] | Uint8Array, n: number, str: string, padLen: number) {
-        for (let i = 0; i < str.length; i++) {
+        for (let i = 0; i < Math.min(str.length, padLen); i++) {
             data[n++] = str.charCodeAt(i);
         }
         for (let i = 0; i < padLen - str.length; i++) {
