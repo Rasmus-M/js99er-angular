@@ -24,6 +24,7 @@ import {Speech} from "../interfaces/speech";
 import {Tape} from "../classes/tape";
 import {Software} from "../../classes/software";
 import {VDP} from "../interfaces/vdp";
+import {AudioService} from "../../services/audio.service";
 
 class ConsoleMock implements Console {
     frame() {
@@ -72,6 +73,8 @@ class ConsoleMock implements Console {
     }
     step() {
     }
+    stepOver() {
+    }
     stop() {
     }
 }
@@ -98,6 +101,7 @@ describe('ConsoleComponent', () => {
                 DiskService,
                 ObjectLoaderService,
                 SettingsService,
+                AudioService,
                 {provide: ConsoleFactoryService, useClass: ConsoleFactoryMock }
             ]
         })
