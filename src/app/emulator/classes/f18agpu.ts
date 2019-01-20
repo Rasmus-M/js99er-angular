@@ -1,17 +1,18 @@
 import {CPU} from '../interfaces/cpu';
 import {F18A} from './f18a';
-import {Decoder, Opcode} from '../../classes/decoder';
+import {Decoder} from '../../classes/decoder';
 import {Log} from '../../classes/log';
 import {F18AFlash} from './f18aflash';
 import {Util} from '../../classes/util';
+import {Opcode} from "../../classes/opcode";
 
 export class F18AGPU implements CPU {
 
-    static SPEED_DIVIDER = 1.2;
-    static CYCLES_PER_FRAME = 1250000 / F18AGPU.SPEED_DIVIDER; // Speed is approximately 25 times that of the normal CPU
-    static CYCLES_PER_SCANLINE = 4000 / F18AGPU.SPEED_DIVIDER;
+    static readonly SPEED_DIVIDER = 1.2;
+    static readonly CYCLES_PER_FRAME = 1250000 / F18AGPU.SPEED_DIVIDER; // Speed is approximately 25 times that of the normal CPU
+    static readonly CYCLES_PER_SCANLINE = 4000 / F18AGPU.SPEED_DIVIDER;
 
-    static PRELOAD = [
+    static readonly PRELOAD = [
         "020F47FE100D4036405A409440B440FAFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0CA0411C034004C1D0603F000971C0214006069010F7C0203F02C0603F04C0A0",
         "3F06D0E03F011305D010DC40060216FD1003DC70060216FD045B0D0B06A040B40F0BC1C7131604C0D02060040A30C0C004C102020400CC01060216FD04C0D020",
         "415106C00A30A0030CA041AED8204151B000045BD820411A3F00020041D6C8003F0202004006C8003F0402004010C8003F06045B04C7D0203F011313C0204118",
@@ -146,6 +147,7 @@ export class F18AGPU implements CPU {
     private otherBreakpoint: number;
     private illegalCount: number;
     private cyclesRemaining: number;
+    private tracing: boolean;
     private log: Log = Log.getLog();
 
     constructor(f18a) {
@@ -1865,6 +1867,24 @@ export class F18AGPU implements CPU {
         return binArray;
     }
 
+    dumpProfile(): void {
+    }
+
+    getCycles(): number {
+        return 0;
+    }
+
+    isSuspended(): boolean {
+        return false;
+    }
+
+    setSuspended(suspended: boolean): void {
+    }
+
+    setTracing(tracing: boolean) {
+        this.tracing = tracing;
+    }
+
     getState(): object {
         return {
             cpuIdle: this.cpuIdle,
@@ -1894,19 +1914,5 @@ export class F18AGPU implements CPU {
         // this.otherBreakpoint = state.otherBreakpoint;
         this.illegalCount = state.illegalCount;
         this.flash.restoreState(state.flash);
-    }
-
-    dumpProfile(): void {
-    }
-
-    getCycles(): number {
-        return 0;
-    }
-
-    isSuspended(): boolean {
-        return false;
-    }
-
-    setSuspended(suspended: boolean): void {
     }
 }

@@ -59,4 +59,11 @@ export class Util {
             return parseInt(s, defRadix);
         }
     }
+
+    static padr(s: string, ch: string, len: number) {
+        while (s.length < len) {
+            s = s + ch;
+        }
+        return s;
+    }
 }

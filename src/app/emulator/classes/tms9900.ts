@@ -5,15 +5,17 @@ import {Memory} from './memory';
 import {Log} from '../../classes/log';
 import {DiskDrive} from './diskdrive';
 import {GoogleDrive} from './googledrive';
-import {Decoder, Opcode} from '../../classes/decoder';
+import {Decoder} from '../../classes/decoder';
 import {CPU} from '../interfaces/cpu';
 import {TI994A} from './ti994a';
+import {Opcode} from "../../classes/opcode";
+import {Disassembler} from "../../classes/disassembler";
 
 export class TMS9900 implements CPU {
 
-    static CYCLES_PER_FRAME = 50000;
-    static CYCLES_PER_SCANLINE = 183;
-    static PROFILE = false;
+    static readonly CYCLES_PER_FRAME = 50000;
+    static readonly CYCLES_PER_SCANLINE = 183;
+    static readonly PROFILE = false;
 
     private console: TI994A;
     private memory: Memory;
@@ -145,10 +147,13 @@ export class TMS9900 implements CPU {
     private pasteToggle: boolean;
     private countStart: number;
     private maxCount: number;
+    private tracing: boolean;
+    private disassembler: Disassembler;
     private log = Log.getLog();
 
     constructor(console: TI994A) {
         this.console = console;
+        this.disassembler = new Disassembler();
     }
 
     reset() {
@@ -179,6 +184,8 @@ export class TMS9900 implements CPU {
 
         this.suspended = false;
         this.pasteToggle = false;
+
+        this.disassembler.setMemory(this.console.getMemory());
     }
 
     // Build the word status lookup table
@@ -283,14 +290,16 @@ export class TMS9900 implements CPU {
                     }
                     this.pasteToggle = !this.pasteToggle;
                 }
+                const tmpPC = this.getPC();
+                const tmpCycles = this.getCycles();
                 const instruction = this.readMemoryWord(this.PC);
                 this.inctPC();
                 this.addCycles(this.execute(instruction));
+                if (this.tracing) {
+                    this.log.info(Util.padr(this.disassembler.disassembleInstruction(tmpPC), ' ', 40) + (this.getCycles() - tmpCycles));
+                }
                 // Execute interrupt routine
                 if (this.getInterruptMask() >= 1 && (this.cru.isVDPInterrupt() || this.cru.isTimerInterrupt())) {
-                    // if (this.cru.isTimerInterrupt()) {
-                    //     console.log("PC timer int");
-                    // }
                     this.addCycles(this.doInterrupt(4));
                 }
             }
@@ -1820,6 +1829,10 @@ export class TMS9900 implements CPU {
             this.profile = new Uint32Array(0x10000);
             this.log.info("--------");
         }
+    }
+
+    setTracing(tracing: boolean) {
+        this.tracing = tracing;
     }
 
     getState(): object {
