@@ -232,7 +232,7 @@ export class Memory implements State, MemoryDevice {
 
     setCartridgeImage(byteArray: Uint8Array, inverted: boolean, cruBankSwitched: boolean, ramAt6000: boolean, ramAt7000: boolean, ramFG99Paged: boolean) {
         let i;
-        const length = ((byteArray.length / 0x2000) + (byteArray.length % 0x2000 === 0 ? 0 : 1)) * 0x2000;
+        const length = Math.ceil(byteArray.length / 0x2000) * 0x2000;
         this.log.info('Cartridge size: ' + Util.toHexWord(length));
         this.cartImage = new Uint8Array(length);
         for (i = 0; i < this.cartImage.length; i++) {
