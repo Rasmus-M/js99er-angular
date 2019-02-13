@@ -230,12 +230,12 @@ export class ModuleService {
         const
             subject = new Subject<Software>(),
             software = new Software(),
-            baseFileName = entry.filename.split('.')[0],
-            extension = entry.filename.split('.')[1],
+            baseFileName: string = entry.filename.split('.')[0],
+            extension: string = entry.filename.split('.')[1],
             zipService = this.zipService;
         if (extension === 'bin') {
             const grom = baseFileName && baseFileName.charAt(baseFileName.length - 1) === 'g';
-            software.inverted = baseFileName && baseFileName.charAt(baseFileName.length - 1) === '3';
+            software.inverted = baseFileName && (baseFileName.endsWith('3') || baseFileName.endsWith('9'));
             const blobWriter = zipService.createBlobWriter();
             entry.getData(blobWriter, function (blob) {
                 const reader = new FileReader();
@@ -265,7 +265,7 @@ export class ModuleService {
         const
             subject = new Subject<Software>(),
             baseFileName = file.name.split('.')[0],
-            inverted = baseFileName && baseFileName.charAt(baseFileName.length - 1) === '3',
+            inverted = baseFileName && (baseFileName.endsWith('3') || baseFileName.endsWith('9')),
             grom = baseFileName && baseFileName.charAt(baseFileName.length - 1) === 'g',
             reader = new FileReader();
         reader.onload = function () {
@@ -292,7 +292,7 @@ export class ModuleService {
     loadBinModuleFromURL(url: string): Observable<Software> {
         const subject = new Subject<Software>();
         const baseFileName = url.split('.')[0];
-        const inverted = baseFileName && baseFileName.charAt(baseFileName.length - 1) === '3';
+        const inverted = baseFileName && (baseFileName.endsWith('3') || baseFileName.endsWith('9'));
         this.httpClient.get(url, {responseType: 'arraybuffer'}).subscribe(
             (data: ArrayBuffer) => {
                 const byteArray = new Uint8Array(data);
