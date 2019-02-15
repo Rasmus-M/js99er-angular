@@ -213,7 +213,7 @@ export class Memory implements State, MemoryDevice {
                 this.ams.setByte(a, byteArray[i]);
             } else if (a >= 0x6000 && a < 0x8000) {
                 this.cartImage[a + this.cartAddrRAMOffset] = byteArray[i];
-            } else {
+            } else if (this.enable32KRAM) {
                 this.ram[a] = byteArray[i];
             }
         }
