@@ -26,6 +26,7 @@ export class TMS9919 implements PSG {
     }
 
     writeData(b: number) {
+        this.log.debug("PSG: " + Util.toHexByte(b));
         this.sn76489.write(b);
     }
 
