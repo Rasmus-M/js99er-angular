@@ -244,52 +244,7 @@ export class TMS9900 implements CPU {
                 cyclesToRun = -1;
             }
             if (!atBreakpoint || this.PC === startPC) {
-                // Hook into disk DSR
-                if (this.PC >= 0x4000 && this.PC < 0x6000) {
-                    switch (this.memory.getPeripheralROMNumber()) {
-                        case 1:
-                            if (this.PC >= DiskDrive.DSR_HOOK_START && this.PC <= DiskDrive.DSR_HOOK_END) {
-                                DiskDrive.execute(this.PC, this.diskDrives, this.memory);
-                            }
-                            break;
-                        case 2:
-                            if (this.PC >= GoogleDrive.DSR_HOOK_START && this.PC <= GoogleDrive.DSR_HOOK_END) {
-                                const that = this;
-                                if (GoogleDrive.execute(this.PC, this.googleDrives, this.memory, function (success: boolean) {
-                                    that.log.debug("CPU resumed, success=" + success);
-                                    that.setSuspended(false);
-                                })) {
-                                    // A return value of true means an asynchronous action is taking place
-                                    // We need to suspend and wait for the callback
-                                    this.log.debug("CPU suspended");
-                                    this.setSuspended(true);
-                                }
-                            }
-                            break;
-                    }
-                } else if (this.PC === 0x478) {
-                    // MOVB R0,@>8375
-                    if (!this.pasteToggle) {
-                        const charCode = this.keyboard.getPasteCharCode();
-                        if (charCode !== -1) {
-                            const keyboardDevice: number = this.memory.getPADByte(0x8374);
-                            if (keyboardDevice === 0 || keyboardDevice === 5) {
-                                this.writeMemoryByte(this.WP, charCode); // Set R0
-                                this.writeMemoryByte(this.WP + 12, this.memory.getPADByte(0x837c) | 0x20); // Set R6 (status byte)
-                                // Detect Extended BASIC
-                                const groms = this.memory.getGROMs();
-                                if (groms && groms.length) {
-                                    const grom = groms[0];
-                                    if (grom[0x6343] === 0x45 && grom[0x6344] === 0x58 && grom[0x6345] === 0x54) {
-                                        this.memory.setPADByte(0x835F, 0x5d); // Max length for BASIC continuously set
-                                    }
-                                }
-                            }
-                            this.memory.setPADByte(0x837c, this.memory.getPADByte(0x837c) | 0x20);
-                        }
-                    }
-                    this.pasteToggle = !this.pasteToggle;
-                }
+                this.executeHooks();
                 const tmpPC = this.getPC();
                 const tmpCycles = this.getCycles();
                 const instruction = this.readMemoryWord(this.PC);
@@ -336,6 +291,55 @@ export class TMS9900 implements CPU {
             }
             this.illegalCount++;
             return 10;
+        }
+    }
+
+    executeHooks() {
+        // Hook into disk DSR
+        if (this.PC >= 0x4000 && this.PC < 0x6000) {
+            switch (this.memory.getPeripheralROMNumber()) {
+                case 1:
+                    if (this.PC >= DiskDrive.DSR_HOOK_START && this.PC <= DiskDrive.DSR_HOOK_END) {
+                        DiskDrive.execute(this.PC, this.diskDrives, this.memory);
+                    }
+                    break;
+                case 2:
+                    if (this.PC >= GoogleDrive.DSR_HOOK_START && this.PC <= GoogleDrive.DSR_HOOK_END) {
+                        const that = this;
+                        if (GoogleDrive.execute(this.PC, this.googleDrives, this.memory, function (success: boolean) {
+                            that.log.debug("CPU resumed, success=" + success);
+                            that.setSuspended(false);
+                        })) {
+                            // A return value of true means an asynchronous action is taking place
+                            // We need to suspend and wait for the callback
+                            this.log.debug("CPU suspended");
+                            this.setSuspended(true);
+                        }
+                    }
+                    break;
+            }
+        } else if (this.PC === 0x478) {
+            // MOVB R0,@>8375
+            if (!this.pasteToggle) {
+                const charCode = this.keyboard.getPasteCharCode();
+                if (charCode !== -1) {
+                    const keyboardDevice: number = this.memory.getPADByte(0x8374);
+                    if (keyboardDevice === 0 || keyboardDevice === 5) {
+                        this.writeMemoryByte(this.WP, charCode); // Set R0
+                        this.writeMemoryByte(this.WP + 12, this.memory.getPADByte(0x837c) | 0x20); // Set R6 (status byte)
+                        // Detect Extended BASIC
+                        const groms = this.memory.getGROMs();
+                        if (groms && groms.length) {
+                            const grom = groms[0];
+                            if (grom[0x6343] === 0x45 && grom[0x6344] === 0x58 && grom[0x6345] === 0x54) {
+                                this.memory.setPADByte(0x835F, 0x5d); // Max length for BASIC continuously set
+                            }
+                        }
+                    }
+                    this.memory.setPADByte(0x837c, this.memory.getPADByte(0x837c) | 0x20);
+                }
+            }
+            this.pasteToggle = !this.pasteToggle;
         }
     }
 
