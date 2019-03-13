@@ -622,10 +622,6 @@ export class TMS5220 implements Speech {
         }
         /* Note that TS being unset will also generate an interrupt when a STOP
          frame is encountered; this is handled in the sample generator code and not here */
-
-        if (this.m_speak_external && this.cpu) {
-            this.cpu.setSuspended(this.m_fifo_count === TMS5220.FIFO_SIZE);
-        }
     }
 
     /**********************************************************************************************
@@ -1323,6 +1319,9 @@ export class TMS5220 implements Speech {
             this.m_readyq_handler(!state);
         }
         this.m_ready_pin = state;
+        if (this.cpu) {
+            this.cpu.setSuspended(!this.m_ready_pin);
+        }
     }
 
     // -------------------------------------------------
@@ -1374,6 +1373,8 @@ export class TMS5220 implements Speech {
         // falsely shifted.
         this.rom_read(1);
         this.m_schedule_dummy_read = false;
+
+        this.m_io_ready = true;
     }
 
     /**********************************************************************************************
