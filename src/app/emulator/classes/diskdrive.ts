@@ -233,7 +233,7 @@ export class DiskDrive implements State {
             nFiles = 3;
         }
         Log.getLog().info("Executing disk DSR FILES routine (n = " + nFiles + ").");
-        memory.writeWord(0x8370, 0x4000 - nFiles * 0x2B8, null);
+        memory.writeWord(0x8370, 0x3fff - nFiles * 0x2B8, null);
         memory.writeWord(0x8350, memory.readWord(0x8350, null) & 0x00FF, null);
     }
 
