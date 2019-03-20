@@ -165,7 +165,7 @@ export class TMS9900 implements CPU {
 
         this.PC = 0;
         this.WP = 0;
-        this.ST = 0x01C0;
+        this.ST = 0;
         this.flagX = 0;
         this.Ts = 0;
         this.Td = 0;
@@ -211,7 +211,6 @@ export class TMS9900 implements CPU {
     buildBStatusLookupTable() {
         const bStatusLookup = [];
         for (let i = 0; i < 0x100; i++) {
-            let x = (i & 0xFF);
             bStatusLookup[i] = 0;
             // LGT
             if (i > 0) { bStatusLookup[i] |= this.BIT_LGT; }
@@ -224,9 +223,19 @@ export class TMS9900 implements CPU {
             // OV
             if (i === 0x80) { bStatusLookup[i] |= this.BIT_OV; }
             // OP
-            let z;
-            for (z = 0; x !== 0; x = (x & (x - 1)) & 0xFF) { z++; }						// black magic?
-            if ((z & 1) !== 0) { bStatusLookup[i] |= this.BIT_OP; }		    // set bit if an odd number
+            let p = 0;
+            let b = 0x80;
+            for (let n = 0; n < 8; n++) {
+                if ((i & b) !== 0) {
+                    p++;
+                }
+                b >>= 1;
+            }
+            if ((p & 1) !== 0) { bStatusLookup[i] |= this.BIT_OP; }
+
+            // let z;
+            // for (z = 0; x !== 0; x = (x & (x - 1)) & 0xFF) { z++; }						// black magic?
+            // if ((z & 1) !== 0) { bStatusLookup[i] |= this.BIT_OP; }		    // set bit if an odd number
         }
         return bStatusLookup;
     }
@@ -1623,6 +1632,9 @@ export class TMS9900 implements CPU {
 
     // Add words: A src, dst
     a(): number {
+
+        const before = ((this.ST & 0x0400) !== 0);
+
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
@@ -1653,7 +1665,7 @@ export class TMS9900 implements CPU {
         this.writeMemoryByte(this.D, x3);
         this.postIncrement(this.DST);
 
-        this.resetEQ_LGT_AGT_C_OV();	// We come out with either EQ or LGT, never both
+        this.resetEQ_LGT_AGT_C_OV_OP();
         this.ST |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;
 
         if (x3 < x2) { this.setC(); }	// if it wrapped around, set carry
