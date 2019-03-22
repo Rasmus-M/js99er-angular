@@ -1632,9 +1632,6 @@ export class TMS9900 implements CPU {
 
     // Add words: A src, dst
     a(): number {
-
-        const before = ((this.ST & 0x0400) !== 0);
-
         const x1 = this.readMemoryWord(this.S);
         this.postIncrement(this.SRC);
 
