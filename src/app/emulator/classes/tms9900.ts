@@ -249,7 +249,7 @@ export class TMS9900 implements CPU {
             // Handle breakpoint
             const atBreakpoint = this.atBreakpoint();
             if (atBreakpoint) {
-                this.log.info("At breakpoint " + Util.toHexWord(this.breakpoint));
+                this.log.info("At breakpoint " + Util.toHexWord(this.getBreakpoint()));
                 cyclesToRun = -1;
             }
             if (!atBreakpoint || this.PC === startPC) {
@@ -1811,7 +1811,7 @@ export class TMS9900 implements CPU {
     }
 
     getBreakpoint(): number {
-        return this.breakpoint;
+        return this.PC === this.breakpoint ? this.breakpoint : (this.PC === this.otherBreakpoint ? this.otherBreakpoint : this.breakpoint);
     }
 
     setBreakpoint(addr) {
