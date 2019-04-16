@@ -12,11 +12,12 @@ export class Keyboard implements State {
     private document: Document;
     private pcKeyboardEnabled: boolean;
     private mapArrowKeysToFctnSDEX: boolean;
+    private mappedArrowKeyPressed: TIKey;
     private running: boolean;
     private columns: boolean[][];
     private joystick1: Joystick;
     private joystick2: Joystick;
-    private joystickActive: number;
+    private joystickActiveCountdown: number;
     private joystickHandle: number;
     private keyCode: number;
     private alphaLock: boolean;
@@ -34,6 +35,7 @@ export class Keyboard implements State {
         this.document = document;
         this.pcKeyboardEnabled = settings.isPCKeyboardEnabled();
         this.mapArrowKeysToFctnSDEX = settings.isMapArrowKeysEnabled();
+        this.mappedArrowKeyPressed = null;
         this.running = false;
         this.columns = new Array(9);
         for (let col = 0; col < 8; col++) {
@@ -50,11 +52,11 @@ export class Keyboard implements State {
         if (!this.joystick2) {
             this.joystick2 = new Joystick(this.columns[7], 1);
         }
-        this.joystickActive = 0;
+        this.joystickActiveCountdown = 0;
         if (!this.joystickHandle) {
             this.joystickHandle = window.setInterval(
                 () => {
-                    this.joystickActiveCountdown();
+                    this.joystickActiveHandler();
                 }, 100
             );
         }
@@ -251,43 +253,39 @@ export class Keyboard implements State {
                 if (Keyboard.EMULATE_JOYSTICK_2) {
                     this.setTIKeyDown(TIKey.J2Left, down);
                 }
-                if (this.mapArrowKeysToFctnSDEX && this.joystickActive === 0) {
-                    this.setTIKeyDown(TIKey.Fctn, down);
-                    this.setTIKeyDown(TIKey.KeyS, down);
-                }
+                this.handleMappedArrowKey(TIKey.KeyS, down);
                 break;
             case 'ArrowRight':
                 if (Keyboard.EMULATE_JOYSTICK_2) {
                     this.setTIKeyDown(TIKey.J2Right, down);
                 }
-                if (this.mapArrowKeysToFctnSDEX && this.joystickActive === 0) {
-                    this.setTIKeyDown(TIKey.Fctn, down);
-                    this.setTIKeyDown(TIKey.KeyD, down);
-                }
+                this.handleMappedArrowKey(TIKey.KeyD, down);
                 break;
             case 'ArrowDown':
                 if (Keyboard.EMULATE_JOYSTICK_2) {
                     this.setTIKeyDown(TIKey.J2Down, down);
                 }
-                if (this.mapArrowKeysToFctnSDEX && this.joystickActive === 0) {
-                    this.setTIKeyDown(TIKey.Fctn, down);
-                    this.setTIKeyDown(TIKey.KeyX, down);
-                }
+                this.handleMappedArrowKey(TIKey.KeyX, down);
                 break;
             case 'ArrowUp':
                 if (Keyboard.EMULATE_JOYSTICK_2) {
                     this.setTIKeyDown(TIKey.J2Up, down);
                 }
-                if (this.mapArrowKeysToFctnSDEX && this.joystickActive === 0) {
-                    this.setTIKeyDown(TIKey.Fctn, down);
-                    this.setTIKeyDown(TIKey.KeyE, down);
-                }
+                this.handleMappedArrowKey(TIKey.KeyE, down);
                 break;
             case 'CapsLock':
                 if (down) {
                     this.alphaLock = !this.alphaLock;
                 }
                 break;
+        }
+    }
+
+    private handleMappedArrowKey(key: TIKey, down) {
+        if (this.mapArrowKeysToFctnSDEX && this.joystickActiveCountdown === 0 && (!this.mappedArrowKeyPressed || this.mappedArrowKeyPressed === key)) {
+            this.setTIKeyDown(TIKey.Fctn, down);
+            this.setTIKeyDown(key, down);
+            this.mappedArrowKeyPressed = down ? key : null;
         }
     }
 
@@ -301,7 +299,7 @@ export class Keyboard implements State {
 
     isKeyDown(col: number, row: number): boolean {
         if (col === 6 || col === 7) {
-            this.joystickActive = 10;
+            this.joystickActiveCountdown = 10;
         }
         return this.columns[col][row];
     }
@@ -311,9 +309,9 @@ export class Keyboard implements State {
         return this.alphaLock;
     }
 
-    private joystickActiveCountdown() {
-        if (this.joystickActive > 0) {
-            this.joystickActive--;
+    private joystickActiveHandler() {
+        if (this.joystickActiveCountdown > 0) {
+            this.joystickActiveCountdown--;
         }
     }
 
@@ -410,7 +408,7 @@ export class Keyboard implements State {
             pcKeyboardEnabled: this.pcKeyboardEnabled,
             mapArrowKeysToFctnSDEX: this.mapArrowKeysToFctnSDEX,
             columns: this.columns,
-            joystickActive: this.joystickActive,
+            joystickActive: this.joystickActiveCountdown,
             keyCode: this.keyCode,
             alphaLock: this.alphaLock,
             pasteBuffer: this.pasteBuffer,
@@ -424,7 +422,7 @@ export class Keyboard implements State {
         this.pcKeyboardEnabled = state.pcKeyboardEnabled;
         this.mapArrowKeysToFctnSDEX = state.mapArrowKeysToFctnSDEX;
         this.columns = state.columns;
-        this.joystickActive = state.joystickActive;
+        this.joystickActiveCountdown = state.joystickActiveCountdown;
         this.keyCode = state.keyCode;
         this.alphaLock = state.alphaLock;
         this.pasteBuffer = state.pasteBuffer;
