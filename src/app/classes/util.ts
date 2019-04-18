@@ -1,6 +1,6 @@
 export class Util {
 
-    static toHexWord(number) {
+    static toHexWord(number): string {
         if (typeof number === "number") {
             let s = number.toString(16).toUpperCase();
             while (s.length < 4) {
@@ -12,7 +12,7 @@ export class Util {
         }
     }
 
-    static toHexWordShort(number) {
+    static toHexWordShort(number): string {
         if (typeof number === "number") {
             let s = number.toString(16).toUpperCase();
             while (s.length < 4) {
@@ -24,7 +24,7 @@ export class Util {
         }
     }
 
-    static toHex12Bit(number) {
+    static toHex12Bit(number): string {
         if (typeof number === "number") {
             let s = number.toString(16).toUpperCase();
             while (s.length < 3) {
@@ -36,7 +36,7 @@ export class Util {
         }
     }
 
-    static toHexByte(number) {
+    static toHexByte(number): string {
         if (typeof number === "number") {
             let s = number.toString(16).toUpperCase();
             if (s.length < 2) {
@@ -48,7 +48,7 @@ export class Util {
         }
     }
 
-    static toHexByteShort(number) {
+    static toHexByteShort(number): string {
         if (typeof number === "number") {
             let s = number.toString(16).toUpperCase();
             if (s.length < 2) {
@@ -60,15 +60,15 @@ export class Util {
         }
     }
 
-    static parseHexNumber(s: string) {
+    static parseHexNumber(s: string): number {
         return Util._parseNumber(s, 16);
     }
 
-    static parseNumber(s: string) {
+    static parseNumber(s: string): number {
         return Util._parseNumber(s, 10);
     }
 
-    static _parseNumber(s: string, defRadix: number) {
+    static _parseNumber(s: string, defRadix: number): number {
         if (!s) {
             return NaN;
         } else if (s.startsWith("0x")) {
@@ -80,7 +80,7 @@ export class Util {
         }
     }
 
-    static padr(s: string, ch: string, len: number) {
+    static padr(s: string, ch: string, len: number): string {
         while (s.length < len) {
             s = s + ch;
         }

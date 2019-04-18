@@ -1,5 +1,5 @@
 import {Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
-import {Subscription} from 'rxjs/index';
+import {Subscription} from 'rxjs';
 import * as $ from 'jquery';
 import {TI994A} from '../../emulator/classes/ti994a';
 import {DisassemblerService} from '../../services/disassembler.service';
@@ -81,15 +81,13 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     private onCommand(command: Command) {
-        switch (command.type) {
-            case CommandType.SET_BREAKPOINT_ADDRESS:
-                const addr = command.data;
-                if (addr === undefined || addr === null) {
-                    this.breakpointAddress = "";
-                } else {
-                    this.breakpointAddress = Util.toHexWordShort(addr);
-                }
-                break;
+        if (command.type === CommandType.SET_BREAKPOINT_ADDRESS) {
+            const addr = command.data;
+            if (addr === undefined || addr === null) {
+                this.breakpointAddress = "";
+            } else {
+                this.breakpointAddress = Util.toHexWordShort(addr);
+            }
         }
     }
 
@@ -168,24 +166,24 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         return isNaN(addr) ? defaultValue : addr;
     }
 
-    onDebuggerAddressChanged(value) {
+    onDebuggerAddressChanged(value: string) {
         const addr = Util.parseHexNumber(value);
         if (isNaN(addr)) {
             this.debuggerAddress = "";
         } else {
-            this.debuggerAddress = Util.toHexWordShort(value);
+            this.debuggerAddress = Util.toHexWordShort(addr);
         }
         this.updateDebugger();
     }
 
-    onBreakpointAddressChanged(value) {
+    onBreakpointAddressChanged(value: string) {
         const addr = Util.parseHexNumber(value);
         if (isNaN(addr)) {
             this.commandDispatcherService.setBreakpoint(null);
             this.breakpointAddress = "";
         } else {
             this.commandDispatcherService.setBreakpoint(addr);
-            this.breakpointAddress = Util.toHexWordShort(value);
+            this.breakpointAddress = Util.toHexWordShort(addr);
         }
         this.updateDebugger();
     }
