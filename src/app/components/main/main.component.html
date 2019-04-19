@@ -1,0 +1,52 @@
+<div class="app">
+    <div class="console">
+        <app-console class="console" [diskImages]="diskImages"></app-console>
+    </div>
+    <div class="side-panel">
+        <mat-tab-group (selectedTabChange)="onTabSelected($event)">
+            <mat-tab label="Log">
+                <div class="tab-content">
+                    <app-log></app-log>
+                </div>
+            </mat-tab>
+            <mat-tab label="Disk">
+                <div class="tab-content">
+                    <app-disk [diskImages]="diskImages"></app-disk>
+                </div>
+            </mat-tab>
+            <mat-tab label="Tape">
+                <div class="tab-content">
+                    <app-tape></app-tape>
+                </div>
+            </mat-tab>
+            <mat-tab label="Keyboard">
+                <div class="tab-content">
+                    <app-keyboard [visible]="tabIndex === 3"></app-keyboard>
+                </div>
+            </mat-tab>
+            <mat-tab label="Debugger">
+                <div class="tab-content">
+                    <app-debugger [visible]="tabIndex === 4"></app-debugger>
+                </div>
+            </mat-tab>
+            <mat-tab label="Graphics">
+                <div class="tab-content">
+                    <app-graphics [visible]="tabIndex === 5"></app-graphics>
+                </div>
+            </mat-tab>
+            <mat-tab label="Options">
+                <div class="tab-content">
+                    <app-settings></app-settings>
+                </div>
+            </mat-tab>
+            <mat-tab label="About">
+                <div class="tab-content">
+                    <app-about [title]="title" [version]="version" [date]="date"></app-about>
+                </div>
+            </mat-tab>
+        </mat-tab-group>
+    </div>
+    <div class="main-controls">
+        <app-main-controls></app-main-controls>
+    </div>
+</div>

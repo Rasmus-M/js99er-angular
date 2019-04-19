@@ -18,7 +18,7 @@ import {
     MatTableModule,
     MatTabsModule,
     MatToolbarModule,
-    MatExpansionModule, MatButtonToggleModule
+    MatExpansionModule
 } from '@angular/material';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import { RouterModule, Routes } from '@angular/router';
@@ -44,10 +44,11 @@ import {SoftwareMenuComponent} from './components/software-menu/software-menu.co
 import {MoreSoftwareComponent} from './components/more-software/more-software.component';
 import {AboutComponent} from './components/about/about.component';
 import {GraphicsComponent} from './components/graphics/graphics.component';
+import {MainComponent} from './components/main/main.component';
 
 const appRoutes: Routes = [
-    {path: '', component: AppComponent},
-    {path: 'cart/:cart', component: AppComponent}
+    {path: 'cart/:cart', component: MainComponent},
+    {path: '**', component: MainComponent},
 ];
 
 @NgModule({
@@ -63,7 +64,8 @@ const appRoutes: Routes = [
         SoftwareMenuComponent,
         MoreSoftwareComponent,
         AboutComponent,
-        GraphicsComponent
+        GraphicsComponent,
+        MainComponent
     ],
     imports: [
         BrowserModule,
