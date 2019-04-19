@@ -354,15 +354,6 @@ export class TI994A implements Console, State {
         if (wasRunning) {
             this.start(false);
         }
-        if (sw.keyPresses) {
-            const that = this;
-            window.setTimeout(
-                function () {
-                    that.keyboard.simulateKeyPresses(sw.keyPresses, null);
-                },
-                1000
-            );
-        }
     }
 
     getState() {

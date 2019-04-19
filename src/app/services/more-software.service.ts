@@ -43,7 +43,7 @@ export class MoreSoftwareService {
     }
 
     getByName(name: string): Observable<Software> {
-        const subject = new Subject<Software>();
+        const subject = new ReplaySubject<Software>();
         this.getIndex().subscribe(
             (carts: Software[]) => {
                 let found = false;

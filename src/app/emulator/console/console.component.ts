@@ -56,15 +56,6 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         $(this.canvas).toggleClass("pixelated", this.settingsService.isPixelatedEnabled());
         this.ti994A = this.consoleFactoryService.create(document, this.canvas, this.diskImages, this.settingsService.getSettings(), this.onBreakpoint.bind(this));
         this.eventDispatcherService.ready(this.ti994A);
-        this.softwareService.loadModuleFromURL("software/extended_basic.rpk").subscribe(
-            (software) => {
-                this.ti994A.loadSoftware(software);
-                this.start(false);
-            },
-            (error) => {
-                this.log.error(error);
-            }
-        );
     }
 
     reset() {
@@ -121,25 +112,24 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
             case CommandType.RESET:
                 this.reset();
                 break;
-            case CommandType.LOAD_MODULE: {
-                    this.softwareService.loadModuleFromFile(command.data).subscribe(
-                        (software) => {
-                            this.ti994A.loadSoftware(software);
-                        },
-                        (error) => {
-                            this.log.error(error);
-                        }
-                    );
-                }
+            case CommandType.LOAD_MODULE:
+                this.softwareService.loadModuleFromFile(command.data).subscribe(
+                    (module) => {
+                        this.ti994A.loadSoftware(module);
+                    },
+                    (error) => {
+                        this.log.error(error);
+                    }
+                );
                 break;
             case CommandType.LOAD_DISK: {
                     const data = command.data;
                     const diskDrive = this.ti994A.getDiskDrives()[data.driveIndex];
                     this.diskService.loadDiskFiles(data.files, diskDrive).subscribe(
-                        (diskImage: DiskImage) => {
-                            if (diskImage) {
-                                this.eventDispatcherService.diskInserted(diskDrive, diskImage);
-                                this.log.info(diskImage.getName() + " loaded to " + diskDrive.getName());
+                        (disk: DiskImage) => {
+                            if (disk) {
+                                this.eventDispatcherService.diskInserted(diskDrive, disk);
+                                this.log.info(disk.getName() + " loaded to " + diskDrive.getName());
                             }
                         },
                         (error) => {
@@ -150,11 +140,9 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                 break;
             case CommandType.LOAD_SOFTWARE: {
                     const software: Software = command.data.software;
-                    if (command.data.autostart) {
-                        software.keyPresses = " 2";
-                    }
                     this.ti994A.loadSoftware(software);
                     this.ti994A.getMemory().setPADWord(0x83C0, Math.floor(Math.random() * 0xFFFF));
+                    this.eventDispatcherService.started(false);
                 }
                 break;
             case CommandType.UNLOAD_SOFTWARE:

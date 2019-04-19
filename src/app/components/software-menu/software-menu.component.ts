@@ -40,7 +40,7 @@ export class SoftwareMenuComponent implements OnInit {
         if (url) {
             this.moduleService.loadModuleFromURL(url).subscribe(
                 (software: Software) => {
-                    this.commandDispatcherService.loadSoftware(software, false);
+                    this.commandDispatcherService.loadSoftware(software);
                 },
                 this.log.error
             );

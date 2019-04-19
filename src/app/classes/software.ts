@@ -40,7 +40,6 @@ export class Software {
     private _startAddress: number;
     private _workspaceAddress: number;
     private _memoryBlocks: MemoryBlock[];
-    private _keyPresses: string;
     private _socketId: string;
 
     constructor() {}
@@ -148,15 +147,6 @@ export class Software {
     set memoryBlocks(value: MemoryBlock[]) {
         this._memoryBlocks = value;
     }
-
-    get keyPresses(): string {
-        return this._keyPresses;
-    }
-
-    set keyPresses(value: string) {
-        this._keyPresses = value;
-    }
-
 
     get socketId(): string {
         return this._socketId;

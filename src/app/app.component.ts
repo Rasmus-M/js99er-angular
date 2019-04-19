@@ -13,7 +13,7 @@ import {ConsoleEvent, ConsoleEventType} from './classes/consoleevent';
 import {DiskService} from './services/disk.service';
 import {MatTabChangeEvent} from '@angular/material';
 import {DatabaseService} from './services/database.service';
-import {ActivatedRoute, NavigationStart, Router, RouterEvent} from '@angular/router';
+import {NavigationStart, Router, RouterEvent} from '@angular/router';
 import {ModuleService} from './services/module.service';
 import {Software} from './classes/software';
 import {MoreSoftwareService} from './services/more-software.service';
@@ -33,9 +33,12 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     tabIndex: number;
 
     title = "JS99'er";
-    version = "7.5.8";
-    date = "16 April, 2019";
+    version = "7.6.1";
+    date = "19 April, 2019";
 
+    private initialCartridge = "Extended basic";
+    private cartChanged = false;
+    private autoRun = false;
     private routerSubscription: Subscription;
     private commandSubscription: Subscription;
     private eventSubscription: Subscription;
@@ -44,7 +47,6 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     constructor(
         private element: ElementRef,
         private router: Router,
-        private activatedRoute: ActivatedRoute,
         private audioService: AudioService,
         private commandDispatcherService: CommandDispatcherService,
         private eventDispatcherService: EventDispatcherService,
@@ -70,29 +72,24 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         });
     }
 
+    onTabSelected(event: MatTabChangeEvent) {
+        this.tabIndex = event.index;
+    }
+
     onRouterEvent(event: RouterEvent) {
         if (event instanceof NavigationStart) {
             const segment = event.url.split("#").pop();
             if (segment.match(/\/cart\/\w+/)) {
                 let cartName = decodeURI(segment.split("/").pop());
                 if (cartName) {
-                    cartName = cartName.replace('_', ' ');
-                    this.log.info("Load cart: " + cartName);
-                    this.moreSoftwareService.getByName(cartName).subscribe(
-                        (cart: Software) => {
-                            this.moduleService.loadRPKModuleFromURL("assets/" + cart.url).subscribe(
-                                (software: Software) => {
-                                    this.commandDispatcherService.loadSoftware(software, true);
-                                },
-                                (error) => {
-                                    this.log.error(error + " " + cart.url);
-                                }
-                            );
-                        },
-                        (error) => {
-                            this.log.error(error);
-                        }
-                    );
+                    cartName = cartName.replace(/_/g, ' ');
+                    this.autoRun = true;
+                    if (this.cartChanged) {
+                        this.loadCartridge(cartName);
+                    } else {
+                        this.initialCartridge = cartName;
+                        this.cartChanged = true;
+                    }
                 }
             }
         }
@@ -123,12 +120,42 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
             case ConsoleEventType.READY:
                 this.ti994A = event.data;
                 this.audioService.init(this.settingsService.isSoundEnabled(), this.ti994A.getPSG(), this.ti994A.getSpeech(), this.ti994A.getTape());
+                this.loadCartridge(this.initialCartridge);
+                this.commandDispatcherService.start();
+                break;
+            case ConsoleEventType.STARTED:
+                if (this.autoRun) {
+                    const that = this;
+                    window.setTimeout(
+                        function () {
+                            console.log("auto run");
+                            that.ti994A.getKeyboard().simulateKeyPresses(" 2", null);
+                        },
+                        2000
+                    );
+                    this.autoRun = false;
+                }
                 break;
         }
     }
 
-    onTabSelected(event: MatTabChangeEvent) {
-        this.tabIndex = event.index;
+    loadCartridge(cartName: string) {
+        this.log.info("Load cart: " + cartName);
+        this.moreSoftwareService.getByName(cartName).subscribe(
+            (cart: Software) => {
+                this.moduleService.loadRPKModuleFromURL("assets/" + cart.url).subscribe(
+                    (software: Software) => {
+                        this.commandDispatcherService.loadSoftware(software);
+                    },
+                    (error) => {
+                        this.log.error(error + " " + cart.url);
+                    }
+                );
+            },
+            (error) => {
+                this.log.error(error);
+            }
+        );
     }
 
     saveState() {

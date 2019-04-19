@@ -59,8 +59,8 @@ export class CommandDispatcherService {
         this.commandSubject.next(new Command(CommandType.LOAD_DISK, {driveIndex: driveIndex, files: files}));
     }
 
-    loadSoftware(software: Software, autostart: boolean) {
-        this.commandSubject.next(new Command(CommandType.LOAD_SOFTWARE, {software: software, autostart: autostart}));
+    loadSoftware(software: Software) {
+        this.commandSubject.next(new Command(CommandType.LOAD_SOFTWARE, {software: software}));
     }
 
     unloadSoftware() {
