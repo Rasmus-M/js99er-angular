@@ -15,16 +15,6 @@ describe('AppComponent', () => {
             schemas: [NO_ERRORS_SCHEMA],
             declarations: [
                 AppComponent
-            ],
-            providers: [
-                {provide: Router},
-                {provide: ActivatedRoute},
-                {provide: AudioService},
-                {provide: CommandDispatcherService},
-                {provide: SettingsService},
-                {provide: DiskService},
-                {provide: ModuleService},
-                {provide: HttpClient}
             ]
         }).compileComponents();
     }));
