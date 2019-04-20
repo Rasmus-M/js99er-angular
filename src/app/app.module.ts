@@ -21,22 +21,15 @@ import {
     MatExpansionModule
 } from '@angular/material';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import { RouterModule, Routes } from '@angular/router';
 
 import {EmulatorModule} from './emulator/emulator.module';
+import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
+import {MainComponent} from './components/main/main.component';
 import {DebuggerComponent} from './components/debugger/debugger.component';
 import {MainControlsComponent} from './components/main-controls/main-controls.component';
-import {ModuleService} from './services/module.service';
-import {AudioService} from './services/audio.service';
-import {ZipService} from './services/zip.service';
-import {DiskService} from './services/disk.service';
-import {CommandDispatcherService} from './services/command-dispatcher.service';
-import {ObjectLoaderService} from './services/object-loader.service';
-import {SettingsService} from './services/settings.service';
 import {SettingsComponent} from './components/settings/settings.component';
 import {LogComponent} from './components/log/log.component';
-import {EventDispatcherService} from './services/event-dispatcher.service';
 import {KeyboardComponent} from './components/keyboard/keyboard.component';
 import {DiskComponent} from './components/disk/disk.component';
 import {TapeComponent} from './components/tape/tape.component';
@@ -44,12 +37,14 @@ import {SoftwareMenuComponent} from './components/software-menu/software-menu.co
 import {MoreSoftwareComponent} from './components/more-software/more-software.component';
 import {AboutComponent} from './components/about/about.component';
 import {GraphicsComponent} from './components/graphics/graphics.component';
-import {MainComponent} from './components/main/main.component';
-
-const appRoutes: Routes = [
-    {path: 'cart/:cart', component: MainComponent},
-    {path: '**', component: MainComponent},
-];
+import {ModuleService} from './services/module.service';
+import {AudioService} from './services/audio.service';
+import {ZipService} from './services/zip.service';
+import {DiskService} from './services/disk.service';
+import {CommandDispatcherService} from './services/command-dispatcher.service';
+import {ObjectLoaderService} from './services/object-loader.service';
+import {SettingsService} from './services/settings.service';
+import {EventDispatcherService} from './services/event-dispatcher.service';
 
 @NgModule({
     declarations: [
@@ -89,11 +84,8 @@ const appRoutes: Routes = [
         BrowserAnimationsModule,
         AngularFontAwesomeModule,
         HttpClientModule,
-        RouterModule.forRoot(
-            appRoutes,
-            { enableTracing: false }
-        ),
-        EmulatorModule
+        EmulatorModule,
+        AppRoutingModule
     ],
     providers: [
         ModuleService,
