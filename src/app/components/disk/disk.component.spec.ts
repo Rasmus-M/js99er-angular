@@ -15,8 +15,7 @@ describe('DiskComponent', () => {
             declarations: [DiskComponent],
             imports: [MatTableModule],
             providers: [CommandDispatcherService]
-        })
-            .compileComponents();
+        }).compileComponents();
     }));
 
     beforeEach(() => {

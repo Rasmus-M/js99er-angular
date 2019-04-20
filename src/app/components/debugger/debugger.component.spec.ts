@@ -15,8 +15,7 @@ describe('DebuggerComponent', () => {
             providers: [
                 CommandDispatcherService
             ]
-        })
-            .compileComponents();
+        }).compileComponents();
     }));
 
     beforeEach(() => {

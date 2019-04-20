@@ -18,8 +18,7 @@ describe('SoftwareMenuComponent', () => {
             declarations: [SoftwareMenuComponent],
             imports: [MatMenuModule, MatDialogModule],
             providers: [ModuleService, HttpClient, HttpHandler, ZipService, CommandDispatcherService]
-        })
-            .compileComponents();
+        }).compileComponents();
     }));
 
     beforeEach(() => {

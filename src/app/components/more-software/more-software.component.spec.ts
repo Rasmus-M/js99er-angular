@@ -14,10 +14,9 @@ describe('MoreSoftwareComponent', () => {
             declarations: [MoreSoftwareComponent],
             imports: [MatAutocompleteModule],
             providers: [
-                {provide: MAT_DIALOG_DATA, useValue: {}},
+                {provide: MAT_DIALOG_DATA, useValue: []},
                 {provide: MatDialogRef, useValue: {}}]
-        })
-            .compileComponents();
+        }).compileComponents();
     }));
 
     beforeEach(() => {

@@ -28,14 +28,13 @@ describe('MainComponent', () => {
                 {provide: HttpClient}
             ]
 
-        })
-            .compileComponents();
+        }).compileComponents();
     }));
 
     beforeEach(() => {
         fixture = TestBed.createComponent(MainComponent);
         component = fixture.componentInstance;
-        fixture.detectChanges();
+        // fixture.detectChanges();
     });
 
     it('should create', () => {
@@ -43,8 +42,7 @@ describe('MainComponent', () => {
     });
 
     it(`should have as title 'JS99'er'`, () => {
-        const app = fixture.debugElement.componentInstance;
-        expect(app.title).toEqual('JS99\'er');
+        expect(component.title).toEqual('JS99\'er');
     });
 
 });

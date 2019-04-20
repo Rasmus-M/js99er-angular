@@ -13,9 +13,7 @@ describe('KeyboardComponent', () => {
             providers: [
                 {provide: CommandDispatcherService}
             ]
-
-        })
-            .compileComponents();
+        }).compileComponents();
     }));
 
     beforeEach(() => {

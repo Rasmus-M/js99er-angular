@@ -14,8 +14,7 @@ describe('SettingsComponent', () => {
             schemas: [NO_ERRORS_SCHEMA],
             declarations: [SettingsComponent],
             providers: [SettingsService, CommandDispatcherService]
-        })
-            .compileComponents();
+        }).compileComponents();
     }));
 
     beforeEach(() => {
