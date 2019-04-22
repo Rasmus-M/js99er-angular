@@ -14,7 +14,7 @@ const appRoutes: Routes = [
         CommonModule,
         RouterModule.forRoot(
             appRoutes,
-            {enableTracing: false}
+            {enableTracing: false, useHash: true}
         ),
     ],
     exports: [
