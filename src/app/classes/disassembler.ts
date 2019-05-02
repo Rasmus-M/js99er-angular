@@ -2,6 +2,7 @@ import {Decoder} from "./decoder";
 import {Util} from "./util";
 import {MemoryDevice} from "../emulator/interfaces/memory-device";
 import {Opcode} from "./opcode";
+import {MemoryView} from "./memoryview";
 
 export class Disassembler {
 
@@ -25,16 +26,16 @@ export class Disassembler {
         this.memory = memory;
     }
 
-    public disassemble(start, length, maxInstructions, anchorAddr): {lines: string[], anchorLine: number} {
+    public disassemble(start: number, length: number, maxInstructions: number, anchorAddr: number, breakpointAddr: number): MemoryView {
         this.start = Math.max(start || 0, 0);
         this.length = Math.min(length || 0x10000, 0x10000 - this.start);
         this.maxInstructions = maxInstructions || 0x10000;
         this.anchorAddr = anchorAddr || this.start;
         // Start by disassembling from the anchor address to ensure correct alignment
-        const result = this.disassembleRange(this.anchorAddr, this.start + this.length - this.anchorAddr, this.maxInstructions, this.anchorAddr);
+        const result = this.disassembleRange(this.anchorAddr, this.start + this.length - this.anchorAddr, this.maxInstructions, this.anchorAddr, breakpointAddr);
         // Then prepend the first part of the disassembly, which may be misaligned
         if (this.start < this.anchorAddr) {
-            const result2 = this.disassembleRange(this.start, this.anchorAddr - this.start, this.maxInstructions - result.lines.length, null);
+            const result2 = this.disassembleRange(this.start, this.anchorAddr - this.start, this.maxInstructions - result.lines.length, null, breakpointAddr);
             result.lines = result2.lines.concat(result.lines);
             result.anchorLine += result2.lines.length;
         }
@@ -46,22 +47,30 @@ export class Disassembler {
         return this.disassembleNextInstruction();
     }
 
-    private disassembleRange(start, length, maxInstructions, anchorAddr): {lines: string[], anchorLine: number} {
+    private disassembleRange(start: number, length: number, maxInstructions: number, anchorAddr: number, breakpointAddr: number): MemoryView {
         this.addr = start;
         const end = start + length;
         const disassembly = [];
         let anchorLine = null;
+        let breakpointLine = null;
         for (let i = 0; i < maxInstructions && this.addr < end; i++) {
             const instrAddr = this.addr; // Start address for current instruction
-            const linePrefix = anchorAddr !== null && anchorLine === null && instrAddr >= anchorAddr ? '\u27a8 ' : '  ';
+            let linePrefix = '  ';
+            if (anchorAddr !== null && anchorLine === null && instrAddr >= anchorAddr) {
+                linePrefix = '\u25ba' + linePrefix.charAt(1);
+                anchorLine = i;
+            }
+            if (breakpointAddr !== null && breakpointLine == null && instrAddr === breakpointAddr) {
+                linePrefix = linePrefix.charAt(0) + '\u25cf';
+                breakpointLine = i;
+            }
             const line = this.disassembleNextInstruction();
             disassembly.push(linePrefix + line);
             if (anchorAddr !== null && anchorLine === null && instrAddr >= anchorAddr) {
-                anchorLine = i;
             }
             this.addr += 2;
         }
-        return {lines: disassembly, anchorLine: anchorLine};
+        return new MemoryView(disassembly, anchorLine, breakpointLine);
     }
 
     private disassembleNextInstruction(): string {

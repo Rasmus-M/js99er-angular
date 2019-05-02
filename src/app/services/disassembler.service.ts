@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import {MemoryDevice} from '../emulator/interfaces/memory-device';
 import {Disassembler} from "../classes/disassembler";
+import {MemoryView} from "../classes/memoryview";
 
 @Injectable({
     providedIn: 'root'
@@ -17,7 +18,7 @@ export class DisassemblerService {
         this.disassembler.setMemory(memory);
     }
 
-    disassemble(start, length, maxInstructions, anchorAddr): {lines: string[], anchorLine: number} {
-        return this.disassembler.disassemble(start, length, maxInstructions, anchorAddr);
+    disassemble(start: number, length: number, maxInstructions: number, anchorAddr: number, breakpointAddr: number): MemoryView {
+        return this.disassembler.disassemble(start, length, maxInstructions, anchorAddr, breakpointAddr);
     }
 }

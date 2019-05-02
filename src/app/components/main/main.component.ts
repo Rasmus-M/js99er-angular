@@ -20,6 +20,7 @@ import {ConsoleEvent, ConsoleEventType} from "../../classes/consoleevent";
 import {Software} from "../../classes/software";
 import "rxjs-compat/add/operator/map";
 import "rxjs-compat/add/operator/mergeMap";
+import {AppComponent} from "../../app.component";
 
 @Component({
   selector: 'app-main',
@@ -32,9 +33,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     ti994A: TI994A;
     tabIndex: number;
 
-    title = "JS99'er";
-    version = "7.6.1";
-    date = "19 April, 2019";
+    title = AppComponent.TITLE;
+    version = AppComponent.VERSION;
+    date = AppComponent.DATE;
 
     private cartName = "extended_basic";
     private started = false;

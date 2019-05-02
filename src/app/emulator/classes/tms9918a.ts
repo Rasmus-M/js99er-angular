@@ -5,6 +5,7 @@ import {CPU} from '../interfaces/cpu';
 import {TI994A} from './ti994a';
 import {Settings} from '../../classes/settings';
 import {Log} from '../../classes/log';
+import {MemoryView} from "../../classes/memoryview";
 
 export enum ScreenMode {
     MODE_GRAPHICS = 0,
@@ -562,7 +563,7 @@ export class TMS9918A implements VDP {
         return s;
     }
 
-    hexView(start, length, anchorAddr): {lines: string[], anchorLine: number} {
+    hexView(start, length, anchorAddr): MemoryView {
         const lines: string[] = [];
         let anchorLine: number = null;
         let addr = start;
@@ -589,7 +590,7 @@ export class TMS9918A implements VDP {
                 line += ' ';
             }
         }
-        return {lines: lines, anchorLine: anchorLine};
+        return new MemoryView(lines, anchorLine, 0);
     }
 
     public getWord(addr: number) {

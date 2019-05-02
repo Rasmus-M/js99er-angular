@@ -12,6 +12,7 @@ import {Settings} from '../../classes/settings';
 import {PSG} from '../interfaces/psg';
 import {Speech} from '../interfaces/speech';
 import {MemoryDevice} from '../interfaces/memory-device';
+import {MemoryView} from "../../classes/memoryview";
 
 export class Memory implements State, MemoryDevice {
 
@@ -627,7 +628,7 @@ export class Memory implements State, MemoryDevice {
             (this.enableAMS ? '\nAMS Regs: ' + this.ams.getStatusString() : '');
     }
 
-    hexView(start: number, length: number, anchorAddr: number): {lines: string[], anchorLine: number} {
+    hexView(start: number, length: number, anchorAddr: number): MemoryView {
         const lines: string[] = [];
         let anchorLine: number = null;
         let addr = start;
@@ -654,7 +655,7 @@ export class Memory implements State, MemoryDevice {
                 line += ' ';
             }
         }
-        return {lines: lines, anchorLine: anchorLine};
+        return new MemoryView(lines, anchorLine, 0);
     }
 
     set32KRAMEnabled(enabled: boolean) {

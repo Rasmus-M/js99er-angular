@@ -1,6 +1,6 @@
 <div class="debugger">
     <pre class="status mat-elevation-z1">{{statusString}}</pre>
-    <pre class="memoryView mat-elevation-z1" id="memory">{{memoryString}}</pre>
+    <pre class="memoryView mat-elevation-z1" id="memory" (click)="onMemoryViewClicked($event)">{{memoryString}}</pre>
     <div class="debugger-toolbar">
         <mat-form-field class="memory-select">
             <mat-select placeholder="Memory View" [value]="memoryView" (selectionChange)="onMemoryViewChanged($event.value)">

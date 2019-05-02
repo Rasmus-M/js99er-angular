@@ -8,6 +8,7 @@ import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
 import {Util} from '../../classes/util';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {Command, CommandType} from '../../classes/command';
+import {MemoryView} from "../../classes/memoryview";
 
 @Component({
     selector: 'app-debugger',
@@ -24,6 +25,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     breakpointAddress: string;
     statusString: string;
     memoryString: string;
+    viewObj: MemoryView;
 
     private ti994A: TI994A;
     private timerHandle: number;
@@ -95,21 +97,21 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         if (this.visible && this.ti994A) {
             // console.log("Update debugger");
             this.statusString = this.ti994A.getStatusString();
-            let viewObj: {lines: string[], anchorLine: number};
+            let viewObj: MemoryView;
             const pc = this.ti994A.getPC();
-            if (this.ti994A.isRunning()) {
+            const breakpointAddress = this.getBreakpointAddress(null)
+;            if (this.ti994A.isRunning()) {
                 // Running
                 if (this.memoryView === 0) {
                     // Disassemble
                     if (this.memoryType === 0) {
                         // CPU
                         this.disassemblerService.setMemory(this.ti994A.getMemory());
-                        viewObj = this.disassemblerService.disassemble(pc, null, 32, pc);
                     } else {
                         // VDP
                         this.disassemblerService.setMemory(this.ti994A.getVDP());
-                        viewObj = this.disassemblerService.disassemble(pc, null, 32, pc);
                     }
+                    viewObj = this.disassemblerService.disassemble(pc, null, 32, pc, breakpointAddress);
                 } else {
                     // Hex view
                     if (this.memoryType === 0) {
@@ -131,11 +133,11 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                         // CPU
                         this.disassemblerService.setMemory(this.ti994A.getMemory());
                         // viewObj = this.disassemblerService.disassemble(0, 0x10000, null, debuggerAddress);
-                        viewObj = this.disassemblerService.disassemble(debuggerAddress - 0x800, 0x1000, null, debuggerAddress);
+                        viewObj = this.disassemblerService.disassemble(debuggerAddress - 0x800, 0x1000, null, debuggerAddress, breakpointAddress);
                     } else {
                         // VDP
                         this.disassemblerService.setMemory(this.ti994A.getVDP());
-                        viewObj = this.disassemblerService.disassemble(0, this.ti994A.getVDP().getGPU() ? 0x4800 : 0x4000, null, debuggerAddress);
+                        viewObj = this.disassemblerService.disassemble(0, this.ti994A.getVDP().getGPU() ? 0x4800 : 0x4000, null, debuggerAddress, breakpointAddress);
                     }
                 } else {
                     // Hex view
@@ -158,11 +160,17 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                     }
                 );
             }
+            this.viewObj = viewObj;
         }
     }
 
     getDebuggerAddress(defaultValue: number) {
         const addr = Util.parseHexNumber(this.debuggerAddress);
+        return isNaN(addr) ? defaultValue : addr;
+    }
+
+    getBreakpointAddress(defaultValue: number) {
+        const addr = Util.parseHexNumber(this.breakpointAddress);
         return isNaN(addr) ? defaultValue : addr;
     }
 
@@ -210,5 +218,21 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     onMemoryTypeChanged(memoryType: number) {
         this.memoryType = memoryType;
         this.updateDebugger();
+    }
+
+    onMemoryViewClicked(event: MouseEvent) {
+        if (this.memoryView === 0 && !this.ti994A.isRunning() && this.viewObj) {
+            const $memory = $(this.element.nativeElement).find("#memory");
+            const lineHeight = $memory.prop('scrollHeight') / this.viewObj.lines.length;
+            const lineNo = Math.floor(($memory.prop('scrollTop') + event.offsetY) / lineHeight);
+            const line = this.viewObj.lines[lineNo];
+            const addressString = line.substr(3, 4);
+            if (addressString !== this.breakpointAddress) {
+                this.onBreakpointAddressChanged(addressString);
+            } else {
+                this.onBreakpointAddressChanged("");
+            }
+            this.updateDebugger();
+        }
     }
 }
