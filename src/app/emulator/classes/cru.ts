@@ -153,7 +153,9 @@ export class CRU implements State {
                     this.memory.setCRUCartBank(bank);
                 }
             }
-            // this.log.info("Write CRU address " + addr.toHexWord() + ": " + bit);
+            // if (this.cpu.getPC() !== 0x033e) {
+            //     this.log.info("Write CRU address " + Util.toHexWord(addr) + ": " + value + " PC=" + Util.toHexWord(this.cpu.getPC()));
+            // }
             this.cru[addr] = value;
         }
     }
