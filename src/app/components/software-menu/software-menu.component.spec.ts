@@ -2,7 +2,8 @@ import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {SoftwareMenuComponent} from './software-menu.component';
 import {NO_ERRORS_SCHEMA} from "@angular/core";
-import {MatDialogModule, MatMenuModule} from "@angular/material";
+import { MatDialogModule } from "@angular/material/dialog";
+import { MatMenuModule } from "@angular/material/menu";
 import {ModuleService} from "../../services/module.service";
 import {HttpClient, HttpHandler} from "@angular/common/http";
 import {ZipService} from "../../services/zip.service";

@@ -98,7 +98,7 @@
       }
     },
     "js99er-e2e": {
-      "root": "",
+      "root": "e2e",
       "sourceRoot": "src",
       "projectType": "application",
       "architect": {

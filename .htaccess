@@ -1,0 +1,5 @@
+AddType application/x-httpd-php-old .php
+
+<filesMatch ".(html|json)$">
+Header set Cache-Control "max-age=0, public"
+</filesMatch>

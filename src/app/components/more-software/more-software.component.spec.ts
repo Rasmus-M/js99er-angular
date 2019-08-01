@@ -2,7 +2,8 @@ import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {MoreSoftwareComponent} from './more-software.component';
 import {NO_ERRORS_SCHEMA} from "@angular/core";
-import {MAT_DIALOG_DATA, MatAutocompleteModule, MatDialogModule, MatDialogRef} from "@angular/material";
+import { MatAutocompleteModule } from "@angular/material/autocomplete";
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
 
 describe('MoreSoftwareComponent', () => {
     let component: MoreSoftwareComponent;

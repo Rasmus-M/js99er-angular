@@ -13,7 +13,7 @@ import {DatabaseService} from "../../services/database.service";
 import {ModuleService} from "../../services/module.service";
 import {MoreSoftwareService} from "../../services/more-software.service";
 import * as $ from "jquery";
-import {MatTabChangeEvent} from "@angular/material";
+import { MatTabChangeEvent } from "@angular/material/tabs";
 import {Command, CommandType} from "../../classes/command";
 import {Setting, Settings} from "../../classes/settings";
 import {ConsoleEvent, ConsoleEventType} from "../../classes/consoleevent";

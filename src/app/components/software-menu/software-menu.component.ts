@@ -5,7 +5,7 @@ import {ModuleService} from '../../services/module.service';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {Log} from '../../classes/log';
 import {MoreSoftwareComponent} from '../more-software/more-software.component';
-import {MatDialog} from '@angular/material';
+import { MatDialog } from '@angular/material/dialog';
 import {MoreSoftwareService} from '../../services/more-software.service';
 
 @Component({
