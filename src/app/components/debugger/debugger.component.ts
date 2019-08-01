@@ -221,7 +221,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     onMemoryViewClicked(event: MouseEvent) {
-        if (this.memoryView === 0 && !this.ti994A.isRunning() && this.viewObj) {
+        if (this.memoryView === 0 && !this.ti994A.isRunning() && this.viewObj && event.offsetX < 64) {
             const $memory = $(this.element.nativeElement).find("#memory");
             const lineHeight = $memory.prop('scrollHeight') / this.viewObj.lines.length;
             const lineNo = Math.floor(($memory.prop('scrollTop') + event.offsetY) / lineHeight);
