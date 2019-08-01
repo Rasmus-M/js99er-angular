@@ -1,4 +1,3 @@
-///<reference path="tms5220.ts"/>
 import {State} from '../interfaces/state';
 import {TMS9919} from './tms9919';
 import {CRU} from './cru';
