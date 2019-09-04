@@ -199,6 +199,11 @@
                     "type": "ITEM",
                     "name": "Pyjamarama",
                     "url": "software/pyjamarama.rpk"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Bouncy's obstacle course",
+                    "url": "software/obstacle.rpk"
                 }
             ]
         },
