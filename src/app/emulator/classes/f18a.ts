@@ -688,7 +688,7 @@ export class F18A implements VDP {
             nameTableAddr ^= hPageSize;
         }
         let charNo, bitShift, bit, patternAddr, patternByte;
-        let tileColor, tileAttributeByte;
+        let colorByte, tileColor, tileAttributeByte;
         let tilePaletteBaseIndex, lineOffset1;
         switch (this.screenMode) {
             case F18A.MODE_GRAPHICS:
@@ -750,7 +750,7 @@ export class F18A implements VDP {
                 const charSetOffset = (y & 0xC0) << 5;
                 patternByte = this.ram[this.charPatternTable + (((charNo << 3) + charSetOffset) & this.patternTableMask) + lineOffset];
                 const colorAddr = colorTable + (((charNo << 3) + charSetOffset) & this.colorTableMask) + lineOffset;
-                let colorByte = this.ram[colorAddr];
+                colorByte = this.ram[colorAddr];
                 tileColor = (patternByte & bit) !== 0 ? (colorByte & 0xF0) >> 4 : (colorByte & 0x0F);
                 if (tileColor > 0) {
                     color = tileColor;
@@ -885,8 +885,8 @@ export class F18A implements VDP {
                             }
                         }
                         const patternNo = (this.ram[spriteAttrAddr + 2] & (spriteSize !== 0 ? 0xFC : 0xFF));
-                        const spriteFlipY = this.unlocked && (spriteAttr & 0x20) !== 0;
-                        const spriteFlipX = this.unlocked && (spriteAttr & 0x40) !== 0;
+                        const spriteFlipY: boolean = this.unlocked && (spriteAttr & 0x20) !== 0;
+                        const spriteFlipX: boolean = this.unlocked && (spriteAttr & 0x40) !== 0;
                         const baseColor = spriteAttr & 0x0F;
                         let sprPaletteBaseIndex = 0;
                         switch (this.spriteColorMode) {
@@ -1096,8 +1096,8 @@ export class F18A implements VDP {
             case 15:
                 this.statusRegisterNo = this.registers[15] & 0x0f;
                 this.log.info("F18A status register " + this.statusRegisterNo + " selected.");
-                const wasRunning = (oldValue & 0x10) !== 0;
-                const running = (this.registers[15] & 0x10) !== 0;
+                const wasRunning: boolean = (oldValue & 0x10) !== 0;
+                const running: boolean = (this.registers[15] & 0x10) !== 0;
                 if (wasRunning && !running) {
                     // Stop
                     this.counterElapsed += (this.getTime() - this.counterStart);
@@ -1233,7 +1233,7 @@ export class F18A implements VDP {
             // Enhanced color mode
             case 49:
                 this.tileLayer2Enabled = (this.registers[49] & 0x80) !== 0;
-                const oldRow30 = this.row30Enabled;
+                const oldRow30: boolean = this.row30Enabled;
                 this.row30Enabled = (this.registers[49] & 0x40) !== 0;
                 if (oldRow30 !== this.row30Enabled) {
                     this.setDimensions(false);
@@ -1813,7 +1813,7 @@ export class F18A implements VDP {
             spritePlaneOffset = this.spritePlaneOffset,
             drawHeight = this.drawHeight - (this.realSpriteYCoord ? 0 : 1),
             maxSpriteAttrAddr = (this.maxSprites << 2),
-            row30 = this.row30Enabled,
+            row30: boolean = this.row30Enabled,
             palette = this.palette,
             patternColorMap = this.spritePatternColorMap,
             imageDataData = imageData.data;
