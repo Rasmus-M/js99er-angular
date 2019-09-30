@@ -458,6 +458,17 @@ export class F18A implements VDP {
         this.fakeScanline = null;
     }
 
+    // The layers according to Mathew
+    // BG
+    // BML if priority = 0
+    // Sprite if TL1 tile-priority = 1
+    // TL1
+    // Sprite if TL1 tile-priority = 0
+    // Sprite if TL2 tile-priority = 1
+    // TL2
+    // BML if priority = 1
+    // Sprite if TL2 tile-priority = 0
+
     drawScanline(y) {
         this.currentScanline = y >= this.topBorder ? y - this.topBorder : 255;
         this.collision = false;
