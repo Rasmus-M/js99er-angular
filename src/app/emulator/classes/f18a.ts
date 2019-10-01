@@ -458,16 +458,54 @@ export class F18A implements VDP {
         this.fakeScanline = null;
     }
 
-    // The layers according to Mathew
-    // BG
-    // BML if priority = 0
-    // Sprite if TL1 tile-priority = 1
-    // TL1
-    // Sprite if TL1 tile-priority = 0
-    // Sprite if TL2 tile-priority = 1
-    // TL2
-    // BML if priority = 1
-    // Sprite if TL2 tile-priority = 0
+// for every screen x,y location
+//   have_pixel = false
+//   tile_priority = false
+//
+//   get TL1 pixel
+//   if pixel == 0-value and pixel-transparent == 1 then
+//     pixel_color = backgroud-index
+//   else
+//     have_pixel = true
+//     tile_priority = priority-over-sprite
+//     pixel_color = pixel-index
+//   end if
+//
+//   if TL2 enabled
+//     get TL2 pixel
+//     if have_pixel == false then
+//       if pixel != 0-value or pixel-transparent == 0 then
+//         have_pixel = true
+//         tile_priority = priority-over-sprite
+//         pixel_color = pixel-index
+//       end if
+//     end if
+//   end if
+//
+//   if BML enabled
+//     get BML pixel
+//     if pixel != 0-value or BML-transparent == 0 then
+//       // if BML on top of tile-layers, or previous tile pixels were transparent.
+//       if BML-priority == 1 or (BML-priority == 0 and have_pixel == false) then
+//         // DO NOT SET *have_pixel* to true. The BML is always under sprites.
+//         pixel_color = pixel-index
+//       end if
+//     end if
+//   end if
+//
+//   for each active sprite at this x,y location
+//     get sprite pixel
+//     // if there is a non-transparent sprite pixel, and the tile pixel is transparent
+//     // or the tile does not have priority over sprites, display the sprite pixel.
+//     if (pixel != 0-value or sprite-transparent == 0) and (tile_priority == false or have_pixel == false) then
+//       pixel_color = pixel-index
+//     end if
+//   next sprite
+//
+//   lookup pixel_color in palette
+//   show pixel color
+//
+// next x,y screen position
 
     drawScanline(y) {
         this.currentScanline = y >= this.topBorder ? y - this.topBorder : 255;
