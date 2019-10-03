@@ -143,7 +143,7 @@ export class F18A implements VDP {
     private spriteMag: number;
 
     private tileColorMode: number;
-    private tilePaletteSelect: number;
+    private tilePaletteSelect1: number;
     private tilePaletteSelect2: number;
     private spriteColorMode: number;
     private spritePaletteSelect: number;
@@ -199,9 +199,9 @@ export class F18A implements VDP {
     private drawHeight: number;
     private leftBorder: number;
     private topBorder: number;
-    private imagedata: ImageData;
-    private imagedataAddr: number;
-    private imagedataData: Uint8ClampedArray;
+    private imageData: ImageData;
+    private imageDataAddr: number;
+    private imageDataData: Uint8ClampedArray;
     private frameCounter: number;
     private lastTime: number;
 
@@ -285,7 +285,7 @@ export class F18A implements VDP {
         this.spriteMag = 0;
 
         this.tileColorMode = 0;
-        this.tilePaletteSelect = 0;
+        this.tilePaletteSelect1 = 0;
         this.tilePaletteSelect2 = 0;
         this.spriteColorMode = 0;
         this.spritePaletteSelect = 0;
@@ -337,7 +337,7 @@ export class F18A implements VDP {
         this.redrawRequired = true;
 
         this.setDimensions(true);
-        this.imagedataAddr = 0;
+        this.imageDataAddr = 0;
         this.frameCounter = 0;
         this.lastTime = 0;
 
@@ -397,8 +397,8 @@ export class F18A implements VDP {
         this.topBorder = Math.floor(((this.canvasHeight >> (this.screenMode === F18A.MODE_TEXT_80 ? 1 : 0)) - this.drawHeight) >> 1);
         if (newDimensions) {
             this.fillCanvas(this.bgColor);
-            this.imagedata = this.canvasContext.getImageData(0, 0, this.canvasWidth, this.canvasHeight);
-            this.imagedataData = this.imagedata.data;
+            this.imageData = this.canvasContext.getImageData(0, 0, this.canvasWidth, this.canvasHeight);
+            this.imageDataData = this.imageData.data;
         }
     }
 
@@ -410,7 +410,7 @@ export class F18A implements VDP {
             if (this.displayOn) {
                 this.collision = false;
                 // Draw scanlines
-                this.imagedataAddr = 0;
+                this.imageDataAddr = 0;
                 this.fakeScanline = null;
                 for (let y = 0; y < 240; y++) {
                     this._drawScanline(y);
@@ -454,58 +454,9 @@ export class F18A implements VDP {
 
     initFrame(timestamp) {
         this.lastTime = timestamp;
-        this.imagedataAddr = 0;
+        this.imageDataAddr = 0;
         this.fakeScanline = null;
     }
-
-// for every screen x,y location
-//   have_pixel = false
-//   tile_priority = false
-//
-//   get TL1 pixel
-//   if pixel == 0-value and pixel-transparent == 1 then
-//     pixel_color = backgroud-index
-//   else
-//     have_pixel = true
-//     tile_priority = priority-over-sprite
-//     pixel_color = pixel-index
-//   end if
-//
-//   if TL2 enabled
-//     get TL2 pixel
-//     if have_pixel == false then
-//       if pixel != 0-value or pixel-transparent == 0 then
-//         have_pixel = true
-//         tile_priority = priority-over-sprite
-//         pixel_color = pixel-index
-//       end if
-//     end if
-//   end if
-//
-//   if BML enabled
-//     get BML pixel
-//     if pixel != 0-value or BML-transparent == 0 then
-//       // if BML on top of tile-layers, or previous tile pixels were transparent.
-//       if BML-priority == 1 or (BML-priority == 0 and have_pixel == false) then
-//         // DO NOT SET *have_pixel* to true. The BML is always under sprites.
-//         pixel_color = pixel-index
-//       end if
-//     end if
-//   end if
-//
-//   for each active sprite at this x,y location
-//     get sprite pixel
-//     // if there is a non-transparent sprite pixel, and the tile pixel is transparent
-//     // or the tile does not have priority over sprites, display the sprite pixel.
-//     if (pixel != 0-value or sprite-transparent == 0) and (tile_priority == false or have_pixel == false) then
-//       pixel_color = pixel-index
-//     end if
-//   next sprite
-//
-//   lookup pixel_color in palette
-//   show pixel color
-//
-// next x,y screen position
 
     drawScanline(y) {
         this.currentScanline = y >= this.topBorder ? y - this.topBorder : 255;
@@ -543,15 +494,15 @@ export class F18A implements VDP {
     }
 
     updateCanvas() {
-        this.canvasContext.putImageData(this.imagedata, 0, 0);
+        this.canvasContext.putImageData(this.imageData, 0, 0);
         if (this.splashImage && this.frameCounter < 300) {
             this.canvasContext.drawImage(this.splashImage, 0, 0);
         }
     }
 
     _drawScanline(y) {
-        const imagedata = this.imagedataData;
-        let imagedataAddr = this.imagedataAddr;
+        const imageData = this.imageDataData;
+        let imageDataAddr = this.imageDataAddr;
         if (this.displayOn && y >= this.topBorder && y < this.topBorder + this.drawHeight) {
             y -= this.topBorder;
             // Prepare sprites
@@ -589,14 +540,6 @@ export class F18A implements VDP {
                     break;
             }
             const lineOffset = y1 & 7;
-            // Prepare values for Bitmap layer
-            let bitmapX2, bitmapY1, bitmapY2, bitmapYOffset;
-            if (this.bitmapEnable) {
-                bitmapX2 = this.bitmapX + this.bitmapWidth;
-                bitmapY1 = y - this.bitmapY;
-                bitmapY2 = this.bitmapY + this.bitmapHeight;
-                bitmapYOffset = bitmapY1 * this.bitmapWidth;
-            }
             // Prepare values for Tile layer 2
             let rowOffset2, nameTableCanonicalBase2, nameTableBaseAddr2, lineOffset2, y12;
             if (this.tileLayer2Enabled) {
@@ -622,6 +565,16 @@ export class F18A implements VDP {
                 }
                 lineOffset2 = y12 & 7;
             }
+            // Prepare values for Bitmap layer
+            let bitmapX2, bitmapY1, bitmapY2, bitmapYOffset;
+            if (this.bitmapEnable) {
+                bitmapX2 = this.bitmapX + this.bitmapWidth;
+                bitmapY1 = y - this.bitmapY;
+                bitmapY2 = this.bitmapY + this.bitmapHeight;
+                bitmapYOffset = bitmapY1 * this.bitmapWidth;
+            }
+            // Prepare values for sprite layer
+            const spritesEnabled = this.unlocked || (this.screenMode !== F18A.MODE_TEXT && this.screenMode !== F18A.MODE_TEXT_80);
             // Draw line
             for (let xc = 0; xc < this.canvasWidth; xc++) {
                 // Draw pixel
@@ -629,13 +582,29 @@ export class F18A implements VDP {
                 let paletteBaseIndex = 0;
                 if (xc >= this.leftBorder && xc < this.leftBorder + this.drawWidth) {
                     const x = xc - this.leftBorder;
+                    let havePixel = false,
+                        tilePriority = false;
                     // Tile layer 1
-                    let tilePriority = false, transparentColor0 = false;
                     if (this.tileLayer1Enabled) {
-                        ({tilePriority, transparentColor0, color, paletteBaseIndex} = this.drawTileLayer(
-                            x, y, y1, rowOffset, lineOffset, nameTableCanonicalBase, nameTableBaseAddr,
-                            this.colorTable, borderWidth, scrollWidth, this.hScroll1, this.hPageSize1, this.tilePaletteSelect, color, paletteBaseIndex
-                        ));
+                        const {tilePriority: tilePriority1, transparentColor0: transparentColor01, color: tileColor1, paletteBaseIndex: tilePaletteBaseIndex1} =
+                            this.drawTileLayer(x, y, y1, rowOffset, lineOffset, nameTableCanonicalBase, nameTableBaseAddr, this.colorTable, borderWidth, scrollWidth, this.hScroll1, this.hPageSize1, this.tilePaletteSelect1);
+                        if (tileColor1 > 0 || !transparentColor01) {
+                            color = tileColor1;
+                            paletteBaseIndex = tilePaletteBaseIndex1;
+                            tilePriority = tilePriority1;
+                            havePixel = true;
+                        }
+                    }
+                    // Tile layer 2
+                    if (this.tileLayer2Enabled) {
+                        const {tilePriority: tilePriority2, transparentColor0: transparentColor02, color: tileColor2, paletteBaseIndex: tilePaletteBaseIndex2} =
+                            this.drawTileLayer(x, y, y1, rowOffset2, lineOffset2, nameTableCanonicalBase2, nameTableBaseAddr2, this.colorTable2, borderWidth, scrollWidth, this.hScroll2, this.hPageSize2, this.tilePaletteSelect2);
+                        if (tileColor2 > 0 || !transparentColor02) {
+                            color = tileColor2;
+                            paletteBaseIndex = tilePaletteBaseIndex2;
+                            tilePriority = tilePriority || this.tileMap2AlwaysOnTop;
+                            havePixel = true;
+                        }
                     }
                     // Bitmap layer
                     if (this.bitmapEnable) {
@@ -654,61 +623,49 @@ export class F18A implements VDP {
                                 bitmapBitShift = (3 - (bitmapPixelOffset & 3)) << 1;
                                 bitmapColor = (bitmapByte >> bitmapBitShift) & 0x03;
                             }
-                            if ((bitmapColor > 0 || !this.bitmapTransparent) && (color === this.bgColor || this.bitmapPriority)) {
+                            if ((bitmapColor > 0 || !this.bitmapTransparent) && (this.bitmapPriority || !havePixel)) {
                                 color = bitmapColor;
                                 paletteBaseIndex = this.bitmapPaletteSelect;
                             }
                         }
                     }
                     // Sprite layer
-                    let spriteColor = null;
-                    if ((this.unlocked || (this.screenMode !== F18A.MODE_TEXT && this.screenMode !== F18A.MODE_TEXT_80)) && (!tilePriority || transparentColor0 && color === 0)) {
-                        spriteColor = spriteColorBuffer[x] - 1;
+                    if (spritesEnabled && !(tilePriority && havePixel)) {
+                        const spriteColor = spriteColorBuffer[x] - 1;
                         if (spriteColor > 0) {
                             color = spriteColor;
                             paletteBaseIndex = spritePaletteBaseIndexBuffer[x];
-                        } else {
-                            spriteColor = null;
-                        }
-                    }
-                    // Tile layer 2
-                    if (this.tileLayer2Enabled) {
-                        const {tilePriority: tilePriority2, transparentColor0: transparentColor02, color: tileColor2, paletteBaseIndex: tilePaletteBaseIndex2} =
-                            this.drawTileLayer(x, y, y1, rowOffset2, lineOffset2, nameTableCanonicalBase2, nameTableBaseAddr2, this.colorTable2, borderWidth, scrollWidth, this.hScroll2, this.hPageSize2, this.tilePaletteSelect2, 0, 0);
-                        if ((tileColor2 > 0 || !transparentColor02) && (this.tileMap2AlwaysOnTop || tilePriority2 || spriteColor === null)) {
-                            color = tileColor2;
-                            paletteBaseIndex = tilePaletteBaseIndex2;
                         }
                     }
                 }
                 // Draw pixel
                 const rgbColor = this.palette[color + paletteBaseIndex];
-                imagedata[imagedataAddr++] = rgbColor[0];
-                imagedata[imagedataAddr++] = rgbColor[1];
-                imagedata[imagedataAddr++] = rgbColor[2];
-                imagedataAddr++;
+                imageData[imageDataAddr++] = rgbColor[0];
+                imageData[imageDataAddr++] = rgbColor[1];
+                imageData[imageDataAddr++] = rgbColor[2];
+                imageDataAddr++;
             }
         } else {
             // Empty scanline
             const rgbColor = this.palette[this.bgColor];
             for (let xc = 0; xc < this.canvasWidth; xc++) {
-                imagedata[imagedataAddr++] = rgbColor[0]; // R
-                imagedata[imagedataAddr++] = rgbColor[1]; // G
-                imagedata[imagedataAddr++] = rgbColor[2]; // B
-                imagedataAddr++; // Skip alpha
+                imageData[imageDataAddr++] = rgbColor[0]; // R
+                imageData[imageDataAddr++] = rgbColor[1]; // G
+                imageData[imageDataAddr++] = rgbColor[2]; // B
+                imageDataAddr++; // Skip alpha
             }
         }
         if (this.scanLines && (y & 1) !== 0) {
             // Dim last scan line
-            let imagedataAddr2 = imagedataAddr - (this.canvasWidth << 2);
+            let imagedataAddr2 = imageDataAddr - (this.canvasWidth << 2);
             for (let xc = 0; xc < this.canvasWidth; xc++) {
-                imagedata[imagedataAddr2++] *= 0.75;
-                imagedata[imagedataAddr2++] *= 0.75;
-                imagedata[imagedataAddr2++] *= 0.75;
+                imageData[imagedataAddr2++] *= 0.75;
+                imageData[imagedataAddr2++] *= 0.75;
+                imageData[imagedataAddr2++] *= 0.75;
                 imagedataAddr2++;
             }
         }
-        this.imagedataAddr = imagedataAddr;
+        this.imageDataAddr = imageDataAddr;
     }
 
     drawTileLayer(
@@ -724,12 +681,12 @@ export class F18A implements VDP {
         scrollWidth: number,
         hScroll: number,
         hPageSize: number,
-        tilePaletteSelect: number,
-        color: number,
-        paletteBaseIndex: number,
+        tilePaletteSelect: number
     ): { tilePriority: boolean; transparentColor0: boolean; color: number; paletteBaseIndex: number } {
         let tilePriority = false;
         let transparentColor0 = false;
+        let tileColor = 0;
+        let paletteBaseIndex = 0;
         let nameTableAddr = nameTableBaseAddr;
         let x1 = x - borderWidth + (hScroll << (this.screenMode === F18A.MODE_TEXT_80 ? 1 : 0));
         if (x1 >= scrollWidth) {
@@ -737,7 +694,7 @@ export class F18A implements VDP {
             nameTableAddr ^= hPageSize;
         }
         let charNo, bitShift, bit, patternAddr, patternByte;
-        let colorByte, tileColor, tileAttributeByte;
+        let colorByte, tileAttributeByte;
         let tilePaletteBaseIndex, lineOffset1;
         switch (this.screenMode) {
             case F18A.MODE_GRAPHICS:
@@ -787,10 +744,7 @@ export class F18A implements VDP {
                         tilePaletteBaseIndex = ((tileAttributeByte & 0x0e) << 2);
                         break;
                 }
-                if (tileColor > 0 || !transparentColor0) {
-                    color = tileColor;
-                    paletteBaseIndex = tilePaletteBaseIndex;
-                }
+                paletteBaseIndex = tilePaletteBaseIndex;
                 break;
             case F18A.MODE_BITMAP:
                 charNo = this.ram[nameTableAddr + (x1 >> 3) + rowOffset];
@@ -801,10 +755,7 @@ export class F18A implements VDP {
                 const colorAddr = colorTable + (((charNo << 3) + charSetOffset) & this.colorTableMask) + lineOffset;
                 colorByte = this.ram[colorAddr];
                 tileColor = (patternByte & bit) !== 0 ? (colorByte & 0xF0) >> 4 : (colorByte & 0x0F);
-                if (tileColor > 0) {
-                    color = tileColor;
-                    paletteBaseIndex = tilePaletteSelect;
-                }
+                paletteBaseIndex = tilePaletteSelect;
                 break;
             case F18A.MODE_TEXT:
             case F18A.MODE_TEXT_80:
@@ -859,28 +810,21 @@ export class F18A implements VDP {
                             tilePaletteBaseIndex = ((tileAttributeByte & 0x0e) << 2);
                             break;
                     }
-                    if (tileColor > 0 || !transparentColor0) {
-                        color = tileColor;
-                        paletteBaseIndex = tilePaletteBaseIndex;
-                    }
                 } else {
-                    color = this.bgColor;
+                    transparentColor0 = true;
                 }
                 break;
             case F18A.MODE_MULTICOLOR:
                 charNo = this.ram[nameTableAddr + (x1 >> 3) + rowOffset];
                 colorByte = this.ram[this.charPatternTable + (charNo << 3) + ((y1 & 0x1c) >> 2)];
                 tileColor = (x1 & 4) === 0 ? (colorByte & 0xf0) >> 4 : (colorByte & 0x0f);
-                if (tileColor > 0) {
-                    color = tileColor;
-                    paletteBaseIndex = tilePaletteSelect;
-                }
+                paletteBaseIndex = tilePaletteSelect;
                 break;
         }
         return {
             tilePriority: tilePriority,
             transparentColor0: transparentColor0,
-            color: color,
+            color: tileColor,
             paletteBaseIndex: paletteBaseIndex
         };
     }
@@ -1038,9 +982,9 @@ export class F18A implements VDP {
 
     _duplicateScanline() {
         const lineBytes = this.canvasWidth << 2;
-        let imagedataAddr2 = this.imagedataAddr - lineBytes;
+        let imagedataAddr2 = this.imageDataAddr - lineBytes;
         for (let i = 0; i < lineBytes; i++) {
-            this.imagedataData[this.imagedataAddr++] = this.imagedataData[imagedataAddr2++];
+            this.imageDataData[this.imageDataAddr++] = this.imageDataData[imagedataAddr2++];
         }
     }
 
@@ -1181,7 +1125,7 @@ export class F18A implements VDP {
             // Palette select
             case 24:
                 this.spritePaletteSelect = this.registers[24] & 0x30;
-                this.tilePaletteSelect = (this.registers[24] & 0x03) << 4; // Shift into position
+                this.tilePaletteSelect1 = (this.registers[24] & 0x03) << 4; // Shift into position
                 this.tilePaletteSelect2 = (this.registers[24] & 0x0C) << 2; // Shift into position
                 break;
             // Horizontal scroll offset 2
@@ -1743,7 +1687,7 @@ export class F18A implements VDP {
             colorTableMask = this.colorTableMask,
             patternTableMask = this.patternTableMask,
             tileColorMode = this.tileColorMode,
-            tilePaletteSelect = this.tilePaletteSelect,
+            tilePaletteSelect = this.tilePaletteSelect1,
             palette = this.palette,
             fgColor = this.fgColor,
             bgColor = this.bgColor,
@@ -2002,7 +1946,7 @@ export class F18A implements VDP {
             spriteSize: this.spriteSize,
             spriteMag: this.spriteMag,
             tileColorMode: this.tileColorMode,
-            tilePaletteSelect: this.tilePaletteSelect,
+            tilePaletteSelect: this.tilePaletteSelect1,
             tilePaletteSelect2: this.tilePaletteSelect2,
             spriteColorMode: this.spriteColorMode,
             spritePaletteSelect: this.spritePaletteSelect,
@@ -2095,7 +2039,7 @@ export class F18A implements VDP {
         this.spriteSize = state.spriteSize;
         this.spriteMag = state.spriteMag;
         this.tileColorMode = state.tileColorMode;
-        this.tilePaletteSelect = state.tilePaletteSelect;
+        this.tilePaletteSelect1 = state.tilePaletteSelect1;
         this.tilePaletteSelect2 = state.tilePaletteSelect2;
         this.spriteColorMode = state.spriteColorMode;
         this.spritePaletteSelect = state.spritePaletteSelect;
