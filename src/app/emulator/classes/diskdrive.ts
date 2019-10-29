@@ -157,6 +157,7 @@ export class DiskDrive implements State {
 
     static execute(pc: number, diskDrives: DiskDrive[], memory: Memory) {
         let status = 0;
+        let drive = 0;
         switch (pc) {
             case DiskDrive.DSR_ROM_POWER_UP:
                 DiskDrive.powerUp(memory);
@@ -174,7 +175,7 @@ export class DiskDrive implements State {
                 DiskDrive.setFiles(-1, memory);
                 break;
             case DiskDrive.DSR_ROM_SECTOR_IO_10:
-                const drive = memory.getPADByte(0x834C) - 1;
+                drive = memory.getPADByte(0x834C) - 1;
                 if (drive >= 0 && drive < diskDrives.length) {
                     diskDrives[drive].sectorIO(memory);
                 }
@@ -189,7 +190,10 @@ export class DiskDrive implements State {
                 Log.getLog().warn("Subprogram >13: Rename File not implemented.");
                 break;
             case DiskDrive.DSR_ROM_FILE_INPUT_14:
-                Log.getLog().warn("Subprogram >14: File Input not implemented.");
+                drive = memory.getPADByte(0x834C) - 1;
+                if (drive >= 0 && drive < diskDrives.length) {
+                    diskDrives[drive].fileInput(memory);
+                }
                 break;
             case DiskDrive.DSR_ROM_FILE_OUTPUT_15:
                 Log.getLog().warn("Subprogram >15: File Output not implemented.");
@@ -585,7 +589,7 @@ export class DiskDrive implements State {
     }
 
     sectorIO(memory: Memory) {
-        const read = (memory.getPADWord(0x834C) & 0x0F) !== 0;
+        const read = (memory.getPADWord(0x834C) & 0xFF) !== 0;
         const bufferAddr = memory.getPADWord(0x834E);
         const sectorNo = memory.getPADWord(0x8350);
         this.log.info("Sector I/O drive " + this.name + ", read: " + read + ", bufferAddr: " + Util.toHexWord(bufferAddr) + ", sectorNo: " + Util.toHexWord(sectorNo));
@@ -600,6 +604,42 @@ export class DiskDrive implements State {
             } else {
                 // Write not implemented:
                 this.log.warn("Sector write not implemented.");
+            }
+        }
+    }
+
+    fileInput(memory: Memory) {
+        const sectors = memory.getPADWord(0x834C) & 0xFF;
+        const fileNameAddr = memory.getPADWord(0x834E);
+        let fileName = "";
+        for (let i = 0; i < 10; i++) {
+            fileName += String.fromCharCode(this.ram[fileNameAddr + i]);
+        }
+        fileName = fileName.trim();
+        const infoAddr = 0x8300 | memory.getPADByte(0x8350);
+        if (this.diskImage != null) {
+            const file = this.diskImage.getFile(fileName);
+            if (sectors !== 0) {
+                const bufferAddr = memory.getPADWord(infoAddr);
+                const firstSector = memory.getPADWord(infoAddr + 2);
+                this.log.info("Reading file " + this.getName() + "." + fileName + " sectors " + firstSector + "-" + (firstSector + sectors - 1) + " to VDP " + Util.toHexWord(bufferAddr));
+                if (file.getFileType() === FileType.PROGRAM) {
+                    const program = file.getProgram();
+                    for (let i = 0; i < sectors * 256; i++) {
+                        this.ram[bufferAddr + i] = program[firstSector * 256 + i];
+                    }
+                } else {
+                    this.log.warn("File input only implemented for program files.");
+                }
+                memory.setPADByte(0x834d, sectors);
+            } else {
+                this.log.info("Request file info for " + this.getName() + "." + fileName);
+                memory.setPADWord(infoAddr + 2, file.getSectorCount());
+                memory.setPADByte(infoAddr + 4, (file.getRecordType() << 7) | (file.getDataType() << 1) | file.getFileType());
+                memory.setPADByte(infoAddr + 5, file.getFileType() === FileType.DATA ? Math.floor(256 / (file.getRecordLength() + (file.getRecordType() === RecordType.VARIABLE ? 1 : 0))) : 0);
+                memory.setPADByte(infoAddr + 6, file.getEOFOffset());
+                memory.setPADByte(infoAddr + 7, file.getFileType() === FileType.DATA ? file.getRecordLength() : 0);
+                memory.setPADByte(infoAddr + 8, file.getFileType() === FileType.DATA ? (file.getRecordType() === RecordType.FIXED ? file.getRecordCount() : file.getSectorCount()) : 0);
             }
         }
     }
