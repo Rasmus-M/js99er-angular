@@ -628,7 +628,8 @@ export class Memory implements State, MemoryDevice {
             (this.enableAMS ? '\nAMS Regs: ' + this.ams.getStatusString() : '');
     }
 
-    hexView(start: number, length: number, anchorAddr: number): MemoryView {
+    hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
+        const mask = width - 1;
         const lines: string[] = [];
         let anchorLine: number = null;
         let addr = start;
@@ -639,13 +640,13 @@ export class Memory implements State, MemoryDevice {
             if (anchorAddr === addr) {
                 anchorLine = lineNo;
             }
-            if ((i & 0xF) === 0) {
+            if ((i & mask) === 0) {
                 line += Util.toHexWord(addr) + ': ';
             }
             const byte = this.getByte(addr);
             line += Util.toHexByteShort(byte);
             ascii += byte >= 32 && byte < 127 ? String.fromCharCode(byte) : "\u25a1";
-            if ((i & 0xF) === 0xF) {
+            if ((i & mask) === mask) {
                 line += " " + ascii;
                 lines.push(line);
                 line = "";

@@ -3,11 +3,25 @@
     grid-area: status;
 }
 
-.memoryView {
+.memory-view {
     width: 100%;
     overflow-x: hidden;
     overflow-y: scroll;
-    grid-area: memory-view;
+    grid-area: 2 / 1 / 3 / 3;
+}
+
+.memory-view-1 {
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    grid-area: memory-view-1;
+}
+
+.memory-view-2 {
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    grid-area: memory-view-2;
 }
 
 .debugger-toolbar {
@@ -27,11 +41,12 @@
 .debugger {
     display: grid;
     height: 100%;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     grid-template-rows: auto 1fr auto;
     grid-template-areas:
-        "status"
-        "memory-view"
-        "toolbar";
+        "status status"
+        "memory-view-1 memory-view-2"
+        "toolbar toolbar";
     grid-row-gap: 8px;
+    grid-column-gap: 16px;
 }

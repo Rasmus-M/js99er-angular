@@ -563,7 +563,7 @@ export class TMS9918A implements VDP {
         return s;
     }
 
-    hexView(start, length, anchorAddr): MemoryView {
+    hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
         const lines: string[] = [];
         let anchorLine: number = null;
         let addr = start;

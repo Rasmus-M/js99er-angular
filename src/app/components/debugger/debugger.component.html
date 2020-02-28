@@ -1,11 +1,14 @@
 <div class="debugger">
     <pre class="status mat-elevation-z1">{{statusString}}</pre>
-    <pre class="memoryView mat-elevation-z1" id="memory" (click)="onMemoryViewClicked($event)">{{memoryString}}</pre>
+    <pre *ngIf="memoryViewType!==2" class="memory-view mat-elevation-z1" id="memory" (click)="onMemoryViewClicked($event)">{{memoryString}}</pre>
+    <pre *ngIf="memoryViewType===2" class="memory-view-1 mat-elevation-z1" id="memory1" (click)="onMemoryViewClicked($event)">{{memoryString}}</pre>
+    <pre *ngIf="memoryViewType===2" class="memory-view-2 mat-elevation-z1" id="memory2">{{memoryString2}}</pre>
     <div class="debugger-toolbar">
         <mat-form-field class="memory-select">
-            <mat-select placeholder="Memory View" [value]="memoryView" (selectionChange)="onMemoryViewChanged($event.value)">
+            <mat-select placeholder="Memory View" [value]="memoryViewType" (selectionChange)="onMemoryViewChanged($event.value)">
                 <mat-option [value]="0">Disassembly</mat-option>
                 <mat-option [value]="1">Hex view</mat-option>
+                <mat-option [value]="2">Split disassembly/hex</mat-option>
             </mat-select>
         </mat-form-field>
         <span class="margin-right"></span>
