@@ -125,7 +125,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                     break;
             }
             this.memoryString = memoryView.lines.join("\n");
-            this.scrollToAnchorLine(memoryView, this.memoryViewType !== MemoryViewType.SPLIT ? "memory" : "memory1");
+            this.scrollToAnchorLine(memoryView, this.getAseemblyViewId());
             this.memoryView = memoryView;
         }
     }
@@ -259,8 +259,9 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     onMemoryViewClicked(event: MouseEvent) {
-        if (this.memoryViewType === MemoryViewType.DISASSEMBLY && !this.ti994A.isRunning() && this.memoryView && event.offsetX < 64) {
-            const $memory = $(this.element.nativeElement).find("#memory");
+        console.log("click");
+        if (this.memoryViewType !== MemoryViewType.HEX && !this.ti994A.isRunning() && this.memoryView && event.offsetX < 64) {
+            const $memory = $(this.element.nativeElement).find("#" + this.getAseemblyViewId());
             const lineHeight = $memory.prop('scrollHeight') / this.memoryView.lines.length;
             const lineNo = Math.floor(($memory.prop('scrollTop') + event.offsetY) / lineHeight);
             const line = this.memoryView.lines[lineNo];
@@ -272,5 +273,9 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             }
             this.updateDebugger();
         }
+    }
+
+    getAseemblyViewId() {
+        return this.memoryViewType !== MemoryViewType.SPLIT ? "memory" : "memory1";
     }
 }
