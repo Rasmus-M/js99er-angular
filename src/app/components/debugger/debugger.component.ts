@@ -30,7 +30,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
 
     @Input() visible: boolean;
 
-    memoryViewType: MemoryViewType = MemoryViewType.DISASSEMBLY;
+    memoryViewType: MemoryViewType = MemoryViewType.SPLIT;
     memoryType: MemoryType = MemoryType.CPU;
     debuggerAddress: string;
     breakpointAddress: string;
