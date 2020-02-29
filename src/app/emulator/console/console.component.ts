@@ -142,6 +142,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                     const software: Software = command.data.software;
                     this.ti994A.loadSoftware(software);
                     this.ti994A.getMemory().setPADWord(0x83C0, Math.floor(Math.random() * 0xFFFF));
+                    this.ti994A.start(false);
                     this.eventDispatcherService.started(false);
                 }
                 break;
