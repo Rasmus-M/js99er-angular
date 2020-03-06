@@ -76,6 +76,7 @@ export class Keyboard implements State {
 
     start() {
         if (!this.running) {
+            this.resetKeyMap();
             this.attachListeners();
             this.joystick1.start();
             this.joystick2.start();
