@@ -17,104 +17,115 @@ export class DiskDrive implements State {
         0x40, 0x10,                     // >4004 Pointer to power-up list
         0x00, 0x00,                     // >4006 Pointer to program list
         0x40, 0x14,                     // >4008 Pointer to DSR list
-        0x40, 0x32,                     // >400A Pointer to subprogram list
+        0x40, 0x3A,                     // >400A Pointer to subprogram list
         0x00, 0x00,                     // >400C Pointer to ISR list
         0x00, 0x00,                     // >400E Pointer to ?
         // Power-up list
         0x00, 0x00,                     // >4010 Link to next power-up routine (no more)
-        0x40, 0x66,                     // >4012 Address of this power-up routine
+        0x40, 0x6E,                     // >4012 Address of this power-up routine
         // DSR list
+        // DSK1
         0x40, 0x1E,                     // >4014 Link to next DSR
-        0x40, 0x68,                     // >4016 Address of this DSR
+        0x40, 0x70,                     // >4016 Address of this DSR
         0x04,                           // >4018 Name length
         0x44, 0x53, 0x4B, 0x31,         // >4019 Name "DSK1"
         0x00,                           // >401D Align to word
+        // DSK2
         0x40, 0x28,                     // >401E Link to next DSR
-        0x40, 0x6C,                     // >4020 Address of this DSR
+        0x40, 0x74,                     // >4020 Address of this DSR
         0x04,                           // >4022 Name length
         0x44, 0x53, 0x4B, 0x32,         // >4023 Name "DSK2"
         0x00,                           // >4027 Align to word
-        0x00, 0x00,                     // >4028 Link to next DSR (no more)
-        0x40, 0x70,                     // >402A Address of this DSR
+        // DSK3
+        0x40, 0x32,                     // >4028 Link to next DSR
+        0x40, 0x78,                     // >402A Address of this DSR
         0x04,                           // >402C Name length
         0x44, 0x53, 0x4B, 0x33,         // >402D Name "DSK3"
         0x00,                           // >4031 Align to word
+        // DSK
+        0x00, 0x00,                     // >4032 Link to next DSR (no more)
+        0x40, 0x7C,                     // >4034 Address of this DSR
+        0x03,                           // >4036 Name length
+        0x44, 0x53, 0x4B,               // >4037 Name "DSK"
         // Subprogram list
         // FILES
-        0x40, 0x3C,                     // >4032 Link to next subprogram
-        0x40, 0x74,                     // >4034 Address of FILES subprogram
-        0x05,                           // >4036 Name length
-        0x46, 0x49, 0x4C, 0x45, 0x53,   // >4037 Name "FILES"
+        0x40, 0x44,                     // >403A Link to next subprogram
+        0x40, 0x80,                     // >403C Address of FILES subprogram
+        0x05,                           // >403E Name length
+        0x46, 0x49, 0x4C, 0x45, 0x53,   // >4042 Name "FILES"
         // >10
-        0x40, 0x42,                     // >403C Link to next subprogram
-        0x40, 0x78,                     // >403E Address of >10 subprogram
-        0x01,                           // >4040 Name length
-        0x10,                           // >4041 Name >10
+        0x40, 0x4A,                     // >4044 Link to next subprogram
+        0x40, 0x84,                     // >4046 Address of >10 subprogram
+        0x01,                           // >4048 Name length
+        0x10,                           // >4049 Name >10
         // >11
-        0x40, 0x48,                     // >4042 Link to next subprogram
-        0x40, 0x7C,                     // >4044 Address of >11 subprogram
-        0x01,                           // >4046 Name length
-        0x11,                           // >4047 Name >11
-        // >12
-        0x40, 0x4E,                     // >4048 Link to next subprogram
-        0x40, 0x80,                     // >404A Address of >12 subprogram
-        0x01,                           // >404C Name length
-        0x12,                           // >404D Name >12
-        // >13
-        0x40, 0x54,                     // >404E Link to next subprogram
-        0x40, 0x84,                     // >4050 Address of >13 subprogram
-        0x01,                           // >4052 Name length
-        0x13,                           // >4053 Name >13
-        // >14
-        0x40, 0x5A,                     // >4054 Link to next subprogram
-        0x40, 0x88,                     // >4056 Address of >14 subprogram
-        0x01,                           // >4058 Name length
-        0x14,                           // >4059 Name >14
-        // >15
-        0x40, 0x60,                     // >405A Link to next subprogram
-        0x40, 0x8C,                     // >405C Address of >15 subprogram
+        0x40, 0x50,                     // >404A Link to next subprogram
+        0x40, 0x88,                     // >404C Address of >11 subprogram
         0x01,                           // >405E Name length
-        0x15,                           // >405F Name >15
+        0x11,                           // >405F Name >11
+        // >12
+        0x40, 0x56,                     // >4050 Link to next subprogram
+        0x40, 0x8C,                     // >4052 Address of >12 subprogram
+        0x01,                           // >4054 Name length
+        0x12,                           // >4055 Name >12
+        // >13
+        0x40, 0x5C,                     // >4056 Link to next subprogram
+        0x40, 0x90,                     // >4058 Address of >13 subprogram
+        0x01,                           // >405A Name length
+        0x13,                           // >405B Name >13
+        // >14
+        0x40, 0x60,                     // >405C Link to next subprogram
+        0x40, 0x94,                     // >405E Address of >14 subprogram
+        0x01,                           // >4060 Name length
+        0x14,                           // >4061 Name >14
+        // >15
+        0x40, 0x68,                     // >4062 Link to next subprogram
+        0x40, 0x98,                     // >4064 Address of >15 subprogram
+        0x01,                           // >4066 Name length
+        0x15,                           // >4067 Name >15
         // >16
-        0x00, 0x00,                     // >4060 Link to next subprogram (no more)
-        0x40, 0x90,                     // >4062 Address of >16 subprogram
-        0x01,                           // >4064 Name length
-        0x16,                           // >4065 Name >16
+        0x00, 0x00,                     // >4068 Link to next subprogram (no more)
+        0x40, 0x9C,                     // >406A Address of >16 subprogram
+        0x01,                           // >406C Name length
+        0x16,                           // >406D Name >16
         // Power-up routine
-        0x04, 0x5B,                     // >4066 B *R11
-        // DSK1 routine
-        0x05, 0xCB,                     // >4068 INCT R11
-        0x04, 0x5B,                     // >406A B *R11
-        // DSK2 routine
-        0x05, 0xCB,                     // >406C INCT R11
         0x04, 0x5B,                     // >406E B *R11
-        // DSK3 routine
+        // DSK1 routine
         0x05, 0xCB,                     // >4070 INCT R11
         0x04, 0x5B,                     // >4072 B *R11
-        // FILES subprogram
+        // DSK2 routine
         0x05, 0xCB,                     // >4074 INCT R11
         0x04, 0x5B,                     // >4076 B *R11
-        // >10 subprogram
+        // DSK3 routine
         0x05, 0xCB,                     // >4078 INCT R11
         0x04, 0x5B,                     // >407A B *R11
-        // >11 subprogram
+        // DSK routine
         0x05, 0xCB,                     // >407C INCT R11
         0x04, 0x5B,                     // >407E B *R11
-        // >12 subprogram
+        // FILES subprogram
         0x05, 0xCB,                     // >4080 INCT R11
         0x04, 0x5B,                     // >4082 B *R11
-        // >13 subprogram
+        // >10 subprogram
         0x05, 0xCB,                     // >4084 INCT R11
         0x04, 0x5B,                     // >4086 B *R11
-        // >14 subprogram
+        // >11 subprogram
         0x05, 0xCB,                     // >4088 INCT R11
         0x04, 0x5B,                     // >408A B *R11
-        // >15 subprogram
+        // >12 subprogram
         0x05, 0xCB,                     // >408C INCT R11
         0x04, 0x5B,                     // >408E B *R11
-        // >16 subprogram
+        // >13 subprogram
         0x05, 0xCB,                     // >4090 INCT R11
-        0x04, 0x5B                      // >4092 B *R11
+        0x04, 0x5B,                     // >4092 B *R11
+        // >14 subprogram
+        0x05, 0xCB,                     // >4094 INCT R11
+        0x04, 0x5B,                     // >4096 B *R11
+        // >15 subprogram
+        0x05, 0xCB,                     // >4098 INCT R11
+        0x04, 0x5B,                     // >409A B *R11
+        // >16 subprogram
+        0x05, 0xCB,                     // >409C INCT R11
+        0x04, 0x5B                      // >409E B *R11
     ];
 
     static STATUS_NO_SUCH_FILE = 0x80;
@@ -125,18 +136,19 @@ export class DiskDrive implements State {
     static STATUS_DISK_FULL = 0x02;
     static STATUS_EOF = 0x01;
 
-    static DSR_ROM_POWER_UP = 0x4066;
-    static DSR_ROM_DSK1 = 0x4068;
-    static DSR_ROM_DSK2 = 0x406C;
-    static DSR_ROM_DSK3 = 0x4070;
-    static DSR_ROM_FILES = 0x4074;
-    static DSR_ROM_SECTOR_IO_10 = 0x4078;
-    static DSR_ROM_FORMAT_DISK_11 = 0x407C;
-    static DSR_ROM_FILE_PROTECTION_12 = 0x4080;
-    static DSR_ROM_RENAME_FILE_13 = 0x4084;
-    static DSR_ROM_FILE_INPUT_14 = 0x4088;
-    static DSR_ROM_FILE_OUTPUT_15 = 0x408C;
-    static DSR_ROM_FILES_16  = 0x4090;
+    static DSR_ROM_POWER_UP = 0x406E;
+    static DSR_ROM_DSK1 = 0x4070;
+    static DSR_ROM_DSK2 = 0x4074;
+    static DSR_ROM_DSK3 = 0x4078;
+    static DSR_ROM_DSK = 0x407C;
+    static DSR_ROM_FILES = 0x4080;
+    static DSR_ROM_SECTOR_IO_10 = 0x4084;
+    static DSR_ROM_FORMAT_DISK_11 = 0x4088;
+    static DSR_ROM_FILE_PROTECTION_12 = 0x408C;
+    static DSR_ROM_RENAME_FILE_13 = 0x4090;
+    static DSR_ROM_FILE_INPUT_14 = 0x4094;
+    static DSR_ROM_FILE_OUTPUT_15 = 0x4098;
+    static DSR_ROM_FILES_16  = 0x409C;
 
     static DSR_HOOK_START = DiskDrive.DSR_ROM_POWER_UP;
     static DSR_HOOK_END = DiskDrive.DSR_ROM_FILES_16;
@@ -163,13 +175,22 @@ export class DiskDrive implements State {
                 DiskDrive.powerUp(memory);
                 break;
             case DiskDrive.DSR_ROM_DSK1:
-                status = diskDrives[0].dsrRoutine(memory.getPADWord(0x8356) - 14);
+                status = diskDrives[0].dsrRoutine(memory.getPADWord(0x8356) - 14, false);
                 break;
             case DiskDrive.DSR_ROM_DSK2:
-                status = diskDrives[1].dsrRoutine(memory.getPADWord(0x8356) - 14);
+                status = diskDrives[1].dsrRoutine(memory.getPADWord(0x8356) - 14, false);
                 break;
             case DiskDrive.DSR_ROM_DSK3:
-                status = diskDrives[2].dsrRoutine(memory.getPADWord(0x8356) - 14);
+                status = diskDrives[2].dsrRoutine(memory.getPADWord(0x8356) - 14, false);
+                break;
+            case DiskDrive.DSR_ROM_DSK:
+                status = -1;
+                for (let i = 0; i < diskDrives.length && status === -1; i++) {
+                    status = diskDrives[i].dsrRoutine(memory.getPADWord(0x8356) - 13, true);
+                }
+                if (status === -1) {
+                    status = 0x20;
+                }
                 break;
             case DiskDrive.DSR_ROM_FILES:
                 DiskDrive.setFiles(-1, memory);
@@ -250,7 +271,7 @@ export class DiskDrive implements State {
         return this.name;
     }
 
-    dsrRoutine(pabAddr: number) {
+    dsrRoutine(pabAddr: number, checkDiskName: boolean): number {
         this.log.info("Executing DSR routine for " + this.name + ", PAB in " + Util.toHexWord(pabAddr) + ".");
         let i;
         const opCode = this.ram[pabAddr];
@@ -269,6 +290,14 @@ export class DiskDrive implements State {
         const datatype = (flagStatus & 0x08) >> 3;
         const operationMode = (flagStatus & 0x06) >> 1;
         const accessType = flagStatus & 0x01;
+
+        if (checkDiskName) {
+            const nameParts = fileName.split(".");
+            if (nameParts.length < 3 || this.diskImage === null || nameParts[1] !== this.diskImage.getName()) {
+                return -1;
+            }
+            fileName = this.name + "." + nameParts[2];
+        }
 
         this.log.info(
             fileName + ": " +
