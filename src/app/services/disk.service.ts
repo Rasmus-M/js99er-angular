@@ -169,7 +169,7 @@ export class DiskService {
     }
 
     saveDiskImageAs(diskImage: DiskImage) {
-        const imageFile = diskImage.getBinaryImage();
+        const imageFile = diskImage.createBinaryImage();
         const blob = new Blob([imageFile], { type: "application/octet-stream" });
         saveAs(blob, diskImage.getName() + ".dsk");
     }

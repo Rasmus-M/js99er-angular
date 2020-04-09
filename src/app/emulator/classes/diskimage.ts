@@ -51,13 +51,13 @@ export class DiskImage implements State {
     }
 
     getFilesArray(): DiskFile[] {
-        const filesArray = [];
+        const filesArray: DiskFile[] = [];
         for (const fileName in this.files) {
             if (this.files.hasOwnProperty(fileName)) {
                 filesArray.push(this.files[fileName]);
             }
         }
-        return filesArray;
+        return filesArray.sort((a, b) => a.getName().localeCompare(b.getName()));
     }
 
     putFile(file: DiskFile) {
