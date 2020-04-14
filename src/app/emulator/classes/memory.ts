@@ -443,17 +443,12 @@ export class Memory implements State, MemoryDevice {
             // Read data from GROM
             this.gromAccess = 2;
             const w = this.gromPrefetch[base] << 8;
-            // Prefetch for all bases
-            for (let i = 0; i < Memory.GROM_BASES; i++) {
-                this.gromPrefetch[i] = this.groms[i][this.gromAddress];
-            }
-            this.gromAddress++;
+            this.prefetchAndIncrementGROMAddress();
             return w;
         } else if (addr === Memory.GRMRA) {
             // Get GROM address
             this.gromAccess = 2;
             const wa = this.gromAddress & 0xFF00;
-            // this.log.info("GROM read address: " + wa.toHexWord());
             this.gromAddress = ((this.gromAddress << 8) | this.gromAddress & 0xFF) & 0xFFFF;
             return wa;
         }
@@ -469,11 +464,7 @@ export class Memory implements State, MemoryDevice {
                 const base = !this.multiGROMBases || this.gromAddress - 1 < 0x6000 ? 0 : (addr & 0x003C) >> 2;
                 this.gromAccess = 2;
                 this.groms[base][this.gromAddress - 1] = w >> 8;
-                // Prefetch for all bases
-                for (let i = 0; i < Memory.GROM_BASES; i++) {
-                    this.gromPrefetch[i] = this.groms[i][this.gromAddress];
-                }
-                this.gromAddress++;
+                this.prefetchAndIncrementGROMAddress();
             }
         } else if (addr === Memory.GRMWA) {
             // Set GROM address
@@ -481,14 +472,17 @@ export class Memory implements State, MemoryDevice {
             this.gromAccess--;
             if (this.gromAccess === 0) {
                 this.gromAccess = 2;
-                // Prefetch for all bases
-                for (let b = 0; b < Memory.GROM_BASES; b++) {
-                    this.gromPrefetch[b] = this.groms[b][this.gromAddress];
-                }
-                // this.log.info("GROM address set to: " + this.gromAddress.toHexWord());
-                this.gromAddress++;
+                this.prefetchAndIncrementGROMAddress();
             }
         }
+    }
+
+    private prefetchAndIncrementGROMAddress() {
+        for (let i = 0; i < Memory.GROM_BASES; i++) {
+            this.gromPrefetch[i] = this.groms[i][this.gromAddress];
+        }
+        const base = this.gromAddress & 0xe000;
+        this.gromAddress = ((++this.gromAddress) & 0x1fff) | base;
     }
 
     private readNull(addr: number, cpu: CPU): number {
