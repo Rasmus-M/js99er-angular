@@ -378,7 +378,7 @@ export class TMS9918A implements VDP {
                             this.updateMode(this.registers[0], this.registers[1]);
                             break;
                         case 1:
-                            this.ramMask = (this.registers[1] & 0x80) !== 0 ? 0x3FFF : 0x1FFF;
+                            this.ramMask = (this.registers[1] & 0x80) !== 0 ? 0x3FFF : 0x0FFF;
                             this.displayOn = (this.registers[1] & 0x40) !== 0;
                             this.interruptsOn = (this.registers[1] & 0x20) !== 0;
                             this.updateMode(this.registers[0], this.registers[1]);

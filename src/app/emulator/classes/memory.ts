@@ -84,8 +84,6 @@ export class Memory implements State, MemoryDevice {
         this.enable32KRAM = this.settings.is32KRAMEnabled();
         this.enableAMS = this.settings.isAMSEnabled();
         this.enableGRAM = this.settings.isGRAMEnabled();
-        this.ramAt6000 = false;
-        this.ramAt7000 = false;
         this.ram = new Uint8Array(0x10000);
         if (this.enableAMS) {
             if (this.ams) {
@@ -102,6 +100,8 @@ export class Memory implements State, MemoryDevice {
         this.patchROMForTapeUsage();
 
         if (!keepCart) {
+            this.ramAt6000 = false;
+            this.ramAt7000 = false;
             // GROM
             this.groms = [];
             for (let i = 0; i < Memory.GROM_BASES; i++) {
