@@ -594,5 +594,7 @@
     {"url": "alexkidd.rpk", "name": "Alex Kidd on Miracle Island Demo"},
     {"url": "pyjamarama.rpk"},
     {"url": "obstacle.rpk", "name": "Bouncy's obstacle course"},
-    {"url": "borzork.rpk"}
+    {"url": "borzork.rpk"},
+    {"url": "forcecmd8.bin", "name": "Force Command"},
+    {"url": "f18aracing8.bin", "name": "F18A Racing"}
 ]

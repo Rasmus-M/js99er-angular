@@ -23,6 +23,11 @@
             "items": [
                 {
                     "type": "ITEM",
+                    "name": "Force Command",
+                    "url": "software/forcecmd8.bin"
+                },
+                {
+                    "type": "ITEM",
                     "name": "4A DOS",
                     "url": "software/4ados.rpk"
                 },
@@ -278,6 +283,11 @@
                     "type": "ITEM",
                     "name": "Monkey Island demo",
                     "url": "software/monkey8.rpk"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Formula 99 demo",
+                    "url": "software/formula99.rpk"
                 }
             ]
         },
@@ -352,6 +362,11 @@
                     "type": "ITEM",
                     "name": "Raycaster demo",
                     "url": "software/raycaster8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "F18A Racing",
+                    "url": "software/f18aracing8.bin"
                 }
             ]
         },
