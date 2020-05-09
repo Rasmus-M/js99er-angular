@@ -101,7 +101,7 @@ export class AMS implements State {
         let s = "";
         for (let regNo = 0; regNo < this.transparentMap.length; regNo++) {
             if (this.transparentMap[regNo] != null) {
-               s += Util.toHex12Bit(this.map[regNo] & (this.pages - 1)) + " ";
+               s += Util.toHexNybble(regNo) +  ":" + Util.toHexByte(this.map[regNo] & (this.pages - 1)) + " ";
             }
         }
         return s;

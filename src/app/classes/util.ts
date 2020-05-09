@@ -60,6 +60,14 @@ export class Util {
         }
     }
 
+    static toHexNybble(number): string {
+        if (typeof number === "number") {
+            return '>' + number.toString(16).toUpperCase();
+        } else {
+            return '>?';
+        }
+    }
+
     static parseHexNumber(s: string): number {
         return Util._parseNumber(s, 16);
     }

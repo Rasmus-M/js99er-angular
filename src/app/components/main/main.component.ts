@@ -63,11 +63,11 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         this.commandSubscription = this.commandDispatcherService.subscribe(this.onCommand.bind(this));
         this.eventSubscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
         this.route.paramMap.subscribe(this.onParametersChanged.bind(this));
+        this.log.info("Welcome to " + AppComponent.TITLE + " version " + AppComponent.VERSION);
+        this.log.info("--------------------------------");
     }
 
     ngAfterViewInit(): void {
-        this.log.info("Welcome to " + this.title + " version " + this.version);
-        this.log.info("--------------------------------");
         $(this.element.nativeElement).one("click keydown touchstart", function () {
             AudioService.resumeSound();
         });
