@@ -190,6 +190,9 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                     case Setting.PIXELATED:
                         $(this.canvas).toggleClass("pixelated", value);
                         break;
+                    case Setting.PAUSE_ON_FOCUS_LOST:
+                        // Handled by main component
+                        break;
                 }
                 if (resetRequired) {
                     this.reset();

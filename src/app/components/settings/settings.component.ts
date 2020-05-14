@@ -22,6 +22,7 @@ export class SettingsComponent implements OnInit {
     enableAMS: boolean;
     enableGRAM: boolean;
     enablePixelated: boolean;
+    enablePauseOnFocusLost: boolean;
 
     private subscription: Subscription;
 
@@ -48,6 +49,7 @@ export class SettingsComponent implements OnInit {
         this.enableAMS = this.settingsService.isAMSEnabled();
         this.enableGRAM = this.settingsService.isGRAMEnabled();
         this.enablePixelated = this.settingsService.isPixelatedEnabled();
+        this.enablePauseOnFocusLost = this.settingsService.isPauseOnFocusLostEnabled();
     }
 
     onEvent(event: ConsoleEvent) {
@@ -104,5 +106,9 @@ export class SettingsComponent implements OnInit {
 
     onEnablePixelatedChanged(value) {
         this.settingsService.setPixelatedEnabled(value);
+    }
+
+    onEnablePauseOnFocusLostChanged(value) {
+        this.settingsService.setPauseOnFocusLostEnabled(value);
     }
 }

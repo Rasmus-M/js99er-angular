@@ -40,6 +40,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     private cartName = "extended_basic";
     private started = false;
     private autoRun = false;
+    private wasRunning = false;
     private routerSubscription: Subscription;
     private commandSubscription: Subscription;
     private eventSubscription: Subscription;
@@ -70,6 +71,21 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     ngAfterViewInit(): void {
         $(this.element.nativeElement).one("click keydown touchstart", function () {
             AudioService.resumeSound();
+        });
+        $(window).on("blur", () => {
+            if (this.settingsService.isPauseOnFocusLostEnabled()) {
+                this.wasRunning = this.ti994A.isRunning();
+                if (this.wasRunning) {
+                    this.commandDispatcherService.stop();
+                }
+            }
+        });
+        $(window).on("focus", () => {
+            if (this.settingsService.isPauseOnFocusLostEnabled()) {
+                if (this.wasRunning) {
+                    this.commandDispatcherService.start();
+                }
+            }
         });
     }
 

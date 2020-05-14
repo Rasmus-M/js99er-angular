@@ -54,6 +54,9 @@ export class SettingsService {
             if (storage.getItem('enablePixelated') != null) {
                 this.settings.setPixelatedEnabled(storage.getItem('enablePixelated') === 'true');
             }
+            if (storage.getItem('enablePauseOnFocusLost') != null) {
+                this.settings.setPauseOnFocusLostEnabled(storage.getItem('enablePauseOnFocusLost') === 'true');
+            }
             this.storage = storage;
         }
     }
@@ -221,6 +224,20 @@ export class SettingsService {
                 this.storage.setItem('enablePixelated', enabled);
             }
             this.commandDispatcherService.changeSetting(Setting.PIXELATED, enabled);
+        }
+    }
+
+    isPauseOnFocusLostEnabled() {
+        return this.settings.isPauseOnFocusLostEnabled();
+    }
+
+    setPauseOnFocusLostEnabled(enabled) {
+        if (enabled !== this.settings.isPauseOnFocusLostEnabled()) {
+            this.settings.setPauseOnFocusLostEnabled(enabled);
+            if (this.persistent && this.storage) {
+                this.storage.setItem('enablePauseOnFocusLost', enabled);
+            }
+            this.commandDispatcherService.changeSetting(Setting.PAUSE_ON_FOCUS_LOST, enabled);
         }
     }
 

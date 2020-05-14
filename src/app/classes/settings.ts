@@ -9,7 +9,8 @@ export enum Setting {
     GOOGLE_DRIVE = 7,
     AMS = 8,
     GRAM = 9,
-    PIXELATED = 10
+    PIXELATED = 10,
+    PAUSE_ON_FOCUS_LOST = 11
 }
 
 export class Settings {
@@ -25,6 +26,7 @@ export class Settings {
     private enableAMS: boolean;
     private enableGRAM: boolean;
     private enablePixelated: boolean;
+    private enablePauseOnFocusLost: boolean;
 
     constructor() {
         this.enableSound = true;
@@ -38,94 +40,103 @@ export class Settings {
         this.enableAMS = false;
         this.enableGRAM = false;
         this.enablePixelated = false;
+        this.enablePauseOnFocusLost = false;
     }
 
-    isSoundEnabled() {
+    isSoundEnabled(): boolean {
         return this.enableSound;
     }
 
-    setSoundEnabled(enabled) {
+    setSoundEnabled(enabled: boolean) {
         this.enableSound = enabled;
     }
 
-    isSpeechEnabled() {
+    isSpeechEnabled(): boolean {
         return this.enableSpeech;
     }
 
-    setSpeechEnabled(enabled) {
+    setSpeechEnabled(enabled: boolean) {
         this.enableSpeech = enabled;
     }
 
-    is32KRAMEnabled() {
+    is32KRAMEnabled(): boolean {
         return this.enable32KRAM;
     }
 
-    set32KRAMEnabled(enabled) {
+    set32KRAMEnabled(enabled: boolean) {
         this.enable32KRAM = enabled;
     }
 
-    isF18AEnabled() {
+    isF18AEnabled(): boolean {
         return this.enableF18A;
     }
 
-    setF18AEnabled(enabled) {
+    setF18AEnabled(enabled: boolean) {
         this.enableF18A = enabled;
     }
 
-    isFlickerEnabled() {
+    isFlickerEnabled(): boolean {
         return this.enableFlicker;
     }
 
-    setFlickerEnabled(enabled) {
+    setFlickerEnabled(enabled: boolean) {
         this.enableFlicker = enabled;
     }
 
-    isPCKeyboardEnabled() {
+    isPCKeyboardEnabled(): boolean {
         return this.enablePCKeyboard;
     }
 
-    setPCKeyboardEnabled(enabled) {
+    setPCKeyboardEnabled(enabled: boolean) {
         this.enablePCKeyboard = enabled;
     }
 
-    isMapArrowKeysEnabled() {
+    isMapArrowKeysEnabled(): boolean {
         return this.enableMapArrowKeys;
     }
 
-    setMapArrowKeysEnabled(enabled) {
+    setMapArrowKeysEnabled(enabled: boolean) {
         this.enableMapArrowKeys = enabled;
     }
 
-    isGoogleDriveEnabled() {
+    isGoogleDriveEnabled(): boolean {
         return this.enableGoogleDrive;
     }
 
-    setGoogleDriveEnabled(enabled) {
+    setGoogleDriveEnabled(enabled: boolean) {
         this.enableGoogleDrive = enabled;
     }
 
-    isAMSEnabled() {
+    isAMSEnabled(): boolean {
         return this.enableAMS;
     }
 
-    setAMSEnabled(enabled) {
+    setAMSEnabled(enabled: boolean) {
         this.enableAMS = enabled;
     }
 
-    isGRAMEnabled() {
+    isGRAMEnabled(): boolean {
         return this.enableGRAM;
     }
 
-    setGRAMEnabled(enabled) {
+    setGRAMEnabled(enabled: boolean) {
         this.enableGRAM = enabled;
     }
 
-    isPixelatedEnabled() {
+    isPixelatedEnabled(): boolean {
         return this.enablePixelated;
     }
 
-    setPixelatedEnabled(enabled) {
+    setPixelatedEnabled(enabled: boolean) {
         this.enablePixelated = enabled;
+    }
+
+    isPauseOnFocusLostEnabled(): boolean {
+        return this.enablePauseOnFocusLost;
+    }
+
+    setPauseOnFocusLostEnabled(enabled: boolean) {
+        this.enablePauseOnFocusLost = enabled;
     }
 
     copyFrom(otherSettings: Settings) {
@@ -140,5 +151,6 @@ export class Settings {
         this.enableAMS = otherSettings.isAMSEnabled();
         this.enableGRAM = otherSettings.isGRAMEnabled();
         this.enablePixelated = otherSettings.isPixelatedEnabled();
+        this.enablePauseOnFocusLost = otherSettings.isPauseOnFocusLostEnabled();
     }
 }

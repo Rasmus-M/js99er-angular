@@ -31,4 +31,8 @@
 <div class="option">
     <mat-checkbox label="" [ngModel]="enablePixelated" (ngModelChange)="onEnablePixelatedChanged($event)">Pixelated image enabled (if supported by browser)</mat-checkbox>
 </div>
+<div class="option">
+    <mat-checkbox label="" [ngModel]="enablePauseOnFocusLost" (ngModelChange)="onEnablePauseOnFocusLostChanged($event)">Pause when window loses focus</mat-checkbox>
+</div>
+
 
