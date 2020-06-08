@@ -308,7 +308,7 @@ export class TMS9900 implements CPU {
         if (this.PC >= 0x4000 && this.PC < 0x6000) {
             switch (this.memory.getPeripheralROMNumber()) {
                 case 1:
-                    if (this.PC >= DiskDrive.DSR_HOOK_START && this.PC <= DiskDrive.DSR_HOOK_END) {
+                    if (this.PC >= DiskDrive.DSR_HOOK_START && this.PC <= DiskDrive.DSR_HOOK_END && !this.console.getTIPI()) {
                         DiskDrive.execute(this.PC, this.diskDrives, this.memory);
                     }
                     break;

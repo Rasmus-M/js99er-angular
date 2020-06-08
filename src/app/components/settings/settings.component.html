@@ -1,38 +1,42 @@
-<div class="option">
-    <mat-checkbox label="" [ngModel]="enableSound" (ngModelChange)="onEnableSoundChanged($event)">Sound enabled</mat-checkbox>
+<div class="options">
+    <div class="option">
+        <mat-checkbox label="" [ngModel]="enableSound" (ngModelChange)="onEnableSoundChanged($event)">Sound enabled</mat-checkbox>
+    </div>
+    <div class="option">
+        <mat-checkbox label="" [ngModel]="enableSpeech" (ngModelChange)="onEnableSpeechChanged($event)">Speech enabled</mat-checkbox>
+    </div>
+    <div class="option">
+        <mat-checkbox label="" [ngModel]="enable32KRAM" (ngModelChange)="onEnable32KRAMChanged($event)">32K RAM enabled</mat-checkbox>
+    </div>
+    <div class="option">
+        <mat-checkbox label="" [ngModel]="enableAMS" (ngModelChange)="onEnableAMSChanged($event)">SAMS enabled</mat-checkbox>
+    </div>
+    <div class="option">
+        <mat-checkbox label="" [ngModel]="enableGRAM" (ngModelChange)="onEnableGRAMChanged($event)">GRAM enabled</mat-checkbox>
+    </div>
+    <div class="option">
+        <mat-checkbox label="" [ngModel]="enableF18A" (ngModelChange)="onEnableF18AChanged($event)">F18A enabled</mat-checkbox>
+    </div>
+    <div class="option">
+        <mat-checkbox label="" [ngModel]="enableFlicker" (ngModelChange)="onEnableFlickerChanged($event)">4 sprites per line limitation enabled</mat-checkbox>
+    </div>
+    <div class="option">
+        <mat-checkbox label="" [ngModel]="enablePCKeyboard" (ngModelChange)="onEnablePCKeyboardChanged($event)">PC keyboard enabled</mat-checkbox>
+    </div>
+    <div class="option">
+        <mat-checkbox label="" [ngModel]="enableMapArrowKeys" (ngModelChange)="onEnableMapArrowKeysChanged($event)">Map arrow keys to Fctn+SDEX enabled</mat-checkbox>
+    </div>
+    <div class="option">
+        <mat-checkbox label="" [ngModel]="enableGoogleDrive" (ngModelChange)="onEnableGoogleDriveChanged($event)">Google drives (GDR1, GDR2, GDR3) enabled</mat-checkbox>
+    </div>
+    <div class="option">
+        <mat-checkbox label="" [ngModel]="enableTIPI" (ngModelChange)="onEnableTIPIChanged($event)">TIPI enabled (requires external server)</mat-checkbox>
+    </div>
+    <div class="option">
+        <mat-checkbox label="" [ngModel]="enablePixelated" (ngModelChange)="onEnablePixelatedChanged($event)">Pixelated image enabled (if supported by browser)</mat-checkbox>
+    </div>
+    <div class="option">
+        <mat-checkbox label="" [ngModel]="enablePauseOnFocusLost" (ngModelChange)="onEnablePauseOnFocusLostChanged($event)">Pause when window loses focus</mat-checkbox>
+    </div>
 </div>
-<div class="option">
-    <mat-checkbox label="" [ngModel]="enableSpeech" (ngModelChange)="onEnableSpeechChanged($event)">Speech enabled</mat-checkbox>
-</div>
-<div class="option">
-    <mat-checkbox label="" [ngModel]="enable32KRAM" (ngModelChange)="onEnable32KRAMChanged($event)">32K RAM enabled</mat-checkbox>
-</div>
-<div class="option">
-    <mat-checkbox label="" [ngModel]="enableAMS" (ngModelChange)="onEnableAMSChanged($event)">SAMS enabled</mat-checkbox>
-</div>
-<div class="option">
-    <mat-checkbox label="" [ngModel]="enableGRAM" (ngModelChange)="onEnableGRAMChanged($event)">GRAM enabled</mat-checkbox>
-</div>
-<div class="option">
-    <mat-checkbox label="" [ngModel]="enableF18A" (ngModelChange)="onEnableF18AChanged($event)">F18A enabled</mat-checkbox>
-</div>
-<div class="option">
-    <mat-checkbox label="" [ngModel]="enableFlicker" (ngModelChange)="onEnableFlickerChanged($event)">4 sprites per line limitation enabled</mat-checkbox>
-</div>
-<div class="option">
-    <mat-checkbox label="" [ngModel]="enablePCKeyboard" (ngModelChange)="onEnablePCKeyboardChanged($event)">PC keyboard enabled</mat-checkbox>
-</div>
-<div class="option">
-    <mat-checkbox label="" [ngModel]="enableMapArrowKeys" (ngModelChange)="onEnableMapArrowKeysChanged($event)">Map arrow keys to Fctn+SDEX enabled</mat-checkbox>
-</div>
-<div class="option">
-    <mat-checkbox label="" [ngModel]="enableGoogleDrive" (ngModelChange)="onEnableGoogleDriveChanged($event)">Google drives (GDR1, GDR2, GDR3) enabled</mat-checkbox>
-</div>
-<div class="option">
-    <mat-checkbox label="" [ngModel]="enablePixelated" (ngModelChange)="onEnablePixelatedChanged($event)">Pixelated image enabled (if supported by browser)</mat-checkbox>
-</div>
-<div class="option">
-    <mat-checkbox label="" [ngModel]="enablePauseOnFocusLost" (ngModelChange)="onEnablePauseOnFocusLostChanged($event)">Pause when window loses focus</mat-checkbox>
-</div>
-
 

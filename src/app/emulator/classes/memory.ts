@@ -13,6 +13,7 @@ import {PSG} from '../interfaces/psg';
 import {Speech} from '../interfaces/speech';
 import {MemoryDevice} from '../interfaces/memory-device';
 import {MemoryView} from "../../classes/memoryview";
+import {TIPI} from "./tipi";
 
 export class Memory implements State, MemoryDevice {
 
@@ -37,6 +38,7 @@ export class Memory implements State, MemoryDevice {
     private enable32KRAM: boolean;
     private enableAMS: boolean;
     private enableGRAM: boolean;
+    private enableTIPI: boolean;
     private ramAt6000: boolean;
     private ramAt7000: boolean;
 
@@ -84,6 +86,7 @@ export class Memory implements State, MemoryDevice {
         this.enable32KRAM = this.settings.is32KRAMEnabled();
         this.enableAMS = this.settings.isAMSEnabled();
         this.enableGRAM = this.settings.isGRAMEnabled();
+        this.enableTIPI = this.settings.isTIPIEnabled();
         this.ram = new Uint8Array(0x10000);
         if (this.enableAMS) {
             if (this.ams) {
@@ -129,7 +132,11 @@ export class Memory implements State, MemoryDevice {
         this.peripheralROMs = [];
         this.peripheralROMEnabled = false;
         this.peripheralROMNumber = 0;
-        this.loadPeripheralROM(new Uint8Array(DiskDrive.DSR_ROM), 1);
+        if (this.enableTIPI) {
+            this.loadPeripheralROM(new Uint8Array(TIPI.DSR_ROM), 1);
+        } else {
+            this.loadPeripheralROM(new Uint8Array(DiskDrive.DSR_ROM), 1);
+        }
         if (this.settings.isGoogleDriveEnabled()) {
             this.loadPeripheralROM(new Uint8Array(GoogleDrive.DSR_ROM), 2);
         }
@@ -334,8 +341,14 @@ export class Memory implements State, MemoryDevice {
         } else if (this.peripheralROMEnabled) {
             const peripheralROM = this.peripheralROMs[this.peripheralROMNumber];
             if (peripheralROM) {
-                // this.log.info("Read peripheral ROM " + addr.toHexWord() + ": " + (peripheralROM[addr - 0x4000] << 8 | peripheralROM[addr + 1 - 0x4000]).toHexWord());
-                return peripheralROM[addr - 0x4000] << 8 | peripheralROM[addr + 1 - 0x4000];
+                if (this.enableTIPI && addr === TIPI.RC_IN) {
+                    return this.console.getTIPI().getRC() << 8;
+                } else if (this.enableTIPI && addr === TIPI.RD_IN) {
+                    return this.console.getTIPI().getRD() << 8;
+                } else {
+                    // this.log.info("Read peripheral ROM " + addr.toHexWord() + ": " + (peripheralROM[addr - 0x4000] << 8 | peripheralROM[addr + 1 - 0x4000]).toHexWord());
+                    return peripheralROM[addr - 0x4000] << 8 | peripheralROM[addr + 1 - 0x4000];
+                }
             }
         }
         return 0;
@@ -345,6 +358,10 @@ export class Memory implements State, MemoryDevice {
         cpu.addCycles(4);
         if (this.enableAMS && this.ams.hasRegisterAccess()) {
             this.ams.writeRegister((addr & 0x1F) >> 1, ((w & 0xFF) << 8) | (w >> 8));
+        } else if (this.enableTIPI && addr === TIPI.TC_OUT) {
+            this.console.getTIPI().setTC(w >> 8);
+        } else if (this.enableTIPI && addr === TIPI.TD_OUT) {
+            this.console.getTIPI().setTD(w >> 8);
         }
     }
 
@@ -663,6 +680,10 @@ export class Memory implements State, MemoryDevice {
 
     setGRAMEnabled(enabled: boolean) {
         this.enableGRAM = enabled;
+    }
+
+    setTIPIEnabled(enabled: boolean) {
+        this.enableTIPI = enabled;
     }
 
     getPeripheralROMNumber(): number {

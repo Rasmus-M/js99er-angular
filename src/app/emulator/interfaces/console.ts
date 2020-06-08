@@ -9,6 +9,7 @@ import {Keyboard} from "../classes/keyboard";
 import {CPU} from "./cpu";
 import {CRU} from "../classes/cru";
 import {GoogleDrive} from "../classes/googledrive";
+import {TIPI} from "../classes/tipi";
 
 export interface Console {
     start(fast: boolean);
@@ -29,7 +30,9 @@ export interface Console {
     getTape(): Tape;
     getDiskDrives(): DiskDrive[];
     getGoogleDrives(): GoogleDrive[];
-    setVDP();
     setGoogleDrive();
+    getTIPI(): TIPI;
+    setTIPI();
+    setVDP();
     isRunning();
 }
