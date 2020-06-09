@@ -342,9 +342,13 @@ export class Memory implements State, MemoryDevice {
             const peripheralROM = this.peripheralROMs[this.peripheralROMNumber];
             if (peripheralROM) {
                 if (this.enableTIPI && addr === TIPI.RC_IN) {
-                    return this.console.getTIPI().getRC() << 8;
+                    return this.console.getTIPI().getRC();
                 } else if (this.enableTIPI && addr === TIPI.RD_IN) {
-                    return this.console.getTIPI().getRD() << 8;
+                    return this.console.getTIPI().getRD();
+                } else if (this.enableTIPI && addr === TIPI.TC_OUT) {
+                    return this.console.getTIPI().getTC();
+                } else if (this.enableTIPI && addr === TIPI.TD_OUT) {
+                    return this.console.getTIPI().getTD();
                 } else {
                     // this.log.info("Read peripheral ROM " + addr.toHexWord() + ": " + (peripheralROM[addr - 0x4000] << 8 | peripheralROM[addr + 1 - 0x4000]).toHexWord());
                     return peripheralROM[addr - 0x4000] << 8 | peripheralROM[addr + 1 - 0x4000];
@@ -359,9 +363,9 @@ export class Memory implements State, MemoryDevice {
         if (this.enableAMS && this.ams.hasRegisterAccess()) {
             this.ams.writeRegister((addr & 0x1F) >> 1, ((w & 0xFF) << 8) | (w >> 8));
         } else if (this.enableTIPI && addr === TIPI.TC_OUT) {
-            this.console.getTIPI().setTC(w >> 8);
+            this.console.getTIPI().setTC(w);
         } else if (this.enableTIPI && addr === TIPI.TD_OUT) {
-            this.console.getTIPI().setTD(w >> 8);
+            this.console.getTIPI().setTD(w);
         }
     }
 

@@ -222,6 +222,8 @@ export class TIPI {
     private cpu: CPU;
     private websocket: WebSocket;
     private websocketOpen: boolean;
+    private td = 0;
+    private tc = 0;
     private rd: number = null;
     private rc: number = null;
 
@@ -251,15 +253,25 @@ export class TIPI {
         };
     }
 
+    getTD(): number {
+        return this.td;
+    }
+
     setTD(value: number) {
         console.log("TIPI write TD: " + Util.toHexByte(value));
+        this.td = value;
         if (this.websocketOpen) {
             this.websocket.send("TD=" + value);
         }
     }
 
+    getTC(): number {
+        return this.tc;
+    }
+
     setTC(value: number) {
         console.log("TIPI write TC: " + Util.toHexByte(value));
+        this.tc = value;
         if (this.websocketOpen) {
             this.websocket.send("TC=" + value);
         }
