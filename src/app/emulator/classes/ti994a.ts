@@ -117,7 +117,7 @@ export class TI994A implements Console, State {
 
     setTIPI() {
         if (this.settings.isTIPIEnabled()) {
-            this.tipi = new TIPI(this.cpu);
+            this.tipi = new TIPI(this.cpu, this.settings.getTIPIWebsocketURI());
         } else {
             this.tipi = null;
         }
@@ -176,6 +176,9 @@ export class TI994A implements Console, State {
         }
         for (let i = 0; i < this.googleDrives.length; i++) {
             this.googleDrives[i].reset();
+        }
+        if (this.tipi) {
+            this.tipi.reset(this.settings.getTIPIWebsocketURI());
         }
         // Other
         this.resetFps();

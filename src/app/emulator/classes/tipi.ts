@@ -227,9 +227,16 @@ export class TIPI {
     private rd: number = null;
     private rc: number = null;
 
-    constructor(cpu: CPU) {
+    constructor(cpu: CPU, websocketURI: string) {
         this.cpu = cpu;
-        this.websocket = new WebSocket("ws://localhost:9901/tipi");
+        this.reset(websocketURI);
+    }
+
+    reset(websocketURI: string) {
+        if (this.websocket) {
+            this.websocket.close();
+        }
+        this.websocket = new WebSocket(websocketURI);
         this.websocket.onopen = (evt) => {
             console.log("TIPI websocket opened");
             this.websocketOpen = true;
@@ -298,6 +305,13 @@ export class TIPI {
         } else {
             console.log("TIPI read RC: not available");
             this.cpu.setSuspended(true);
+        }
+    }
+
+    signalReset() {
+        console.log("TIPI signal reset");
+        if (this.websocketOpen) {
+            this.websocket.send("RESET");
         }
     }
 }

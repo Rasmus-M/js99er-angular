@@ -109,6 +109,10 @@ export class CRU implements State {
                     this.memory.getAMS().setMode(value ? AMS.MAPPING_MODE : AMS.TRANSPARENT_MODE);
                 }
             }
+            // TIPI
+            if (r12Addr === 0x1102 && value && this.memory.isTIPIEnabled()) {
+                this.console.getTIPI().signalReset();
+            }
         } else {
             // Timer
             if (addr === 0) {
