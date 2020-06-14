@@ -178,7 +178,7 @@ export class TI994A implements Console, State {
             this.googleDrives[i].reset();
         }
         if (this.tipi) {
-            this.tipi.reset(this.settings.getTIPIWebsocketURI());
+            this.tipi.signalReset();
         }
         // Other
         this.resetFps();

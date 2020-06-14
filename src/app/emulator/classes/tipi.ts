@@ -226,6 +226,9 @@ export class TIPI {
     private tc = 0;
     private rd: number = null;
     private rc: number = null;
+    private msg = null;
+    private msgidx = 0;
+    private msglen = 0;
 
     constructor(cpu: CPU, websocketURI: string) {
         this.cpu = cpu;
@@ -236,7 +239,9 @@ export class TIPI {
         if (this.websocket) {
             this.websocket.close();
         }
+        console.log("TIPI creating websocket");
         this.websocket = new WebSocket(websocketURI);
+        this.websocket.binaryType = "arraybuffer";
         this.websocket.onopen = (evt) => {
             console.log("TIPI websocket opened");
             this.websocketOpen = true;
@@ -256,6 +261,12 @@ export class TIPI {
                     this.rc = Number(stringMessage.substring(3));
                 }
                 this.cpu.setSuspended(false);
+            } else if (typeof message === "object") {
+                this.msg = new Uint8Array(message); // create a byte view
+                this.msglen = this.msg.length;
+                //console.log("TIPI websocket msg len=" + this.msglen);
+                this.msgidx = -2;
+                this.processMsg();
             }
         };
     }
@@ -265,10 +276,10 @@ export class TIPI {
     }
 
     setTD(value: number) {
-        console.log("TIPI write TD: " + Util.toHexByte(value));
+        //console.log("TIPI write TD: " + Util.toHexByte(value));
         this.td = value;
         if (this.websocketOpen) {
-            this.websocket.send("TD=" + value);
+            //this.websocket.send("TD=" + value);
         }
     }
 
@@ -277,41 +288,75 @@ export class TIPI {
     }
 
     setTC(value: number) {
-        console.log("TIPI write TC: " + Util.toHexByte(value));
+        const changed = (this.tc != value);
+        //console.log("TIPI write TC: " + Util.toHexByte(value));
         this.tc = value;
-        if (this.websocketOpen) {
-            this.websocket.send("TC=" + value);
+        if (this.websocketOpen && changed) {
+            //this.websocket.send("TC=" + value);
+            this.processMsg();
         }
     }
 
     getRD(): number {
-        const value = this.rd;
-        if (value != null) {
-            console.log("TIPI read RD: " + Util.toHexByte(value));
-            this.rd = null;
-            return value;
-        } else {
-            console.log("TIPI read RD: not available");
-            this.cpu.setSuspended(true);
-        }
+        //console.log("TIPI read RD: " + Util.toHexByte(this.rd) + " " + this.rd);
+        return this.rd;
     }
 
     getRC(): number {
-        const value = this.rc;
-        if (value != null) {
-            console.log("TIPI read RC " + Util.toHexByte(value));
-            this.rc = null;
-            return value;
-        } else {
-            console.log("TIPI read RC: not available");
-            this.cpu.setSuspended(true);
-        }
+        //console.log("TIPI read RC: " + Util.toHexByte(this.rc) + " " + this.rc);
+        return this.rc;
     }
 
     signalReset() {
         console.log("TIPI signal reset");
+        if (!this.websocketOpen) {
+            this.reset(this.websocket.url);
+        }
         if (this.websocketOpen) {
             this.websocket.send("RESET");
+        }
+    }
+
+    processMsg() {
+        // do websocket processing
+        //console.log("TIPI process TC: " + Util.toHexByte(this.tc) + " "+this.msgidx + "/"+this.msglen);
+        if (this.tc == 0xf1) { // TSRSET (reset-sync)
+            this.msg = null;
+            this.msgidx = -2;
+            this.rc = this.tc; // ack reset
+            this.websocket.send("SYNC");
+
+        } else if ((this.tc & 0xfe) == 0x02) { // TSWB (write-byte)
+            if (this.msgidx == -2) {
+                this.msglen = this.td << 8;
+            } else if (this.msgidx == -1) {
+                this.msglen += this.td;
+                this.msg = new Uint8Array(new ArrayBuffer(this.msglen));
+            } else if (this.msg != null) {
+                this.msg[this.msgidx] = this.td;
+                if (this.msgidx+1 == this.msglen) {
+                    this.websocket.send(this.msg.buffer);
+                    //console.log("Sending msg len="+this.msglen);
+                    this.msg = null;
+                }
+            }
+            this.msgidx++;
+            this.rc = this.tc; // ack
+
+        } else if ((this.tc & 0xfe) == 0x06) { // TSRB (read-byte)
+            if (this.msg != null) {
+                if (this.msgidx == -2) {
+                    this.rd = (this.msglen >> 8) & 0xff;
+                } else if (this.msgidx == -1) {
+                    this.rd = this.msglen & 0xff;
+                } else {
+                    this.rd = this.msg[this.msgidx];
+                }
+                this.msgidx++;
+                this.rc = this.tc; // ack
+            }
+        } else {
+            //console.log("TIPI write TC: " + Util.toHexByte(this.tc) + " (protocol error)");
         }
     }
 }
