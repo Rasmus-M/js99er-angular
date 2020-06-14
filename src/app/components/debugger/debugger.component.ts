@@ -48,7 +48,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         private element: ElementRef,
         private disassemblerService: DisassemblerService,
         private eventDispatcherService: EventDispatcherService,
-        private commandDispatcherService: CommandDispatcherService,
+        private commandDispatcherService: CommandDispatcherService
     ) {}
 
 

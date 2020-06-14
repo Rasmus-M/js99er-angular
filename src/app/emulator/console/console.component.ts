@@ -197,6 +197,9 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         this.ti994A.getMemory().setTIPIEnabled(value);
                         resetRequired = true;
                         break;
+                    case Setting.TIPI_WEBSOCKET_URI:
+                        resetRequired = this.settingsService.isTIPIEnabled();
+                        break;
                 }
                 if (resetRequired) {
                     this.reset();

@@ -698,6 +698,10 @@ export class Memory implements State, MemoryDevice {
         return this.groms;
     }
 
+    isTIPIEnabled(): boolean {
+        return this.enableTIPI;
+    }
+
     isAMSEnabled(): boolean {
         return this.enableAMS;
     }
