@@ -3,6 +3,7 @@ import {SettingsService} from '../../services/settings.service';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {Subscription} from 'rxjs/Subscription';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
+import {CommandDispatcherService} from "../../services/command-dispatcher.service";
 
 @Component({
     selector: 'app-settings',
@@ -23,12 +24,15 @@ export class SettingsComponent implements OnInit {
     enableGRAM: boolean;
     enablePixelated: boolean;
     enablePauseOnFocusLost: boolean;
+    enableTIPI: boolean;
+    tipiWebsocketURI: string;
 
     private subscription: Subscription;
 
     constructor(
         private settingsService: SettingsService,
-        private eventDispatcherService: EventDispatcherService
+        private eventDispatcherService: EventDispatcherService,
+        private commandDispatcherService: CommandDispatcherService
     ) {
     }
 
@@ -50,6 +54,8 @@ export class SettingsComponent implements OnInit {
         this.enableGRAM = this.settingsService.isGRAMEnabled();
         this.enablePixelated = this.settingsService.isPixelatedEnabled();
         this.enablePauseOnFocusLost = this.settingsService.isPauseOnFocusLostEnabled();
+        this.enableTIPI = this.settingsService.isTIPIEnabled();
+        this.tipiWebsocketURI  = this.settingsService.getTIPIWebsocketURI();
     }
 
     onEvent(event: ConsoleEvent) {
@@ -110,5 +116,21 @@ export class SettingsComponent implements OnInit {
 
     onEnablePauseOnFocusLostChanged(value) {
         this.settingsService.setPauseOnFocusLostEnabled(value);
+    }
+
+    onEnableTIPIChanged(value) {
+        this.settingsService.setTIPIEnabled(value);
+    }
+
+    onTIPIWebsocketURIChanged(value) {
+        this.settingsService.setTIPIWebsocketURI(value);
+    }
+
+    onTextFocus() {
+        this.commandDispatcherService.stopKeyboard();
+    }
+
+    onTextBlur() {
+        this.commandDispatcherService.startKeyboard();
     }
 }

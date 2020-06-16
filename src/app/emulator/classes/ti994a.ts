@@ -21,6 +21,7 @@ import {Speech} from '../interfaces/speech';
 import {DiskDrive} from './diskdrive';
 import {DiskImage} from './diskimage';
 import {Console} from "../interfaces/console";
+import {TIPI} from "./tipi";
 
 export class TI994A implements Console, State {
 
@@ -43,6 +44,7 @@ export class TI994A implements Console, State {
     private tape: Tape;
     private diskDrives: DiskDrive[];
     private googleDrives: GoogleDrive[];
+    private tipi: TIPI;
 
     private cpuSpeed: number;
     private frameCount: number;
@@ -89,6 +91,7 @@ export class TI994A implements Console, State {
             new DiskDrive("DSK3", diskImages[2], this)
         ];
         this.setGoogleDrive();
+        this.setTIPI();
         this.speech.setCPU(this.cpu);
     }
 
@@ -109,6 +112,14 @@ export class TI994A implements Console, State {
             ];
         } else {
             this.googleDrives = [];
+        }
+    }
+
+    setTIPI() {
+        if (this.settings.isTIPIEnabled()) {
+            this.tipi = new TIPI(this.cpu, this.settings.getTIPIWebsocketURI());
+        } else {
+            this.tipi = null;
         }
     }
 
@@ -142,6 +153,9 @@ export class TI994A implements Console, State {
     getGoogleDrives(): GoogleDrive[] {
         return this.googleDrives;
     }
+    getTIPI(): TIPI {
+        return this.tipi;
+    }
 
     isRunning() {
         return this.running;
@@ -162,6 +176,9 @@ export class TI994A implements Console, State {
         }
         for (let i = 0; i < this.googleDrives.length; i++) {
             this.googleDrives[i].reset();
+        }
+        if (this.tipi) {
+            this.tipi.signalReset();
         }
         // Other
         this.resetFps();

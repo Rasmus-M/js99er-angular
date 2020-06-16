@@ -57,6 +57,12 @@ export class SettingsService {
             if (storage.getItem('enablePauseOnFocusLost') != null) {
                 this.settings.setPauseOnFocusLostEnabled(storage.getItem('enablePauseOnFocusLost') === 'true');
             }
+            if (storage.getItem('enableTIPI') != null) {
+                this.settings.setTIPIEnabled(storage.getItem('enableTIPI') === 'true');
+            }
+            if (storage.getItem('TIPIWebsocketURI') != null) {
+                this.settings.setTIPIWebsocketURI(storage.getItem('TIPIWebsocketURI'));
+            }
             this.storage = storage;
         }
     }
@@ -239,6 +245,32 @@ export class SettingsService {
             }
             this.commandDispatcherService.changeSetting(Setting.PAUSE_ON_FOCUS_LOST, enabled);
         }
+    }
+
+    isTIPIEnabled() {
+        return this.settings.isTIPIEnabled();
+    }
+
+    setTIPIEnabled(enabled) {
+        if (enabled !== this.settings.isTIPIEnabled()) {
+            this.settings.setTIPIEnabled(enabled);
+            if (this.persistent && this.storage) {
+                this.storage.setItem('enableTIPI', enabled);
+            }
+            this.commandDispatcherService.changeSetting(Setting.TIPI, enabled);
+        }
+    }
+
+    getTIPIWebsocketURI() {
+        return this.settings.getTIPIWebsocketURI();
+    }
+
+    setTIPIWebsocketURI(value: string) {
+        this.settings.setTIPIWebsocketURI(value);
+        if (this.persistent && this.storage) {
+            this.storage.setItem('TIPIWebsocketURI', value);
+        }
+        this.commandDispatcherService.changeSetting(Setting.TIPI_WEBSOCKET_URI, value);
     }
 
     restoreSettings(settings: Settings) {

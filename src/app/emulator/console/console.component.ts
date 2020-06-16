@@ -193,6 +193,13 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                     case Setting.PAUSE_ON_FOCUS_LOST:
                         // Handled by main component
                         break;
+                    case Setting.TIPI:
+                        this.ti994A.getMemory().setTIPIEnabled(value);
+                        resetRequired = true;
+                        break;
+                    case Setting.TIPI_WEBSOCKET_URI:
+                        resetRequired = this.settingsService.isTIPIEnabled();
+                        break;
                 }
                 if (resetRequired) {
                     this.reset();
