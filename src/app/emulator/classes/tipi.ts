@@ -249,6 +249,7 @@ export class TIPI {
         this.websocket.onclose = (evt) => {
             console.log("TIPI websocket closed");
             this.websocketOpen = false;
+            window.setTimeout(function(x,y){ return function() { x.reset(y);} }(this, this.websocket.url), 3000);
         };
         this.websocket.onmessage = (evt) => {
             const message = evt.data;
@@ -309,9 +310,6 @@ export class TIPI {
 
     signalReset() {
         console.log("TIPI signal reset");
-        if (!this.websocketOpen) {
-            this.reset(this.websocket.url);
-        }
         if (this.websocketOpen) {
             this.websocket.send("RESET");
         }
