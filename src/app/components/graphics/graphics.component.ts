@@ -27,6 +27,7 @@ export class GraphicsComponent implements OnInit, AfterViewInit, OnChanges {
     tileCanvasMiddleVisible = false;
     tileCanvasBottomVisible = false;
     spriteCanvasVisible = true;
+    faDownload: any;
 
     constructor(
         private element: ElementRef,

@@ -271,6 +271,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.ti994A.getKeyboard().start();
                 break;
             case CommandType.START_RECORDING:
+                // @ts-ignore
                 const stream = this.canvas.captureStream();
                 const audioStream = this.audioService.getMediaStream();
                 if (audioStream) {

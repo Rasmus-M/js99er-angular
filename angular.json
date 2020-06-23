@@ -22,8 +22,7 @@
               "src/favicon.ico"
             ],
             "styles": [
-              "src/styles.scss",
-              "node_modules/font-awesome/css/font-awesome.css"
+              "src/styles.scss"
             ]
           },
           "configurations": {
@@ -81,8 +80,7 @@
               "node_modules/zip-js/WebContent/zip-ext.js"
             ],
             "styles": [
-              "src/styles.scss",
-              "node_modules/font-awesome/css/font-awesome.css"
+              "src/styles.scss"
             ],
             "assets": [
               "src/assets",
