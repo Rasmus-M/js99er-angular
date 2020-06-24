@@ -1,4 +1,4 @@
-<button mat-raised-button color="primary" [matMenuTriggerFor]="menu" [matMenuTriggerData]="menuData"><fa-icon [icon]="faBars"></fa-icon> Software...</button>
+<button mat-raised-button color="primary" [matMenuTriggerFor]="menu" [matMenuTriggerData]="menuData"><fa-icon [icon]="menuIcon"></fa-icon> Software...</button>
 <mat-menu #menu="matMenu" yPosition="above" >
     <ng-template matMenuContent let-items="items">
         <ng-container *ngFor="let item of items">

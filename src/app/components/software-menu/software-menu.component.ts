@@ -17,7 +17,7 @@ import { faBars } from '@fortawesome/free-solid-svg-icons';
 export class SoftwareMenuComponent implements OnInit {
 
     menuData: any;
-    faBars = faBars;
+    menuIcon = faBars;
 
     private log: Log = Log.getLog();
 

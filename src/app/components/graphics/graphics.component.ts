@@ -4,6 +4,7 @@ import {TI994A} from "../../emulator/classes/ti994a";
 import {ConsoleEvent, ConsoleEventType} from "../../classes/consoleevent";
 import {EventDispatcherService} from "../../services/event-dispatcher.service";
 import {saveAs} from 'file-saver';
+import { faDownload } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
     selector: 'app-graphics',
@@ -27,7 +28,7 @@ export class GraphicsComponent implements OnInit, AfterViewInit, OnChanges {
     tileCanvasMiddleVisible = false;
     tileCanvasBottomVisible = false;
     spriteCanvasVisible = true;
-    faDownload: any;
+    dumpRAMIcon = faDownload;
 
     constructor(
         private element: ElementRef,
