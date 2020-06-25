@@ -1,4 +1,5 @@
 import {CPU} from "../interfaces/cpu";
+import {Log} from "../../classes/log";
 
 export class TIPI {
 
@@ -220,6 +221,7 @@ export class TIPI {
 
     private cpu: CPU;
     private websocket: WebSocket;
+    private websocketURI: string;
     private websocketOpen: boolean;
     private td = 0;
     private tc = 0;
@@ -231,7 +233,7 @@ export class TIPI {
 
     constructor(cpu: CPU, websocketURI: string) {
         this.cpu = cpu;
-        this.reset(websocketURI);
+        this.websocketURI = websocketURI;
     }
 
     reset(websocketURI: string) {
