@@ -55,6 +55,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         this.canvas = this.element.nativeElement.querySelector('canvas');
         $(this.canvas).toggleClass("pixelated", this.settingsService.isPixelatedEnabled());
         this.ti994A = this.consoleFactoryService.create(document, this.canvas, this.diskImages, this.settingsService.getSettings(), this.onBreakpoint.bind(this));
+        this.ti994A.reset(false);
         this.eventDispatcherService.ready(this.ti994A);
     }
 
@@ -195,9 +196,11 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         break;
                     case Setting.TIPI:
                         this.ti994A.getMemory().setTIPIEnabled(value);
+                        this.ti994A.setTIPI();
                         resetRequired = true;
                         break;
                     case Setting.TIPI_WEBSOCKET_URI:
+                        this.ti994A.setTIPI();
                         resetRequired = this.settingsService.isTIPIEnabled();
                         break;
                 }
@@ -271,6 +274,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.ti994A.getKeyboard().start();
                 break;
             case CommandType.START_RECORDING:
+                // @ts-ignore
                 const stream = this.canvas.captureStream();
                 const audioStream = this.audioService.getMediaStream();
                 if (audioStream) {

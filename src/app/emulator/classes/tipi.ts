@@ -1,5 +1,5 @@
-import {Util} from "../../classes/util";
 import {CPU} from "../interfaces/cpu";
+import {Log} from "../../classes/log";
 
 export class TIPI {
 
@@ -221,6 +221,7 @@ export class TIPI {
 
     private cpu: CPU;
     private websocket: WebSocket;
+    private websocketURI: string;
     private websocketOpen: boolean;
     private td = 0;
     private tc = 0;
@@ -232,44 +233,49 @@ export class TIPI {
 
     constructor(cpu: CPU, websocketURI: string) {
         this.cpu = cpu;
-        this.reset(websocketURI);
+        this.websocketURI = websocketURI;
     }
 
-    reset(websocketURI: string) {
-        if (this.websocket) {
-            this.websocket.close();
-        }
-        console.log("TIPI creating websocket");
-        this.websocket = new WebSocket(websocketURI);
-        this.websocket.binaryType = "arraybuffer";
-        this.websocket.onopen = (evt) => {
-            console.log("TIPI websocket opened");
-            this.websocketOpen = true;
-        };
-        this.websocket.onclose = (evt) => {
-            console.log("TIPI websocket closed");
-            this.websocketOpen = false;
-            window.setTimeout(function(x,y){ return function() { x.reset(y);} }(this, this.websocket.url), 3000);
-        };
-        this.websocket.onmessage = (evt) => {
-            const message = evt.data;
-            if (typeof message === "string") {
-                const stringMessage: string = message;
-                const prefix = stringMessage.substring(0, 3);
-                if (prefix === "RD=") {
-                    this.rd = Number(stringMessage.substring(3));
-                } else if (prefix === "RC=") {
-                    this.rc = Number(stringMessage.substring(3));
-                }
+    reset() {
+        if (!this.websocket || !this.websocketOpen) {
+            console.log("TIPI creating websocket");
+            this.websocket = new WebSocket(this.websocketURI);
+            this.websocket.binaryType = "arraybuffer";
+            this.websocket.onopen = (evt) => {
+                console.log("TIPI websocket opened");
+                Log.getLog().info("TIPI websocket opened");
+                this.websocketOpen = true;
                 this.cpu.setSuspended(false);
-            } else if (typeof message === "object") {
-                this.msg = new Uint8Array(message); // create a byte view
-                this.msglen = this.msg.length;
-                //console.log("TIPI websocket msg len=" + this.msglen);
-                this.msgidx = -2;
-                this.processMsg();
-            }
-        };
+            };
+            this.websocket.onclose = (evt) => {
+                console.log("TIPI websocket closed");
+                this.websocketOpen = false;
+                this.cpu.setSuspended(true);
+                window.setTimeout(
+                    () => {
+                        this.reset();
+                    }, 2000
+                );
+            };
+            this.websocket.onmessage = (evt) => {
+                const message = evt.data;
+                if (typeof message === "string") {
+                    const stringMessage: string = message;
+                    const prefix = stringMessage.substring(0, 3);
+                    if (prefix === "RD=") {
+                        this.rd = Number(stringMessage.substring(3));
+                    } else if (prefix === "RC=") {
+                        this.rc = Number(stringMessage.substring(3));
+                    }
+                } else if (typeof message === "object") {
+                    this.msg = new Uint8Array(message); // create a byte view
+                    this.msglen = this.msg.length;
+                    // console.log("TIPI websocket msg len=" + this.msglen);
+                    this.msgidx = -2;
+                    this.processMsg();
+                }
+            };
+        }
     }
 
     getTD(): number {
@@ -277,10 +283,10 @@ export class TIPI {
     }
 
     setTD(value: number) {
-        //console.log("TIPI write TD: " + Util.toHexByte(value));
+        // console.log("TIPI write TD: " + Util.toHexByte(value));
         this.td = value;
         if (this.websocketOpen) {
-            //this.websocket.send("TD=" + value);
+            // this.websocket.send("TD=" + value);
         }
     }
 
@@ -289,63 +295,62 @@ export class TIPI {
     }
 
     setTC(value: number) {
-        const changed = (this.tc != value);
-        //console.log("TIPI write TC: " + Util.toHexByte(value));
+        const changed = (this.tc !== value);
+        // console.log("TIPI write TC: " + Util.toHexByte(value));
         this.tc = value;
         if (this.websocketOpen && changed) {
-            //this.websocket.send("TC=" + value);
+            // this.websocket.send("TC=" + value);
             this.processMsg();
         }
     }
 
     getRD(): number {
-        //console.log("TIPI read RD: " + Util.toHexByte(this.rd) + " " + this.rd);
+        // console.log("TIPI read RD: " + Util.toHexByte(this.rd) + " " + this.rd);
         return this.rd;
     }
 
     getRC(): number {
-        //console.log("TIPI read RC: " + Util.toHexByte(this.rc) + " " + this.rc);
+        // console.log("TIPI read RC: " + Util.toHexByte(this.rc) + " " + this.rc);
         return this.rc;
     }
 
     signalReset() {
         console.log("TIPI signal reset");
         if (this.websocketOpen) {
+            // This will close the websocket
             this.websocket.send("RESET");
         }
     }
 
     processMsg() {
         // do websocket processing
-        //console.log("TIPI process TC: " + Util.toHexByte(this.tc) + " "+this.msgidx + "/"+this.msglen);
-        if (this.tc == 0xf1) { // TSRSET (reset-sync)
+        // console.log("TIPI process TC: " + Util.toHexByte(this.tc) + " "+this.msgidx + "/"+this.msglen);
+        if (this.tc === 0xf1) { // TSRSET (reset-sync)
             this.msg = null;
             this.msgidx = -2;
             this.rc = this.tc; // ack reset
             this.websocket.send("SYNC");
-
-        } else if ((this.tc & 0xfe) == 0x02) { // TSWB (write-byte)
-            if (this.msgidx == -2) {
+        } else if ((this.tc & 0xfe) === 0x02) { // TSWB (write-byte)
+            if (this.msgidx === -2) {
                 this.msglen = this.td << 8;
-            } else if (this.msgidx == -1) {
+            } else if (this.msgidx === -1) {
                 this.msglen += this.td;
                 this.msg = new Uint8Array(new ArrayBuffer(this.msglen));
             } else if (this.msg != null) {
                 this.msg[this.msgidx] = this.td;
-                if (this.msgidx+1 == this.msglen) {
+                if (this.msgidx + 1 === this.msglen) {
                     this.websocket.send(this.msg.buffer);
-                    //console.log("Sending msg len="+this.msglen);
+                    // console.log("Sending msg len="+this.msglen);
                     this.msg = null;
                 }
             }
             this.msgidx++;
             this.rc = this.tc; // ack
-
-        } else if ((this.tc & 0xfe) == 0x06) { // TSRB (read-byte)
+        } else if ((this.tc & 0xfe) === 0x06) { // TSRB (read-byte)
             if (this.msg != null) {
-                if (this.msgidx == -2) {
+                if (this.msgidx === -2) {
                     this.rd = (this.msglen >> 8) & 0xff;
-                } else if (this.msgidx == -1) {
+                } else if (this.msgidx === -1) {
                     this.rd = this.msglen & 0xff;
                 } else {
                     this.rd = this.msg[this.msgidx];
@@ -354,7 +359,14 @@ export class TIPI {
                 this.rc = this.tc; // ack
             }
         } else {
-            //console.log("TIPI write TC: " + Util.toHexByte(this.tc) + " (protocol error)");
+            // console.log("TIPI write TC: " + Util.toHexByte(this.tc) + " (protocol error)");
+        }
+    }
+
+    close() {
+        if (this.websocket) {
+            this.websocket.onclose = null;
+            this.websocket.close();
         }
     }
 }

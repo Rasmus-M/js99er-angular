@@ -25,6 +25,7 @@ import {Tape} from "../classes/tape";
 import {Software} from "../../classes/software";
 import {VDP} from "../interfaces/vdp";
 import {AudioService} from "../../services/audio.service";
+import {TIPI} from "../classes/tipi";
 
 class ConsoleMock implements Console {
     frame() {
@@ -76,6 +77,11 @@ class ConsoleMock implements Console {
     stepOver() {
     }
     stop() {
+    }
+    getTIPI(): TIPI {
+        return undefined;
+    }
+    setTIPI() {
     }
 }
 

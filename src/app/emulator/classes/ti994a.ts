@@ -72,8 +72,6 @@ export class TI994A implements Console, State {
         this.running = false;
         this.cpuFlag = true;
         this.log = Log.getLog();
-
-        this.reset(false);
     }
 
     assemble(diskImages: DiskImage[]) {
@@ -116,6 +114,9 @@ export class TI994A implements Console, State {
     }
 
     setTIPI() {
+        if (this.tipi) {
+            this.tipi.close();
+        }
         if (this.settings.isTIPIEnabled()) {
             this.tipi = new TIPI(this.cpu, this.settings.getTIPIWebsocketURI());
         } else {
@@ -178,7 +179,7 @@ export class TI994A implements Console, State {
             this.googleDrives[i].reset();
         }
         if (this.tipi) {
-            this.tipi.signalReset();
+            this.tipi.reset();
         }
         // Other
         this.resetFps();

@@ -3,6 +3,7 @@ import {CommandDispatcherService} from '../../services/command-dispatcher.servic
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {Subscription} from 'rxjs/Subscription';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
+import { faForward, faFastForward, faStepForward, faStop, faCreditCard, faCamera, faArrowCircleRight, faArrowCircleLeft, faCircle, faPlay, faSave, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
     selector: 'app-main-controls',
@@ -16,6 +17,19 @@ export class MainControlsComponent implements OnInit, OnDestroy {
     recording = false;
 
     driveIndex = 0;
+
+    recIcon = faCircle;
+    startIcon = faPlay;
+    fastIcon = faForward;
+    frameIcon = faFastForward;
+    stepIcon = faStepForward;
+    stopIcon = faStop;
+    resetIcon = faSyncAlt;
+    openModuleIcon = faCreditCard;
+    openDiskIcon = faSave;
+    screenshotIcon = faCamera;
+    saveStateIcon = faArrowCircleRight;
+    restoreStateIcon = faArrowCircleLeft;
 
     private subscription: Subscription;
 

@@ -564,6 +564,7 @@ export class TMS9918A implements VDP {
     }
 
     hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
+        const mask = width - 1;
         const lines: string[] = [];
         let anchorLine: number = null;
         let addr = start;
@@ -574,13 +575,13 @@ export class TMS9918A implements VDP {
             if (anchorAddr === addr) {
                 anchorLine = lineNo;
             }
-            if ((i & 0xF) === 0) {
+            if ((i & mask) === 0) {
                 line += Util.toHexWord(addr) + ': ';
             }
             const byte = this.ram[addr];
             line += Util.toHexByteShort(byte);
             ascii += byte >= 32 && byte < 127 ? String.fromCharCode(byte) : "\u25a1";
-            if ((i & 0xF) === 0xF) {
+            if ((i & mask) === mask) {
                 line += " " + ascii;
                 lines.push(line);
                 line = "";

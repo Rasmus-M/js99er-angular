@@ -1,23 +1,23 @@
 <mat-toolbar class="toolbar">
-    <button mat-raised-button color="warn" class="toolbar-button" (click)="record()" [disabled]="recording || !running"><fa name="circle"></fa> Rec</button>
-    <button mat-raised-button color="primary" class="toolbar-button" (click)="start()" [disabled]="running && !runningFast"><fa name="play"></fa> Start</button>
-    <button mat-raised-button class="toolbar-button" (click)="fast()" [disabled]="running && runningFast"><fa name="forward"></fa> Fast</button>
-    <button mat-raised-button class="toolbar-button" (click)="frame()" [disabled]="running"><fa name="fast-forward"></fa> Frame</button>
-    <button mat-raised-button class="toolbar-button" (click)="step($event)" [disabled]="running"><fa name="step-forward"></fa> Step</button>
-    <button mat-raised-button class="toolbar-button" (click)="stop()" [disabled]="!running"><fa name="stop"></fa> Stop</button>
-    <button mat-raised-button color="warn" class="toolbar-button" (click)="reset()"><fa name="refresh"></fa> Reset</button>
+    <button mat-raised-button color="warn" class="toolbar-button" (click)="record()" [disabled]="recording || !running"><fa-icon [icon]="recIcon"></fa-icon> Rec</button>
+    <button mat-raised-button color="primary" class="toolbar-button" (click)="start()" [disabled]="running && !runningFast"><fa-icon [icon]="startIcon"></fa-icon> Start</button>
+    <button mat-raised-button class="toolbar-button" (click)="fast()" [disabled]="running && runningFast"><fa-icon [icon]="fastIcon"></fa-icon> Fast</button>
+    <button mat-raised-button class="toolbar-button" (click)="frame()" [disabled]="running"><fa-icon [icon]="frameIcon"></fa-icon> Frame</button>
+    <button mat-raised-button class="toolbar-button" (click)="step($event)" [disabled]="running"><fa-icon [icon]="stepIcon"></fa-icon> Step</button>
+    <button mat-raised-button class="toolbar-button" (click)="stop()" [disabled]="!running"><fa-icon [icon]="stopIcon"></fa-icon> Stop</button>
+    <button mat-raised-button color="warn" class="toolbar-button" (click)="reset()"><fa-icon [icon]="resetIcon"></fa-icon> Reset</button>
     <span class="margin-right"></span>
     <button mat-raised-button class="toolbar-button" (click)="fileInputModule.click()">
-        <fa name="credit-card"></fa> Load Cart<input #fileInputModule type="file" (change)="openModule(fileInputModule)" [hidden]="true"/>
+        <fa-icon [icon]="openModuleIcon"></fa-icon> Load Cart<input #fileInputModule type="file" (change)="openModule(fileInputModule)" [hidden]="true"/>
     </button>
     <button mat-raised-button class="toolbar-button" (click)="fileInputDisk.click()">
-        <fa name="floppy-o"></fa> Load Disk<input #fileInputDisk type="file" (change)="openDisk(fileInputDisk)" [hidden]="true" multiple="multiple"/>
+        <fa-icon [icon]="openDiskIcon"></fa-icon> Load Disk<input #fileInputDisk type="file" (change)="openDisk(fileInputDisk)" [hidden]="true" multiple="multiple"/>
     </button>
     <app-software-menu class="toolbar-button"></app-software-menu>
     <span class="margin-right"></span>
-    <a mat-raised-button class="toolbar-button" (click)="screenshot()"><fa name="camera"></fa> Screenshot</a>
+    <a mat-raised-button class="toolbar-button" (click)="screenshot()"><fa-icon [icon]="screenshotIcon"></fa-icon> Screenshot</a>
     <span class="margin-right"></span>
-    <button mat-raised-button class="toolbar-button" (click)="saveState()"><fa name="download"></fa> Save State</button>
-    <button mat-raised-button class="toolbar-button" (click)="restoreState()"><fa name="upload"></fa> Restore State</button>
+    <button mat-raised-button class="toolbar-button" (click)="saveState()"><fa-icon [icon]="saveStateIcon"></fa-icon> Save State</button>
+    <button mat-raised-button class="toolbar-button" (click)="restoreState()"><fa-icon [icon]="restoreStateIcon"></fa-icon> Restore State</button>
 </mat-toolbar>
 <a id="download-link" style="display: none"></a>

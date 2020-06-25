@@ -7,6 +7,7 @@ import {Subscription} from 'rxjs/Subscription';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
 import {Tape} from '../../emulator/classes/tape';
 import {Log} from '../../classes/log';
+import { faUpload, faDownload, faCircle, faPlay, faBackward, faStop } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
     selector: 'app-tape',
@@ -23,6 +24,13 @@ export class TapeComponent implements OnInit, OnDestroy {
     private subscription: Subscription;
     private tape: Tape;
     private log: Log = Log.getLog();
+
+    openTapeIcon = faUpload;
+    saveTapeIcon = faDownload;
+    recordIcon = faCircle;
+    playIcon = faPlay;
+    rewindIcon = faBackward;
+    stopIcon = faStop;
 
     constructor(
         private commandDispatcherService: CommandDispatcherService,

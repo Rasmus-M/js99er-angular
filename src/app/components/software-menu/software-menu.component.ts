@@ -7,6 +7,7 @@ import {Log} from '../../classes/log';
 import {MoreSoftwareComponent} from '../more-software/more-software.component';
 import { MatDialog } from '@angular/material/dialog';
 import {MoreSoftwareService} from '../../services/more-software.service';
+import { faBars } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
     selector: 'app-software-menu',
@@ -16,6 +17,7 @@ import {MoreSoftwareService} from '../../services/more-software.service';
 export class SoftwareMenuComponent implements OnInit {
 
     menuData: any;
+    menuIcon = faBars;
 
     private log: Log = Log.getLog();
 

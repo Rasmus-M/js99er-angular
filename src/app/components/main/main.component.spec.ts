@@ -9,6 +9,8 @@ import {SettingsService} from "../../services/settings.service";
 import {DiskService} from "../../services/disk.service";
 import {ModuleService} from "../../services/module.service";
 import {HttpClient} from "@angular/common/http";
+import {Observable} from "rxjs";
+import {MoreSoftwareService} from "../../services/more-software.service";
 
 describe('MainComponent', () => {
     let component: MainComponent;
@@ -19,15 +21,22 @@ describe('MainComponent', () => {
             schemas: [NO_ERRORS_SCHEMA],
             declarations: [MainComponent],
             providers: [
-                {provide: ActivatedRoute},
+                {provide: ActivatedRoute, useValue: {
+                    paramMap: {
+                        subscribe: () => {}
+                    },
+                }},
                 {provide: AudioService},
                 {provide: CommandDispatcherService},
                 {provide: SettingsService},
                 {provide: DiskService},
-                {provide: ModuleService},
-                {provide: HttpClient}
+                {provide: ModuleService, useValue: {}},
+                {provide: HttpClient},
+                {provide: DiskService, useValue: {
+                    createDefaultDiskImages: () => {}
+                }},
+                {provide: MoreSoftwareService, useValue: {}}
             ]
-
         }).compileComponents();
     }));
 
