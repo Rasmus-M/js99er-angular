@@ -236,46 +236,46 @@ export class TIPI {
         this.websocketURI = websocketURI;
     }
 
-    reset(websocketURI: string) {
-        if (this.websocket) {
-            this.websocket.close();
-        }
-        console.log("TIPI creating websocket");
-        this.websocket = new WebSocket(websocketURI);
-        this.websocket.binaryType = "arraybuffer";
-        this.websocket.onopen = (evt) => {
-            console.log("TIPI websocket opened");
-            this.websocketOpen = true;
-        };
-        this.websocket.onclose = (evt) => {
-            console.log("TIPI websocket closed");
-            this.websocketOpen = false;
-            window.setTimeout(
-                function (x, y) {
-                    return function() { x.reset(y); };
-                } (this, this.websocket.url),
-                3000
-            );
-        };
-        this.websocket.onmessage = (evt) => {
-            const message = evt.data;
-            if (typeof message === "string") {
-                const stringMessage: string = message;
-                const prefix = stringMessage.substring(0, 3);
-                if (prefix === "RD=") {
-                    this.rd = Number(stringMessage.substring(3));
-                } else if (prefix === "RC=") {
-                    this.rc = Number(stringMessage.substring(3));
-                }
+    reset() {
+        if (!this.websocket || !this.websocketOpen) {
+            console.log("TIPI creating websocket");
+            this.websocket = new WebSocket(this.websocketURI);
+            this.websocket.binaryType = "arraybuffer";
+            this.websocket.onopen = (evt) => {
+                console.log("TIPI websocket opened");
+                Log.getLog().info("TIPI websocket opened");
+                this.websocketOpen = true;
                 this.cpu.setSuspended(false);
-            } else if (typeof message === "object") {
-                this.msg = new Uint8Array(message); // create a byte view
-                this.msglen = this.msg.length;
-                // console.log("TIPI websocket msg len=" + this.msglen);
-                this.msgidx = -2;
-                this.processMsg();
-            }
-        };
+            };
+            this.websocket.onclose = (evt) => {
+                console.log("TIPI websocket closed");
+                this.websocketOpen = false;
+                this.cpu.setSuspended(true);
+                window.setTimeout(
+                    () => {
+                        this.reset();
+                    }, 2000
+                );
+            };
+            this.websocket.onmessage = (evt) => {
+                const message = evt.data;
+                if (typeof message === "string") {
+                    const stringMessage: string = message;
+                    const prefix = stringMessage.substring(0, 3);
+                    if (prefix === "RD=") {
+                        this.rd = Number(stringMessage.substring(3));
+                    } else if (prefix === "RC=") {
+                        this.rc = Number(stringMessage.substring(3));
+                    }
+                } else if (typeof message === "object") {
+                    this.msg = new Uint8Array(message); // create a byte view
+                    this.msglen = this.msg.length;
+                    // console.log("TIPI websocket msg len=" + this.msglen);
+                    this.msgidx = -2;
+                    this.processMsg();
+                }
+            };
+        }
     }
 
     getTD(): number {
@@ -317,6 +317,7 @@ export class TIPI {
     signalReset() {
         console.log("TIPI signal reset");
         if (this.websocketOpen) {
+            // This will close the websocket
             this.websocket.send("RESET");
         }
     }
@@ -359,6 +360,13 @@ export class TIPI {
             }
         } else {
             // console.log("TIPI write TC: " + Util.toHexByte(this.tc) + " (protocol error)");
+        }
+    }
+
+    close() {
+        if (this.websocket) {
+            this.websocket.onclose = null;
+            this.websocket.close();
         }
     }
 }
