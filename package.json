@@ -29,7 +29,7 @@
     "file-saver": "^2.0.2",
     "gapi-client": "0.0.3",
     "image-map-resizer": "^1.0.10",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "rxjs": "^6.5.5",
     "rxjs-compat": "^6.5.4",
     "tslib": "^1.10.0",
