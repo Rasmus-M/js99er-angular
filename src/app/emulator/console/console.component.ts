@@ -309,15 +309,17 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     onCanvasClick(evt) {
-        const rect = this.canvas.getBoundingClientRect();
-        const scale = this.canvas.clientHeight / 240;
-        const tiX = Math.floor((evt.clientX - rect.left) / scale);
-        const tiY = Math.floor((evt.clientY - rect.top) / scale);
-        let charCode = this.ti994A.getVDP().getCharAt(tiX, tiY);
-        if (charCode > 0) {
-            charCode = charCode >= 128 ? charCode - 96 : charCode;
-            this.log.info("Click at (" + tiX + "," + tiY + "). Simulated keypress: " + String.fromCharCode(charCode));
-            this.ti994A.getKeyboard().simulateKeyPress(charCode, null);
+        if (this.settingsService.isTIPIEnabled() === false) {
+            const rect = this.canvas.getBoundingClientRect();
+            const scale = this.canvas.clientHeight / 240;
+            const tiX = Math.floor((evt.clientX - rect.left) / scale);
+            const tiY = Math.floor((evt.clientY - rect.top) / scale);
+            let charCode = this.ti994A.getVDP().getCharAt(tiX, tiY);
+            if (charCode > 0) {
+                charCode = charCode >= 128 ? charCode - 96 : charCode;
+                this.log.info("Click at (" + tiX + "," + tiY + "). Simulated keypress: " + String.fromCharCode(charCode));
+                this.ti994A.getKeyboard().simulateKeyPress(charCode, null);
+            }
         }
     }
 
