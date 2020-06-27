@@ -118,7 +118,7 @@ export class TI994A implements Console, State {
             this.tipi.close();
         }
         if (this.settings.isTIPIEnabled()) {
-            this.tipi = new TIPI(this.cpu, this.settings.getTIPIWebsocketURI());
+            this.tipi = new TIPI(this.cpu, this.settings.getTIPIWebsocketURI(), this.canvas);
         } else {
             this.tipi = null;
         }

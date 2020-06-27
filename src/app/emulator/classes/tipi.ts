@@ -220,6 +220,7 @@ export class TIPI {
     ];
 
     private cpu: CPU;
+    private canvas: HTMLCanvasElement = null;
     private websocket: WebSocket;
     private websocketURI: string;
     private websocketOpen: boolean;
@@ -230,10 +231,13 @@ export class TIPI {
     private msg = null;
     private msgidx = 0;
     private msglen = 0;
+    private mouseX = -1;
+    private mouseY = -1;
 
-    constructor(cpu: CPU, websocketURI: string) {
+    constructor(cpu: CPU, websocketURI: string, canvas: HTMLCanvasElement) {
         this.cpu = cpu;
         this.websocketURI = websocketURI;
+        this.canvas = canvas;
     }
 
     reset() {
@@ -275,6 +279,9 @@ export class TIPI {
                     this.processMsg();
                 }
             };
+            this.canvas.onmousemove = (evt) => { this.mouseMsg(evt); }
+            this.canvas.onmouseup = (evt) => { this.mouseMsg(evt); }
+            this.canvas.onmousedown = (evt) => { this.mouseMsg(evt); }
         }
     }
 
@@ -360,6 +367,22 @@ export class TIPI {
             }
         } else {
             // console.log("TIPI write TC: " + Util.toHexByte(this.tc) + " (protocol error)");
+        }
+    }
+
+    mouseMsg(evt) {
+        if (this.websocketOpen) {
+            const rect = this.canvas.getBoundingClientRect();
+            const scale = this.canvas.clientHeight / (240 * 2);
+            const tiX = Math.floor((evt.clientX - rect.left) / scale);
+            const tiY = Math.floor((evt.clientY - rect.top) / scale);
+
+            //console.log(evt);
+            if (this.mouseX !== -1 || this.mouseY !== -1) {
+                this.websocket.send("MOUSE "+evt.buttons+" "+(tiX - this.mouseX)+" "+(tiY - this.mouseY));
+            }
+            this.mouseX = tiX;
+            this.mouseY = tiY;
         }
     }
 
