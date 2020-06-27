@@ -257,7 +257,9 @@ export class TIPI {
                 this.cpu.setSuspended(true);
                 window.setTimeout(
                     () => {
-                        this.reset();
+                        if (this.websocket && this.websocket.onclose) {
+                            this.reset();
+                        }
                     }, 2000
                 );
             };
