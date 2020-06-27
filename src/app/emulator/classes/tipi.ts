@@ -279,9 +279,9 @@ export class TIPI {
                     this.processMsg();
                 }
             };
-            this.canvas.onmousemove = (evt) => { this.mouseMsg(evt); }
-            this.canvas.onmouseup = (evt) => { this.mouseMsg(evt); }
-            this.canvas.onmousedown = (evt) => { this.mouseMsg(evt); }
+            this.canvas.onmousemove = (evt) => { this.mouseMsg(evt); };
+            this.canvas.onmouseup = (evt) => { this.mouseMsg(evt); };
+            this.canvas.onmousedown = (evt) => { this.mouseMsg(evt); };
         }
     }
 
@@ -376,10 +376,8 @@ export class TIPI {
             const scale = this.canvas.clientHeight / (240 * 2);
             const tiX = Math.floor((evt.clientX - rect.left) / scale);
             const tiY = Math.floor((evt.clientY - rect.top) / scale);
-
-            //console.log(evt);
             if (this.mouseX !== -1 || this.mouseY !== -1) {
-                this.websocket.send("MOUSE "+evt.buttons+" "+(tiX - this.mouseX)+" "+(tiY - this.mouseY));
+                this.websocket.send("MOUSE " + evt.buttons + " " + (tiX - this.mouseX) + " " + (tiY - this.mouseY));
             }
             this.mouseX = tiX;
             this.mouseY = tiY;

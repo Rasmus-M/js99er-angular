@@ -309,7 +309,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     onCanvasClick(evt) {
-        if (this.settingsService.isTIPIEnabled() === false) {
+        if (!this.settingsService.isTIPIEnabled()) {
             const rect = this.canvas.getBoundingClientRect();
             const scale = this.canvas.clientHeight / 240;
             const tiX = Math.floor((evt.clientX - rect.left) / scale);
