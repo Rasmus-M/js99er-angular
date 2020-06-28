@@ -392,9 +392,10 @@ export class TIPI {
     close() {
         if (this.websocket) {
             this.closing = true;
-            this.websocket.onclose = null;
+            this.websocket.onclose = () => {
+                this.websocketOpen = false;
+            };
             this.websocket.close();
-            this.websocketOpen = false;
             this.cpu.setSuspended(false);
         }
     }
