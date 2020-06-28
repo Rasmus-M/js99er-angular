@@ -18,9 +18,8 @@ import {Command, CommandType} from "../../classes/command";
 import {Setting, Settings} from "../../classes/settings";
 import {ConsoleEvent, ConsoleEventType} from "../../classes/consoleevent";
 import {Software} from "../../classes/software";
-import "rxjs-compat/add/operator/map";
-import "rxjs-compat/add/operator/mergeMap";
 import {AppComponent} from "../../app.component";
+import {map, mergeMap} from "rxjs/operators";
 
 @Component({
   selector: 'app-main',
@@ -170,20 +169,20 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         const that = this;
         const database = this.databaseService;
         if (database.isSupported()) {
-            database.deleteAllDiskImages().map(
-                () => that.diskService.saveDiskImages(that.diskImages)
-            ).map(
-                () => {
+            database.deleteAllDiskImages().pipe(
+                map(() => that.diskService.saveDiskImages(that.diskImages))
+            ).pipe(
+                map(() => {
                     that.log.info('Disk images saved OK.');
                     const diskDrives = that.ti994A.getDiskDrives();
                     return that.diskService.saveDiskDrives(diskDrives);
-                }
-            ).mergeMap(
-                () => {
+                })
+            ).pipe(
+                mergeMap(() => {
                     that.log.info('Disk drives saved OK.');
                     const state = that.ti994A.getState();
                     return database.putMachineState('ti994a', state);
-                }
+                })
             ).subscribe(
                 () => {
                     this.log.info("Machine state saved OK.");
@@ -200,18 +199,18 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         if (wasRunning) {
             this.commandDispatcherService.stop();
         }
-        database.getDiskImages().map(
-            (diskImages: DiskImage[]) => {
+        database.getDiskImages().pipe(
+            map((diskImages: DiskImage[]) => {
                 that.diskImages = diskImages;
                 that.log.info("Disk images restored OK.");
                 const diskDrives = that.ti994A.getDiskDrives();
                 return that.diskService.restoreDiskDrives(diskDrives, diskImages);
-            }
-        ).mergeMap(
-            () => {
+            })
+        ).pipe(
+            mergeMap(() => {
                 that.log.info("Disk drives restored OK.");
                 return database.getMachineState("ti994a");
-            }
+            })
         ).subscribe(
             (state: any) => {
                 const f18AEnabled = typeof(state.vdp.gpu) === "object";

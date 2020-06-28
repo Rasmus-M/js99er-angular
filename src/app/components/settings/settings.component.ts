@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {SettingsService} from '../../services/settings.service';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
-import {Subscription} from 'rxjs/Subscription';
+import {Subscription} from 'rxjs';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
 import {CommandDispatcherService} from "../../services/command-dispatcher.service";
 

@@ -1,8 +1,8 @@
 import {Injectable} from '@angular/core';
-import {Subject} from 'rxjs/Subject';
-import {Observable} from 'rxjs/Observable';
+import {Subject} from 'rxjs';
+import {Observable} from 'rxjs';
 import {Command, CommandType} from '../classes/command';
-import {Subscription} from 'rxjs/Subscription';
+import {Subscription} from 'rxjs';
 import {Software} from '../classes/software';
 import {Setting} from '../classes/settings';
 import {DiskImage} from '../emulator/classes/diskimage';

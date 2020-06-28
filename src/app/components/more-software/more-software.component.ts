@@ -1,7 +1,7 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import {FormControl} from '@angular/forms';
-import {Observable} from 'rxjs/Observable';
+import {Observable} from 'rxjs';
 import {map, startWith} from 'rxjs/operators';
 import {Software} from '../../classes/software';
 

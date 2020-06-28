@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Software} from '../classes/software';
-import {Observable, ReplaySubject, Subject} from "rxjs";
+import {Observable, ReplaySubject} from "rxjs";
 
 @Injectable({
     providedIn: 'root'

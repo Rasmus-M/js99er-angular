@@ -32,7 +32,6 @@
     "image-map-resizer": "^1.0.10",
     "jquery": "^3.5.0",
     "rxjs": "^6.5.5",
-    "rxjs-compat": "^6.5.4",
     "tslib": "^2.0.0",
     "zip-js": "0.0.2",
     "zone.js": "~0.10.2"

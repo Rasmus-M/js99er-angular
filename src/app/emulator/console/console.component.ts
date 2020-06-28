@@ -2,7 +2,7 @@ import {AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit} from '@a
 import {DiskImage} from '../classes/diskimage';
 import {Setting} from '../../classes/settings';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
-import {Subscription} from 'rxjs/Subscription';
+import {Subscription} from 'rxjs';
 import {Command, CommandType} from '../../classes/command';
 import {ModuleService} from '../../services/module.service';
 import {Log} from '../../classes/log';

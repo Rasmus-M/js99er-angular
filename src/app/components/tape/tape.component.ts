@@ -3,7 +3,7 @@ import {saveAs} from 'file-saver';
 import {TI994A} from '../../emulator/classes/ti994a';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
-import {Subscription} from 'rxjs/Subscription';
+import {Subscription} from 'rxjs';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
 import {Tape} from '../../emulator/classes/tape';
 import {Log} from '../../classes/log';

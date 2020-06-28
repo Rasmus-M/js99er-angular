@@ -23,6 +23,11 @@
             ],
             "styles": [
               "src/styles.scss"
+            ],
+            "allowedCommonJsDependencies": [
+              "file-saver",
+              "jquery",
+              "image-map-resizer"
             ]
           },
           "configurations": {

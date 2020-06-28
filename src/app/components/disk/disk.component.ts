@@ -1,5 +1,5 @@
-import {Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
-import {Subscription} from 'rxjs/Subscription';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {Subscription} from 'rxjs';
 import {DiskImage} from '../../emulator/classes/diskimage';
 import {DiskFile} from '../../emulator/classes/diskfile';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';

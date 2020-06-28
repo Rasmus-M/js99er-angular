@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {Database} from '../classes/database';
 import {DiskImage} from '../emulator/classes/diskimage';
 import {DiskDrive} from '../emulator/classes/diskdrive';
-import {Subject} from "rxjs/Subject";
+import {Subject} from "rxjs";
 import {Observable} from "rxjs";
 
 @Injectable({

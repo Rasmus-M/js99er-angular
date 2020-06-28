@@ -1,7 +1,7 @@
 import {Component, ElementRef, OnDestroy, OnInit} from '@angular/core';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
-import {Subscription} from 'rxjs/Subscription';
+import {Subscription} from 'rxjs';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
 import { faForward, faFastForward, faStepForward, faStop, faCreditCard, faCamera, faArrowCircleRight, faArrowCircleLeft, faCircle, faPlay, faSave, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 

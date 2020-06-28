@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
-import {Subject} from 'rxjs/Subject';
-import {Observable} from 'rxjs/Observable';
-import {Subscription} from 'rxjs/Subscription';
+import {Subject} from 'rxjs';
+import {Observable} from 'rxjs';
+import {Subscription} from 'rxjs';
 import {ConsoleEvent, ConsoleEventType} from '../classes/consoleevent';
 import {TI994A} from '../emulator/classes/ti994a';
 import {DiskImage} from '../emulator/classes/diskimage';
