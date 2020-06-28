@@ -260,7 +260,7 @@ export class TIPI {
                 }
                 window.setTimeout(
                     () => {
-                        if (this.closing) {
+                        if (!this.closing) {
                             this.reset();
                         }
                     }, 2000
