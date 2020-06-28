@@ -224,6 +224,7 @@ export class TIPI {
     private websocket: WebSocket;
     private websocketURI: string;
     private websocketOpen: boolean;
+    private closing: boolean;
     private td = 0;
     private tc = 0;
     private rd: number = null;
@@ -254,10 +255,12 @@ export class TIPI {
             this.websocket.onclose = (evt) => {
                 console.log("TIPI websocket closed");
                 this.websocketOpen = false;
-                this.cpu.setSuspended(true);
+                if (!this.closing) {
+                    this.cpu.setSuspended(true);
+                }
                 window.setTimeout(
                     () => {
-                        if (this.websocket && this.websocket.onclose) {
+                        if (this.closing) {
                             this.reset();
                         }
                     }, 2000
@@ -388,8 +391,11 @@ export class TIPI {
 
     close() {
         if (this.websocket) {
+            this.closing = true;
             this.websocket.onclose = null;
             this.websocket.close();
+            this.websocketOpen = false;
+            this.cpu.setSuspended(false);
         }
     }
 }
