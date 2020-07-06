@@ -266,7 +266,7 @@ export class ModuleService {
             subject = new Subject<Software>(),
             baseFileName = file.name.split('.')[0],
             inverted = baseFileName && (baseFileName.endsWith('3') || baseFileName.endsWith('9')),
-            grom = baseFileName && baseFileName.charAt(baseFileName.length - 1) === 'g',
+            grom = baseFileName && (baseFileName.endsWith('g') || baseFileName.endsWith('G')),
             reader = new FileReader();
         reader.onload = function () {
             const byteArray = new Uint8Array(reader.result as ArrayBuffer);
