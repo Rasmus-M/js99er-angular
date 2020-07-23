@@ -9,7 +9,6 @@ import {DiskService} from "../../services/disk.service";
 import {ObjectLoaderService} from "../../services/object-loader.service";
 import {SettingsService} from "../../services/settings.service";
 import {ConsoleFactoryService} from "../services/console-factory.service";
-import {TI994A} from "../classes/ti994a";
 import {DiskImage} from "../classes/diskimage";
 import {Settings} from "../../classes/settings";
 import {Console} from "../interfaces/console";
