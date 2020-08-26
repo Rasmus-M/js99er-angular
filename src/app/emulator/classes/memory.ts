@@ -121,12 +121,12 @@ export class Memory implements State, MemoryDevice {
             this.cartInverted = false;
             this.cartCRUBankSwitched = false;
             this.cartBankCount = 0;
-            this.currentCartBank = 0;
-            this.cartAddrOffset = -0x6000;
             this.cartRAMFG99Paged = false;
-            this.currentCartRAMBank = 0;
-            this.cartAddrRAMOffset = -0x6000;
         }
+        this.currentCartBank = 0;
+        this.cartAddrOffset = -0x6000;
+        this.currentCartRAMBank = 0;
+        this.cartAddrRAMOffset = -0x6000;
 
         // Peripheral ROM
         this.peripheralROMs = [];
@@ -643,7 +643,7 @@ export class Memory implements State, MemoryDevice {
             (this.enableAMS ? '\nAMS Regs: ' + this.ams.getStatusString() : '');
     }
 
-    hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
+     hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
         const mask = width - 1;
         const lines: string[] = [];
         let anchorLine: number = null;

@@ -193,7 +193,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             const debuggerAddress = this.getDebuggerAddress(pc);
             if (memoryType === MemoryType.CPU) {
                 // CPU
-                memoryView = this.ti994A.getMemory().hexView(0, 0x10000, width, debuggerAddress);
+                memoryView = this.ti994A.getMemory().hexView(debuggerAddress % width, 0x10000, width, debuggerAddress);
             } else {
                 // VDP
                 memoryView = this.ti994A.getVDP().hexView(0, this.ti994A.getVDP().getGPU() ? 0x4800 : 0x4000, width, debuggerAddress);
