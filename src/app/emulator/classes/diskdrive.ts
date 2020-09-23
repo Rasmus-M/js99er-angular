@@ -660,7 +660,9 @@ export class DiskDrive implements State {
                 } else {
                     this.log.warn("File input only implemented for program files.");
                 }
+                memory.setPADByte(0x834c, 0);
                 memory.setPADByte(0x834d, sectors);
+                memory.setPADByte(0x8350, 0);
             } else {
                 this.log.info("Request file info for " + this.getName() + "." + fileName);
                 memory.setPADWord(infoAddr + 2, file.getSectorCount());
