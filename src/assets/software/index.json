@@ -23,6 +23,11 @@
             "items": [
                 {
                     "type": "ITEM",
+                    "name": "XB 2.8 G.E.M.",
+                    "url": "software/xb28gem.rpk"
+                },
+                {
+                    "type": "ITEM",
                     "name": "Force Command",
                     "url": "software/forcecmd8.bin"
                 },

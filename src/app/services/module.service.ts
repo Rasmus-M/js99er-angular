@@ -193,8 +193,13 @@ export class ModuleService {
                 romArray[i] = 0;
             }
         }
-        for (let i = 0; i < Math.max(rom.length, 0x2000); i++) {
-            romArray[offset + i] = i < rom.length ? rom[i] : 0;
+        for (let i = 0; i < rom.length; i++) {
+            romArray[offset + i] = rom[i];
+        }
+        const length = romArray.length;
+        const paddedLength = Math.max(Math.pow(2, Math.ceil(Math.log2(length))), 0x2000);
+        for (let i = length; i < paddedLength; i++) {
+            romArray[i] = 0;
         }
     }
 
