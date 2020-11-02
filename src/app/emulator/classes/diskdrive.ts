@@ -603,7 +603,7 @@ export class DiskDrive implements State {
                         this.ram[pabAddr + 8] = fileStatus;
                         break;
                     default:
-                        this.log.error("Unknown DSR op-code: " + opCode);
+                        this.log.warn("Unknown DSR op-code: " + opCode);
                         errorCode = DiskError.ILLEGAL_OPERATION;
                 }
             } else {

@@ -497,7 +497,7 @@ export class GoogleDrive {
                             callback(0, 0);
                             break;
                         default:
-                            that.log.error("Unknown DSR op-code: " + opCode);
+                            that.log.warn("Unknown DSR op-code: " + opCode);
                             callback(0, DiskError.ILLEGAL_OPERATION);
                     }
                 } else {
