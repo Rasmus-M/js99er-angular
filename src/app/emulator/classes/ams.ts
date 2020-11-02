@@ -26,6 +26,9 @@ export class AMS implements State {
     reset() {
         this.registerAccess = false;
         this.ram = new Uint8Array(this.size * 1024);
+        for (let i = 0; i < this.ram.length; i++) {
+            this.ram[i] = i & 0xff;
+        }
         this.transparentMap = [
             null, null, 2, 3, null, null, null, null, null, null, 10, 11, 12, 13,  14, 15
         ];
