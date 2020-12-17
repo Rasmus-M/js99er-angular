@@ -232,9 +232,7 @@ export class TMS9918A implements VDP {
                                         const sPatternByte = ram[sPatternBase + (sx3 >= 8 ? 16 : 0)];
                                         if ((sPatternByte & (0x80 >> (sx3 & 0x07))) !== 0) {
                                             if (spriteBuffer[sx2] === 0) {
-                                                if (sColor !== 0) {
-                                                    spriteBuffer[sx2] = sColor + 1; // Add one here so 0 means uninitialized. Subtract one before drawing.
-                                                }
+                                                spriteBuffer[sx2] = sColor + 1; // Add one here so 0 means uninitialized. Subtract one before drawing.
                                             } else {
                                                 collision = true;
                                             }
