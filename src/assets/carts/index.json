@@ -414,6 +414,8 @@
     {"url": "rxb_v2000.rpk"},
     {"url": "rxb_v2001_super_ea.rpk"},
     {"url": "rxb_v555.rpk"},
+    {"url": "rxb2015.rpk", "name": "Rich Extended BASIC 2012"},
+    {"url": "rxb2020.rpk", "name": "Rich Extended BASIC 2020"},
     {"url": "saguaro_city.rpk"},
     {"url": "sargon_1.rpk"},
     {"url": "scholastic_spelling_3.rpk"},
@@ -595,6 +597,6 @@
     {"url": "pyjamarama.rpk"},
     {"url": "obstacle.rpk", "name": "Bouncy's obstacle course"},
     {"url": "borzork.rpk"},
-    {"url": "forcecmd8.bin", "name": "Force Command"},
+    {"url": "forcecmd.rpk", "name": "Force Command"},
     {"url": "f18aracing8.bin", "name": "F18A Racing"}
 ]

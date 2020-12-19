@@ -29,7 +29,7 @@
                 {
                     "type": "ITEM",
                     "name": "Force Command",
-                    "url": "software/forcecmd8.bin"
+                    "url": "software/forcecmd.rpk"
                 },
                 {
                     "type": "ITEM",
@@ -53,8 +53,8 @@
                 },
                 {
                     "type": "ITEM",
-                    "name": "RXB 2015",
-                    "url": "software/RXB2015.rpk"
+                    "name": "RXB 2020",
+                    "url": "software/rxb2020.rpk"
                 },
                 {
                     "type": "ITEM",
