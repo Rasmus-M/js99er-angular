@@ -208,7 +208,7 @@ export class TMS9918A implements VDP {
                             }
                         } else {
                             // Emulate sprite duplication bug
-                            const yMasked = y1 & (((this.registers[4] & 0x03) << 6) | 0x3F);
+                            const yMasked = (y1 - 1) & (((this.registers[4] & 0x03) << 6) | 0x3F);
                             if (yMasked >= sy && yMasked < sy1) {
                                 y2 = yMasked;
                             } else if (y1 >= 64 && y1 < 128 && y1 >= sy && y1 < sy1) {
