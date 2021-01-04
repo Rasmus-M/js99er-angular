@@ -202,7 +202,7 @@ export class TMS9918A implements VDP {
                         sy++;
                         const sy1 = sy + spriteDimension;
                         let y2 = -1;
-                        if (s < 8 || !bitmapMode) {
+                        if (s < 8 || !bitmapMode || (this.registers[4] & 0x03) === 3) {
                             if (y1 >= sy && y1 < sy1) {
                                 y2 = y1;
                             }
