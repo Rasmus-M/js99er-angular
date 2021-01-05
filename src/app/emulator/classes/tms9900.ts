@@ -36,16 +36,11 @@ export class TMS9900 implements CPU {
     private D: number;
     private S: number;
     private B: number;
-    private nPostInc: number[];
 
     // Counters
     private cycles: number;
 
     // Constants
-    private readonly SRC           = 0;
-    private readonly DST           = 1;
-    private readonly POSTINC2      = 0x80;
-    private readonly POSTINC1      = 0x40;
     private readonly BIT_LGT       = 0x8000;
     private readonly BIT_AGT       = 0x4000;
     private readonly BIT_EQ        = 0x2000;
@@ -172,7 +167,6 @@ export class TMS9900 implements CPU {
         this.D = 0;
         this.S = 0;
         this.B = 0;
-        this.nPostInc = [0, 0];
         this.cycles = 0;
         this.illegalCount = 0;
         this.profile = new Uint32Array(0x10000);
@@ -361,9 +355,6 @@ export class TMS9900 implements CPU {
             this.log.warn("Setting odd PC from " + Util.toHexWord(this.PC));
         }
         this.PC = value & 0xFFFE;
-        if ((this.PC & 0xfc00) === 0x8000) {
-            this.PC |= 0x300;
-        }
     }
 
     inctPC() {
@@ -499,13 +490,13 @@ export class TMS9900 implements CPU {
                 cycles += 8;
                 break;
             case 3:
-                // do the increment after the opcode is done with the source
-                this.nPostInc[this.SRC] = this.S | (this.B === 1 ? this.POSTINC1 : this.POSTINC2);
                 t2 = this.WP + (this.S << 1);
                 temp = this.readMemoryWord(t2);
                 this.S = temp;
-                // (add 1 if byte, 2 if word) (*R1+) Address is the contents of the register, which
-                // register indirect autoincrement is incremented by 1 for byte or 2 for word ops
+                // After we have the final address, we can increment the register
+                // (so MOV *R0+ returns the post increment if R0=adr(R0))
+                const val = this.memory.getWord(t2);                    // don't count this read for cycles
+                this.writeMemoryWord(t2, val + (this.B === 1 ? 1 : 2)); // do count this write
                 cycles += this.B === 1 ? 6 : 8;
                 break;
         }
@@ -539,31 +530,17 @@ export class TMS9900 implements CPU {
                 cycles += 8;
                 break;
             case 3:
-                // do the increment after the opcode is done with the dest
-                this.nPostInc[this.DST] = this.D | (this.B === 1 ? this.POSTINC1 : this.POSTINC2);
-                // (add 1 if byte, 2 if word)
                 t2 = this.WP + (this.D << 1);
                 temp = this.readMemoryWord(t2);
                 this.D = temp;
-                // register indirect autoincrement
+                // After we have the final address, we can increment the register
+                // (so MOV *R0+ returns the post increment if R0=adr(R0))
+                const val = this.memory.getWord(t2);                    // don't count this read for cycles
+                this.writeMemoryWord(t2, val + (this.B === 1 ? 1 : 2)); // do count this write
                 cycles += this.B === 1 ? 6 : 8;
                 break;
         }
         return cycles;
-    }
-
-    postIncrement(nWhich: number) {
-        if (this.nPostInc[nWhich]) {
-            const i = this.nPostInc[nWhich] & 0xf;
-            const t2 = this.WP + (i << 1);
-
-            const tmpCycles = this.cycles;
-            const nTmpVal = this.readMemoryWord(t2);	// We need to reread this value, but the memory access can't count for cycles
-            this.cycles = tmpCycles;
-
-            this.writeMemoryWord(t2, (nTmpVal + ((this.nPostInc[nWhich] & this.POSTINC2) !== 0 ? 2 : 1)) & 0xFFFF);
-            this.nPostInc[nWhich] = 0;
-        }
     }
 
     writeMemoryWord(addr: number, w: number) {
@@ -735,7 +712,6 @@ export class TMS9900 implements CPU {
         this.writeMemoryWord(this.WP + 28, this.PC);
         this.writeMemoryWord(this.WP + 30, this.ST);
         this.setPC(this.readMemoryWord(this.S + 2));
-        this.postIncrement(this.SRC);
 
         // skip_interrupt=1;
 
@@ -746,7 +722,6 @@ export class TMS9900 implements CPU {
     // Unconditional absolute branch
     b(): number {
         this.setPC(this.S);
-        this.postIncrement(this.SRC);
         return 8;
     }
 
@@ -758,7 +733,6 @@ export class TMS9900 implements CPU {
         }
 
         const xInstr = this.readMemoryWord(this.S);
-        this.postIncrement(this.SRC);	// does this go before or after the eXecuted instruction??
         // skip_interrupt=1;	    // (ends up having no effect because we call the function inline, but technically still correct)
 
         let cycles = 8 - 4;	        // For X, add this time to the execution time of the instruction found at the source address, minus 4 clock cycles and 1 memory access.
@@ -773,7 +747,6 @@ export class TMS9900 implements CPU {
     // sets word to 0
     clr(): number {
         this.writeMemoryWord(this.S, 0);
-        this.postIncrement(this.SRC);
         return 10;
     }
 
@@ -783,7 +756,6 @@ export class TMS9900 implements CPU {
 
         x1 = ((~x1) + 1) & 0xFFFF;
         this.writeMemoryWord(this.S, x1);
-        this.postIncrement(this.SRC);
 
         this.resetEQ_LGT_AGT_C_OV();
         this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ_OV_C;
@@ -796,7 +768,6 @@ export class TMS9900 implements CPU {
         let x1 = this.readMemoryWord(this.S);
         x1 = (~x1) & 0xFFFF;
         this.writeMemoryWord(this.S, x1);
-        this.postIncrement(this.SRC);
 
         this.resetLGT_AGT_EQ();
         this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
@@ -810,7 +781,6 @@ export class TMS9900 implements CPU {
 
         x1 = (x1 + 1) & 0xFFFF;
         this.writeMemoryWord(this.S, x1);
-        this.postIncrement(this.SRC);
 
         this.resetEQ_LGT_AGT_C_OV();
         this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ_OV_C;
@@ -824,7 +794,6 @@ export class TMS9900 implements CPU {
 
         x1 = (x1 + 2) & 0xFFFF;
         this.writeMemoryWord(this.S, x1);
-        this.postIncrement(this.SRC);
 
         this.resetEQ_LGT_AGT_C_OV();
         this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
@@ -841,7 +810,6 @@ export class TMS9900 implements CPU {
 
         x1 = (x1 - 1) & 0xFFFF;
         this.writeMemoryWord(this.S, x1);
-        this.postIncrement(this.SRC);
 
         this.resetEQ_LGT_AGT_C_OV();
         this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
@@ -858,7 +826,6 @@ export class TMS9900 implements CPU {
 
         x1 = (x1 - 2) & 0xFFFF;
         this.writeMemoryWord(this.S, x1);
-        this.postIncrement(this.SRC);
 
         this.resetEQ_LGT_AGT_C_OV();
         this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
@@ -878,7 +845,6 @@ export class TMS9900 implements CPU {
 
         this.writeMemoryWord(this.WP + 22, this.PC);
         this.setPC(this.S);
-        this.postIncrement(this.SRC);
 
         return 12;
     }
@@ -890,7 +856,6 @@ export class TMS9900 implements CPU {
 
         const x2 = ((x1 & 0xff) << 8) | (x1 >> 8);
         this.writeMemoryWord(this.S, x2);
-        this.postIncrement(this.SRC);
 
         return 10;
     }
@@ -899,7 +864,6 @@ export class TMS9900 implements CPU {
     // sets word to 0xffff
     seto(): number {
         this.writeMemoryWord(this.S, 0xffff);
-        this.postIncrement(this.SRC);
 
         return 10;
     }
@@ -914,7 +878,6 @@ export class TMS9900 implements CPU {
             this.writeMemoryWord(this.S, x2);
             cycles += 2;
         }
-        this.postIncrement(this.SRC);
 
         this.resetEQ_LGT_AGT_C_OV();
         this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ_OV;
@@ -1326,7 +1289,6 @@ export class TMS9900 implements CPU {
     // set bits in the dest (mask), the equal bit is set
     coc(): number {
         const x1 = this.readMemoryWord(this.S);
-        this.postIncrement(this.SRC);
 
         const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
@@ -1343,7 +1305,6 @@ export class TMS9900 implements CPU {
     // match up with a zero bit in the src to set the equals flag
     czc(): number {
         const x1 = this.readMemoryWord(this.S);
-        this.postIncrement(this.SRC);
 
         const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
@@ -1358,7 +1319,6 @@ export class TMS9900 implements CPU {
     // eXclusive OR: XOR src, dst
     xor(): number {
         const x1 = this.readMemoryWord(this.S);
-        this.postIncrement(this.SRC);
 
         const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
@@ -1384,7 +1344,6 @@ export class TMS9900 implements CPU {
         const x1 = this.WP;
         this.setWP(this.readMemoryWord(0x0040 + (this.D << 2)));
         this.writeMemoryWord(this.WP + 22, this.S);
-        this.postIncrement(this.SRC);
         this.writeMemoryWord(this.WP + 26, x1);
         this.writeMemoryWord(this.WP + 28, this.PC);
         this.writeMemoryWord(this.WP + 30, this.ST);
@@ -1405,7 +1364,6 @@ export class TMS9900 implements CPU {
     ldcr(): number {
         if (this.D === 0) { this.D = 16; }
         const x1 = (this.D < 9 ? this.readMemoryByte(this.S) : this.readMemoryWord(this.S));
-        this.postIncrement(this.SRC);
 
         let x3 = 1;
         const cruBase = (this.readMemoryWord(this.WP + 24) >> 1) & 0xfff;
@@ -1446,7 +1404,6 @@ export class TMS9900 implements CPU {
         } else {
             this.writeMemoryWord(this.S, x1);
         }
-        this.postIncrement(this.SRC);
 
         this.resetLGT_AGT_EQ();
         if (this.D < 9) {
@@ -1474,7 +1431,6 @@ export class TMS9900 implements CPU {
     // Note: src and dest are unsigned.
     mpy(): number {
         const x1 = this.readMemoryWord(this.S);
-        this.postIncrement(this.SRC);
 
         this.D = this.WP + (this.D << 1);
         let x3 = this.readMemoryWord(this.D);
@@ -1490,7 +1446,6 @@ export class TMS9900 implements CPU {
     // the first is the whole number result, the second is the remainder
     div(): number {
         const x2 = this.readMemoryWord(this.S);
-        this.postIncrement(this.SRC);
 
         this.D = this.WP + (this.D << 1);
         let x3 = this.readMemoryWord(this.D);
@@ -1513,13 +1468,11 @@ export class TMS9900 implements CPU {
     // Zero all bits in dest that are zeroed in src
     szc(): number {
         const x1 = this.readMemoryWord(this.S);
-        this.postIncrement(this.SRC);
 
         const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
         const x3 = (~x1) & x2;
         this.writeMemoryWord(this.D, x3);
-        this.postIncrement(this.DST);
 
         this.resetLGT_AGT_EQ();
         this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
@@ -1530,13 +1483,11 @@ export class TMS9900 implements CPU {
     // Set Zeros Corresponding, Byte: SZCB src, dst
     szcb(): number {
         const x1 = this.readMemoryByte(this.S);
-        this.postIncrement(this.SRC);
 
         const cycles = this.fixD();
         const x2 = this.readMemoryByte(this.D);
         const x3 = (~x1) & x2;
         this.writeMemoryByte(this.D, x3);
-        this.postIncrement(this.DST);
 
         this.resetLGT_AGT_EQ_OP();
         this.ST |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;
@@ -1547,13 +1498,11 @@ export class TMS9900 implements CPU {
     // Subtract: S src, dst
     s(): number {
         const x1 = this.readMemoryWord(this.S);
-        this.postIncrement(this.SRC);
 
         const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
         const x3 = (x2 - x1) & 0xFFFF;
         this.writeMemoryWord(this.D, x3);
-        this.postIncrement(this.DST);
 
         this.resetEQ_LGT_AGT_C_OV();
         this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
@@ -1569,13 +1518,11 @@ export class TMS9900 implements CPU {
     // Subtract Byte: SB src, dst
     sb(): number {
         const x1 = this.readMemoryByte(this.S);
-        this.postIncrement(this.SRC);
 
         const cycles = this.fixD();
         const x2 = this.readMemoryByte(this.D);
         const x3 = (x2 - x1) & 0xFF;
         this.writeMemoryByte(this.D, x3);
-        this.postIncrement(this.DST);
 
         this.resetEQ_LGT_AGT_C_OV_OP();
         this.ST |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;
@@ -1591,11 +1538,9 @@ export class TMS9900 implements CPU {
     // Compare words: C src, dst
     c(): number {
         const x3 = this.readMemoryWord(this.S);
-        this.postIncrement(this.SRC);
 
         const cycles = this.fixD();
         const x4 = this.readMemoryWord(this.D);
-        this.postIncrement(this.DST);
 
         this.resetLGT_AGT_EQ();
         if (x3 > x4) { this.setLGT(); }
@@ -1611,11 +1556,9 @@ export class TMS9900 implements CPU {
     // CompareBytes: CB src, dst
     cb(): number {
         const x3 = this.readMemoryByte(this.S);
-        this.postIncrement(this.SRC);
 
         const cycles = this.fixD();
         const x4 = this.readMemoryByte(this.D);
-        this.postIncrement(this.DST);
 
         this.resetLGT_AGT_EQ_OP();
         if (x3 > x4) { this.setLGT(); }
@@ -1633,13 +1576,11 @@ export class TMS9900 implements CPU {
     // Add words: A src, dst
     a(): number {
         const x1 = this.readMemoryWord(this.S);
-        this.postIncrement(this.SRC);
 
         const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
         const x3 = (x2 + x1) & 0xFFFF;
         this.writeMemoryWord(this.D, x3);
-        this.postIncrement(this.DST);
 
         this.resetEQ_LGT_AGT_C_OV();	// We come out with either EQ or LGT, never both
         this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
@@ -1654,13 +1595,11 @@ export class TMS9900 implements CPU {
     // Add bytes: A src, dst
     ab(): number {
         const x1 = this.readMemoryByte(this.S);
-        this.postIncrement(this.SRC);
 
         const cycles = this.fixD();
         const x2 = this.readMemoryByte(this.D);
         const x3 = (x2 + x1) & 0xFF;
         this.writeMemoryByte(this.D, x3);
-        this.postIncrement(this.DST);
 
         this.resetEQ_LGT_AGT_C_OV_OP();
         this.ST |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;
@@ -1675,11 +1614,9 @@ export class TMS9900 implements CPU {
     // MOVe words: MOV src, dst
     mov(): number {
         const x1 = this.readMemoryWord(this.S);
-        this.postIncrement(this.SRC);
         const cycles = this.fixD();
 
         this.writeMemoryWord(this.D, x1);
-        this.postIncrement(this.DST);
 
         this.resetLGT_AGT_EQ();
         this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
@@ -1690,11 +1627,9 @@ export class TMS9900 implements CPU {
     // MOVe Bytes: MOVB src, dst
     movb(): number {
         const x1 = this.readMemoryByte(this.S);
-        this.postIncrement(this.SRC);
 
         const cycles = this.fixD();
         this.writeMemoryByte(this.D, x1);
-        this.postIncrement(this.DST);
 
         this.resetLGT_AGT_EQ_OP();
         this.ST |= this.bStatusLookup[x1] & this.maskLGT_AGT_EQ_OP;
@@ -1707,13 +1642,11 @@ export class TMS9900 implements CPU {
     // are set in src
     soc(): number {
         const x1 = this.readMemoryWord(this.S);
-        this.postIncrement(this.SRC);
 
         const cycles = this.fixD();
         const x2 = this.readMemoryWord(this.D);
         const x3 = x1 | x2;
         this.writeMemoryWord(this.D, x3);
-        this.postIncrement(this.DST);
 
         this.resetLGT_AGT_EQ();
         this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
@@ -1723,13 +1656,11 @@ export class TMS9900 implements CPU {
 
     socb(): number {
         const x1 = this.readMemoryByte(this.S);
-        this.postIncrement(this.SRC);
 
         const cycles = this.fixD();
         const x2 = this.readMemoryByte(this.D);
         const x3 = x1 | x2;
         this.writeMemoryByte(this.D, x3);
-        this.postIncrement(this.DST);
 
         this.resetLGT_AGT_EQ_OP();
         this.ST |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;

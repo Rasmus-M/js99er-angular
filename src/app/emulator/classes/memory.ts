@@ -182,7 +182,10 @@ export class Memory implements State, MemoryDevice {
         for (i = 0x7000; i < 0x8000; i++) {
             this.memoryMap[i] = this.ramAt7000 ? cartridgeRAMAccessors : cartridgeROMAccessors;
         }
-        for (i = 0x8000; i < 0x8400; i++) {
+        for (i = 0x8000; i < 0x8100; i++) {
+            this.memoryMap[i] = nullAccessors;
+        }
+        for (i = 0x8100; i < 0x8400; i++) {
             this.memoryMap[i] = padAccessors;
         }
         for (i = 0x8400; i < 0x8600; i++) {
