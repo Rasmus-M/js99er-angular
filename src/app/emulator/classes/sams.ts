@@ -2,7 +2,7 @@ import {Log} from '../../classes/log';
 import {State} from '../interfaces/state';
 import {Util} from '../../classes/util';
 
-export class AMS implements State {
+export class SAMS implements State {
 
     static MAPPING_MODE = 0;
     static TRANSPARENT_MODE = 1;
@@ -36,7 +36,7 @@ export class AMS implements State {
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         ];
         this.map = null;
-        this.setMode(AMS.TRANSPARENT_MODE);
+        this.setMode(SAMS.TRANSPARENT_MODE);
     }
 
     hasRegisterAccess(): boolean {
@@ -44,13 +44,13 @@ export class AMS implements State {
     }
 
     setRegisterAccess(enabled: boolean) {
-        this.log.info("AMS mapping register access " + (enabled ? "on" : "off"));
+        this.log.info("SAMS mapping register access " + (enabled ? "on" : "off"));
         this.registerAccess = enabled;
     }
 
     setMode(mode: number) {
-        this.log.info("AMS " + (mode === AMS.MAPPING_MODE ? "mapping" : "transparent") + " mode set");
-        this.map = mode === AMS.TRANSPARENT_MODE ? this.transparentMap : this.registerMap;
+        this.log.info("SAMS " + (mode === SAMS.MAPPING_MODE ? "mapping" : "transparent") + " mode set");
+        this.map = mode === SAMS.TRANSPARENT_MODE ? this.transparentMap : this.registerMap;
 
     }
 
@@ -60,7 +60,7 @@ export class AMS implements State {
 
     writeRegister(regNo: number, page: number) {
         if (this.registerAccess) {
-            this.log.info("Write " + Util.toHexWord(page) + " to AMS register " + Util.toHexByte(regNo));
+            this.log.info("Write " + Util.toHexWord(page) + " to SAMS register " + Util.toHexByte(regNo));
             this.registerMap[regNo & 0xF] = page;
         }
     }
@@ -68,8 +68,8 @@ export class AMS implements State {
     readWord(addr: number): number {
         const regNo = (addr & 0xF000) >> 12;
         if (this.transparentMap[regNo] != null) {
-            const amsAddr = ((this.map[regNo] & (this.pages - 1)) << 12) | (addr & 0x0FFF);
-            return this.ram[amsAddr] << 8 | this.ram[amsAddr + 1];
+            const samsAddr = ((this.map[regNo] & (this.pages - 1)) << 12) | (addr & 0x0FFF);
+            return this.ram[samsAddr] << 8 | this.ram[samsAddr + 1];
         }
         return 0;
     }
@@ -77,17 +77,17 @@ export class AMS implements State {
     writeWord(addr: number, w: number) {
         const regNo = (addr & 0xF000) >> 12;
         if (this.transparentMap[regNo] != null) {
-            const amsAddr = ((this.map[regNo] & (this.pages - 1)) << 12) | (addr & 0x0FFF);
-            this.ram[amsAddr] = (w & 0xFF00) >> 8;
-            this.ram[amsAddr + 1] = w & 0xFF;
+            const samsAddr = ((this.map[regNo] & (this.pages - 1)) << 12) | (addr & 0x0FFF);
+            this.ram[samsAddr] = (w & 0xFF00) >> 8;
+            this.ram[samsAddr + 1] = w & 0xFF;
         }
     }
 
     getByte(addr: number): number {
         const page = this.map[(addr & 0xF000) >> 12];
         if (page != null) {
-            const amsAddr = (page & (this.pages - 1)) << 12 | (addr & 0x0FFF);
-            return this.ram[amsAddr];
+            const samsAddr = (page & (this.pages - 1)) << 12 | (addr & 0x0FFF);
+            return this.ram[samsAddr];
         }
         return 0;
     }
@@ -95,8 +95,8 @@ export class AMS implements State {
     setByte(addr: number, b: number) {
         const regNo = (addr & 0xF000) >> 12;
         if (this.transparentMap[regNo] != null) {
-            const amsAddr = ((this.map[regNo] & (this.pages - 1)) << 12) | (addr & 0x0FFF);
-            this.ram[amsAddr] = b;
+            const samsAddr = ((this.map[regNo] & (this.pages - 1)) << 12) | (addr & 0x0FFF);
+            this.ram[samsAddr] = b;
         }
     }
 

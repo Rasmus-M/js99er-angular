@@ -50,7 +50,7 @@ export class SettingsComponent implements OnInit {
         this.enablePCKeyboard = this.settingsService.isPCKeyboardEnabled();
         this.enableMapArrowKeys = this.settingsService.isMapArrowKeysToFctnSDEXEnabled();
         this.enableGoogleDrive = this.settingsService.isGoogleDriveEnabled();
-        this.enableAMS = this.settingsService.isAMSEnabled();
+        this.enableAMS = this.settingsService.isSAMSEnabled();
         this.enableGRAM = this.settingsService.isGRAMEnabled();
         this.enablePixelated = this.settingsService.isPixelatedEnabled();
         this.enablePauseOnFocusLost = this.settingsService.isPauseOnFocusLostEnabled();
@@ -79,7 +79,7 @@ export class SettingsComponent implements OnInit {
     }
 
     onEnableAMSChanged(value) {
-        this.settingsService.setAMSEnabled(value);
+        this.settingsService.setSAMSEnabled(value);
     }
 
     onEnableF18AChanged(value) {
@@ -103,7 +103,7 @@ export class SettingsComponent implements OnInit {
     }
 
     onEnabledAMSChanged(value) {
-        this.settingsService.setAMSEnabled(value);
+        this.settingsService.setSAMSEnabled(value);
     }
 
     onEnableGRAMChanged(value) {

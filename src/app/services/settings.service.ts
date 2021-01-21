@@ -45,8 +45,8 @@ export class SettingsService {
             if (storage.getItem('enableGoogleDrive') != null) {
                 this.settings.setGoogleDriveEnabled(storage.getItem('enableGoogleDrive') === 'true');
             }
-            if (storage.getItem('enableAMS') != null) {
-                this.settings.setAMSEnabled(storage.getItem('enableAMS') === 'true');
+            if (storage.getItem('enableSAMS') != null) {
+                this.settings.setSAMSEnabled(storage.getItem('enableSAMS') === 'true');
             }
             if (storage.getItem('enableGRAM') != null) {
                 this.settings.setGRAMEnabled(storage.getItem('enableGRAM') === 'true');
@@ -191,17 +191,17 @@ export class SettingsService {
         }
     }
 
-    isAMSEnabled() {
-        return this.settings.isAMSEnabled();
+    isSAMSEnabled() {
+        return this.settings.isSAMSEnabled();
     }
 
-    setAMSEnabled(enabled) {
-        if (enabled !== this.settings.isAMSEnabled()) {
-            this.settings.setAMSEnabled(enabled);
+    setSAMSEnabled(enabled) {
+        if (enabled !== this.settings.isSAMSEnabled()) {
+            this.settings.setSAMSEnabled(enabled);
             if (this.persistent && this.storage) {
-                this.storage.setItem('enableAMS', enabled);
+                this.storage.setItem('enableSAMS', enabled);
             }
-            this.commandDispatcherService.changeSetting(Setting.AMS, enabled);
+            this.commandDispatcherService.changeSetting(Setting.SAMS, enabled);
         }
     }
 

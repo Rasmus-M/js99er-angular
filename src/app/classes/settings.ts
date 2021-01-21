@@ -7,7 +7,7 @@ export enum Setting {
     PC_KEYBOARD = 5,
     MAP_ARROW_KEYS = 6,
     GOOGLE_DRIVE = 7,
-    AMS = 8,
+    SAMS = 8,
     GRAM = 9,
     PIXELATED = 10,
     PAUSE_ON_FOCUS_LOST = 11,
@@ -25,7 +25,7 @@ export class Settings {
     private enablePCKeyboard: boolean;
     private enableMapArrowKeys: boolean;
     private enableGoogleDrive: boolean;
-    private enableAMS: boolean;
+    private enableSAMS: boolean;
     private enableGRAM: boolean;
     private enablePixelated: boolean;
     private enablePauseOnFocusLost: boolean;
@@ -41,7 +41,7 @@ export class Settings {
         this.enablePCKeyboard = false;
         this.enableMapArrowKeys = false;
         this.enableGoogleDrive = false;
-        this.enableAMS = false;
+        this.enableSAMS = false;
         this.enableGRAM = false;
         this.enablePixelated = false;
         this.enablePauseOnFocusLost = false;
@@ -113,12 +113,12 @@ export class Settings {
         this.enableGoogleDrive = enabled;
     }
 
-    isAMSEnabled(): boolean {
-        return this.enableAMS;
+    isSAMSEnabled(): boolean {
+        return this.enableSAMS;
     }
 
-    setAMSEnabled(enabled: boolean) {
-        this.enableAMS = enabled;
+    setSAMSEnabled(enabled: boolean) {
+        this.enableSAMS = enabled;
     }
 
     isGRAMEnabled(): boolean {
@@ -170,7 +170,7 @@ export class Settings {
         this.enablePCKeyboard = otherSettings.isPCKeyboardEnabled();
         this.enableMapArrowKeys = otherSettings.isMapArrowKeysEnabled();
         this.enableGoogleDrive = otherSettings.isGoogleDriveEnabled();
-        this.enableAMS = otherSettings.isAMSEnabled();
+        this.enableSAMS = otherSettings.isSAMSEnabled();
         this.enableGRAM = otherSettings.isGRAMEnabled();
         this.enablePixelated = otherSettings.isPixelatedEnabled();
         this.enablePauseOnFocusLost = otherSettings.isPauseOnFocusLostEnabled();

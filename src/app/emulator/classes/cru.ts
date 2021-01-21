@@ -3,7 +3,7 @@ import {Keyboard} from './keyboard';
 import {Memory} from './memory';
 import {Tape} from './tape';
 import {State} from '../interfaces/state';
-import {AMS} from './ams';
+import {SAMS} from './sams';
 import {Util} from '../../classes/util';
 import {CPU} from '../interfaces/cpu';
 import {TI994A} from './ti994a';
@@ -98,15 +98,15 @@ export class CRU implements State {
                 // this.log.info("DSR ROM " + dsr + " " + (bit ? "enabled" : "disabled") + ".");
                 this.memory.setPeripheralROM(dsr, value);
             }
-            // AMS
-            if (r12Addr >= 0x1e00 && r12Addr < 0x1f00 && this.memory.isAMSEnabled()) {
+            // SAMS
+            if (r12Addr >= 0x1e00 && r12Addr < 0x1f00 && this.memory.isSAMSEnabled()) {
                 const bitNo = (r12Addr & 0x000e) >> 1;
                 if (bitNo === 0) {
                     // Controls access to mapping registers
-                    this.memory.getAMS().setRegisterAccess(value);
+                    this.memory.getSAMS().setRegisterAccess(value);
                 } else if (bitNo === 1) {
                     // Toggles between mapping mode and transparent mode
-                    this.memory.getAMS().setMode(value ? AMS.MAPPING_MODE : AMS.TRANSPARENT_MODE);
+                    this.memory.getSAMS().setMode(value ? SAMS.MAPPING_MODE : SAMS.TRANSPARENT_MODE);
                 }
             }
             // TIPI

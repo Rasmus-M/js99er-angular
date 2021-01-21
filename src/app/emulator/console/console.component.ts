@@ -181,8 +181,8 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         this.ti994A.setGoogleDrive();
                         resetRequired = true;
                         break;
-                    case Setting.AMS:
-                        this.ti994A.getMemory().setAMSEnabled(value);
+                    case Setting.SAMS:
+                        this.ti994A.getMemory().setSAMSEnabled(value);
                         resetRequired = true;
                         break;
                     case Setting.GRAM:
