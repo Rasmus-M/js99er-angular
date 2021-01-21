@@ -20,7 +20,7 @@ export class SettingsComponent implements OnInit {
     enablePCKeyboard: boolean;
     enableMapArrowKeys: boolean;
     enableGoogleDrive: boolean;
-    enableAMS: boolean;
+    enableSAMS: boolean;
     enableGRAM: boolean;
     enablePixelated: boolean;
     enablePauseOnFocusLost: boolean;
@@ -50,7 +50,7 @@ export class SettingsComponent implements OnInit {
         this.enablePCKeyboard = this.settingsService.isPCKeyboardEnabled();
         this.enableMapArrowKeys = this.settingsService.isMapArrowKeysToFctnSDEXEnabled();
         this.enableGoogleDrive = this.settingsService.isGoogleDriveEnabled();
-        this.enableAMS = this.settingsService.isSAMSEnabled();
+        this.enableSAMS = this.settingsService.isSAMSEnabled();
         this.enableGRAM = this.settingsService.isGRAMEnabled();
         this.enablePixelated = this.settingsService.isPixelatedEnabled();
         this.enablePauseOnFocusLost = this.settingsService.isPauseOnFocusLostEnabled();

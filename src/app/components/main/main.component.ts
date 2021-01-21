@@ -234,7 +234,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                 settings.setPCKeyboardEnabled(state.keyboard.pcKeyboardEnabled);
                 settings.setMapArrowKeysEnabled(state.keyboard.mapArrowKeysToFctnSDEX);
                 settings.setGoogleDriveEnabled(that.settingsService.isGoogleDriveEnabled());
-                settings.setSAMSEnabled(state.memory.enableAMS);
+                settings.setSAMSEnabled(state.memory.enableSAMS);
                 settings.setGRAMEnabled(state.memory.enableGRAM);
                 settings.setPixelatedEnabled(that.settingsService.isPixelatedEnabled());
                 that.settingsService.restoreSettings(settings);
