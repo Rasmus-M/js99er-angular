@@ -150,7 +150,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         this.log.info("Load cart: " + cartName);
         this.moreSoftwareService.getByName(cartName.replace(/_/g, ' ')).subscribe(
             (cart: Software) => {
-                this.moduleService.loadRPKModuleFromURL("assets/" + cart.url).subscribe(
+                this.moduleService.loadRPKOrZipModuleFromURL("assets/" + cart.url).subscribe(
                     (software: Software) => {
                         this.commandDispatcherService.loadSoftware(software);
                     },

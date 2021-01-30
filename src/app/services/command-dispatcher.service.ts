@@ -51,8 +51,8 @@ export class CommandDispatcherService {
         this.commandSubject.next(new Command(CommandType.RESET, null));
     }
 
-    loadModule(file: File) {
-        this.commandSubject.next(new Command(CommandType.LOAD_MODULE, file));
+    loadModule(files: FileList) {
+        this.commandSubject.next(new Command(CommandType.LOAD_MODULE, files));
     }
 
     loadDisk(driveIndex: number, files: FileList) {

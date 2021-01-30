@@ -14,14 +14,13 @@ import Reader = zip.Reader;
 @Injectable()
 export class ModuleService {
 
-    private httpClient: HttpClient;
-    private zipService: ZipService;
-    private log: Log = Log.getLog();
-
     constructor(httpClient: HttpClient, zipService: ZipService) {
         this.httpClient = httpClient;
         this.zipService = zipService;
     }
+
+    private readonly httpClient: HttpClient;
+    private readonly zipService: ZipService;
 
     private static hexArrayToByteArray(hexArray: string[]) {
         const binArray = [];
@@ -35,24 +34,55 @@ export class ModuleService {
         return new Uint8Array(binArray);
     }
 
+    private static insertROM(romArray: number[], rom: Uint8Array, offset: number) {
+        if (romArray.length < offset) {
+            for (let i = 0; i < offset; i++) {
+                romArray[i] = 0;
+            }
+        }
+        for (let i = 0; i < rom.length; i++) {
+            romArray[offset + i] = rom[i];
+        }
+        const length = romArray.length;
+        const paddedLength = Math.max(Math.pow(2, Math.ceil(Math.log2(length))), 0x2000);
+        for (let i = length; i < paddedLength; i++) {
+            romArray[i] = 0;
+        }
+    }
+
+    loadModuleFromFiles(files: FileList): Observable<Software> {
+        if (files.length === 1) {
+            return this.loadModuleFromFile(files[0]);
+        } else {
+            const observables: Observable<Software>[] = [];
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const extension = this.getExtension(file.name);
+                if (extension === "bin") {
+                    observables.push(this.loadBinModuleFromFile(file, true));
+                }
+            }
+            return this.combineSoftwareIntoModule(observables);
+        }
+    }
+
     loadModuleFromFile(file: File): Observable<Software> {
-        let extension = file.name.split('.').pop();
-        extension = extension ? extension.toLowerCase() : "";
-        if (extension != null && extension !== "rpk" && extension !== "zip" && extension !== "bin") {
+        const extension = this.getExtension(file.name);
+        if (extension !== "rpk" && extension !== "zip" && extension !== "bin") {
             const subject = new Subject<Software>();
             subject.error("File name extension '" + extension + "' not supported.");
             return subject.asObservable();
         }
         if (extension === "bin") {
-            return this.loadBinModuleFromFile(file);
+            return this.loadBinModuleFromFile(file, false);
         } else {
-            return this.loadRPKModuleFromFile(file);
+            return this.loadRPKOrZipModuleFromFile(file);
         }
     }
 
     loadModuleFromURL(url: string): Observable<Software> {
         if (url.substr(url.length - 3).toLowerCase() === 'rpk') {
-            return this.loadRPKModuleFromURL('assets/' + url);
+            return this.loadRPKOrZipModuleFromURL('assets/' + url);
         } else if (url.substr(url.length - 3).toLowerCase() === 'bin') {
             return this.loadBinModuleFromURL('assets/' + url);
         } else if (url.substr(url.length - 4).toLowerCase() === 'json') {
@@ -64,11 +94,11 @@ export class ModuleService {
         }
     }
 
-    loadRPKModuleFromFile(file: File): Observable<Software> {
+    loadRPKOrZipModuleFromFile(file: File): Observable<Software> {
         return this.loadRPKOrZipModule(this.zipService.createBlobReader(file));
     }
 
-    loadRPKModuleFromURL(url: string): Observable<Software> {
+    loadRPKOrZipModuleFromURL(url: string): Observable<Software> {
         return this.loadRPKOrZipModule(this.zipService.createHttpReader(url));
     }
 
@@ -141,7 +171,7 @@ export class ModuleService {
                             module.grom = software.grom;
                         } else if (software.rom) {
                             const offset = (software.socketId === 'rom2_socket') ? 0x2000 : 0;
-                            self.insertROM(romArray, software.rom, offset);
+                            ModuleService.insertROM(romArray, software.rom, offset);
                         }
                     });
                     if (romArray.length) {
@@ -187,47 +217,20 @@ export class ModuleService {
         return subject.asObservable();
     }
 
-    private insertROM(romArray: number[], rom: Uint8Array, offset: number) {
-        if (romArray.length < offset) {
-            for (let i = 0; i < offset; i++) {
-                romArray[i] = 0;
-            }
-        }
-        for (let i = 0; i < rom.length; i++) {
-            romArray[offset + i] = rom[i];
-        }
-        const length = romArray.length;
-        const paddedLength = Math.max(Math.pow(2, Math.ceil(Math.log2(length))), 0x2000);
-        for (let i = length; i < paddedLength; i++) {
-            romArray[i] = 0;
-        }
-    }
-
     loadZipModule(entries: Entry[], subject: Subject<Software>) {
         const
             self = this,
             log = Log.getLog(),
-            zipService = this.zipService,
-            module: Software = new Software(),
             observables: Observable<Software>[] = [];
         entries.forEach(function (entry) {
             log.info(entry.filename);
             observables.push(self.loadZipEntry(entry));
         });
-        forkJoin(observables).subscribe(
-            (softwares: Software[]) => {
-                softwares.forEach((software: Software) => {
-                    if (software.grom) {
-                        module.grom = software.grom;
-                    } else if (software.rom) {
-                        module.rom = software.rom;
-                        module.inverted = software.inverted;
-                    }
-                });
+        this.combineSoftwareIntoModule(observables).subscribe(
+            (module) => {
                 subject.next(module);
                 subject.complete();
-            },
-            subject.error
+            }
         );
     }
 
@@ -236,10 +239,9 @@ export class ModuleService {
             subject = new Subject<Software>(),
             software = new Software(),
             baseFileName: string = entry.filename.split('.')[0],
-            extension: string = entry.filename.split('.')[1],
             zipService = this.zipService;
-        if (extension === 'bin') {
-            const grom = baseFileName && baseFileName.charAt(baseFileName.length - 1) === 'g';
+        if (this.getExtension(entry.filename) === 'bin') {
+            const grom = baseFileName && (baseFileName.endsWith('g') || baseFileName.endsWith('G'));
             software.inverted = baseFileName && (baseFileName.endsWith('3') || baseFileName.endsWith('9'));
             const blobWriter = zipService.createBlobWriter();
             entry.getData(blobWriter, function (blob) {
@@ -266,12 +268,13 @@ export class ModuleService {
         return subject.asObservable();
     }
 
-    loadBinModuleFromFile(file: File): Observable<Software> {
+    loadBinModuleFromFile(file: File, considerExtensionForSecondBank: boolean): Observable<Software> {
         const
             subject = new Subject<Software>(),
             baseFileName = file.name.split('.')[0],
             inverted = baseFileName && (baseFileName.endsWith('3') || baseFileName.endsWith('9')),
             grom = baseFileName && (baseFileName.endsWith('g') || baseFileName.endsWith('G')),
+            secondBank = considerExtensionForSecondBank && (baseFileName.endsWith('d') || baseFileName.endsWith('D')),
             reader = new FileReader();
         reader.onload = function () {
             const byteArray = new Uint8Array(reader.result as ArrayBuffer);
@@ -284,8 +287,10 @@ export class ModuleService {
                 module.rom = byteArray;
                 module.ramAt7000 = ramFG99Paged;
                 module.ramFG99Paged = ramFG99Paged;
+                module.secondBank = secondBank;
             }
             subject.next(module);
+            subject.complete();
         };
         reader.onerror = function () {
             subject.error(reader.error);
@@ -305,6 +310,7 @@ export class ModuleService {
                 module.inverted = inverted;
                 module.rom = byteArray;
                 subject.next(module);
+                subject.complete();
             },
             (error) => {
                 subject.error(error);
@@ -315,7 +321,6 @@ export class ModuleService {
 
     loadJSONModuleFromURL(url: string): Observable<Software> {
         const subject = new Subject<Software>();
-        const self = this;
         this.httpClient.get(url, {responseType: 'json'}).subscribe(
             (data: any) => {
                 const software = new Software();
@@ -348,11 +353,60 @@ export class ModuleService {
                 software.ramAt6000 = data.ramAt6000;
                 software.ramAt7000 = data.ramAt7000;
                 subject.next(software);
+                subject.complete();
             },
             (error) => {
                 subject.error(error.error);
             }
         );
         return subject.asObservable();
+    }
+
+    combineSoftwareIntoModule(observables: Observable<Software>[]): Observable<Software> {
+        const subject = new Subject<Software>();
+        const module: Software = new Software();
+        forkJoin(observables).subscribe(
+            (softwares: Software[]) => {
+                softwares.forEach((software: Software) => {
+                    if (software.grom) {
+                        module.grom = software.grom;
+                    } else if (software.rom) {
+                        if (!software.secondBank) {
+                            module.rom = software.rom;
+                            module.inverted = software.inverted;
+                        } else if (!module.rom) {
+                            module.rom = new Uint8Array(0x4000);
+                            this.copyArray(software.rom, module.rom, 0, 0x2000, 0x2000);
+                            module.inverted = true;
+                        } else if (module.rom && module.rom.length === 0x4000) {
+                            this.copyArray(software.rom, module.rom, 0, 0x2000, 0x2000);
+                            module.inverted = true;
+                        } else if (module.rom && module.rom.length === 0x2000) {
+                            const rom = new Uint8Array(0x4000);
+                            this.copyArray(module.rom, rom, 0, 0, 0x2000);
+                            this.copyArray(software.rom, rom, 0, 0x2000, 0x2000);
+                            module.rom = rom;
+                            module.inverted = true;
+                        }
+                    }
+                });
+                subject.next(module);
+                subject.complete();
+            },
+            subject.error
+        );
+        return subject.asObservable();
+    }
+
+    copyArray(from: Uint8Array, to: Uint8Array, fromIndex: number, toIndex: number, length: number) {
+        for (let i = 0; i < length; i++) {
+            to[toIndex + i] = from[fromIndex + i];
+        }
+    }
+
+    getExtension(filename: string): string {
+        let extension = filename.split('.').pop();
+        extension = extension ? extension.toLowerCase() : "";
+        return extension;
     }
 }

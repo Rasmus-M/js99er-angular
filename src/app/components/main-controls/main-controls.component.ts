@@ -77,7 +77,7 @@ export class MainControlsComponent implements OnInit, OnDestroy {
     openModule(fileInput: HTMLInputElement) {
         const files = fileInput.files;
         if (files.length) {
-            this.commandDispatcherService.loadModule(files[0]);
+            this.commandDispatcherService.loadModule(files);
             fileInput.value = "";
         }
     }

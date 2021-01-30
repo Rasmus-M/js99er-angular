@@ -41,6 +41,7 @@ export class Software {
     private _workspaceAddress: number;
     private _memoryBlocks: MemoryBlock[];
     private _socketId: string;
+    private _secondBank: boolean;
 
     constructor() {}
 
@@ -154,5 +155,13 @@ export class Software {
 
     set socketId(value: string) {
         this._socketId = value;
+    }
+
+    get secondBank(): boolean {
+        return this._secondBank;
+    }
+
+    set secondBank(value: boolean) {
+        this._secondBank = value;
     }
 }
