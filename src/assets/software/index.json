@@ -288,6 +288,16 @@
                     "type": "ITEM",
                     "name": "Formula 99 demo",
                     "url": "software/formula99.rpk"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Raycaster demo",
+                    "url": "software/raycaster8.rpk"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Texcaster demo",
+                    "url": "software/texcaster8.bin"
                 }
             ]
         },
@@ -357,11 +367,6 @@
                     "type": "ITEM",
                     "name": "Alex Kidd on Miracle Island demo",
                     "url": "software/alexkidd.rpk"
-                },
-                {
-                    "type": "ITEM",
-                    "name": "Raycaster demo",
-                    "url": "software/raycaster8.bin"
                 },
                 {
                     "type": "ITEM",
