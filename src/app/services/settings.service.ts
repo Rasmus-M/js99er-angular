@@ -115,7 +115,6 @@ export class SettingsService {
     }
 
     set32KRAMEnabled(enabled) {
-        console.log("Set32", enabled, this.settings.is32KRAMEnabled());
         if (enabled !== this.settings.is32KRAMEnabled()) {
             this.settings.set32KRAMEnabled(enabled);
             if (this.persistent && this.storage) {
