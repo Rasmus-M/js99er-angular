@@ -292,12 +292,12 @@
                 {
                     "type": "ITEM",
                     "name": "Raycaster demo",
-                    "url": "software/raycaster8.rpk"
+                    "url": "software/raycaster.rpk"
                 },
                 {
                     "type": "ITEM",
                     "name": "Texcaster demo",
-                    "url": "software/texcaster8.bin"
+                    "url": "software/texcaster.rpk"
                 }
             ]
         },
