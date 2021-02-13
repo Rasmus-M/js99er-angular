@@ -14,6 +14,7 @@ import {Speech} from '../interfaces/speech';
 import {MemoryDevice} from '../interfaces/memory-device';
 import {MemoryView} from "../../classes/memoryview";
 import {TIPI} from "./tipi";
+import {coerceBooleanProperty} from "@angular/cdk/coercion";
 
 export class Memory implements State, MemoryDevice {
 
@@ -41,6 +42,7 @@ export class Memory implements State, MemoryDevice {
     private enableTIPI: boolean;
     private ramAt6000: boolean;
     private ramAt7000: boolean;
+    private debugReset: boolean;
 
     private ram: Uint8Array;
     private rom: Uint8Array;
@@ -87,12 +89,18 @@ export class Memory implements State, MemoryDevice {
         this.enableSAMS = this.settings.isSAMSEnabled();
         this.enableGRAM = this.settings.isGRAMEnabled();
         this.enableTIPI = this.settings.isTIPIEnabled();
+        this.debugReset = this.settings.isDebugResetEnabled();
         this.ram = new Uint8Array(0x10000);
+        if (this.debugReset) {
+            for (let i = 0; i < this.ram.length; i++) {
+                this.ram[i] = i & 0xff;
+            }
+        }
         if (this.enableSAMS) {
             if (this.sams) {
                 this.sams.reset();
             } else {
-                this.sams = new SAMS(1024);
+                this.sams = new SAMS(1024, this.debugReset);
             }
         } else {
             this.sams = null;
@@ -691,6 +699,13 @@ export class Memory implements State, MemoryDevice {
 
     setTIPIEnabled(enabled: boolean) {
         this.enableTIPI = enabled;
+    }
+
+    setDebugResetEnabled(enabled: boolean) {
+        this.debugReset = enabled;
+        if (this.sams) {
+            this.sams.setDebugResetEnabled(enabled);
+        }
     }
 
     getPeripheralROMNumber(): number {

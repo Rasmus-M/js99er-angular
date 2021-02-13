@@ -15,10 +15,12 @@ export class SAMS implements State {
     private registerMap: number[];
     private map: number[];
     private log: Log;
+    private debugReset: boolean;
 
-    constructor(size: number) {
+    constructor(size: number, debugReset: boolean) {
         this.size = size;
         this.pages = size >> 2;
+        this.debugReset = debugReset;
         this.log = Log.getLog();
         this.reset();
     }
@@ -26,8 +28,10 @@ export class SAMS implements State {
     reset() {
         this.registerAccess = false;
         this.ram = new Uint8Array(this.size * 1024);
-        for (let i = 0; i < this.ram.length; i++) {
-            this.ram[i] = i & 0xff;
+        if (this.debugReset) {
+            for (let i = 0; i < this.ram.length; i++) {
+                this.ram[i] = i & 0xff;
+            }
         }
         this.transparentMap = [
             null, null, 2, 3, null, null, null, null, null, null, 10, 11, 12, 13,  14, 15
@@ -37,6 +41,10 @@ export class SAMS implements State {
         ];
         this.map = null;
         this.setMode(SAMS.TRANSPARENT_MODE);
+    }
+
+    setDebugResetEnabled(enabled: boolean) {
+        this.debugReset = enabled;
     }
 
     hasRegisterAccess(): boolean {

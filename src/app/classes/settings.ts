@@ -12,7 +12,8 @@ export enum Setting {
     PIXELATED = 10,
     PAUSE_ON_FOCUS_LOST = 11,
     TIPI = 12,
-    TIPI_WEBSOCKET_URI = 13
+    TIPI_WEBSOCKET_URI = 13,
+    DEBUG_RESET = 14
 }
 
 export class Settings {
@@ -31,6 +32,7 @@ export class Settings {
     private enablePauseOnFocusLost: boolean;
     private enableTIPI: boolean;
     private tipiWebsocketURI: string;
+    private enableDebugReset: boolean;
 
     constructor() {
         this.enableSound = true;
@@ -47,6 +49,7 @@ export class Settings {
         this.enablePauseOnFocusLost = false;
         this.enableTIPI = false;
         this.tipiWebsocketURI = "ws://localhost:9901/tipi";
+        this.enableDebugReset = false;
     }
 
     isSoundEnabled(): boolean {
@@ -161,6 +164,14 @@ export class Settings {
         this.tipiWebsocketURI = value;
     }
 
+    isDebugResetEnabled() {
+        return this.enableDebugReset;
+    }
+
+    setDebugResetEnabled(enabled: boolean) {
+        this.enableDebugReset = enabled;
+    }
+
     copyFrom(otherSettings: Settings) {
         this.enableSound = otherSettings.isSoundEnabled();
         this.enableSpeech = otherSettings.isSpeechEnabled();
@@ -176,5 +187,6 @@ export class Settings {
         this.enablePauseOnFocusLost = otherSettings.isPauseOnFocusLostEnabled();
         this.enableTIPI = otherSettings.isTIPIEnabled();
         this.tipiWebsocketURI = otherSettings.getTIPIWebsocketURI();
+        this.enableDebugReset = otherSettings.isDebugResetEnabled();
     }
 }

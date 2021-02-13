@@ -1,9 +1,13 @@
-.options {
+.settings {
     height: 100%;
     overflow-y: scroll;
 }
 
-.option {
+.setting {
     margin-left: 16px;
-    margin-bottom: 16px;
+}
+
+.checkbox-setting {
+    margin-left: 16px;
+    margin-bottom: 12px;
 }

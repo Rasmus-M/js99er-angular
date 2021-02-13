@@ -14,18 +14,18 @@ export class SettingsComponent implements OnInit {
 
     enableSound: boolean;
     enableSpeech: boolean;
-    enable32KRAM: boolean;
     enableF18A: boolean;
     enableFlicker: boolean;
     enablePCKeyboard: boolean;
     enableMapArrowKeys: boolean;
     enableGoogleDrive: boolean;
-    enableSAMS: boolean;
     enableGRAM: boolean;
     enablePixelated: boolean;
     enablePauseOnFocusLost: boolean;
     enableTIPI: boolean;
     tipiWebsocketURI: string;
+    enableDebugReset: boolean;
+    ramExpansion: string;
 
     private subscription: Subscription;
 
@@ -44,18 +44,23 @@ export class SettingsComponent implements OnInit {
     readSettings() {
         this.enableSound = this.settingsService.isSoundEnabled();
         this.enableSpeech = this.settingsService.isSpeechEnabled();
-        this.enable32KRAM = this.settingsService.is32KRAMEnabled();
         this.enableF18A = this.settingsService.isF18AEnabled();
         this.enableFlicker = this.settingsService.isFlickerEnabled();
         this.enablePCKeyboard = this.settingsService.isPCKeyboardEnabled();
         this.enableMapArrowKeys = this.settingsService.isMapArrowKeysToFctnSDEXEnabled();
         this.enableGoogleDrive = this.settingsService.isGoogleDriveEnabled();
-        this.enableSAMS = this.settingsService.isSAMSEnabled();
         this.enableGRAM = this.settingsService.isGRAMEnabled();
         this.enablePixelated = this.settingsService.isPixelatedEnabled();
         this.enablePauseOnFocusLost = this.settingsService.isPauseOnFocusLostEnabled();
         this.enableTIPI = this.settingsService.isTIPIEnabled();
-        this.tipiWebsocketURI  = this.settingsService.getTIPIWebsocketURI();
+        this.tipiWebsocketURI = this.settingsService.getTIPIWebsocketURI();
+        this.enableDebugReset = this.settingsService.isDebugResetEnabled();
+        this.ramExpansion = "none";
+        if (this.settingsService.is32KRAMEnabled()) {
+            this.ramExpansion = "32K";
+        } else if (this.settingsService.isSAMSEnabled()) {
+            this.ramExpansion = "sams";
+        }
     }
 
     onEvent(event: ConsoleEvent) {
@@ -72,10 +77,6 @@ export class SettingsComponent implements OnInit {
 
     onEnableSpeechChanged(value) {
         this.settingsService.setSpeechEnabled(value);
-    }
-
-    onEnable32KRAMChanged(value) {
-        this.settingsService.set32KRAMEnabled(value);
     }
 
     onEnableAMSChanged(value) {
@@ -102,10 +103,6 @@ export class SettingsComponent implements OnInit {
         this.settingsService.setGoogleDriveEnabled(value);
     }
 
-    onEnabledAMSChanged(value) {
-        this.settingsService.setSAMSEnabled(value);
-    }
-
     onEnableGRAMChanged(value) {
         this.settingsService.setGRAMEnabled(value);
     }
@@ -126,11 +123,28 @@ export class SettingsComponent implements OnInit {
         this.settingsService.setTIPIWebsocketURI(value);
     }
 
+    onEnableDebugResetChanged(value) {
+        this.settingsService.setDebugResetEnabled(value);
+    }
+
     onTextFocus() {
         this.commandDispatcherService.stopKeyboard();
     }
 
     onTextBlur() {
         this.commandDispatcherService.startKeyboard();
+    }
+
+    onRAMExpansionChanged(value) {
+        if (value === "32K") {
+            this.settingsService.set32KRAMEnabled(true);
+            this.settingsService.setSAMSEnabled(false);
+        } else if (value === "sams") {
+            this.settingsService.set32KRAMEnabled(false);
+            this.settingsService.setSAMSEnabled(true);
+        } else {
+            this.settingsService.set32KRAMEnabled(false);
+            this.settingsService.setSAMSEnabled(false);
+        }
     }
 }

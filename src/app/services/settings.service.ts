@@ -63,6 +63,9 @@ export class SettingsService {
             if (storage.getItem('TIPIWebsocketURI') != null) {
                 this.settings.setTIPIWebsocketURI(storage.getItem('TIPIWebsocketURI'));
             }
+            if (storage.getItem('enableDebugReset') != null) {
+                this.settings.setDebugResetEnabled(storage.getItem('enableDebugReset') === 'true');
+            }
             this.storage = storage;
         }
     }
@@ -112,6 +115,7 @@ export class SettingsService {
     }
 
     set32KRAMEnabled(enabled) {
+        console.log("Set32", enabled, this.settings.is32KRAMEnabled());
         if (enabled !== this.settings.is32KRAMEnabled()) {
             this.settings.set32KRAMEnabled(enabled);
             if (this.persistent && this.storage) {
@@ -276,5 +280,19 @@ export class SettingsService {
     restoreSettings(settings: Settings) {
         this.settings.copyFrom(settings);
         this.eventDispatcherService.settingsRestored();
+    }
+
+    isDebugResetEnabled() {
+        return this.settings.isDebugResetEnabled();
+    }
+
+    setDebugResetEnabled(enabled) {
+        if (enabled !== this.settings.isDebugResetEnabled()) {
+            this.settings.setDebugResetEnabled(enabled);
+            if (this.persistent && this.storage) {
+                this.storage.setItem('enableDebugReset', enabled);
+            }
+            this.commandDispatcherService.changeSetting(Setting.DEBUG_RESET, enabled);
+        }
     }
 }

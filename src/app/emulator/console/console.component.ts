@@ -163,6 +163,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         break;
                     case Setting.RAM32K:
                         this.ti994A.getMemory().set32KRAMEnabled(value);
+                        resetRequired = true;
                         break;
                     case Setting.F18A:
                         this.ti994A.setVDP();
@@ -202,6 +203,9 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                     case Setting.TIPI_WEBSOCKET_URI:
                         this.ti994A.setTIPI();
                         resetRequired = this.settingsService.isTIPIEnabled();
+                        break;
+                    case Setting.DEBUG_RESET:
+                        this.ti994A.getMemory().setDebugResetEnabled(value);
                         break;
                 }
                 if (resetRequired) {
