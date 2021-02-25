@@ -46,7 +46,7 @@ export class DiskFile implements State {
     }
 
     getDataTypeLabel(): string {
-        return Disk.DATA_TYPE_LABELS[this.dataType];
+        return this.getFileType() === FileType.DATA ? Disk.DATA_TYPE_LABELS[this.dataType] : "-";
     }
 
     getRecordType(): RecordType {
@@ -54,14 +54,15 @@ export class DiskFile implements State {
     }
 
     getRecordTypeLabel(): string {
-        return Disk.RECORD_TYPE_LABELS[this.recordType];
+        return this.getFileType() === FileType.DATA ? Disk.RECORD_TYPE_LABELS[this.recordType] : "-";
     }
+
     getAccessType(): AccessType {
         return this.accessType;
     }
 
     getAccessTypeLabel(): string {
-        return Disk.ACCESS_TYPE_LABELS[this.accessType];
+        return this.getFileType() === FileType.DATA ? Disk.ACCESS_TYPE_LABELS[this.accessType] : "-";
     }
 
     getOperationMode(): OperationMode {
