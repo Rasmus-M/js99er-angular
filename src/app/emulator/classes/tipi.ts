@@ -1,7 +1,10 @@
 import {CPU} from "../interfaces/cpu";
 import {Log} from "../../classes/log";
+import {Util} from "../../classes/util";
 
 export class TIPI {
+
+    static FAST_MOUSE_EMULATION = true;
 
     static TD_OUT = 0x5FFE; // TI Data (output)
     static TC_OUT = 0x5FFC; // TI Control Signal (output)
@@ -432,16 +435,23 @@ export class TIPI {
     private tc = 0;
     private rd: number = null;
     private rc: number = null;
-    private msg = null;
-    private msgidx = 0;
-    private msglen = 0;
+    private msg: Uint8Array;
+    private msgIdx = 0;
+    private msgLen = 0;
     private mouseX = -1;
     private mouseY = -1;
+    private tiX = -1;
+    private tiY = -1;
+    private buttons = 0;
+    private mouseRequested = false;
 
     constructor(cpu: CPU, websocketURI: string, canvas: HTMLCanvasElement) {
         this.cpu = cpu;
         this.websocketURI = websocketURI;
         this.canvas = canvas;
+        this.canvas.addEventListener('mousemove', (evt) => { this.mouseHandler(evt); });
+        this.canvas.addEventListener('mouseup', (evt) => { this.mouseHandler(evt); });
+        this.canvas.addEventListener('mousedown', (evt) => { this.mouseHandler(evt); });
     }
 
     reset() {
@@ -481,15 +491,12 @@ export class TIPI {
                     }
                 } else if (typeof message === "object") {
                     this.msg = new Uint8Array(message); // create a byte view
-                    this.msglen = this.msg.length;
+                    this.msgLen = this.msg.length;
                     // console.log("TIPI websocket msg len=" + this.msglen);
-                    this.msgidx = -2;
+                    this.msgIdx = -2;
                     this.processMsg();
                 }
             };
-            this.canvas.onmousemove = (evt) => { this.mouseMsg(evt); };
-            this.canvas.onmouseup = (evt) => { this.mouseMsg(evt); };
-            this.canvas.onmousedown = (evt) => { this.mouseMsg(evt); };
         }
     }
 
@@ -538,58 +545,83 @@ export class TIPI {
     }
 
     processMsg() {
-        // do websocket processing
+        // Do websocket processing
         // console.log("TIPI process TC: " + Util.toHexByte(this.tc) + " "+this.msgidx + "/"+this.msglen);
         if (this.tc === 0xf1) { // TSRSET (reset-sync)
             this.msg = null;
-            this.msgidx = -2;
+            this.msgIdx = -2;
             this.rc = this.tc; // ack reset
             this.websocket.send("SYNC");
         } else if ((this.tc & 0xfe) === 0x02) { // TSWB (write-byte)
-            if (this.msgidx === -2) {
-                this.msglen = this.td << 8;
-            } else if (this.msgidx === -1) {
-                this.msglen += this.td;
-                this.msg = new Uint8Array(new ArrayBuffer(this.msglen));
+            if (this.msgIdx === -2) {
+                this.msgLen = this.td << 8;
+            } else if (this.msgIdx === -1) {
+                this.msgLen += this.td;
+                this.msg = new Uint8Array(new ArrayBuffer(this.msgLen));
             } else if (this.msg != null) {
-                this.msg[this.msgidx] = this.td;
+                this.msg[this.msgIdx] = this.td;
             }
-            this.msgidx++;
-            if (this.msgidx === this.msglen) {
-                this.websocket.send(this.msg.buffer);
-                // console.log("Sending msg len="+this.msglen);
-                this.msg = null;
+            this.msgIdx++;
+            if (this.msg && this.msgIdx === this.msgLen) {
+                if (TIPI.FAST_MOUSE_EMULATION && this.msgLen === 1 && this.msg[0] === 0x20) {
+                    this.mouseRequested = true;
+                } else {
+                    this.websocket.send(this.msg.buffer);
+                    // console.log("Sending msg len=" + this.msglen);
+                    this.msg = null;
+                }
             }
             this.rc = this.tc; // ack
         } else if ((this.tc & 0xfe) === 0x06) { // TSRB (read-byte)
+            if (this.mouseRequested) {
+                this.createMouseMsg();
+                this.mouseRequested = false;
+            }
             if (this.msg != null) {
-                if (this.msgidx === -2) {
-                    this.rd = (this.msglen >> 8) & 0xff;
-                } else if (this.msgidx === -1) {
-                    this.rd = this.msglen & 0xff;
+                if (this.msgIdx === -2) {
+                    this.rd = (this.msgLen >> 8) & 0xff;
+                } else if (this.msgIdx === -1) {
+                    this.rd = this.msgLen & 0xff;
                 } else {
-                    this.rd = this.msg[this.msgidx];
+                    this.rd = this.msg[this.msgIdx];
                 }
-                this.msgidx++;
+                this.msgIdx++;
                 this.rc = this.tc; // ack
             }
         } else {
-            // console.log("TIPI write TC: " + Util.toHexByte(this.tc) + " (protocol error)");
+            console.log("TIPI write TC: " + Util.toHexByte(this.tc) + " (protocol error)");
         }
     }
 
-    mouseMsg(evt) {
-        if (this.websocketOpen) {
-            const rect = this.canvas.getBoundingClientRect();
-            const scale = this.canvas.clientHeight / (240 * 2);
-            const tiX = Math.floor((evt.clientX - rect.left) / scale);
-            const tiY = Math.floor((evt.clientY - rect.top) / scale);
+    mouseHandler(evt) {
+        const rect = this.canvas.getBoundingClientRect();
+        const scale = this.canvas.clientHeight / 240;
+        this.tiX = Math.floor((evt.clientX - rect.left) / scale);
+        this.tiY = Math.floor((evt.clientY - rect.top) / scale);
+        this.buttons = evt.buttons;
+        if (!TIPI.FAST_MOUSE_EMULATION) {
             if (this.mouseX !== -1 || this.mouseY !== -1) {
-                this.websocket.send("MOUSE " + evt.buttons + " " + (tiX - this.mouseX) + " " + (tiY - this.mouseY));
+                const dx = this.tiX - this.mouseX;
+                const dy = this.tiY - this.mouseY;
+                this.websocket.send("MOUSE " + evt.buttons + " " + dx + " " + dy);
             }
-            this.mouseX = tiX;
-            this.mouseY = tiY;
+            this.mouseX = this.tiX;
+            this.mouseY = this.tiY;
         }
+    }
+
+    createMouseMsg() {
+        const dx = this.mouseX !== -1 ? this.tiX - this.mouseX : 0;
+        const dy = this.mouseY !== -1 ? this.tiY - this.mouseY : 0;
+        const mouseMsg = new Uint8Array(3);
+        mouseMsg[0] = dx;
+        mouseMsg[1] = dy;
+        mouseMsg[2] = this.buttons;
+        this.msg = mouseMsg;
+        this.msgIdx = -2;
+        this.msgLen = 3;
+        this.mouseX = this.tiX;
+        this.mouseY = this.tiY;
     }
 
     close() {
