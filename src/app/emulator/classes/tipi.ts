@@ -449,9 +449,9 @@ export class TIPI {
         this.cpu = cpu;
         this.websocketURI = websocketURI;
         this.canvas = canvas;
-        this.canvas.addEventListener('mousemove', (evt) => { this.mouseHandler(evt); });
-        this.canvas.addEventListener('mouseup', (evt) => { this.mouseHandler(evt); });
-        this.canvas.addEventListener('mousedown', (evt) => { this.mouseHandler(evt); });
+        this.canvas.addEventListener('mousemove', this.mouseHandler.bind(this));
+        this.canvas.addEventListener('mouseup', this.mouseHandler.bind(this));
+        this.canvas.addEventListener('mousedown', this.mouseHandler.bind(this));
     }
 
     reset() {
@@ -633,5 +633,8 @@ export class TIPI {
             this.websocket.close();
             this.cpu.setSuspended(false);
         }
+        this.canvas.removeEventListener('mousemove', this.mouseHandler);
+        this.canvas.removeEventListener('mouseup', this.mouseHandler);
+        this.canvas.removeEventListener('mousedown', this.mouseHandler);
     }
 }
