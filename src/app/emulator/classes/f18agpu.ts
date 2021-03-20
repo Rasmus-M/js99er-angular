@@ -496,7 +496,6 @@ export class F18AGPU implements CPU {
             this.vdpRAM[addr] = b;
         } else if (addr < 0x4000) {
             this.vdpRAM[addr] = b;
-            this.f18a.setRedrawRequires(true);
         } else if (addr < 0x5000) {
             this.vdpRAM[addr & 0x47FF] = b;
         } else if (addr < 0x6000) {
@@ -510,7 +509,6 @@ export class F18AGPU implements CPU {
                 color[1] = ((b & 0xF0) >> 4) * 17;
                 color[2] = (b & 0x0F) * 17;
             }
-            this.f18a.setRedrawRequires(true);
         } else if (addr < 0x7000) {
             this.f18a.writeRegister(addr & 0x3F, b);
         } else if (addr < 0x8000) {
@@ -559,7 +557,6 @@ export class F18AGPU implements CPU {
                     }
                 }
                 this.addCycles(width * height); // ?
-                this.f18a.setRedrawRequires(true);
             } else {
                 // Setup
                 this.vdpRAM[addr & 0x800F] = b;

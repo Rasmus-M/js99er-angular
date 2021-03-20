@@ -223,7 +223,7 @@ export class TI994A implements Console, State {
         let cruTimerDecrementFrame = CRU.TIMER_DECREMENT_PER_FRAME;
         const cruTimerDecrementScanline = CRU.TIMER_DECREMENT_PER_SCANLINE;
         let y = 0;
-        this.vdp.initFrame(window.performance ? window.performance.now() : new Date().getTime());
+        this.vdp.initFrame();
         while (cyclesToRun > 0) {
             if (y < 240) {
                 this.vdp.drawScanline(y);
@@ -290,12 +290,6 @@ export class TI994A implements Console, State {
         this.vdp.updateCanvas();
         this.running = false;
         this.cpu.dumpProfile();
-    }
-
-    drawFrame() {
-        const timestamp = window.performance ? window.performance.now() : new Date().getTime();
-        this.vdp.drawFrame(timestamp);
-        this.fpsFrameCount++;
     }
 
     resetFps() {

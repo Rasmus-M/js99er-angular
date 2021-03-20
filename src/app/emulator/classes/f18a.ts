@@ -122,9 +122,7 @@ export class F18A implements VDP {
     private autoIncPaletteReg: boolean;
     private paletteRegisterNo: number;
     private paletteRegisterData: number;
-    private gpuAddressLatch: boolean;
     private currentScanline: number;
-    private fakeScanline: number;
     private blanking: number;
 
     private displayOn: boolean;
@@ -190,8 +188,6 @@ export class F18A implements VDP {
     private collision: boolean;
     private fifthSprite: boolean;
     private fifthSpriteIndex: number;
-
-    private redrawRequired: boolean;
 
     private canvasWidth: number;
     private canvasHeight: number;
@@ -264,9 +260,7 @@ export class F18A implements VDP {
         this.autoIncPaletteReg = false;
         this.paletteRegisterNo = 0;
         this.paletteRegisterData = -1;
-        this.gpuAddressLatch = false;
         this.currentScanline = 0;
-        this.fakeScanline = null;
         this.blanking = 0;
 
         this.displayOn = true;
@@ -334,8 +328,6 @@ export class F18A implements VDP {
         this.fifthSprite = false;
         this.fifthSpriteIndex = 0x1F;
 
-        this.redrawRequired = true;
-
         this.setDimensions(true);
         this.imageDataAddr = 0;
         this.frameCounter = 0;
@@ -402,60 +394,13 @@ export class F18A implements VDP {
         }
     }
 
-    drawFrame(timestamp) {
-        this.lastTime = timestamp;
-        // this.log.info("Draw frame");
-        if (this.redrawRequired) {
-            // this.log.info("Redraw " + this.frameCounter);
-            if (this.displayOn) {
-                this.collision = false;
-                // Draw scanlines
-                this.imageDataAddr = 0;
-                this.fakeScanline = null;
-                for (let y = 0; y < 240; y++) {
-                    this._drawScanline(y);
-                    if (this.screenMode === F18A.MODE_TEXT_80) {
-                        this._duplicateScanline();
-                    }
-                    if (this.gpuHsyncTrigger) {
-                        this.currentScanline = y >= this.topBorder ? y - this.topBorder : 255;
-                        this.runGPU(this.gpu.getPC());
-                    }
-                }
-                this.updateCanvas();
-                this.currentScanline = null;
-            } else {
-                this.fillCanvas(this.bgColor);
-            }
-            this.redrawRequired = false;
-        }
-        this.statusRegister = 0x80;
-        if (this.interruptsOn) {
-            this.cru.setVDPInterrupt(true);
-        }
-        if (this.collision) {
-            this.statusRegister |= 0x20;
-        }
-        this.statusRegister |= (this.reportMax ? this.registers[30] : 0x1F);
-        if (this.gpuHsyncTrigger) {
-            this.redrawRequired = true;
-        }
-        if (this.gpuVsyncTrigger) {
-            this.currentScanline = 240 - this.topBorder;
-            this.runGPU(this.gpu.getPC());
-        }
-        this.frameCounter++;
-    }
-
     fillCanvas(color) {
         this.canvasContext.fillStyle = 'rgba(' + this.palette[color].join(',') + ',1.0)';
         this.canvasContext.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
     }
 
-    initFrame(timestamp) {
-        this.lastTime = timestamp;
+    initFrame() {
         this.imageDataAddr = 0;
-        this.fakeScanline = null;
     }
 
     drawScanline(y) {
@@ -463,25 +408,12 @@ export class F18A implements VDP {
         this.collision = false;
         this.fifthSprite = false;
         this.fifthSpriteIndex = 0x1F;
-        this.blanking = 0;
+        this.blanking = (y < this.topBorder || y >= this.topBorder + this.drawHeight) ? 1 : 0;
         this._drawScanline(y);
         if (this.screenMode === F18A.MODE_TEXT_80) {
             this._duplicateScanline();
         }
-        this.blanking = 1;
-        if (this.gpuHsyncTrigger) {
-            this.gpu.setIdle(false);
-        }
-        if (y === this.topBorder + this.drawHeight - (this.row30Enabled ? 1 : 0)) {
-            this.statusRegister |= 0x80;
-            if (this.interruptsOn) {
-                this.cru.setVDPInterrupt(true);
-            }
-            if (this.gpuVsyncTrigger) {
-                this.gpu.setIdle(false);
-            }
-            this.frameCounter++;
-        }
+        this.blanking = 1; // GPU code after scanline may depend on this
         if (this.collision) {
             this.statusRegister |= 0x20;
         }
@@ -490,6 +422,19 @@ export class F18A implements VDP {
         }
         if (this.fifthSprite) {
             this.statusRegister |= 0x40;
+        }
+        if (this.gpuHsyncTrigger) {
+            this.gpu.setIdle(false);
+        }
+        if (y === this.topBorder + this.drawHeight - 1) {
+            this.statusRegister |= 0x80;
+            if (this.interruptsOn) {
+                this.cru.setVDPInterrupt(true);
+            }
+            if (this.gpuVsyncTrigger) {
+                this.gpu.setIdle(false);
+            }
+            this.frameCounter++;
         }
     }
 
@@ -733,14 +678,14 @@ export class F18A implements VDP {
                     case F18A.COLOR_MODE_ECM_2:
                         tileColor =
                             ((patternByte & bit) >> (7 - bitShift)) |
-                            (((this.ram[patternAddr + this.tilePlaneOffset] & bit) >> (7 - bitShift)) << 1);
+                            (((this.ram[(patternAddr + this.tilePlaneOffset) & 0x3fff] & bit) >> (7 - bitShift)) << 1);
                         tilePaletteBaseIndex = ((tileAttributeByte & 0x0f) << 2);
                         break;
                     case F18A.COLOR_MODE_ECM_3:
                         tileColor =
                             ((patternByte & bit) >> (7 - bitShift)) |
-                            (((this.ram[patternAddr + this.tilePlaneOffset] & bit) >> (7 - bitShift)) << 1) |
-                            (((this.ram[patternAddr + (this.tilePlaneOffset << 1)] & bit) >> (7 - bitShift)) << 2);
+                            (((this.ram[(patternAddr + this.tilePlaneOffset) & 0x3fff] & bit) >> (7 - bitShift)) << 1) |
+                            (((this.ram[(patternAddr + (this.tilePlaneOffset << 1)) & 0x3fff] & bit) >> (7 - bitShift)) << 2);
                         tilePaletteBaseIndex = ((tileAttributeByte & 0x0e) << 2);
                         break;
                 }
@@ -799,14 +744,14 @@ export class F18A implements VDP {
                         case F18A.COLOR_MODE_ECM_2:
                             tileColor =
                                 ((patternByte & bit) >> (7 - bitShift)) |
-                                (((this.ram[patternAddr + this.tilePlaneOffset] & bit) >> (7 - bitShift)) << 1);
+                                (((this.ram[(patternAddr + this.tilePlaneOffset) & 0x3fff] & bit) >> (7 - bitShift)) << 1);
                             tilePaletteBaseIndex = ((tileAttributeByte & 0x0f) << 2);
                             break;
                         case F18A.COLOR_MODE_ECM_3:
                             tileColor =
                                 ((patternByte & bit) >> (7 - bitShift)) |
-                                (((this.ram[patternAddr + this.tilePlaneOffset] & bit) >> (7 - bitShift)) << 1) |
-                                (((this.ram[patternAddr + (this.tilePlaneOffset << 1)] & bit) >> (7 - bitShift)) << 2);
+                                (((this.ram[(patternAddr + this.tilePlaneOffset) & 0x3fff] & bit) >> (7 - bitShift)) << 1) |
+                                (((this.ram[(patternAddr + (this.tilePlaneOffset << 1)) & 0x3fff] & bit) >> (7 - bitShift)) << 2);
                             tilePaletteBaseIndex = ((tileAttributeByte & 0x0e) << 2);
                             break;
                     }
@@ -904,8 +849,8 @@ export class F18A implements VDP {
                         for (let dx = 0; dx < spriteWidth; dx += 8) {
                             const spritePatternAddr = spritePatternBaseAddr + dy + (dx << 1);
                             const spritePatternByte0 = this.ram[spritePatternAddr];
-                            const spritePatternByte1 = this.ram[spritePatternAddr + this.spritePlaneOffset];
-                            const spritePatternByte2 = this.ram[spritePatternAddr + (this.spritePlaneOffset << 1)];
+                            const spritePatternByte1 = this.ram[(spritePatternAddr + this.spritePlaneOffset) & 0x3fff];
+                            const spritePatternByte2 = this.ram[(spritePatternAddr + (this.spritePlaneOffset << 1)) & 0x3fff];
                             let spriteBit = 0x80;
                             let spriteBitShift2 = 7;
                             for (let spriteBitShift1 = 0; spriteBitShift1 < 8; spriteBitShift1++) {
@@ -1273,19 +1218,15 @@ export class F18A implements VDP {
                 break;
             // GPU address MSB
             case 54:
-                this.gpuAddressLatch = true;
                 break;
             // GPU address LSB
             case 55:
-                if (this.gpuAddressLatch) {
-                    this.gpuAddressLatch = false;
-                    this.gpu.intReset();
-                    this.log.debug("F18A GPU triggered at " + Util.toHexWord((this.registers[54] << 8) | this.registers[55]));
-                    this.gpu.setPC(this.registers[54] << 8 | this.registers[55]);
-                }
+                this.gpu.intReset();
+                this.log.debug("F18A GPU triggered at " + Util.toHexWord((this.registers[54] << 8) | this.registers[55]));
+                this.gpu.setPC(this.registers[54] << 8 | this.registers[55]);
                 break;
             case 56:
-                if ((this.registers[56] & 1) !== 0) {
+                if ((this.registers[56] & 1) === 1) {
                     this.gpu.setIdle(false);
                 } else {
                     this.gpu.setIdle(true);
@@ -1319,10 +1260,6 @@ export class F18A implements VDP {
                 this.log.info("Write " + Util.toHexByte(this.registers[reg]) + " to F18A register " + reg + " (" + Util.toHexByte(reg) + ").");
                 break;
         }
-        if (oldValue !== value) {
-            this.redrawRequired = true;
-        }
-
     }
 
     readRegister(reg) {
@@ -1408,10 +1345,6 @@ export class F18A implements VDP {
             this.ram[this.addressRegister] = b;
             this.addressRegister += this.addressIncrement;
             this.addressRegister &= 0x3FFF;
-            if (oldValue !== b) {
-                this.redrawRequired = true;
-            }
-
         } else {
             // Write data to F18A palette registers
             if (this.paletteRegisterData === -1) {
@@ -1435,7 +1368,6 @@ export class F18A implements VDP {
                 }
                 this.paletteRegisterData = -1;
             }
-            this.redrawRequired = true;
         }
     }
 
@@ -1502,25 +1434,8 @@ export class F18A implements VDP {
     }
 
    getCurrentScanline() {
-        if (this.currentScanline !== null) {
-            this.log.debug("Get scanline=" + this.currentScanline);
-            return this.currentScanline;
-        } else {
-            if (window.performance) {
-                const now = this.getTime();
-                if ((now - this.lastTime) > 0.04) {
-                    this.fakeScanline++;
-                    this.lastTime = now;
-                }
-            } else {
-                this.fakeScanline++;
-            }
-            if (this.fakeScanline === 240) {
-                this.fakeScanline = 0;
-            }
-            this.log.debug("Get fake scanline=" + this.fakeScanline);
-            return this.fakeScanline;
-        }
+        this.log.debug("Get scanline=" + this.currentScanline);
+        return this.currentScanline;
     }
 
     getBlanking() {
@@ -1618,10 +1533,6 @@ export class F18A implements VDP {
         this.enableFlicker = value;
         this.maxScanlineSprites = F18A.MAX_SCANLINE_SPRITES_JUMPER && !this.enableFlicker ? 32 : 4;
         this.log.info("Max scanline sprites: " + this.maxScanlineSprites);
-    }
-
-    setRedrawRequires(value: boolean) {
-        this.redrawRequired = value;
     }
 
     getPalette(): number[][] {
@@ -1742,14 +1653,14 @@ export class F18A implements VDP {
                             case F18A.COLOR_MODE_ECM_2:
                                 color =
                                     (((patternByte & bit) >> (7 - pixelOffset)) |
-                                    (((this.ram[patternAddr + this.tilePlaneOffset] & bit) >> (7 - pixelOffset)) << 1)) +
+                                    (((this.ram[(patternAddr + this.tilePlaneOffset) & 0x3fff] & bit) >> (7 - pixelOffset)) << 1)) +
                                     ((tileAttributeByte & 0x0f) << 2);
                                 break;
                             case F18A.COLOR_MODE_ECM_3:
                                 color =
                                     (((patternByte & bit) >> (7 - pixelOffset)) |
-                                    (((this.ram[patternAddr + this.tilePlaneOffset] & bit) >> (7 - pixelOffset)) << 1) |
-                                    (((this.ram[patternAddr + (this.tilePlaneOffset << 1)] & bit) >> (7 - pixelOffset)) << 2)) +
+                                    (((this.ram[(patternAddr + this.tilePlaneOffset) & 0x3fff] & bit) >> (7 - pixelOffset)) << 1) |
+                                    (((this.ram[(patternAddr + (this.tilePlaneOffset << 1)) & 0x3fff] & bit) >> (7 - pixelOffset)) << 2)) +
                                     ((tileAttributeByte & 0x0e) << 2);
                                 break;
                         }
@@ -1857,8 +1768,8 @@ export class F18A implements VDP {
                 pattern = rowPatternOffset + ((x >> 3) << 1);
                 patternAddr = spritePatternTable + (pattern << 3) + lineOffset;
                 patternByte = ram[patternAddr];
-                patternByte1 = ram[patternAddr + spritePlaneOffset];
-                patternByte2 = ram[patternAddr + (spritePlaneOffset << 1)];
+                patternByte1 = ram[(patternAddr + spritePlaneOffset) & 0x3fff];
+                patternByte2 = ram[(patternAddr + (spritePlaneOffset << 1)) & 0x3fff];
                 color = 0;
                 colorMapEntry = patternColorMap[pattern & 0xfc];
                 switch (spriteColorMode) {
@@ -1924,9 +1835,7 @@ export class F18A implements VDP {
             autoIncPaletteReg: this.autoIncPaletteReg,
             paletteRegisterNo: this.paletteRegisterNo,
             paletteRegisterData: this.paletteRegisterData,
-            gpuAddressLatch: this.gpuAddressLatch,
             currentScanline: this.currentScanline,
-            fakeScanline: this.fakeScanline,
             blanking: this.blanking,
             displayOn: this.displayOn,
             interruptsOn: this.interruptsOn,
@@ -2017,9 +1926,7 @@ export class F18A implements VDP {
         this.autoIncPaletteReg = state.autoIncPaletteReg;
         this.paletteRegisterNo = state.paletteRegisterNo;
         this.paletteRegisterData = state.paletteRegisterData;
-        this.gpuAddressLatch = state.gpuAddressLatch;
         this.currentScanline = state.currentScanline;
-        this.fakeScanline = state.fakeScanline;
         this.blanking = state.blanking;
         this.displayOn = state.displayOn;
         this.interruptsOn = state.interruptsOn;
@@ -2092,6 +1999,5 @@ export class F18A implements VDP {
         this.lastTime = state.lastTime;
         this.gpu.restoreState(state.gpu);
         this.setDimensions(true);
-        this.redrawRequired = true;
     }
 }

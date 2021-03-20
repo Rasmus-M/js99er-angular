@@ -4,8 +4,7 @@ import {MemoryDevice} from './memory-device';
 
 export interface VDP extends State, MemoryDevice {
     reset(): void;
-    drawFrame(timestamp: number): void;
-    initFrame(timestamp: number): void;
+    initFrame(): void;
     drawScanline(y: number): void;
     updateCanvas(): void;
     writeAddress(i: number): void;

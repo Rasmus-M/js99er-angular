@@ -68,7 +68,6 @@ export class TMS9918A implements VDP {
     private bgColor: number;
 
     private flicker: boolean;
-    private redrawRequired: boolean;
 
     private canvasContext: CanvasRenderingContext2D;
     private imageData: ImageData;
@@ -117,7 +116,6 @@ export class TMS9918A implements VDP {
         this.bgColor = 0;
 
         this.flicker = this.enableFlicker;
-        this.redrawRequired = true;
 
         this.canvas.width = 320;
         this.canvas.height = 240;
@@ -132,17 +130,7 @@ export class TMS9918A implements VDP {
         this.spritePatternColorMap = {};
     }
 
-    drawFrame(timestamp: number) {
-        if (this.redrawRequired) {
-            for (let y = 0; y < this.height; y++) {
-                this.drawScanline(y);
-            }
-            this.updateCanvas();
-            this.redrawRequired = false;
-        }
-    }
-
-    initFrame(timestamp: number) {
+    initFrame() {
     }
 
     drawScanline(y: number) {
@@ -422,7 +410,6 @@ export class TMS9918A implements VDP {
                     // this.log.info("Pattern table: " + this.charPatternTable.toHexWord());
                     break;
             }
-            this.redrawRequired = true;
         }
         this.latch = !this.latch;
     }
@@ -501,7 +488,6 @@ export class TMS9918A implements VDP {
     writeData(i: number) {
         this.ram[this.addressRegister++] = i;
         this.addressRegister &= this.ramMask;
-        this.redrawRequired = true;
     }
 
     readStatus(): number {
@@ -817,6 +803,5 @@ export class TMS9918A implements VDP {
         this.fgColor = state.fgColor;
         this.bgColor = state.bgColor;
         this.flicker = state.flicker;
-        this.redrawRequired = true;
     }
 }
