@@ -598,5 +598,6 @@
     {"url": "obstacle.rpk", "name": "Bouncy's obstacle course"},
     {"url": "borzork.rpk"},
     {"url": "forcecmd.rpk", "name": "Force Command"},
-    {"url": "f18aracing8.bin", "name": "F18A Racing"}
+    {"url": "f18aracing8.bin", "name": "F18A Racing"},
+    {"url": "stevie8.bin", "name": "Stevie programming editor"}
 ]

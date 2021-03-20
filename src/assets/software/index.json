@@ -90,6 +90,11 @@
                     "type": "ITEM",
                     "name": "SuperSpace II",
                     "url": "software/super-space-ii.json"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Stevie programming editor",
+                    "url": "software/stevie8.bin"
                 }
             ]
         },
