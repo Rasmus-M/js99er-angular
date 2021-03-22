@@ -438,6 +438,13 @@ export class F18A implements VDP {
         }
     }
 
+    drawInvisibleScanline(y: number): void {
+        this.currentScanline = Math.min(y, 255);
+        if (this.gpuHsyncTrigger) {
+            this.gpu.setIdle(false);
+        }
+    }
+
     updateCanvas() {
         this.canvasContext.putImageData(this.imageData, 0, 0);
         if (this.splashImage && this.frameCounter < 300) {

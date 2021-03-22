@@ -335,6 +335,9 @@ export class TMS9918A implements VDP {
         }
     }
 
+    drawInvisibleScanline(y: number): void {
+    }
+
     updateCanvas() {
         this.canvasContext.putImageData(this.imageData, 0, 0);
     }

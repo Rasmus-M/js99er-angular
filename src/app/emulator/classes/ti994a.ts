@@ -227,6 +227,8 @@ export class TI994A implements Console, State {
         while (cyclesToRun > 0) {
             if (y < 240) {
                 this.vdp.drawScanline(y);
+            } else {
+                this.vdp.drawInvisibleScanline(y);
             }
             y = y + 1;
             if (!this.cpu.isSuspended()) {

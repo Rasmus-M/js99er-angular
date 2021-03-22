@@ -6,6 +6,7 @@ export interface VDP extends State, MemoryDevice {
     reset(): void;
     initFrame(): void;
     drawScanline(y: number): void;
+    drawInvisibleScanline(y: number): void;
     updateCanvas(): void;
     writeAddress(i: number): void;
     writeData(i: number): void;
