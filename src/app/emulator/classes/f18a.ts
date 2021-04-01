@@ -554,7 +554,7 @@ export class F18A implements VDP {
                         if (tileColor2 > 0 || !transparentColor02) {
                             color = tileColor2;
                             paletteBaseIndex = tilePaletteBaseIndex2;
-                            tilePriority = tilePriority || this.tileMap2AlwaysOnTop;
+                            tilePriority = tilePriority2 || this.tileMap2AlwaysOnTop;
                             havePixel = true;
                         }
                     }
@@ -1348,7 +1348,6 @@ export class F18A implements VDP {
 
     writeData(b) {
         if (!this.dataPortMode) {
-            const oldValue = this.ram[this.addressRegister];
             this.ram[this.addressRegister] = b;
             this.addressRegister += this.addressIncrement;
             this.addressRegister &= 0x3FFF;
