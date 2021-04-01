@@ -8,14 +8,14 @@ export enum LogLevel {
 
 export class Log {
 
+    private static readonly BUFFER_SIZE = 20;
+
     private static instance: Log;
 
     private minLevel = LogLevel.INFO;
     private element: HTMLElement;
-    private buffer = '';
-    private bufferCount = 0;
-    private bufferSize = 20;
-    private msgMap = {};
+    private buffer = [];
+    private sameMessageCount = 0;
 
     static getLog(): Log {
         if (!this.instance) {
@@ -35,26 +35,35 @@ export class Log {
         this.element = element;
     }
 
-    print(obj) {
-        if (obj != null) {
-            this.buffer += obj + '\n';
-            this.bufferCount++;
+    print(message: string) {
+        if (this.buffer.length === 0 || this.buffer[this.buffer.length - 1] !== message) {
+            this.updateSameMessage();
+            this.buffer.push(message);
+        } else {
+            this.sameMessageCount++;
         }
-        if (this.bufferCount >= this.bufferSize && this.buffer.length > 0) {
-            if (this.element) {
-                this.element.appendChild(document.createTextNode(this.buffer));
-                this.element.scrollTop = this.element.scrollHeight;
-            } else {
-                console.log(this.buffer);
-            }
-            this.buffer = '';
-            this.bufferCount = 0;
+        if (this.buffer.length > Log.BUFFER_SIZE) {
+            this.flushBuffer();
         }
     }
 
     flushBuffer() {
-        this.bufferCount = this.bufferSize;
-        this.print(null);
+        this.updateSameMessage();
+        const messages = this.buffer.join('\n') + (this.buffer.length ? '\n' : '');
+        if (this.element) {
+            this.element.appendChild(document.createTextNode(messages));
+            this.element.scrollTop = this.element.scrollHeight;
+        } else {
+            console.log(this.buffer);
+        }
+        this.buffer = [];
+    }
+
+    updateSameMessage() {
+        if (this.sameMessageCount > 0) {
+            this.buffer[this.buffer.length - 1] += " (" + (this.sameMessageCount + 1) + ")";
+            this.sameMessageCount = 0;
+        }
     }
 
     /**
@@ -79,7 +88,7 @@ export class Log {
      * Log warning message.
      * @param message warning message
      */
-    warn(message) {
+    warn(message: string) {
         if (LogLevel.WARNING >= this.minLevel) {
             this.print('*** Warning *** ' + message);
         }
@@ -89,20 +98,9 @@ export class Log {
      * Log information message.
      * @param message information message
      */
-    info(message) {
+    info(message: string) {
         if (LogLevel.INFO >= this.minLevel) {
-            let count = this.msgMap[message];
-            if (count == null) {
-                count = 1;
-            } else {
-                count++;
-            }
-            this.msgMap[message] = count;
-            if (count < 64) {
-                this.print(message);
-            } else if (count === 64 || (count & 1023) === 0) {
-                this.print(message + ' (suppressing most messages)');
-            }
+            this.print(message);
         }
     }
 
@@ -110,7 +108,7 @@ export class Log {
      * Log debug message.
      * @param message fatal message
      */
-    debug(message) {
+    debug(message: string) {
         if (LogLevel.DEBUG >= this.minLevel) {
             this.print('Debug: ' + message);
         }
