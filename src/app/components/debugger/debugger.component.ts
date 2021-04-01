@@ -118,7 +118,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                     memoryView = this.getHexView(this.memoryType, false);
                     break;
                 case MemoryViewType.SPLIT:
-                    memoryView = this.getDisassemblyView(0);
+                    memoryView = this.getDisassemblyView(this.ti994A.isGPUActive() ? MemoryType.VDP : MemoryType.CPU);
                     const viewObj2 = this.getHexView(this.memoryType, true);
                     this.memoryString2 = viewObj2.lines.join("\n");
                     this.scrollToAnchorLine(viewObj2, "memory2");

@@ -66,12 +66,12 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     start(fast: boolean) {
-        this.ti994A.start(fast);
+        this.ti994A.start(fast, true);
         this.eventDispatcherService.started(fast);
     }
 
     frame() {
-        this.ti994A.frame();
+        this.ti994A.frame(true);
         this.eventDispatcherService.stopped();
     }
 

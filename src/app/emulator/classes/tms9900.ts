@@ -234,19 +234,17 @@ export class TMS9900 implements CPU {
         return bStatusLookup;
     }
 
-    run(cyclesToRun: number): number {
-        const startPC = this.PC;
+    run(cyclesToRun: number, skipBreakpoint?: boolean): number {
         const startCycles = this.cycles;
-        const countStartPC = -1; // 0xA086;
-        const countEndPC = -1; // 0xA0DA;
+        const countStartPC = -1;
+        const countEndPC = -1;
         while (this.cycles - startCycles < cyclesToRun && !this.suspended) {
             // Handle breakpoint
-            const atBreakpoint = this.atBreakpoint();
+            const atBreakpoint = this.atBreakpoint() && !skipBreakpoint;
             if (atBreakpoint) {
                 this.log.info("At breakpoint " + Util.toHexWord(this.getBreakpoint()));
                 cyclesToRun = -1;
-            }
-            if (!atBreakpoint || this.PC === startPC) {
+            } else {
                 this.executeHooks();
                 const tmpPC = this.getPC();
                 const tmpCycles = this.getCycles();
@@ -260,6 +258,7 @@ export class TMS9900 implements CPU {
                 if (this.getInterruptMask() >= 1 && (this.cru.isVDPInterrupt() || this.cru.isTimerInterrupt())) {
                     this.addCycles(this.doInterrupt(4));
                 }
+                skipBreakpoint = false;
             }
             if (this.PC === countStartPC) {
                 this.countStart = this.cycles;

@@ -22,6 +22,7 @@ import {DiskDrive} from './diskdrive';
 import {DiskImage} from './diskimage';
 import {Console} from "../interfaces/console";
 import {TIPI} from "./tipi";
+import {MemoryDevice} from "../interfaces/memory-device";
 
 export class TI994A implements Console, State {
 
@@ -51,7 +52,7 @@ export class TI994A implements Console, State {
     private lastFpsTime: number;
     private fpsFrameCount: number;
     private running: boolean;
-    private cpuFlag: boolean;
+    private activeCPU: CPU;
 
     private log: Log;
     private frameInterval: number;
@@ -70,7 +71,7 @@ export class TI994A implements Console, State {
         this.lastFpsTime = null;
         this.fpsFrameCount = 0;
         this.running = false;
-        this.cpuFlag = true;
+        this.activeCPU = this.cpu;
         this.log = Log.getLog();
     }
 
@@ -186,7 +187,7 @@ export class TI994A implements Console, State {
         this.cpuSpeed = 1;
     }
 
-    start(fast) {
+    start(fast: boolean, skipBreakpoint?: boolean) {
         this.cpuSpeed = fast ? 2 : 1;
         if (!this.isRunning()) {
             this.cpu.setSuspended(false);
@@ -195,7 +196,7 @@ export class TI994A implements Console, State {
             this.frameInterval = window.setInterval(
                 () => {
                     if (this.frameCount < TI994A.FRAMES_TO_RUN) {
-                        this.frame();
+                        this.frame(skipBreakpoint);
                     } else {
                         this.stop();
                     }
@@ -214,7 +215,7 @@ export class TI994A implements Console, State {
         this.running = true;
     }
 
-    frame() {
+    frame(skipBreakpoint?: boolean) {
         const cpuSpeed = this.cpuSpeed;
         let cyclesToRun = TMS9900.CYCLES_PER_FRAME * cpuSpeed;
         const cyclesPerScanline = TMS9900.CYCLES_PER_SCANLINE * cpuSpeed;
@@ -231,12 +232,14 @@ export class TI994A implements Console, State {
                 this.vdp.drawInvisibleScanline(y);
             }
             y = y + 1;
-            if (!this.cpu.isSuspended()) {
-                extraCycles = this.cpu.run(cyclesPerScanline - extraCycles);
-                if (this.cpu.atBreakpoint()) {
-                    this.cpu.setOtherBreakpoint(null);
+            const cpu = this.cpu;
+            if (!cpu.isSuspended()) {
+                this.activeCPU = cpu;
+                extraCycles = cpu.run(cyclesPerScanline - extraCycles, skipBreakpoint);
+                if (cpu.atBreakpoint()) {
+                    cpu.setOtherBreakpoint(null);
                     if (this.onBreakpoint) {
-                        this.onBreakpoint(this.cpu);
+                        this.onBreakpoint(cpu);
                     }
                     return;
                 }
@@ -244,7 +247,8 @@ export class TI994A implements Console, State {
             // F18A GPU
             const gpu: CPU = this.vdp.getGPU();
             if (gpu && !gpu.isIdle()) {
-                gpu.run(f18ACyclesPerScanline);
+                this.activeCPU = gpu;
+                gpu.run(f18ACyclesPerScanline, skipBreakpoint);
                 if (gpu.atBreakpoint()) {
                     gpu.setOtherBreakpoint(null);
                     if (this.onBreakpoint) {
@@ -252,10 +256,14 @@ export class TI994A implements Console, State {
                     }
                     return;
                 }
+                if (gpu.isIdle()) {
+                    this.activeCPU = cpu;
+                }
             }
             this.cru.decrementTimer(cruTimerDecrementScanline);
             cruTimerDecrementFrame -= cruTimerDecrementScanline;
             cyclesToRun -= cyclesPerScanline;
+            skipBreakpoint = false;
         }
         if (cruTimerDecrementFrame >= 1) {
             this.cru.decrementTimer(cruTimerDecrementFrame);
@@ -266,20 +274,11 @@ export class TI994A implements Console, State {
     }
 
     step() {
-        const gpu: CPU = this.vdp.getGPU();
-        if (gpu && !gpu.isIdle()) {
-            gpu.run(1);
-        } else {
-            this.cpu.run(1);
-        }
+        this.activeCPU.run(1, true);
     }
 
     stepOver() {
-        if (this.vdp.getGPU() && !this.vdp.getGPU().isIdle()) {
-            this.vdp.getGPU().setOtherBreakpoint(this.vdp.getGPU().getPC() + 4);
-        } else {
-            this.cpu.setOtherBreakpoint(this.cpu.getPC() + 4);
-        }
+        this.activeCPU.setOtherBreakpoint(this.activeCPU.getPC() + 4);
         this.start(false);
     }
 
@@ -315,21 +314,16 @@ export class TI994A implements Console, State {
     }
 
     getPC() {
-        const gpu: CPU = this.vdp.getGPU();
-        if (gpu && !gpu.isIdle()) {
-            return gpu.getPC();
-        } else {
-            return this.cpu.getPC();
-        }
+        return this.activeCPU.getPC();
+    }
+
+    isGPUActive(): boolean {
+        return this.activeCPU === this.vdp.getGPU();
     }
 
     getStatusString() {
-        const gpu: CPU = this.vdp.getGPU();
-        return (
-            gpu && !gpu.isIdle() ?
-                gpu.getInternalRegsString() + " F18A GPU " + this.cru.getStatusString() + "\n" + gpu.getRegsStringFormatted() :
-                this.cpu.getInternalRegsString() + " " + this.cru.getStatusString() + "\n" + this.cpu.getRegsStringFormatted()
-        ) + this.vdp.getRegsString() + " " + this.memory.getStatusString();
+        return this.activeCPU.getInternalRegsString() + " " + this.cru.getStatusString() + "\n" +
+        this.activeCPU.getRegsStringFormatted() + this.vdp.getRegsString() + " " + this.memory.getStatusString();
     }
 
     loadSoftware(sw: Software) {

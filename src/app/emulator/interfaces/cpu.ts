@@ -2,7 +2,7 @@ import {State} from './state';
 
 export interface CPU extends State {
     reset(): void;
-    run(cycles: number): number;
+    run(cycles: number, skipBreakpoint?: boolean): number;
     getPC(): number;
     setPC(pc: number): void;
     setWP(number: number): void;

@@ -12,9 +12,9 @@ import {GoogleDrive} from "../classes/googledrive";
 import {TIPI} from "../classes/tipi";
 
 export interface Console {
-    start(fast: boolean);
+    start(fast: boolean, skipBreakpoint?: boolean);
     reset(keepCart: boolean);
-    frame();
+    frame(skipBreakpoint?: boolean);
     step();
     stepOver();
     stop();

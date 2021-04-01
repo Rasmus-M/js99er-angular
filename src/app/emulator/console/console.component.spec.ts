@@ -27,7 +27,7 @@ import {AudioService} from "../../services/audio.service";
 import {TIPI} from "../classes/tipi";
 
 class ConsoleMock implements Console {
-    frame() {
+    frame(skipBreakpoint?: boolean) {
     }
     getCPU(): CPU {
         return undefined;
@@ -69,7 +69,7 @@ class ConsoleMock implements Console {
     }
     setVDP() {
     }
-    start(fast: boolean) {
+    start(fast: boolean, skipBreakpoint?: boolean) {
     }
     step() {
     }

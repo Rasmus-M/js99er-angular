@@ -245,23 +245,22 @@ export class F18AGPU implements CPU {
         return bStatusLookup;
     }
 
-    run(cyclesToRun: number): number {
-        const startPC = this.PC;
+    run(cyclesToRun: number, skipBreakpoint?: boolean): number {
         const startCycles = this.cycles;
         while (!this.cpuIdle && this.cycles - startCycles < cyclesToRun) {
             // Handle breakpoint
-            const atBreakpoint = this.atBreakpoint();
+            const atBreakpoint = this.atBreakpoint() && !skipBreakpoint;
             if (atBreakpoint) {
                 this.log.info("At breakpoint " + Util.toHexWord(this.breakpoint));
                 this.log.info(this.getRegsStringFormatted());
                 this.cyclesRemaining = cyclesToRun - (this.cycles - startCycles);
                 cyclesToRun = -1;
-            }
-            if (!atBreakpoint || this.PC === startPC) {
+            } else {
                 // Execute instruction
                 const instruction = this.readMemoryWord(this.PC);
                 this.inctPC();
                 this.addCycles(this.execute(instruction));
+                skipBreakpoint = false;
             }
         }
         return (this.cycles - startCycles) - cyclesToRun;
@@ -1750,7 +1749,7 @@ export class F18AGPU implements CPU {
     }
 
     getInternalRegsString(): string {
-        return "PC: " + Util.toHexWord(this.PC) + " ST: " + Util.toHexWord(this.ST);
+        return "PC: " + Util.toHexWord(this.PC) + " ST: " + Util.toHexWord(this.ST) + " F18A GPU";
     }
 
     getRegsString(): string {
