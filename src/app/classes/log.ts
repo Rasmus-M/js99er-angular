@@ -48,15 +48,17 @@ export class Log {
     }
 
     flushBuffer() {
-        this.updateSameMessage();
-        const messages = this.buffer.join('\n') + (this.buffer.length ? '\n' : '');
-        if (this.element) {
-            this.element.appendChild(document.createTextNode(messages));
-            this.element.scrollTop = this.element.scrollHeight;
-        } else {
-            console.log(this.buffer);
+        if (this.buffer.length) {
+            this.updateSameMessage();
+            const messages = this.buffer.join('\n') + (this.buffer.length ? '\n' : '');
+            if (this.element) {
+                this.element.appendChild(document.createTextNode(messages));
+                this.element.scrollTop = this.element.scrollHeight;
+            } else {
+                console.log(this.buffer);
+            }
+            this.buffer = [];
         }
-        this.buffer = [];
     }
 
     updateSameMessage() {
