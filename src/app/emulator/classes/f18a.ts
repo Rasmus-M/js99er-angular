@@ -1200,7 +1200,7 @@ export class F18A implements VDP {
                 }
                 this.gpuHsyncTrigger = (this.registers[50] & 0x40) !== 0;
                 if (this.gpuHsyncTrigger) {
-                    this.log.info("F18A Hsync trigger set");
+                    this.log.debug("F18A Hsync trigger set");
                 }
                 this.gpuVsyncTrigger = (this.registers[50] & 0x20) !== 0;
                 if (this.gpuVsyncTrigger) {
@@ -1221,7 +1221,7 @@ export class F18A implements VDP {
             // Defaults to 32, i.e. no stop sprite
             case 51:
                 this.maxSprites = this.registers[51] & 0x3F;
-                this.log.info("Max processed sprites set to " + this.maxSprites);
+                this.log.debug("Max processed sprites set to " + this.maxSprites);
                 break;
             // GPU address MSB
             case 54:
