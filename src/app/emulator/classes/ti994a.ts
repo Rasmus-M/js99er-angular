@@ -279,7 +279,7 @@ export class TI994A implements Console, State {
 
     stepOver() {
         this.activeCPU.setOtherBreakpoint(this.activeCPU.getPC() + 4);
-        this.start(false);
+        this.start(false, true);
     }
 
     stop() {
