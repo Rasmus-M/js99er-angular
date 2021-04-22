@@ -28,19 +28,19 @@ export class F18AGPU implements CPU {
     private flashLoaded = false;
 
     private cpuIdle: boolean;
-    private WP = 0xF000; // Place workspace in an unused part of the memory space
+    private wp = 0xF000; // Place workspace in an unused part of the memory space
 
     // Internal registers
-    private PC: number;
-    private ST: number;
+    private pc: number;
+    private st: number;
     private flagX: number;
 
     // Operands
-    private Ts: number;
-    private Td: number;
-    private D: number;
-    private S: number;
-    private B: number;
+    private ts: number;
+    private td: number;
+    private dest: number;
+    private source: number;
+    private byte: number;
 
     // Counters
     private cycles = 0;
@@ -138,7 +138,8 @@ export class F18AGPU implements CPU {
 
     // Misc
     private breakpoint: number;
-    private otherBreakpoint: number;
+    private auxBreakpoint: number;
+    private stoppedAtBreakpoint: boolean;
     private illegalCount: number;
     private cyclesRemaining: number;
     private tracing: boolean;
@@ -152,9 +153,9 @@ export class F18AGPU implements CPU {
         this.intReset();
 
         this.vdpRAM = this.f18a.getRAM();
-        this.WP = 0xF000; // Place workspace in an unused part of the memory space
+        this.wp = 0xF000; // Place workspace in an unused part of the memory space
         for (let i = 0; i < 32; i++) {
-            this.vdpRAM[this.WP + i] = 0;
+            this.vdpRAM[this.wp + i] = 0;
         }
 
         // Flash RAM
@@ -176,16 +177,16 @@ export class F18AGPU implements CPU {
         this.cpuIdle = true;
 
         // Internal registers
-        this.PC = 0;
-        this.ST = 0x01c0;
+        this.pc = 0;
+        this.st = 0x01c0;
         this.flagX = 0;
 
         // Operands
-        this.Ts = 0;
-        this.Td = 0;
-        this.D = 0;
-        this.S = 0;
-        this.B = 0;
+        this.ts = 0;
+        this.td = 0;
+        this.dest = 0;
+        this.source = 0;
+        this.byte = 0;
 
         // Misc
         this.cycles = 0;
@@ -198,7 +199,7 @@ export class F18AGPU implements CPU {
         for (let a = 0; a < preload.length; a++) {
             this.vdpRAM[0x4000 + a] = preload[a];
         }
-        this.setPC(0x4000);
+        this.setPc(0x4000);
     }
 
     // Build the word status lookup table
@@ -245,19 +246,20 @@ export class F18AGPU implements CPU {
     }
 
     run(cyclesToRun: number, skipBreakpoint?: boolean): number {
+        this.stoppedAtBreakpoint = false;
         const startCycles = this.cycles;
         while (!this.cpuIdle && this.cycles - startCycles < cyclesToRun) {
-            // Handle breakpoint
             const atBreakpoint = this.atBreakpoint() && !skipBreakpoint;
             if (atBreakpoint) {
-                this.log.info("At breakpoint " + Util.toHexWord(this.breakpoint));
-                this.log.info(this.getRegsStringFormatted());
+                // Handle breakpoint
+                this.auxBreakpoint = null;
                 this.cyclesRemaining = cyclesToRun - (this.cycles - startCycles);
+                this.stoppedAtBreakpoint = true;
                 cyclesToRun = -1;
             } else {
                 // Execute instruction
-                const instruction = this.readMemoryWord(this.PC);
-                this.inctPC();
+                const instruction = this.readMemoryWord(this.pc);
+                this.inctPc();
                 this.addCycles(this.execute(instruction));
                 skipBreakpoint = false;
             }
@@ -277,12 +279,12 @@ export class F18AGPU implements CPU {
             if (f) {
                 cycles += f.call(this);
             } else {
-                this.log.info(Util.toHexWord((this.PC - 2) & 0xFFFF) + " " + Util.toHexWord(instruction) + " " + opcode.id + ": GPU Not implemented");
+                this.log.info(Util.toHexWord((this.pc - 2) & 0xFFFF) + " " + Util.toHexWord(instruction) + " " + opcode.id + ": GPU Not implemented");
             }
             return cycles;
         } else {
             if (this.illegalCount < 256) {
-                this.log.info(Util.toHexWord(((this.PC - 2) & 0xFFFF)) + " " + Util.toHexWord(instruction) + ": GPU Illegal" + (this.illegalCount === 255 ? " (suppressing further messages)" : ""));
+                this.log.info(Util.toHexWord(((this.pc - 2) & 0xFFFF)) + " " + Util.toHexWord(instruction) + ": GPU Illegal" + (this.illegalCount === 255 ? " (suppressing further messages)" : ""));
             }
             this.illegalCount++;
             return 10;
@@ -297,25 +299,25 @@ export class F18AGPU implements CPU {
         this.cpuIdle = idle;
     }
 
-    getPC(): number {
-        return this.PC;
+    getPc(): number {
+        return this.pc;
     }
 
-    setPC(value) {
-        this.PC = value;
+    setPc(value) {
+        this.pc = value;
         this.setIdle(false);
     }
 
-    setWP(value) {
+    setWp(value) {
         this.log.warn("setWP not implemented.");
     }
 
-    inctPC() {
-        this.PC = (this.PC + 2) & 0xFFFF;
+    inctPc() {
+        this.pc = (this.pc + 2) & 0xFFFF;
     }
 
-    addPC(value) {
-        this.PC = (this.PC + value) & 0xFFFF;
+    addPc(value) {
+        this.pc = (this.pc + value) & 0xFFFF;
     }
 
     addCycles(value) {
@@ -326,65 +328,65 @@ export class F18AGPU implements CPU {
         let cycles = 0;
         switch (opcode.format) {
             case 1:
-                this.Td = (instr & 0x0c00) >> 10;
-                this.Ts = (instr & 0x0030) >> 4;
-                this.D = (instr & 0x03c0) >> 6;
-                this.S = (instr & 0x000f);
-                this.B = (instr & 0x1000) >> 12;
-                cycles += this.fixS();
+                this.td = (instr & 0x0c00) >> 10;
+                this.ts = (instr & 0x0030) >> 4;
+                this.dest = (instr & 0x03c0) >> 6;
+                this.source = (instr & 0x000f);
+                this.byte = (instr & 0x1000) >> 12;
+                cycles += this.fixSource();
                 break;
             case 2:
-                this.D = (instr & 0x00ff);
+                this.dest = (instr & 0x00ff);
                 break;
             case 3:
-                this.Td = 0;
-                this.Ts = (instr & 0x0030) >> 4;
-                this.D = (instr & 0x03c0) >> 6;
-                this.S = (instr & 0x000f);
-                this.B = 0;
-                cycles += this.fixS();
+                this.td = 0;
+                this.ts = (instr & 0x0030) >> 4;
+                this.dest = (instr & 0x03c0) >> 6;
+                this.source = (instr & 0x000f);
+                this.byte = 0;
+                cycles += this.fixSource();
                 break;
             case 4:
                 // No destination (CRU ops)
-                this.D = (instr & 0x03c0) >> 6;
-                this.Ts = (instr & 0x0030) >> 4;
-                this.S = (instr & 0x000f);
-                this.B = (this.D > 8 ? 0 : 1);
-                cycles += this.fixS();
+                this.dest = (instr & 0x03c0) >> 6;
+                this.ts = (instr & 0x0030) >> 4;
+                this.source = (instr & 0x000f);
+                this.byte = (this.dest > 8 ? 0 : 1);
+                cycles += this.fixSource();
                 break;
             case 5:
-                this.D = (instr & 0x00f0) >> 4;
-                this.S = (instr & 0x000f);
-                this.S = this.WP + (this.S << 1);
+                this.dest = (instr & 0x00f0) >> 4;
+                this.source = (instr & 0x000f);
+                this.source = this.wp + (this.source << 1);
                 break;
             case 6:
                 // No destination (single argument instructions)
-                this.Ts = (instr & 0x0030) >> 4;
-                this.S = instr & 0x000f;
-                this.B = 0;
-                cycles += this.fixS();
+                this.ts = (instr & 0x0030) >> 4;
+                this.source = instr & 0x000f;
+                this.byte = 0;
+                cycles += this.fixSource();
                 break;
             case 7:
                 // no argument
                 break;
             case 8:
                 if (opcode.id === "STST" || opcode.id === "STWP") {
-                    this.D = (instr & 0x000f);
-                    this.D = this.WP + (this.D << 1);
+                    this.dest = (instr & 0x000f);
+                    this.dest = this.wp + (this.dest << 1);
                 } else {
-                    this.D = (instr & 0x000f);
-                    this.D = this.WP + (this.D << 1);
-                    this.S = this.readMemoryWord(this.PC);
-                    this.inctPC();
+                    this.dest = (instr & 0x000f);
+                    this.dest = this.wp + (this.dest << 1);
+                    this.source = this.readMemoryWord(this.pc);
+                    this.inctPc();
                 }
                 break;
             case 9:
                 // No destination here (dest calc'd after call) (DIV, MUL, XOP)
-                this.D = (instr & 0x03c0) >> 6;
-                this.Ts = (instr & 0x0030) >> 4;
-                this.S = (instr & 0x000f);
-                this.B = 0;
-                cycles += this.fixS();
+                this.dest = (instr & 0x03c0) >> 6;
+                this.ts = (instr & 0x0030) >> 4;
+                this.source = (instr & 0x000f);
+                this.byte = 0;
+                cycles += this.fixSource();
                 break;
             default:
                 break;
@@ -401,83 +403,83 @@ export class F18AGPU implements CPU {
     // '4' in order to skip unneeded processing of the Destination address
     //////////////////////////////////////////////////////////////////////////
 
-    fixS(): number {
+    fixSource(): number {
         let cycles = 0;
         let temp, t2;
         // source type
-        switch (this.Ts) {
+        switch (this.ts) {
             case 0:
                 // register	(R1) Address is the address of the register
-                this.S = this.WP + (this.S << 1);
+                this.source = this.wp + (this.source << 1);
                 break;
             case 1:
                 // register indirect (*R1) Address is the contents of the register
-                this.S = this.readMemoryWord(this.WP + (this.S << 1));
+                this.source = this.readMemoryWord(this.wp + (this.source << 1));
                 cycles += 4;
                 break;
             case 2:
-                if (this.S !== 0) {
+                if (this.source !== 0) {
                     // indexed (@>1000(R1))	Address is the contents of the argument plus the contents of the register
-                    this.S = this.readMemoryWord(this.PC) + this.readMemoryWord(this.WP + (this.S << 1));
+                    this.source = this.readMemoryWord(this.pc) + this.readMemoryWord(this.wp + (this.source << 1));
                 } else {
                     // symbolic	 (@>1000) Address is the contents of the argument
-                    this.S = this.readMemoryWord(this.PC);
+                    this.source = this.readMemoryWord(this.pc);
                 }
-                this.inctPC();
+                this.inctPc();
                 cycles += 8;
                 break;
             case 3:
                 // do the increment after the opcode is done with the source
-                t2 = this.WP + (this.S << 1);
+                t2 = this.wp + (this.source << 1);
                 temp = this.readMemoryWord(t2);
-                this.S = temp;
+                this.source = temp;
                 // After we have the final address, we can increment the register
                 // (so MOV *R0+ returns the post increment if R0=adr(R0))
                 const val = this.readMemoryWord(t2);                    // don't count this read for cycles
-                this.writeMemoryWord(t2, val + (this.B === 1 ? 1 : 2)); // do count this write
-                cycles += this.B === 1 ? 6 : 8;
+                this.writeMemoryWord(t2, val + (this.byte === 1 ? 1 : 2)); // do count this write
+                cycles += this.byte === 1 ? 6 : 8;
                 break;
         }
         return cycles;
     }
 
-    fixD(): number {
+    fixDest(): number {
         let cycles = 0;
         let temp, t2;
         // destination type
         // same as the source types
-        switch (this.Td) {
+        switch (this.td) {
             case 0:
                 // register
-                this.D = this.WP + (this.D << 1);
+                this.dest = this.wp + (this.dest << 1);
                 break;
             case 1:
                 // register indirect
-                this.D = this.readMemoryWord(this.WP + (this.D << 1));
+                this.dest = this.readMemoryWord(this.wp + (this.dest << 1));
                 cycles += 4;
                 break;
             case 2:
-                if (this.D !== 0) {
+                if (this.dest !== 0) {
                     // indexed
-                    this.D = this.readMemoryWord(this.PC) + this.readMemoryWord(this.WP + (this.D << 1));
+                    this.dest = this.readMemoryWord(this.pc) + this.readMemoryWord(this.wp + (this.dest << 1));
                 } else {
                     // symbolic
-                    this.D = this.readMemoryWord(this.PC);
+                    this.dest = this.readMemoryWord(this.pc);
                 }
-                this.inctPC();
+                this.inctPc();
                 cycles += 8;
                 break;
             case 3:
                 // do the increment after the opcode is done with the dest
                 // (add 1 if byte, 2 if word)
-                t2 = this.WP + (this.D << 1);
+                t2 = this.wp + (this.dest << 1);
                 temp = this.readMemoryWord(t2);
-                this.D = temp;
+                this.dest = temp;
                 // After we have the final address, we can increment the register
                 // (so MOV *R0+ returns the post increment if R0=adr(R0))
                 const val = this.readMemoryWord(t2);                    // don't count this read for cycles
-                this.writeMemoryWord(t2, val + (this.B === 1 ? 1 : 2)); // do count this write
-                cycles += this.B === 1 ? 6 : 8;
+                this.writeMemoryWord(t2, val + (this.byte === 1 ? 1 : 2)); // do count this write
+                cycles += this.byte === 1 ? 6 : 8;
                 break;
         }
         return cycles;
@@ -490,7 +492,7 @@ export class F18AGPU implements CPU {
 
     writeMemoryByte(addr: number, b: number) {
         // GPU register
-        if (addr >= this.WP) {
+        if (addr >= this.wp) {
             this.vdpRAM[addr] = b;
         } else if (addr < 0x4000) {
             this.vdpRAM[addr] = b;
@@ -584,7 +586,7 @@ export class F18AGPU implements CPU {
     */
     readMemoryByte(addr: number): number {
         // GPU register
-        if (addr >= this.WP) {
+        if (addr >= this.wp) {
             return this.vdpRAM[addr];
         }
         // VRAM
@@ -636,63 +638,63 @@ export class F18AGPU implements CPU {
 
     // Load Immediate: LI src, imm
     li(): number {
-        this.writeMemoryWord(this.D, this.S);
+        this.writeMemoryWord(this.dest, this.source);
         this.resetLGT_AGT_EQ();
-        this.ST |= this.wStatusLookup[this.S] & this.maskLGT_AGT_EQ;
+        this.st |= this.wStatusLookup[this.source] & this.maskLGT_AGT_EQ;
         return 12;
     }
 
     // Add Immediate: AI src, imm
     ai(): number {
-        const x1 = this.readMemoryWord(this.D);
+        const x1 = this.readMemoryWord(this.dest);
 
-        const x3 = (x1 + this.S) & 0xFFFF;
-        this.writeMemoryWord(this.D, x3);
+        const x3 = (x1 + this.source) & 0xFFFF;
+        this.writeMemoryWord(this.dest, x3);
 
         this.resetEQ_LGT_AGT_C_OV();
-        this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
+        this.st |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
 
         if (x3 < x1) { this.setC(); }
-        if (((x1 & 0x8000) === (this.S & 0x8000)) && ((x3 & 0x8000) !== (this.S & 0x8000))) { this.setOV(); }
+        if (((x1 & 0x8000) === (this.source & 0x8000)) && ((x3 & 0x8000) !== (this.source & 0x8000))) { this.setOV(); }
 
         return 14;
     }
 
     // AND Immediate: ANDI src, imm
     andi(): number {
-        const x1 = this.readMemoryWord(this.D);
-        const x2 = x1 & this.S;
-        this.writeMemoryWord(this.D, x2);
+        const x1 = this.readMemoryWord(this.dest);
+        const x2 = x1 & this.source;
+        this.writeMemoryWord(this.dest, x2);
 
         this.resetLGT_AGT_EQ();
-        this.ST |= this.wStatusLookup[x2] & this.maskLGT_AGT_EQ;
+        this.st |= this.wStatusLookup[x2] & this.maskLGT_AGT_EQ;
 
         return 14;
     }
 
     // OR Immediate: ORI src, imm
     ori(): number {
-        const x1 = this.readMemoryWord(this.D);
-        const x2 = x1 | this.S;
-        this.writeMemoryWord(this.D, x2);
+        const x1 = this.readMemoryWord(this.dest);
+        const x2 = x1 | this.source;
+        this.writeMemoryWord(this.dest, x2);
 
         this.resetLGT_AGT_EQ();
-        this.ST |= this.wStatusLookup[x2] & this.maskLGT_AGT_EQ;
+        this.st |= this.wStatusLookup[x2] & this.maskLGT_AGT_EQ;
 
         return 14;
     }
 
     // Compare Immediate: CI src, imm
     ci(): number {
-        const x3 = this.readMemoryWord(this.D);
+        const x3 = this.readMemoryWord(this.dest);
 
         this.resetLGT_AGT_EQ();
-        if (x3 > this.S) { this.setLGT(); }
-        if (x3 === this.S) { this.setEQ(); }
-        if ((x3 & 0x8000) === (this.S & 0x8000)) {
-            if (x3 > this.S) { this.setAGT(); }
+        if (x3 > this.source) { this.setLGT(); }
+        if (x3 === this.source) { this.setEQ(); }
+        if ((x3 & 0x8000) === (this.source & 0x8000)) {
+            if (x3 > this.source) { this.setAGT(); }
         } else {
-            if ((this.S & 0x8000) !== 0) { this.setAGT(); }
+            if ((this.source & 0x8000) !== 0) { this.setAGT(); }
         }
 
         return 14;
@@ -701,7 +703,7 @@ export class F18AGPU implements CPU {
     // STore STatus: STST src
     // Copy the status register to memory
     stst(): number {
-        this.writeMemoryWord(this.D, this.ST);
+        this.writeMemoryWord(this.dest, this.st);
         return 8;
     }
 
@@ -715,8 +717,8 @@ export class F18AGPU implements CPU {
     // The matching return for BLWP, see BLWP for description
     // F18A Modified, does not use R13, only performs R14->PC, R15->status flags
     rtwp(): number {
-        this.ST = this.readMemoryWord(this.WP + 30); // R15
-        this.PC = this.readMemoryWord(this.WP + 28); // R14
+        this.st = this.readMemoryWord(this.wp + 30); // R15
+        this.pc = this.readMemoryWord(this.wp + 28); // R14
         return 14;
     }
 
@@ -735,7 +737,7 @@ export class F18AGPU implements CPU {
     // Branch: B src
     // Unconditional absolute branch
     b(): number {
-        this.PC = this.S;
+        this.pc = this.source;
         return 8;
     }
 
@@ -746,11 +748,11 @@ export class F18AGPU implements CPU {
             this.log.info("Recursive X instruction!");
         }
 
-        const xInstr = this.readMemoryWord(this.S);
+        const xInstr = this.readMemoryWord(this.source);
         // skip_interrupt=1;	    // (ends up having no effect because we call the function inline, but technically still correct)
 
         let cycles = 8 - 4;	        // For X, add this time to the execution time of the instruction found at the source address, minus 4 clock cycles and 1 memory access.
-        this.flagX = this.PC;	    // set flag and save true post-X address for the JMPs (AFTER X's operands but BEFORE the instruction's operands, if any)
+        this.flagX = this.pc;	    // set flag and save true post-X address for the JMPs (AFTER X's operands but BEFORE the instruction's operands, if any)
         cycles += this.execute(xInstr);
         this.flagX = 0;			    // clear flag
 
@@ -760,57 +762,57 @@ export class F18AGPU implements CPU {
     // CLeaR: CLR src
     // sets word to 0
     clr(): number {
-        this.writeMemoryWord(this.S, 0);
+        this.writeMemoryWord(this.source, 0);
         return 10;
     }
 
     // NEGate: NEG src
     neg(): number {
-        let x1 = this.readMemoryWord(this.S);
+        let x1 = this.readMemoryWord(this.source);
 
         x1 = ((~x1) + 1) & 0xFFFF;
-        this.writeMemoryWord(this.S, x1);
+        this.writeMemoryWord(this.source, x1);
 
         this.resetEQ_LGT_AGT_C_OV();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ_OV_C;
+        this.st |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ_OV_C;
 
         return 12;
     }
 
     // INVert: INV src
     inv(): number {
-        let x1 = this.readMemoryWord(this.S);
+        let x1 = this.readMemoryWord(this.source);
         x1 = (~x1) & 0xFFFF;
-        this.writeMemoryWord(this.S, x1);
+        this.writeMemoryWord(this.source, x1);
 
         this.resetLGT_AGT_EQ();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
+        this.st |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
 
         return 10;
     }
 
     // INCrement: INC src
     inc(): number {
-        let x1 = this.readMemoryWord(this.S);
+        let x1 = this.readMemoryWord(this.source);
 
         x1 = (x1 + 1) & 0xFFFF;
-        this.writeMemoryWord(this.S, x1);
+        this.writeMemoryWord(this.source, x1);
 
         this.resetEQ_LGT_AGT_C_OV();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ_OV_C;
+        this.st |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ_OV_C;
 
         return 10;
     }
 
     // INCrement by Two: INCT src
     inct(): number {
-        let x1 = this.readMemoryWord(this.S);
+        let x1 = this.readMemoryWord(this.source);
 
         x1 = (x1 + 2) & 0xFFFF;
-        this.writeMemoryWord(this.S, x1);
+        this.writeMemoryWord(this.source, x1);
 
         this.resetEQ_LGT_AGT_C_OV();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
+        this.st |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
 
         if (x1 < 2) { this.setC(); }
         if ((x1 === 0x8000) || (x1 === 0x8001)) { this.setOV(); }
@@ -820,13 +822,13 @@ export class F18AGPU implements CPU {
 
     // DECrement: DEC src
     dec(): number {
-        let x1 = this.readMemoryWord(this.S);
+        let x1 = this.readMemoryWord(this.source);
 
         x1 = (x1 - 1) & 0xFFFF;
-        this.writeMemoryWord(this.S, x1);
+        this.writeMemoryWord(this.source, x1);
 
         this.resetEQ_LGT_AGT_C_OV();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
+        this.st |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
 
         if (x1 !== 0xffff) { this.setC(); }
         if (x1 === 0x7fff) { this.setOV(); }
@@ -836,13 +838,13 @@ export class F18AGPU implements CPU {
 
     // DECrement by Two: DECT src
     dect(): number {
-        let x1 = this.readMemoryWord(this.S);
+        let x1 = this.readMemoryWord(this.source);
 
         x1 = (x1 - 2) & 0xFFFF;
-        this.writeMemoryWord(this.S, x1);
+        this.writeMemoryWord(this.source, x1);
 
         this.resetEQ_LGT_AGT_C_OV();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
+        this.st |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
 
         // if (x1 < 0xfffe) this.set_C();
         if (x1 < 0xfffe) { this.setC(); }
@@ -857,8 +859,8 @@ export class F18AGPU implements CPU {
         // Note there is no stack, and no official return function.
         // A return is simply B *R11. Some assemblers define RT as this.
 
-        this.writeMemoryWord(this.WP + 22, this.PC);
-        this.PC = this.S;
+        this.writeMemoryWord(this.wp + 22, this.pc);
+        this.pc = this.source;
 
         return 12;
     }
@@ -866,10 +868,10 @@ export class F18AGPU implements CPU {
     // SWaP Bytes: SWPB src
     // swap the high and low bytes of a word
     swpb(): number {
-        const x1 = this.readMemoryWord(this.S);
+        const x1 = this.readMemoryWord(this.source);
 
         const x2 = ((x1 & 0xff) << 8) | (x1 >> 8);
-        this.writeMemoryWord(this.S, x2);
+        this.writeMemoryWord(this.source, x2);
 
         return 10;
     }
@@ -877,7 +879,7 @@ export class F18AGPU implements CPU {
     // SET to One: SETO src
     // sets word to 0xffff
     seto(): number {
-        this.writeMemoryWord(this.S, 0xffff);
+        this.writeMemoryWord(this.source, 0xffff);
 
         return 10;
     }
@@ -885,16 +887,16 @@ export class F18AGPU implements CPU {
     // ABSolute value: ABS src
     abs(): number {
         let cycles = 0;
-        const x1 = this.readMemoryWord(this.S);
+        const x1 = this.readMemoryWord(this.source);
 
         if ((x1 & 0x8000) !== 0) {
             const x2 = ((~x1) + 1) & 0xFFFF;	// if negative, make positive
-            this.writeMemoryWord(this.S, x2);
+            this.writeMemoryWord(this.source, x2);
             cycles += 2;
         }
 
         this.resetEQ_LGT_AGT_C_OV();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ_OV;
+        this.st |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ_OV;
 
         return cycles + 12;
     }
@@ -905,82 +907,82 @@ export class F18AGPU implements CPU {
     // The arithmetic operations preserve the sign bit
     sra(): number {
         let cycles = 0;
-        if (this.D === 0) {
-            this.D = this.readMemoryWord(this.WP) & 0xf;
-            if (this.D === 0) { this.D = 16; }
+        if (this.dest === 0) {
+            this.dest = this.readMemoryWord(this.wp) & 0xf;
+            if (this.dest === 0) { this.dest = 16; }
             cycles += 8;
         }
-        let x1 = this.readMemoryWord(this.S);
+        let x1 = this.readMemoryWord(this.source);
         const x4 = x1 & 0x8000;
         let x3 = 0;
 
-        for (let x2 = 0; x2 < this.D; x2++) {
+        for (let x2 = 0; x2 < this.dest; x2++) {
             x3 = x1 & 1;   /* save carry */
             x1 = x1 >> 1;  /* shift once */
             x1 = x1 | x4;  /* extend sign bit */
         }
-        this.writeMemoryWord(this.S, x1);
+        this.writeMemoryWord(this.source, x1);
 
         this.resetEQ_LGT_AGT_C();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
+        this.st |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
 
         if (x3 !== 0) { this.setC(); }
 
-        return cycles + 12 + 2 * this.D;
+        return cycles + 12 + 2 * this.dest;
     }
 
     // Shift Right Logical: SRL src, dst
     // The logical shifts do not preserve the sign
     srl(): number {
         let cycles = 0;
-        if (this.D === 0) {
-            this.D = this.readMemoryWord(this.WP) & 0xf;
-            if (this.D === 0) { this.D = 16; }
+        if (this.dest === 0) {
+            this.dest = this.readMemoryWord(this.wp) & 0xf;
+            if (this.dest === 0) { this.dest = 16; }
             cycles += 8;
         }
-        let x1 = this.readMemoryWord(this.S);
+        let x1 = this.readMemoryWord(this.source);
         let x3 = 0;
 
-        for (let x2 = 0; x2 < this.D; x2++) {
+        for (let x2 = 0; x2 < this.dest; x2++) {
             x3 = x1 & 1;
             x1 = x1 >> 1;
         }
-        this.writeMemoryWord(this.S, x1);
+        this.writeMemoryWord(this.source, x1);
 
         this.resetEQ_LGT_AGT_C();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
+        this.st |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
 
         if (x3 !== 0) { this.setC(); }
 
-        return cycles + 12 + 2 * this.D;
+        return cycles + 12 + 2 * this.dest;
     }
 
     // Shift Left Arithmetic: SLA src, dst
     sla(): number {
         let cycles = 0;
-        if (this.D === 0) {
-            this.D = this.readMemoryWord(this.WP) & 0xf;
-            if (this.D === 0) { this.D = 16; }
+        if (this.dest === 0) {
+            this.dest = this.readMemoryWord(this.wp) & 0xf;
+            if (this.dest === 0) { this.dest = 16; }
             cycles += 8;
         }
-        let x1 = this.readMemoryWord(this.S);
+        let x1 = this.readMemoryWord(this.source);
         const x4 = x1 & 0x8000;
         this.resetEQ_LGT_AGT_C_OV();
 
         let x3 = 0;
-        for (let x2 = 0; x2 < this.D; x2++) {
+        for (let x2 = 0; x2 < this.dest; x2++) {
             x3 = x1 & 0x8000;
             x1 = x1 << 1;
             if ((x1 & 0x8000) !== x4) { this.setOV(); }
         }
         x1 = x1 & 0xFFFF;
-        this.writeMemoryWord(this.S , x1);
+        this.writeMemoryWord(this.source , x1);
 
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
+        this.st |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
 
         if (x3 !== 0) { this.setC(); }
 
-        return cycles + 12 + 2 * this.D;
+        return cycles + 12 + 2 * this.dest;
     }
 
     // Shift Right Circular: SRC src, dst
@@ -989,41 +991,41 @@ export class F18AGPU implements CPU {
     // as appropriate
     src(): number {
         let cycles = 0;
-        if (this.D === 0) {
-            this.D = this.readMemoryWord(this.WP) & 0xf;
-            if (this.D === 0) { this.D = 16; }
+        if (this.dest === 0) {
+            this.dest = this.readMemoryWord(this.wp) & 0xf;
+            if (this.dest === 0) { this.dest = 16; }
             cycles += 8;
         }
-        let x1 = this.readMemoryWord(this.S);
+        let x1 = this.readMemoryWord(this.source);
         let x4;
-        for (let x2 = 0; x2 < this.D; x2++) {
+        for (let x2 = 0; x2 < this.dest; x2++) {
             x4 = x1 & 0x1;
             x1 = x1 >> 1;
             if (x4 !== 0) {
                 x1 = x1 | 0x8000;
             }
         }
-        this.writeMemoryWord(this.S, x1);
+        this.writeMemoryWord(this.source, x1);
 
         this.resetEQ_LGT_AGT_C();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
+        this.st |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
 
         if (x4 !== 0) { this.setC(); }
 
-        return cycles + 12 + 2 * this.D;
+        return cycles + 12 + 2 * this.dest;
     }
 
     // JuMP: JMP dsp
     // (unconditional)
     jmp(): number {
         if (this.flagX !== 0) {
-            this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
+            this.pc = this.flagX;	// Update offset - it's relative to the X, not the opcode
         }
-        if ((this.D & 0x80) !== 0) {
-            this.D = 128 - (this.D & 0x7f);
-            this.addPC(-(this.D + this.D));
+        if ((this.dest & 0x80) !== 0) {
+            this.dest = 128 - (this.dest & 0x7f);
+            this.addPc(-(this.dest + this.dest));
         } else {
-            this.addPC(this.D + this.D);
+            this.addPc(this.dest + this.dest);
         }
         return 10;
     }
@@ -1032,14 +1034,14 @@ export class F18AGPU implements CPU {
     jlt(): number {
         if (this.getAGT() === 0 && this.getEQ() === 0) {
             if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
+                this.pc = this.flagX;	// Update offset - it's relative to the X, not the opcode
             }
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
+            if ((this.dest & 0x80) !== 0) {
+                this.dest = 128 - (this.dest & 0x7f);
+                this.addPc(-(this.dest + this.dest));
             } else {
-                this.addPC(this.D + this.D);
+                this.addPc(this.dest + this.dest);
             }
             return 10;
         } else {
@@ -1051,14 +1053,14 @@ export class F18AGPU implements CPU {
     jle(): number {
         if ((this.getLGT() === 0) || (this.getEQ() !== 0)) {
             if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
+                this.pc = this.flagX;	// Update offset - it's relative to the X, not the opcode
             }
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
+            if ((this.dest & 0x80) !== 0) {
+                this.dest = 128 - (this.dest & 0x7f);
+                this.addPc(-(this.dest + this.dest));
             } else {
-                this.addPC(this.D + this.D);
+                this.addPc(this.dest + this.dest);
             }
             return 10;
         } else {
@@ -1072,14 +1074,14 @@ export class F18AGPU implements CPU {
     jeq(): number {
         if (this.getEQ() !== 0) {
             if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
+                this.pc = this.flagX;	// Update offset - it's relative to the X, not the opcode
             }
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
+            if ((this.dest & 0x80) !== 0) {
+                this.dest = 128 - (this.dest & 0x7f);
+                this.addPc(-(this.dest + this.dest));
             } else {
-                this.addPC(this.D + this.D);
+                this.addPc(this.dest + this.dest);
             }
             return 10;
         } else {
@@ -1091,14 +1093,14 @@ export class F18AGPU implements CPU {
     jhe(): number {
         if ((this.getLGT() !== 0) || (this.getEQ() !== 0)) {
             if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
+                this.pc = this.flagX;	// Update offset - it's relative to the X, not the opcode
             }
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
+            if ((this.dest & 0x80) !== 0) {
+                this.dest = 128 - (this.dest & 0x7f);
+                this.addPc(-(this.dest + this.dest));
             } else {
-                this.addPC(this.D + this.D);
+                this.addPc(this.dest + this.dest);
             }
             return 10;
         } else {
@@ -1110,14 +1112,14 @@ export class F18AGPU implements CPU {
     jgt(): number {
         if (this.getAGT() !== 0) {
             if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
+                this.pc = this.flagX;	// Update offset - it's relative to the X, not the opcode
             }
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
+            if ((this.dest & 0x80) !== 0) {
+                this.dest = 128 - (this.dest & 0x7f);
+                this.addPc(-(this.dest + this.dest));
             } else {
-                this.addPC(this.D + this.D);
+                this.addPc(this.dest + this.dest);
             }
             return 10;
         } else {
@@ -1129,13 +1131,13 @@ export class F18AGPU implements CPU {
     jne(): number {
         if (this.getEQ() === 0) {
             if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
+                this.pc = this.flagX;	// Update offset - it's relative to the X, not the opcode
             }
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
+            if ((this.dest & 0x80) !== 0) {
+                this.dest = 128 - (this.dest & 0x7f);
+                this.addPc(-(this.dest + this.dest));
             } else {
-                this.addPC(this.D + this.D);
+                this.addPc(this.dest + this.dest);
             }
             return 10;
         } else {
@@ -1147,14 +1149,14 @@ export class F18AGPU implements CPU {
     jnc(): number {
         if (this.getC() === 0) {
             if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
+                this.pc = this.flagX;	// Update offset - it's relative to the X, not the opcode
             }
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
+            if ((this.dest & 0x80) !== 0) {
+                this.dest = 128 - (this.dest & 0x7f);
+                this.addPc(-(this.dest + this.dest));
             } else {
-                this.addPC(this.D + this.D);
+                this.addPc(this.dest + this.dest);
             }
             return 10;
         } else {
@@ -1166,14 +1168,14 @@ export class F18AGPU implements CPU {
     joc(): number {
         if (this.getC() !== 0) {
             if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
+                this.pc = this.flagX;	// Update offset - it's relative to the X, not the opcode
             }
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
+            if ((this.dest & 0x80) !== 0) {
+                this.dest = 128 - (this.dest & 0x7f);
+                this.addPc(-(this.dest + this.dest));
             } else {
-                this.addPC(this.D + this.D);
+                this.addPc(this.dest + this.dest);
             }
             return 10;
         } else {
@@ -1185,14 +1187,14 @@ export class F18AGPU implements CPU {
     jno(): number {
         if (this.getOV() === 0) {
             if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
+                this.pc = this.flagX;	// Update offset - it's relative to the X, not the opcode
             }
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
+            if ((this.dest & 0x80) !== 0) {
+                this.dest = 128 - (this.dest & 0x7f);
+                this.addPc(-(this.dest + this.dest));
             } else {
-                this.addPC(this.D + this.D);
+                this.addPc(this.dest + this.dest);
             }
             return 10;
         } else {
@@ -1203,14 +1205,14 @@ export class F18AGPU implements CPU {
     jl(): number {
         if ((this.getLGT() === 0) && (this.getEQ() === 0)) {
             if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
+                this.pc = this.flagX;	// Update offset - it's relative to the X, not the opcode
             }
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
+            if ((this.dest & 0x80) !== 0) {
+                this.dest = 128 - (this.dest & 0x7f);
+                this.addPc(-(this.dest + this.dest));
             } else {
-                this.addPC(this.D + this.D);
+                this.addPc(this.dest + this.dest);
             }
             return 10;
         } else {
@@ -1222,14 +1224,14 @@ export class F18AGPU implements CPU {
     jh(): number {
         if ((this.getLGT() !== 0) && (this.getEQ() === 0)) {
             if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
+                this.pc = this.flagX;	// Update offset - it's relative to the X, not the opcode
             }
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
+            if ((this.dest & 0x80) !== 0) {
+                this.dest = 128 - (this.dest & 0x7f);
+                this.addPc(-(this.dest + this.dest));
             } else {
-                this.addPC(this.D + this.D);
+                this.addPc(this.dest + this.dest);
             }
             return 10;
         } else {
@@ -1241,14 +1243,14 @@ export class F18AGPU implements CPU {
     jop(): number {
         if (this.getOP() !== 0) {
             if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
+                this.pc = this.flagX;	// Update offset - it's relative to the X, not the opcode
             }
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
+            if ((this.dest & 0x80) !== 0) {
+                this.dest = 128 - (this.dest & 0x7f);
+                this.addPc(-(this.dest + this.dest));
             } else {
-                this.addPC(this.D + this.D);
+                this.addPc(this.dest + this.dest);
             }
             return 10;
         } else {
@@ -1260,10 +1262,10 @@ export class F18AGPU implements CPU {
     // Basically comparing against a mask, if all set bits in the src match
     // set bits in the dest (mask), the equal bit is set
     coc(): number {
-        const x1 = this.readMemoryWord(this.S);
+        const x1 = this.readMemoryWord(this.source);
 
-        const cycles = this.fixD();
-        const x2 = this.readMemoryWord(this.D);
+        const cycles = this.fixDest();
+        const x2 = this.readMemoryWord(this.dest);
 
         const x3 = x1 & x2;
 
@@ -1276,10 +1278,10 @@ export class F18AGPU implements CPU {
     // The opposite of COC. Each set bit in the dst (mask) must
     // match up with a zero bit in the src to set the equals flag
     czc(): number {
-        const x1 = this.readMemoryWord(this.S);
+        const x1 = this.readMemoryWord(this.source);
 
-        const cycles = this.fixD();
-        const x2 = this.readMemoryWord(this.D);
+        const cycles = this.fixDest();
+        const x2 = this.readMemoryWord(this.dest);
 
         const x3 = x1 & x2;
 
@@ -1290,16 +1292,16 @@ export class F18AGPU implements CPU {
 
     // eXclusive OR: XOR src, dst
     xor(): number {
-        const x1 = this.readMemoryWord(this.S);
+        const x1 = this.readMemoryWord(this.source);
 
-        const cycles = this.fixD();
-        const x2 = this.readMemoryWord(this.D);
+        const cycles = this.fixDest();
+        const x2 = this.readMemoryWord(this.dest);
 
         const x3 = (x1 ^ x2) & 0xFFFF;
-        this.writeMemoryWord(this.D, x3);
+        this.writeMemoryWord(this.dest, x3);
 
         this.resetLGT_AGT_EQ();
-        this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
+        this.st |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
 
         return cycles + 14;
     }
@@ -1327,9 +1329,9 @@ export class F18AGPU implements CPU {
     // OO - pixel to compare to existing pixel
     // PP - new pixel to write, and previous pixel when reading
     xop(): number {
-        this.D = this.WP + (this.D << 1);
-        const x1 = this.readMemoryWord(this.S);
-        let x2 = this.readMemoryWord(this.D);
+        this.dest = this.wp + (this.dest << 1);
+        const x1 = this.readMemoryWord(this.source);
+        let x2 = this.readMemoryWord(this.dest);
         let pixOffset;
         let addr = 0;
         if ((x2 & 0x8000) !== 0) {
@@ -1383,11 +1385,11 @@ export class F18AGPU implements CPU {
             if ((x2 & 0x0800) !== 0) {
                 // Read is set, so save the original read pixel color in PP
                 x2 = (x2 & 0xFFFC) | pix;
-                this.writeMemoryWord(this.D, x2);		    // Write it back
+                this.writeMemoryWord(this.dest, x2);		    // Write it back
             }
         } else {
             // User only wants the address
-            this.writeMemoryWord(this.D, addr);
+            this.writeMemoryWord(this.dest, addr);
         }
 
         return 10;
@@ -1395,13 +1397,13 @@ export class F18AGPU implements CPU {
 
     // This is the SPI_OUT instruction of the F18A GPU
     ldcr(): number {
-        this.flash.writeByte(this.readMemoryByte(this.S));
+        this.flash.writeByte(this.readMemoryByte(this.source));
         return 10;
     }
 
     // This is the SPI_IN instruction of the F18A GPU
     stcr(): number {
-        this.writeMemoryByte(this.S, this.flash.readByte());
+        this.writeMemoryByte(this.source, this.flash.readByte());
         return 10;
     }
 
@@ -1409,13 +1411,13 @@ export class F18AGPU implements CPU {
     // Multiply src by dest and store 32-bit result
     // Note: src and dest are unsigned.
     mpy(): number {
-        const x1 = this.readMemoryWord(this.S);
+        const x1 = this.readMemoryWord(this.source);
 
-        this.D = this.WP + (this.D << 1);
-        let x3 = this.readMemoryWord(this.D);
+        this.dest = this.wp + (this.dest << 1);
+        let x3 = this.readMemoryWord(this.dest);
         x3 = x3 * x1;
-        this.writeMemoryWord(this.D, (x3 >> 16) & 0xFFFF);
-        this.writeMemoryWord(this.D + 2, (x3 & 0xFFFF));
+        this.writeMemoryWord(this.dest, (x3 >> 16) & 0xFFFF);
+        this.writeMemoryWord(this.dest + 2, (x3 & 0xFFFF));
 
         return 52;
     }
@@ -1424,17 +1426,17 @@ export class F18AGPU implements CPU {
     // Dest, a 2 word number, is divided by src. The result is stored as two words at the dst:
     // the first is the whole number result, the second is the remainder
     div(): number {
-        const x2 = this.readMemoryWord(this.S);
+        const x2 = this.readMemoryWord(this.source);
 
-        this.D = this.WP + (this.D << 1);
-        let x3 = this.readMemoryWord(this.D);
+        this.dest = this.wp + (this.dest << 1);
+        let x3 = this.readMemoryWord(this.dest);
 
         if (x2 > x3) {		// x2 can not be zero because they're unsigned
-            x3 = x3 * 65536 + this.readMemoryWord(this.D + 2); // Cannot use shift here because then we get a 32-bit signed integer
+            x3 = x3 * 65536 + this.readMemoryWord(this.dest + 2); // Cannot use shift here because then we get a 32-bit signed integer
             let x1 = x3 / x2;
-            this.writeMemoryWord(this.D, x1 & 0xFFFF);
+            this.writeMemoryWord(this.dest, x1 & 0xFFFF);
             x1 = x3 % x2;
-            this.writeMemoryWord(this.D + 2, x1 & 0xFFFF);
+            this.writeMemoryWord(this.dest + 2, x1 & 0xFFFF);
             this.resetOV();
             return 92;		// This is not accurate. (Up to 124 "depends on the partial quotient after each clock cycle during execution")
         } else {
@@ -1446,45 +1448,45 @@ export class F18AGPU implements CPU {
     // Set Zeros Corresponding: SZC src, dst
     // Zero all bits in dest that are zeroed in src
     szc(): number {
-        const x1 = this.readMemoryWord(this.S);
+        const x1 = this.readMemoryWord(this.source);
 
-        const cycles = this.fixD();
-        const x2 = this.readMemoryWord(this.D);
+        const cycles = this.fixDest();
+        const x2 = this.readMemoryWord(this.dest);
         const x3 = (~x1) & x2;
-        this.writeMemoryWord(this.D, x3);
+        this.writeMemoryWord(this.dest, x3);
 
         this.resetLGT_AGT_EQ();
-        this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
+        this.st |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
 
         return cycles + 14;
     }
 
     // Set Zeros Corresponding, Byte: SZCB src, dst
     szcb(): number {
-        const x1 = this.readMemoryByte(this.S);
+        const x1 = this.readMemoryByte(this.source);
 
-        const cycles = this.fixD();
-        const x2 = this.readMemoryByte(this.D);
+        const cycles = this.fixDest();
+        const x2 = this.readMemoryByte(this.dest);
         const x3 = (~x1) & x2;
-        this.writeMemoryByte(this.D, x3);
+        this.writeMemoryByte(this.dest, x3);
 
         this.resetLGT_AGT_EQ_OP();
-        this.ST |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;
+        this.st |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;
 
         return cycles + 14;
     }
 
     // Subtract: S src, dst
     s(): number {
-        const x1 = this.readMemoryWord(this.S);
+        const x1 = this.readMemoryWord(this.source);
 
-        const cycles = this.fixD();
-        const x2 = this.readMemoryWord(this.D);
+        const cycles = this.fixDest();
+        const x2 = this.readMemoryWord(this.dest);
         const x3 = (x2 - x1) & 0xFFFF;
-        this.writeMemoryWord(this.D, x3);
+        this.writeMemoryWord(this.dest, x3);
 
         this.resetEQ_LGT_AGT_C_OV();
-        this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
+        this.st |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
 
         // any number minus 0 sets carry.. Tursi's theory is that converting 0 to the two's complement
         // is causing the carry flag to be set.
@@ -1496,15 +1498,15 @@ export class F18AGPU implements CPU {
 
     // Subtract Byte: SB src, dst
     sb(): number {
-        const x1 = this.readMemoryByte(this.S);
+        const x1 = this.readMemoryByte(this.source);
 
-        const cycles = this.fixD();
-        const x2 = this.readMemoryByte(this.D);
+        const cycles = this.fixDest();
+        const x2 = this.readMemoryByte(this.dest);
         const x3 = (x2 - x1) & 0xFF;
-        this.writeMemoryByte(this.D, x3);
+        this.writeMemoryByte(this.dest, x3);
 
         this.resetEQ_LGT_AGT_C_OV_OP();
-        this.ST |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;
+        this.st |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;
 
         // any number minus 0 sets carry.. Tursi's theory is that converting 0 to the two's complement
         // is causing the carry flag to be set.
@@ -1516,10 +1518,10 @@ export class F18AGPU implements CPU {
 
     // Compare words: C src, dst
     c(): number {
-        const x3 = this.readMemoryWord(this.S);
+        const x3 = this.readMemoryWord(this.source);
 
-        const cycles = this.fixD();
-        const x4 = this.readMemoryWord(this.D);
+        const cycles = this.fixDest();
+        const x4 = this.readMemoryWord(this.dest);
 
         this.resetLGT_AGT_EQ();
         if (x3 > x4) { this.setLGT(); }
@@ -1534,10 +1536,10 @@ export class F18AGPU implements CPU {
 
     // CompareBytes: CB src, dst
     cb(): number {
-        const x3 = this.readMemoryByte(this.S);
+        const x3 = this.readMemoryByte(this.source);
 
-        const cycles = this.fixD();
-        const x4 = this.readMemoryByte(this.D);
+        const cycles = this.fixDest();
+        const x4 = this.readMemoryByte(this.dest);
 
         this.resetLGT_AGT_EQ_OP();
         if (x3 > x4) { this.setLGT(); }
@@ -1547,22 +1549,22 @@ export class F18AGPU implements CPU {
         } else {
             if ((x4 & 0x80) !== 0) { this.setAGT(); }
         }
-        this.ST |= this.bStatusLookup[x3] & this.BIT_OP;
+        this.st |= this.bStatusLookup[x3] & this.BIT_OP;
 
         return cycles + 14;
     }
 
     // Add words: A src, dst
     a(): number {
-        const x1 = this.readMemoryWord(this.S);
+        const x1 = this.readMemoryWord(this.source);
 
-        const cycles = this.fixD();
-        const x2 = this.readMemoryWord(this.D);
+        const cycles = this.fixDest();
+        const x2 = this.readMemoryWord(this.dest);
         const x3 = (x2 + x1) & 0xFFFF;
-        this.writeMemoryWord(this.D, x3);
+        this.writeMemoryWord(this.dest, x3);
 
         this.resetEQ_LGT_AGT_C_OV();	// We come out with either EQ or LGT, never both
-        this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
+        this.st |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
 
         if (x3 < x2) { this.setC(); }	// if it wrapped around, set carry
         if (((x1 & 0x8000) === (x2 & 0x8000)) && ((x3 & 0x8000) !== (x2 & 0x8000))) { this.setOV(); } // if it overflowed or underflowed (signed math), set overflow
@@ -1572,15 +1574,15 @@ export class F18AGPU implements CPU {
 
     // Add bytes: A src, dst
     ab(): number {
-        const x1 = this.readMemoryByte(this.S);
+        const x1 = this.readMemoryByte(this.source);
 
-        const cycles = this.fixD();
-        const x2 = this.readMemoryByte(this.D);
+        const cycles = this.fixDest();
+        const x2 = this.readMemoryByte(this.dest);
         const x3 = (x2 + x1) & 0xFF;
-        this.writeMemoryByte(this.D, x3);
+        this.writeMemoryByte(this.dest, x3);
 
         this.resetEQ_LGT_AGT_C_OV();	// We come out with either EQ or LGT, never both
-        this.ST |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;
+        this.st |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;
 
         if (x3 < x2) { this.setC(); }	// if it wrapped around, set carry
         if (((x1 & 0x80) === (x2 & 0x80)) && ((x3 & 0x80) !== (x2 & 0x80))) { this.setOV(); }  // if it overflowed or underflowed (signed math), set overflow
@@ -1590,26 +1592,26 @@ export class F18AGPU implements CPU {
 
     // MOVe words: MOV src, dst
     mov(): number {
-        const x1 = this.readMemoryWord(this.S);
-        const cycles = this.fixD();
+        const x1 = this.readMemoryWord(this.source);
+        const cycles = this.fixDest();
 
-        this.writeMemoryWord(this.D, x1);
+        this.writeMemoryWord(this.dest, x1);
 
         this.resetLGT_AGT_EQ();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
+        this.st |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
 
         return cycles + 14;
     }
 
     // MOVe Bytes: MOVB src, dst
     movb(): number {
-        const x1 = this.readMemoryByte(this.S);
+        const x1 = this.readMemoryByte(this.source);
 
-        const cycles = this.fixD();
-        this.writeMemoryByte(this.D, x1);
+        const cycles = this.fixDest();
+        this.writeMemoryByte(this.dest, x1);
 
         this.resetLGT_AGT_EQ_OP();
-        this.ST |= this.bStatusLookup[x1] & this.maskLGT_AGT_EQ_OP;
+        this.st |= this.bStatusLookup[x1] & this.maskLGT_AGT_EQ_OP;
 
         return cycles + 14;
     }
@@ -1618,29 +1620,29 @@ export class F18AGPU implements CPU {
     // Essentially performs an OR - setting all the bits in dst that
     // are set in src
     soc(): number {
-        const x1 = this.readMemoryWord(this.S);
+        const x1 = this.readMemoryWord(this.source);
 
-        const cycles = this.fixD();
-        const x2 = this.readMemoryWord(this.D);
+        const cycles = this.fixDest();
+        const x2 = this.readMemoryWord(this.dest);
         const x3 = x1 | x2;
-        this.writeMemoryWord(this.D, x3);
+        this.writeMemoryWord(this.dest, x3);
 
         this.resetLGT_AGT_EQ();
-        this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
+        this.st |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
 
         return cycles + 14;
     }
 
     socb(): number {
-        const x1 = this.readMemoryByte(this.S);
+        const x1 = this.readMemoryByte(this.source);
 
-        const cycles = this.fixD();
-        const x2 = this.readMemoryByte(this.D);
+        const cycles = this.fixDest();
+        const x2 = this.readMemoryByte(this.dest);
         const x3 = x1 | x2;
-        this.writeMemoryByte(this.D, x3);
+        this.writeMemoryByte(this.dest, x3);
 
         this.resetLGT_AGT_EQ_OP();
-        this.ST |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;
+        this.st |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;
 
         return cycles + 14;
     }
@@ -1648,113 +1650,113 @@ export class F18AGPU implements CPU {
     // F18A specific opcodes
 
     call(): number {
-        let x2 = this.readMemoryWord(this.WP + 30);	// get R15
-        this.writeMemoryWord(x2, this.PC);
-        this.PC = this.S;
+        let x2 = this.readMemoryWord(this.wp + 30);	// get R15
+        this.writeMemoryWord(x2, this.pc);
+        this.pc = this.source;
         x2 -= 2;
-        this.writeMemoryWord(this.WP + 30, x2);     // update R15
+        this.writeMemoryWord(this.wp + 30, x2);     // update R15
         return 8;
     }
 
     ret(): number {
-        let x1 = this.readMemoryWord(this.WP + 30); // get R15
+        let x1 = this.readMemoryWord(this.wp + 30); // get R15
         x1 += 2;
-        this.PC = this.readMemoryWord(x1);          // get PC
-        this.writeMemoryWord(this.WP + 30, x1);     // update R15
+        this.pc = this.readMemoryWord(x1);          // get PC
+        this.writeMemoryWord(this.wp + 30, x1);     // update R15
         return 8;
     }
 
     push(): number {
-        const x1 = this.readMemoryWord(this.S);
-        let x2 = this.readMemoryWord(this.WP + 30); // get R15
+        const x1 = this.readMemoryWord(this.source);
+        let x2 = this.readMemoryWord(this.wp + 30); // get R15
         this.writeMemoryWord(x2, x1);               // Push the word on the stack
         x2 -= 2;                                    // the stack pointer post-decrements (per Matthew)
-        this.writeMemoryWord(this.WP + 30, x2);		// update R15
+        this.writeMemoryWord(this.wp + 30, x2);		// update R15
         return 8;
     }
 
     slc(): number {
         let cycles = 0;
-        if (this.D === 0) {
-            this.D = this.readMemoryWord(this.WP) & 0xf;
-            if (this.D === 0) { this.D = 16; }
+        if (this.dest === 0) {
+            this.dest = this.readMemoryWord(this.wp) & 0xf;
+            if (this.dest === 0) { this.dest = 16; }
             cycles += 8;
         }
-        let x1 = this.readMemoryWord(this.S);
+        let x1 = this.readMemoryWord(this.source);
         let x4;
-        for (let x2 = 0; x2 < this.D; x2++) {
+        for (let x2 = 0; x2 < this.dest; x2++) {
             x4 = x1 & 0x8000;
             x1 = x1 << 1;
             if (x4 !== 0) {
                 x1 = x1 | 1;
             }
         }
-        this.writeMemoryWord(this.S, x1);
+        this.writeMemoryWord(this.source, x1);
 
         this.resetEQ_LGT_AGT_C();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
+        this.st |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
 
         if (x4 !== 0) { this.setC(); }
 
-        return cycles + 12 + 2 * this.D;
+        return cycles + 12 + 2 * this.dest;
     }
 
     pop(): number {
-        let x2 = this.readMemoryWord(this.WP + 30);	// get R15
+        let x2 = this.readMemoryWord(this.wp + 30);	// get R15
         // POP the word from the stack
         // the stack pointer post-decrements (per Matthew)
         x2 += 2;                                    // so here we pre-increment!
         const x1 = this.readMemoryWord(x2);
-        this.writeMemoryWord(this.S, x1);
-        this.writeMemoryWord(this.WP + 30, x2);		// update R15
+        this.writeMemoryWord(this.source, x1);
+        this.writeMemoryWord(this.wp + 30, x2);		// update R15
         return 8;
     }
 
-    getLGT() { return (this.ST & this.BIT_LGT); }	// Logical Greater Than
-    getAGT() { return (this.ST & this.BIT_AGT); }	// Arithmetic Greater Than
-    getEQ() { return (this.ST & this.BIT_EQ); }	    // Equal
-    getC() { return (this.ST & this.BIT_C); }	    // Carry
-    getOV() { return (this.ST & this.BIT_OV); }	    // Overflow
-    getOP() { return (this.ST & this.BIT_OP); }	    // Odd Parity
-    getX() { return (this.ST & this.BIT_X); }	    // Set during an XOP instruction
+    getLGT() { return (this.st & this.BIT_LGT); }	// Logical Greater Than
+    getAGT() { return (this.st & this.BIT_AGT); }	// Arithmetic Greater Than
+    getEQ() { return (this.st & this.BIT_EQ); }	    // Equal
+    getC() { return (this.st & this.BIT_C); }	    // Carry
+    getOV() { return (this.st & this.BIT_OV); }	    // Overflow
+    getOP() { return (this.st & this.BIT_OP); }	    // Odd Parity
+    getX() { return (this.st & this.BIT_X); }	    // Set during an XOP instruction
 
-    setLGT() { this.ST |= 0x8000; }       		    // Logical Greater than: >0x0000
-    setAGT() { this.ST |= 0x4000; }		            // Arithmetic Greater than: >0x0000 and <0x8000
-    setEQ() { this.ST |= 0x2000; }       		    // Equal: ==0x0000
-    setC() { this.ST |= 0x1000; }		            // Carry: carry occurred during operation
-    setOV() { this.ST |= 0x0800; }       		    // Overflow: overflow occurred during operation
-    setOP() { this.ST |= 0x0400; }	                // Odd parity: word has odd number of '1' bits
-    setX() { this.ST |= 0x0200; }		            // Executing 'X' statement
+    setLGT() { this.st |= 0x8000; }       		    // Logical Greater than: >0x0000
+    setAGT() { this.st |= 0x4000; }		            // Arithmetic Greater than: >0x0000 and <0x8000
+    setEQ() { this.st |= 0x2000; }       		    // Equal: ==0x0000
+    setC() { this.st |= 0x1000; }		            // Carry: carry occurred during operation
+    setOV() { this.st |= 0x0800; }       		    // Overflow: overflow occurred during operation
+    setOP() { this.st |= 0x0400; }	                // Odd parity: word has odd number of '1' bits
+    setX() { this.st |= 0x0200; }		            // Executing 'X' statement
 
-    resetLGT() { this.ST &= 0x7fff; }               // Clear the flags
-    resetAGT() { this.ST &= 0xbfff; }
-    resetEQ() { this.ST &= 0xdfff; }
-    resetC() { this.ST &= 0xefff; }
-    resetOV() { this.ST &= 0xf7ff; }
-    resetOP() { this.ST &= 0xfbff; }
-    resetX() { this.ST &= 0xfdff; }
+    resetLGT() { this.st &= 0x7fff; }               // Clear the flags
+    resetAGT() { this.st &= 0xbfff; }
+    resetEQ() { this.st &= 0xdfff; }
+    resetC() { this.st &= 0xefff; }
+    resetOV() { this.st &= 0xf7ff; }
+    resetOP() { this.st &= 0xfbff; }
+    resetX() { this.st &= 0xfdff; }
 
     // Group clears
-    resetEQ_LGT() { this.ST &= 0x5fff; }
-    resetLGT_AGT_EQ() { this.ST &= 0x1fff; }
-    resetLGT_AGT_EQ_OP() { this.ST &= 0x1bff; }
-    resetEQ_LGT_AGT_OV() { this.ST &= 0x17ff; }
-    resetEQ_LGT_AGT_C() { this.ST &= 0x0fff; }
-    resetEQ_LGT_AGT_C_OV() { this.ST &= 0x7ff; }
-    resetEQ_LGT_AGT_C_OV_OP() { this.ST &= 0x3ff; }
+    resetEQ_LGT() { this.st &= 0x5fff; }
+    resetLGT_AGT_EQ() { this.st &= 0x1fff; }
+    resetLGT_AGT_EQ_OP() { this.st &= 0x1bff; }
+    resetEQ_LGT_AGT_OV() { this.st &= 0x17ff; }
+    resetEQ_LGT_AGT_C() { this.st &= 0x0fff; }
+    resetEQ_LGT_AGT_C_OV() { this.st &= 0x7ff; }
+    resetEQ_LGT_AGT_C_OV_OP() { this.st &= 0x3ff; }
 
     logRegs() {
         this.log.info(this.getRegsString() + this.getInternalRegsString());
     }
 
     getInternalRegsString(): string {
-        return "PC: " + Util.toHexWord(this.PC) + " ST: " + Util.toHexWord(this.ST) + " F18A GPU";
+        return "PC: " + Util.toHexWord(this.pc) + " ST: " + Util.toHexWord(this.st) + " F18A GPU";
     }
 
     getRegsString(): string {
         let s = "";
         for (let i = 0; i < 16; i++) {
-            s += "R" + i + ":" + Util.toHexWord(this.readMemoryWord(this.WP + 2 * i)) + " ";
+            s += "R" + i + ":" + Util.toHexWord(this.readMemoryWord(this.wp + 2 * i)) + " ";
         }
         return s;
     }
@@ -1762,7 +1764,7 @@ export class F18AGPU implements CPU {
     getRegsStringFormatted(): string {
         let s = "";
         for (let i = 0; i < 16; i++) {
-            s += "R" + i + (i < 10 ? " " : "") + ":" + Util.toHexWord(this.readMemoryWord(this.WP + 2 * i)) + (i % 4 === 3 ? "\n" : " ");
+            s += "R" + i + (i < 10 ? " " : "") + ":" + Util.toHexWord(this.readMemoryWord(this.wp + 2 * i)) + (i % 4 === 3 ? "\n" : " ");
         }
         return s;
     }
@@ -1775,12 +1777,16 @@ export class F18AGPU implements CPU {
         this.breakpoint = addr;
     }
 
-    setOtherBreakpoint(addr: number) {
-        this.otherBreakpoint = addr;
+    breakAfterNext(): void {
+        this.auxBreakpoint = this.getPc() + 4;
+    }
+
+    isStoppedAtBreakpoint(): boolean {
+        return this.stoppedAtBreakpoint;
     }
 
     atBreakpoint() {
-        return this.PC === this.breakpoint || this.PC === this.otherBreakpoint;
+        return this.pc === this.breakpoint || this.pc === this.auxBreakpoint;
     }
 
     hexArrayToBin(hexArray) {
@@ -1816,14 +1822,14 @@ export class F18AGPU implements CPU {
     getState(): object {
         return {
             cpuIdle: this.cpuIdle,
-            PC: this.PC,
-            WP: this.WP,
-            ST: this.ST,
+            PC: this.pc,
+            WP: this.wp,
+            ST: this.st,
             flagX: this.flagX,
             cycles: this.cycles,
             cyclesRemaining: this.cyclesRemaining,
             breakpoint: this.breakpoint,
-            otherBreakpoint: this.otherBreakpoint,
+            auxBreakpoint: this.auxBreakpoint,
             illegalCount: this.illegalCount,
             flash: this.flash.getState()
         };
@@ -1832,14 +1838,14 @@ export class F18AGPU implements CPU {
     restoreState(state: any) {
         this.vdpRAM = this.f18a.getRAM();
         this.cpuIdle = state.cpuIdle;
-        this.PC = state.PC;
-        this.WP = state.WP;
-        this.ST = state.ST;
+        this.pc = state.pc;
+        this.wp = state.wp;
+        this.st = state.st;
         this.flagX = state.flagX;
         this.cycles = state.cycles;
         this.cyclesRemaining = state.cyclesRemaining;
         this.breakpoint = state.breakpoint;
-        // this.otherBreakpoint = state.otherBreakpoint;
+        this.auxBreakpoint = state.auxBreakpoint;
         this.illegalCount = state.illegalCount;
         this.flash.restoreState(state.flash);
     }

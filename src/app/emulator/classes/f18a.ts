@@ -1230,7 +1230,7 @@ export class F18A implements VDP {
             case 55:
                 this.gpu.intReset();
                 this.log.debug("F18A GPU triggered at " + Util.toHexWord((this.registers[54] << 8) | this.registers[55]));
-                this.gpu.setPC(this.registers[54] << 8 | this.registers[55]);
+                this.gpu.setPc(this.registers[54] << 8 | this.registers[55]);
                 break;
             case 56:
                 if ((this.registers[56] & 1) === 1) {
@@ -1271,20 +1271,6 @@ export class F18A implements VDP {
 
     readRegister(reg) {
         return this.registers[reg];
-    }
-
-    runGPU(gpuAddress) {
-        this.log.info("F18A GPU triggered at " + Util.toHexWord(gpuAddress));
-        this.gpu.setPC(gpuAddress); // Set the PC, which also triggers the GPU
-        if (this.gpu.atBreakpoint()) {
-            this.log.info("Breakpoint in GPU code ignored.");
-            while (this.gpu.atBreakpoint() && !this.gpu.isIdle()) {
-                this.gpu.resume();
-            }
-        }
-        if (this.gpu.isIdle()) {
-            this.log.debug("F18A GPU idle.");
-        }
     }
 
     updateMode(reg0, reg1) {

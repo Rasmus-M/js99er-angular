@@ -236,8 +236,7 @@ export class TI994A implements Console, State {
             if (!cpu.isSuspended()) {
                 this.activeCPU = cpu;
                 extraCycles = cpu.run(cyclesPerScanline - extraCycles, skipBreakpoint);
-                if (cpu.atBreakpoint()) {
-                    cpu.setOtherBreakpoint(null);
+                if (cpu.isStoppedAtBreakpoint()) {
                     if (this.onBreakpoint) {
                         this.onBreakpoint(cpu);
                     }
@@ -249,8 +248,7 @@ export class TI994A implements Console, State {
             if (gpu && !gpu.isIdle()) {
                 this.activeCPU = gpu;
                 gpu.run(f18ACyclesPerScanline, skipBreakpoint);
-                if (gpu.atBreakpoint()) {
-                    gpu.setOtherBreakpoint(null);
+                if (gpu.isStoppedAtBreakpoint()) {
                     if (this.onBreakpoint) {
                         this.onBreakpoint(gpu);
                     }
@@ -278,7 +276,7 @@ export class TI994A implements Console, State {
     }
 
     stepOver() {
-        this.activeCPU.setOtherBreakpoint(this.activeCPU.getPC() + 4);
+        this.activeCPU.breakAfterNext();
         this.start(false, true);
     }
 
@@ -314,7 +312,7 @@ export class TI994A implements Console, State {
     }
 
     getPC() {
-        return this.activeCPU.getPC();
+        return this.activeCPU.getPc();
     }
 
     isGPUActive(): boolean {
@@ -356,8 +354,8 @@ export class TI994A implements Console, State {
                 this.memory.loadGROM(sw.groms[g], 3, g);
             }
         }
-        this.cpu.setWP(sw.workspaceAddress ? sw.workspaceAddress : (System.ROM[0] << 8 | System.ROM[1]));
-        this.cpu.setPC(sw.startAddress ? sw.startAddress : (System.ROM[2] << 8 | System.ROM[3]));
+        this.cpu.setWp(sw.workspaceAddress ? sw.workspaceAddress : (System.ROM[0] << 8 | System.ROM[1]));
+        this.cpu.setPc(sw.startAddress ? sw.startAddress : (System.ROM[2] << 8 | System.ROM[3]));
         if (wasRunning) {
             this.start(false);
         }
