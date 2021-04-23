@@ -1,4 +1,4 @@
 export interface State {
-    getState(): object;
+    getState(): any;
     restoreState(state: any);
 }
