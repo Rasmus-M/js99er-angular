@@ -1778,7 +1778,65 @@ export class F18AGPU implements CPU {
     }
 
     breakAfterNext(): void {
-        this.auxBreakpoint = this.getPc() + 4;
+        const instruction = this.readMemoryWord(this.pc);
+        const opcode: Opcode = this.decoderTable[instruction];
+        this.auxBreakpoint = this.getPc() + this.getInstructionSize(instruction, opcode);
+    }
+
+    getInstructionSize(instruction: number, opcode: Opcode): number {
+        let size = 2;
+        let ts;
+        let td;
+        switch (opcode.format) {
+            case 1:
+                // Two general addresses
+                td = (instruction & 0x0c00) >> 10;
+                ts = (instruction & 0x0030) >> 4;
+                size += this.gaSize(ts) + this.gaSize(td);
+                break;
+            case 2:
+                // Jump and CRU bit
+                break;
+            case 3:
+                // Logical
+                ts = (instruction & 0x0030) >> 4;
+                size += this.gaSize(ts);
+                break;
+            case 4:
+                // CRU multi bit
+                ts = (instruction & 0x0030) >> 4;
+                size += this.gaSize(ts);
+                break;
+            case 5:
+                // Register shift
+                break;
+            case 6:
+                // Single address
+                ts = (instruction & 0x0030) >> 4;
+                size += this.gaSize(ts);
+                break;
+            case 7:
+                // Control (no arguments)
+                break;
+            case 8:
+                // Immediate
+                if (opcode.id !== 'STST' && opcode.id !== 'STWP') {
+                    size += 2;
+                }
+                break;
+            case 9:
+                // Multiply, divide, XOP
+                ts = (instruction & 0x0030) >> 4;
+                size += this.gaSize(ts);
+                break;
+            default:
+                break;
+        }
+        return size;
+    }
+
+    gaSize(type: number): number {
+        return type === 2 ? 2 : 0;
     }
 
     isStoppedAtBreakpoint(): boolean {
