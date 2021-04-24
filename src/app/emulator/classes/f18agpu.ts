@@ -38,6 +38,7 @@ export class F18AGPU extends CPUCommon implements CPU {
 
     addSpecialInstructions() {
         this.instructions.CKON = this.ckon;
+        this.instructions.CKOF = this.ckof;
         this.instructions.RET = this.ret;
         this.instructions.CALL = this.call;
         this.instructions.PUSH = this.push;

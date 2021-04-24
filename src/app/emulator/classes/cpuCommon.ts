@@ -95,6 +95,8 @@ export abstract class CPUCommon {
         CZC: this.czc,
         XOR: this.xor,
         XOP: this.xop,
+        LDCR: this.ldcr,
+        STCR: this.stcr,
         MPY: this.mpy,
         DIV: this.div,
         SZC: this.szc,
@@ -1340,6 +1342,9 @@ export abstract class CPUCommon {
 
         return cycles + 14;
     }
+
+    abstract ldcr(): number;
+    abstract stcr(): number;
 
     getLGT() { return (this.st & this.BIT_LGT); }	// Logical Greater Than
     getAGT() { return (this.st & this.BIT_AGT); }	// Arithmetic Greater Than

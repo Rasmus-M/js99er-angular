@@ -42,8 +42,6 @@ export class TMS9900 extends CPUCommon implements CPU {
         this.instructions.TB = this.tb;
         this.instructions.SBO = this.sbo;
         this.instructions.SBZ = this.sbz;
-        this.instructions.LDCR = this.ldcr;
-        this.instructions.STCR = this.stcr;
     }
 
     reset() {
