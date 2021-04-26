@@ -152,6 +152,7 @@ export class F18AGPU extends CPUCommon implements CPU {
     }
 
     writeMemoryWord(addr: number, w: number) {
+        addr &= 0xFFFE;
         this.writeMemoryByte(addr, (w & 0xFF00) >> 8);
         this.writeMemoryByte(addr + 1, w & 0x00FF);
     }
@@ -304,6 +305,13 @@ export class F18AGPU extends CPUCommon implements CPU {
 
     getMemoryWord(addr: number): number {
         return this.readMemoryWord(addr);
+    }
+
+    // Does not use R13, only performs R14->PC, R15->status flags
+    rtwp(): number {
+        this.st = this.readMemoryWord(this.wp + 30); // R15
+        this.setPc(this.readMemoryWord(this.wp + 28)); // R14
+        return 14;
     }
 
     // This sets the CPU idle on thw F18A GPU

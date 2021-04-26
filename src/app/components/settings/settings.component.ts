@@ -25,6 +25,7 @@ export class SettingsComponent implements OnInit {
     enableTIPI: boolean;
     tipiWebsocketURI: string;
     enableDebugReset: boolean;
+    enableH264Codec: boolean;
     ramExpansion: string;
 
     private subscription: Subscription;
@@ -55,6 +56,7 @@ export class SettingsComponent implements OnInit {
         this.enableTIPI = this.settingsService.isTIPIEnabled();
         this.tipiWebsocketURI = this.settingsService.getTIPIWebsocketURI();
         this.enableDebugReset = this.settingsService.isDebugResetEnabled();
+        this.enableH264Codec = this.settingsService.isH264CodecEnabled();
         this.ramExpansion = "none";
         if (this.settingsService.is32KRAMEnabled()) {
             this.ramExpansion = "32K";
@@ -125,6 +127,10 @@ export class SettingsComponent implements OnInit {
 
     onEnableDebugResetChanged(value) {
         this.settingsService.setDebugResetEnabled(value);
+    }
+
+    onEnableH264CodecChanged(value) {
+        this.settingsService.setH264CodecEnabled(value);
     }
 
     onTextFocus() {

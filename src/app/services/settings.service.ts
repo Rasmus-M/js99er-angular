@@ -66,6 +66,9 @@ export class SettingsService {
             if (storage.getItem('enableDebugReset') != null) {
                 this.settings.setDebugResetEnabled(storage.getItem('enableDebugReset') === 'true');
             }
+            if (storage.getItem('enableH264Codec') != null) {
+                this.settings.setH264CodecEnabled(storage.getItem('enableH264Codec') === 'true');
+            }
             this.storage = storage;
         }
     }
@@ -292,6 +295,20 @@ export class SettingsService {
                 this.storage.setItem('enableDebugReset', enabled);
             }
             this.commandDispatcherService.changeSetting(Setting.DEBUG_RESET, enabled);
+        }
+    }
+
+    isH264CodecEnabled() {
+        return this.settings.isH264CodexEnabled();
+    }
+
+    setH264CodecEnabled(enabled) {
+        if (enabled !== this.settings.isH264CodexEnabled()) {
+            this.settings.setH264CodecEnabled(enabled);
+            if (this.persistent && this.storage) {
+                this.storage.setItem('enableH264Codec', enabled);
+            }
+            this.commandDispatcherService.changeSetting(Setting.H264_CODEC, enabled);
         }
     }
 }

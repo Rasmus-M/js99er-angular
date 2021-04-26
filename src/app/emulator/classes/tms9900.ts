@@ -238,6 +238,20 @@ export class TMS9900 extends CPUCommon implements CPU {
         return 22;
     }
 
+    // This sets A0-A2 to 010, and pulses CRUCLK until an interrupt is received.
+    idle(): number {
+        return 12;
+    }
+
+    // ReTurn with Workspace Pointer: RTWP
+    // The matching return for BLWP, see BLWP for description
+    rtwp(): number {
+        this.st = this.readMemoryWord(this.wp + 30); // R15
+        this.setPc(this.readMemoryWord(this.wp + 28)); // R14
+        this.setWp(this.readMemoryWord(this.wp + 26)); // R13
+        return 14;
+    }
+
     // Set Bit On: SBO src
     // Sets a bit in the CRU
     sbo(): number {
@@ -349,6 +363,29 @@ export class TMS9900 extends CPUCommon implements CPU {
             cycles = 60;
         }
         return cycles;
+    }
+
+    // eXtended OPeration: XOP src ???
+    // The CPU maintains a jump table starting at 0x0040, containing BLWP style
+    // jumps for each operation. In addition, the new R11 gets a copy of the address of
+    // the source operand.
+    // Apparently not all consoles supported both XOP 1 and 2 (depends on the ROM?)
+    // so it is probably rarely, if ever, used on the TI99.
+    xop(): number {
+        this.dest &= 0xf;
+
+        const x1 = this.wp;
+        this.setWp(this.readMemoryWord(0x0040 + (this.dest << 2)));
+        this.writeMemoryWord(this.wp + 22, this.source);
+        this.writeMemoryWord(this.wp + 26, x1);
+        this.writeMemoryWord(this.wp + 28, this.pc);
+        this.writeMemoryWord(this.wp + 30, this.st);
+        this.setPc(this.readMemoryWord(0x0042 + (this.dest << 2)));
+        this.setX();
+
+        // skip_interrupt=1;
+
+        return 36;
     }
 
     isIdle(): boolean {

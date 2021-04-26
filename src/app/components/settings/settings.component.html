@@ -47,5 +47,8 @@
     <div class="checkbox-setting">
         <mat-checkbox label="" [ngModel]="enableDebugReset" (ngModelChange)="onEnableDebugResetChanged($event)">Debug reset enabled (fill RAM with random values)</mat-checkbox>
     </div>
+    <div class="checkbox-setting">
+        <mat-checkbox label="" [ngModel]="enableH264Codec" (ngModelChange)="onEnableH264CodecChanged($event)">High quality video recording enabled</mat-checkbox>
+    </div>
 </div>
 

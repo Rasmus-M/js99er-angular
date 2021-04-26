@@ -285,12 +285,11 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                     stream.addTrack(audioStream.getTracks()[0]);
                 }
                 this.recordings = [];
-                let mimeType = 'video/webm; codecs=vp9';
-                // @ts-ignore
-                if (!MediaRecorder.isTypeSupported(mimeType)) {
-                    mimeType = 'video/webm; codecs=vp8';
+                const mimeTypes = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8'];
+                if (this.settingsService.isH264CodecEnabled()) {
+                    mimeTypes.unshift('video/webm;codecs=h264');
                 }
-                // @ts-ignore
+                const mimeType = mimeTypes.find((mt) => MediaRecorder.isTypeSupported(mt));
                 this.mediaRecorder = new MediaRecorder(stream, {mimeType: mimeType});
                 this.mediaRecorder.ondataavailable = this.onMediaRecorderDataAvailable.bind(this);
                 this.mediaRecorder.onstop = this.onMediaRecorderStopped.bind(this);

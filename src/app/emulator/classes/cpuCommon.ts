@@ -465,25 +465,11 @@ export abstract class CPUCommon {
         return 16;
     }
 
-    // This sets A0-A2 to 010, and pulses CRUCLK until an interrupt is received.
-    idle(): number {
-        return 12;
-    }
-
     // This will set A0-A2 to 011 and pulse CRUCLK (so not emulated)
     // However, it does have an effect, it zeros the interrupt mask
     rset(): number {
         this.st &= 0xfff0;
         return 12;
-    }
-
-    // ReTurn with Workspace Pointer: RTWP
-    // The matching return for BLWP, see BLWP for description
-    rtwp(): number {
-        this.st = this.readMemoryWord(this.wp + 30); // R15
-        this.setPc(this.readMemoryWord(this.wp + 28)); // R14
-        this.setWp(this.readMemoryWord(this.wp + 26)); // R13
-        return 14;
     }
 
     // Branch and Load Workspace Pointer: BLWP src
@@ -1078,29 +1064,6 @@ export abstract class CPUCommon {
         return cycles + 14;
     }
 
-    // eXtended OPeration: XOP src ???
-    // The CPU maintains a jump table starting at 0x0040, containing BLWP style
-    // jumps for each operation. In addition, the new R11 gets a copy of the address of
-    // the source operand.
-    // Apparently not all consoles supported both XOP 1 and 2 (depends on the ROM?)
-    // so it is probably rarely, if ever, used on the TI99.
-    xop(): number {
-        this.dest &= 0xf;
-
-        const x1 = this.wp;
-        this.setWp(this.readMemoryWord(0x0040 + (this.dest << 2)));
-        this.writeMemoryWord(this.wp + 22, this.source);
-        this.writeMemoryWord(this.wp + 26, x1);
-        this.writeMemoryWord(this.wp + 28, this.pc);
-        this.writeMemoryWord(this.wp + 30, this.st);
-        this.setPc(this.readMemoryWord(0x0042 + (this.dest << 2)));
-        this.setX();
-
-        // skip_interrupt=1;
-
-        return 36;
-    }
-
     // MultiPlY: MPY src, dst
     // Multiply src by dest and store 32-bit result
     // Note: src and dest are unsigned.
@@ -1343,8 +1306,11 @@ export abstract class CPUCommon {
         return cycles + 14;
     }
 
+    abstract idle(): number;
+    abstract rtwp(): number;
     abstract ldcr(): number;
     abstract stcr(): number;
+    abstract xop(): number;
 
     getLGT() { return (this.st & this.BIT_LGT); }	// Logical Greater Than
     getAGT() { return (this.st & this.BIT_AGT); }	// Arithmetic Greater Than

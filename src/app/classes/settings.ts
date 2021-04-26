@@ -13,7 +13,8 @@ export enum Setting {
     PAUSE_ON_FOCUS_LOST = 11,
     TIPI = 12,
     TIPI_WEBSOCKET_URI = 13,
-    DEBUG_RESET = 14
+    DEBUG_RESET = 14,
+    H264_CODEC
 }
 
 export class Settings {
@@ -33,6 +34,7 @@ export class Settings {
     private enableTIPI: boolean;
     private tipiWebsocketURI: string;
     private enableDebugReset: boolean;
+    private enableH264Codec: boolean;
 
     constructor() {
         this.enableSound = true;
@@ -50,6 +52,7 @@ export class Settings {
         this.enableTIPI = false;
         this.tipiWebsocketURI = "ws://localhost:9901/tipi";
         this.enableDebugReset = false;
+        this.enableH264Codec = false;
     }
 
     isSoundEnabled(): boolean {
@@ -172,6 +175,14 @@ export class Settings {
         this.enableDebugReset = enabled;
     }
 
+    isH264CodexEnabled() {
+        return this.enableH264Codec;
+    }
+
+    setH264CodecEnabled(enabled: boolean) {
+        this.enableH264Codec = enabled;
+    }
+
     copyFrom(otherSettings: Settings) {
         this.enableSound = otherSettings.isSoundEnabled();
         this.enableSpeech = otherSettings.isSpeechEnabled();
@@ -188,5 +199,6 @@ export class Settings {
         this.enableTIPI = otherSettings.isTIPIEnabled();
         this.tipiWebsocketURI = otherSettings.getTIPIWebsocketURI();
         this.enableDebugReset = otherSettings.isDebugResetEnabled();
+        this.enableH264Codec = otherSettings.isH264CodexEnabled();
     }
 }
