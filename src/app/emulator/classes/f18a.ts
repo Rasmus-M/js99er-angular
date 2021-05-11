@@ -708,6 +708,7 @@ export class F18A implements VDP {
                 colorByte = this.ram[colorAddr];
                 tileColor = (patternByte & bit) !== 0 ? (colorByte & 0xF0) >> 4 : (colorByte & 0x0F);
                 paletteBaseIndex = tilePaletteSelect;
+                transparentColor0 = true;
                 break;
             case F18A.MODE_TEXT:
             case F18A.MODE_TEXT_80:
@@ -771,6 +772,7 @@ export class F18A implements VDP {
                 colorByte = this.ram[this.charPatternTable + (charNo << 3) + ((y1 & 0x1c) >> 2)];
                 tileColor = (x1 & 4) === 0 ? (colorByte & 0xf0) >> 4 : (colorByte & 0x0f);
                 paletteBaseIndex = tilePaletteSelect;
+                transparentColor0 = true;
                 break;
         }
         return {
@@ -1229,7 +1231,7 @@ export class F18A implements VDP {
             // GPU address LSB
             case 55:
                 this.gpu.intReset();
-                this.log.debug("F18A GPU triggered at " + Util.toHexWord((this.registers[54] << 8) | this.registers[55]));
+                this.log.info("F18A GPU triggered at " + Util.toHexWord((this.registers[54] << 8) | this.registers[55]));
                 this.gpu.setPc(this.registers[54] << 8 | this.registers[55]);
                 break;
             case 56:
