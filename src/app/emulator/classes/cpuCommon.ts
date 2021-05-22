@@ -1453,9 +1453,9 @@ export abstract class CPUCommon {
 
     getState(): any {
         return {
-            PC: this.pc,
-            WP: this.wp,
-            ST: this.st,
+            pc: this.pc,
+            wp: this.wp,
+            st: this.st,
             flagX: this.flagX,
             cycles: this.cycles,
             breakpoint: this.breakpoint,

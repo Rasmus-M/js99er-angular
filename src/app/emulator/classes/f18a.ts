@@ -1846,7 +1846,7 @@ export class F18A implements VDP {
             spriteSize: this.spriteSize,
             spriteMag: this.spriteMag,
             tileColorMode: this.tileColorMode,
-            tilePaletteSelect: this.tilePaletteSelect1,
+            tilePaletteSelect1: this.tilePaletteSelect1,
             tilePaletteSelect2: this.tilePaletteSelect2,
             spriteColorMode: this.spriteColorMode,
             spritePaletteSelect: this.spritePaletteSelect,
