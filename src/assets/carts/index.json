@@ -599,5 +599,6 @@
     {"url": "borzork.rpk"},
     {"url": "forcecmd.rpk", "name": "Force Command"},
     {"url": "f18aracing8.bin", "name": "F18A Racing"},
-    {"url": "stevie8.bin", "name": "Stevie programming editor"}
+    {"url": "stevie8.bin", "name": "Stevie programming editor"},
+    {"url": "zqx-one-8.bin", "name": "ZQX-ONE"}
 ]

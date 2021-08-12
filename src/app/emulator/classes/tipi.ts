@@ -4,7 +4,7 @@ import {Util} from "../../classes/util";
 
 export class TIPI {
 
-    static FAST_MOUSE_EMULATION = true;
+    static FAST_MOUSE_EMULATION = false;
 
     static TD_OUT = 0x5FFE; // TI Data (output)
     static TC_OUT = 0x5FFC; // TI Control Signal (output)

@@ -377,6 +377,11 @@
                     "type": "ITEM",
                     "name": "F18A Racing",
                     "url": "software/f18aracing8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "F18A ZQX-ONE",
+                    "url": "software/zqx-one-8.bin"
                 }
             ]
         },
