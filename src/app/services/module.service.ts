@@ -250,6 +250,9 @@ export class ModuleService {
                     // reader.result contains the contents of blob as a typed array
                     const result: ArrayBuffer = reader.result as ArrayBuffer;
                     const byteArray = new Uint8Array(result);
+                    const ramFG99Paged = (byteArray[3] === 0x52);
+                    software.ramAt7000 = ramFG99Paged;
+                    software.ramFG99Paged = ramFG99Paged;
                     if (grom) {
                         software.grom = byteArray;
                     } else {
@@ -279,14 +282,14 @@ export class ModuleService {
         reader.onload = function () {
             const byteArray = new Uint8Array(reader.result as ArrayBuffer);
             const module: Software = new Software();
+            const ramFG99Paged = (byteArray[3] === 0x52);
+            module.ramAt7000 = ramFG99Paged;
+            module.ramFG99Paged = ramFG99Paged;
             if (grom) {
                 module.grom = byteArray;
             } else {
-                const ramFG99Paged = (byteArray[3] === 0x52);
                 module.inverted = inverted;
                 module.rom = byteArray;
-                module.ramAt7000 = ramFG99Paged;
-                module.ramFG99Paged = ramFG99Paged;
                 module.secondBank = secondBank;
             }
             subject.next(module);
@@ -388,6 +391,15 @@ export class ModuleService {
                             module.rom = rom;
                             module.inverted = true;
                         }
+                    }
+                    if (software.ramAt6000) {
+                        module.ramAt6000 = true;
+                    }
+                    if (software.ramAt7000) {
+                        module.ramAt7000 = true;
+                    }
+                    if (software.ramFG99Paged) {
+                        module.ramFG99Paged = true;
                     }
                 });
                 subject.next(module);
