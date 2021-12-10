@@ -29,7 +29,6 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
 
     private ti994A: Console;
     private canvas: HTMLCanvasElement;
-    // @ts-ignore
     private mediaRecorder: MediaRecorder;
     private recordings: Blob[];
     private subscription: Subscription;
@@ -283,7 +282,6 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.ti994A.getKeyboard().start();
                 break;
             case CommandType.START_RECORDING:
-                // @ts-ignore
                 const stream = this.canvas.captureStream();
                 const audioStream = this.audioService.getMediaStream();
                 if (audioStream) {
@@ -307,7 +305,6 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
-    // @ts-ignore
     onMediaRecorderDataAvailable(event: BlobEvent) {
         this.recordings.push(event.data);
     }
