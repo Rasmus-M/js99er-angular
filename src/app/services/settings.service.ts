@@ -69,6 +69,9 @@ export class SettingsService {
             if (storage.getItem('enableH264Codec') != null) {
                 this.settings.setH264CodecEnabled(storage.getItem('enableH264Codec') === 'true');
             }
+            if (storage.getItem('enableFastTIPIMouse') != null) {
+                this.settings.setFastTIPIMouseEnabled(storage.getItem('enableFastTIPIMouse') === 'true');
+            }
             this.storage = storage;
         }
     }
@@ -309,6 +312,20 @@ export class SettingsService {
                 this.storage.setItem('enableH264Codec', enabled);
             }
             this.commandDispatcherService.changeSetting(Setting.H264_CODEC, enabled);
+        }
+    }
+
+    isFastTIPIMouseEnabled() {
+        return this.settings.isFastTIPIMouseEnabled();
+    }
+
+    setFastTIPIMouseEnabled(enabled) {
+        if (enabled !== this.settings.isFastTIPIMouseEnabled()) {
+            this.settings.setFastTIPIMouseEnabled(enabled);
+            if (this.persistent && this.storage) {
+                this.storage.setItem('enableFastTIPIMouse', enabled);
+            }
+            this.commandDispatcherService.changeSetting(Setting.FAST_TIPI_MOUSE, enabled);
         }
     }
 }

@@ -88,7 +88,7 @@ export class Memory implements State, MemoryDevice {
         this.enable32KRAM = this.settings.is32KRAMEnabled();
         this.enableSAMS = this.settings.isSAMSEnabled();
         this.enableGRAM = this.settings.isGRAMEnabled();
-        this.enableTIPI = this.settings.isTIPIEnabled();
+        this.enableTIPI = this.settings.isTIPIEnabled() || this.settings.isFastTIPIMouseEnabled();
         this.debugReset = this.settings.isDebugResetEnabled();
         this.ram = new Uint8Array(0x10000);
         if (this.debugReset) {

@@ -4,8 +4,6 @@ import {Util} from "../../classes/util";
 
 export class TIPI {
 
-    static FAST_MOUSE_EMULATION = false;
-
     static TD_OUT = 0x5FFE; // TI Data (output)
     static TC_OUT = 0x5FFC; // TI Control Signal (output)
     static RD_IN = 0x5FFA;  // PI Data (input)
@@ -427,6 +425,8 @@ export class TIPI {
 
     private cpu: CPU;
     private canvas: HTMLCanvasElement = null;
+    private enableWebsocket: boolean;
+    private fastMouseEmulation: boolean;
     private websocket: WebSocket;
     private websocketURI: string;
     private websocketOpen: boolean;
@@ -445,17 +445,19 @@ export class TIPI {
     private buttons = 0;
     private mouseRequested = false;
 
-    constructor(cpu: CPU, websocketURI: string, canvas: HTMLCanvasElement) {
+    constructor(cpu: CPU, websocketURI: string, canvas: HTMLCanvasElement, enableWebsocket: boolean, fastMouseEmulation: boolean) {
         this.cpu = cpu;
         this.websocketURI = websocketURI;
         this.canvas = canvas;
+        this.enableWebsocket = enableWebsocket;
+        this.fastMouseEmulation = fastMouseEmulation;
         this.canvas.addEventListener('mousemove', this.mouseHandler.bind(this));
         this.canvas.addEventListener('mouseup', this.mouseHandler.bind(this));
         this.canvas.addEventListener('mousedown', this.mouseHandler.bind(this));
     }
 
     reset() {
-        if (!this.websocket || !this.websocketOpen) {
+        if (this.enableWebsocket && (!this.websocket || !this.websocketOpen)) {
             console.log("TIPI creating websocket");
             this.websocket = new WebSocket(this.websocketURI);
             this.websocket.binaryType = "arraybuffer";
@@ -490,9 +492,8 @@ export class TIPI {
                         this.rc = Number(stringMessage.substring(3));
                     }
                 } else if (typeof message === "object") {
-                    this.msg = new Uint8Array(message); // create a byte view
+                    this.msg = new Uint8Array(message);
                     this.msgLen = this.msg.length;
-                    // console.log("TIPI websocket msg len=" + this.msglen);
                     this.msgIdx = -2;
                     this.processMsg();
                 }
@@ -505,11 +506,7 @@ export class TIPI {
     }
 
     setTD(value: number) {
-        // console.log("TIPI write TD: " + Util.toHexByte(value));
         this.td = value;
-        if (this.websocketOpen) {
-            // this.websocket.send("TD=" + value);
-        }
     }
 
     getTC(): number {
@@ -518,21 +515,17 @@ export class TIPI {
 
     setTC(value: number) {
         const changed = (this.tc !== value);
-        // console.log("TIPI write TC: " + Util.toHexByte(value));
         this.tc = value;
-        if (this.websocketOpen && changed) {
-            // this.websocket.send("TC=" + value);
+        if (changed) {
             this.processMsg();
         }
     }
 
     getRD(): number {
-        // console.log("TIPI read RD: " + Util.toHexByte(this.rd) + " " + this.rd);
         return this.rd;
     }
 
     getRC(): number {
-        // console.log("TIPI read RC: " + Util.toHexByte(this.rc) + " " + this.rc);
         return this.rc;
     }
 
@@ -545,14 +538,16 @@ export class TIPI {
     }
 
     processMsg() {
-        // Do websocket processing
-        // console.log("TIPI process TC: " + Util.toHexByte(this.tc) + " "+this.msgidx + "/"+this.msglen);
-        if (this.tc === 0xf1) { // TSRSET (reset-sync)
+        if (this.tc === 0xf1) {
+            // TSRSET (reset-sync)
             this.msg = null;
             this.msgIdx = -2;
             this.rc = this.tc; // ack reset
-            this.websocket.send("SYNC");
-        } else if ((this.tc & 0xfe) === 0x02) { // TSWB (write-byte)
+            if (this.websocketOpen) {
+                this.websocket.send("SYNC");
+            }
+        } else if ((this.tc & 0xfe) === 0x02) {
+            // TSWB (write-byte)
             if (this.msgIdx === -2) {
                 this.msgLen = this.td << 8;
             } else if (this.msgIdx === -1) {
@@ -563,16 +558,18 @@ export class TIPI {
             }
             this.msgIdx++;
             if (this.msg && this.msgIdx === this.msgLen) {
-                if (TIPI.FAST_MOUSE_EMULATION && this.msgLen === 1 && this.msg[0] === 0x20) {
+                if (this.fastMouseEmulation && this.msgLen === 1 && this.msg[0] === 0x20) {
                     this.mouseRequested = true;
                 } else {
-                    this.websocket.send(this.msg.buffer);
-                    // console.log("Sending msg len=" + this.msglen);
+                    if (this.websocketOpen) {
+                        this.websocket.send(this.msg.buffer);
+                    }
                     this.msg = null;
                 }
             }
             this.rc = this.tc; // ack
-        } else if ((this.tc & 0xfe) === 0x06) { // TSRB (read-byte)
+        } else if ((this.tc & 0xfe) === 0x06) {
+            // TSRB (read-byte)
             if (this.mouseRequested) {
                 this.createMouseMsg();
                 this.mouseRequested = false;
@@ -599,7 +596,7 @@ export class TIPI {
         this.tiX = Math.floor((evt.clientX - rect.left) / scale);
         this.tiY = Math.floor((evt.clientY - rect.top) / scale);
         this.buttons = evt.buttons;
-        if (!TIPI.FAST_MOUSE_EMULATION) {
+        if (this.websocketOpen && !this.fastMouseEmulation) {
             if (this.mouseX !== -1 || this.mouseY !== -1) {
                 const dx = this.tiX - this.mouseX;
                 const dy = this.tiY - this.mouseY;

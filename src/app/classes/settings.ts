@@ -14,7 +14,8 @@ export enum Setting {
     TIPI = 12,
     TIPI_WEBSOCKET_URI = 13,
     DEBUG_RESET = 14,
-    H264_CODEC
+    H264_CODEC = 15,
+    FAST_TIPI_MOUSE = 16
 }
 
 export class Settings {
@@ -35,6 +36,7 @@ export class Settings {
     private tipiWebsocketURI: string;
     private enableDebugReset: boolean;
     private enableH264Codec: boolean;
+    private enableFastTIPIMouse: boolean;
 
     constructor() {
         this.enableSound = true;
@@ -53,6 +55,7 @@ export class Settings {
         this.tipiWebsocketURI = "ws://localhost:9901/tipi";
         this.enableDebugReset = false;
         this.enableH264Codec = false;
+        this.enableFastTIPIMouse = false;
     }
 
     isSoundEnabled(): boolean {
@@ -183,6 +186,14 @@ export class Settings {
         this.enableH264Codec = enabled;
     }
 
+    isFastTIPIMouseEnabled() {
+        return this.enableFastTIPIMouse;
+    }
+
+    setFastTIPIMouseEnabled(enabled: boolean) {
+        this.enableFastTIPIMouse = enabled;
+    }
+
     copyFrom(otherSettings: Settings) {
         this.enableSound = otherSettings.isSoundEnabled();
         this.enableSpeech = otherSettings.isSpeechEnabled();
@@ -200,5 +211,6 @@ export class Settings {
         this.tipiWebsocketURI = otherSettings.getTIPIWebsocketURI();
         this.enableDebugReset = otherSettings.isDebugResetEnabled();
         this.enableH264Codec = otherSettings.isH264CodexEnabled();
+        this.enableFastTIPIMouse = otherSettings.enableFastTIPIMouse;
     }
 }

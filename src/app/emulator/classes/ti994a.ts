@@ -118,8 +118,14 @@ export class TI994A implements Console, State {
         if (this.tipi) {
             this.tipi.close();
         }
-        if (this.settings.isTIPIEnabled()) {
-            this.tipi = new TIPI(this.cpu, this.settings.getTIPIWebsocketURI(), this.canvas);
+        if (this.settings.isTIPIEnabled() || this.settings.isFastTIPIMouseEnabled()) {
+            this.tipi = new TIPI(
+                this.cpu,
+                this.settings.getTIPIWebsocketURI(),
+                this.canvas,
+                this.settings.isTIPIEnabled(),
+                this.settings.isFastTIPIMouseEnabled()
+            );
         } else {
             this.tipi = null;
         }

@@ -22,11 +22,11 @@ export class SettingsComponent implements OnInit {
     enableGRAM: boolean;
     enablePixelated: boolean;
     enablePauseOnFocusLost: boolean;
-    enableTIPI: boolean;
     tipiWebsocketURI: string;
     enableDebugReset: boolean;
     enableH264Codec: boolean;
     ramExpansion: string;
+    tipiEmulation: string;
 
     private subscription: Subscription;
 
@@ -53,7 +53,6 @@ export class SettingsComponent implements OnInit {
         this.enableGRAM = this.settingsService.isGRAMEnabled();
         this.enablePixelated = this.settingsService.isPixelatedEnabled();
         this.enablePauseOnFocusLost = this.settingsService.isPauseOnFocusLostEnabled();
-        this.enableTIPI = this.settingsService.isTIPIEnabled();
         this.tipiWebsocketURI = this.settingsService.getTIPIWebsocketURI();
         this.enableDebugReset = this.settingsService.isDebugResetEnabled();
         this.enableH264Codec = this.settingsService.isH264CodecEnabled();
@@ -62,6 +61,13 @@ export class SettingsComponent implements OnInit {
             this.ramExpansion = "32K";
         } else if (this.settingsService.isSAMSEnabled()) {
             this.ramExpansion = "sams";
+        }
+        if (this.settingsService.isTIPIEnabled()) {
+            this.tipiEmulation = "full";
+        } else if (this.settingsService.isFastTIPIMouseEnabled()) {
+            this.tipiEmulation = "mouse";
+        } else {
+            this.tipiEmulation = "none";
         }
     }
 
@@ -117,10 +123,6 @@ export class SettingsComponent implements OnInit {
         this.settingsService.setPauseOnFocusLostEnabled(value);
     }
 
-    onEnableTIPIChanged(value) {
-        this.settingsService.setTIPIEnabled(value);
-    }
-
     onTIPIWebsocketURIChanged(value) {
         this.settingsService.setTIPIWebsocketURI(value);
     }
@@ -151,6 +153,19 @@ export class SettingsComponent implements OnInit {
         } else {
             this.settingsService.set32KRAMEnabled(false);
             this.settingsService.setSAMSEnabled(false);
+        }
+    }
+
+    onTIPIEmulationChanged(value) {
+        if (value === "full") {
+            this.settingsService.setTIPIEnabled(true);
+            this.settingsService.setFastTIPIMouseEnabled(false);
+        } else if (value === "mouse") {
+            this.settingsService.setTIPIEnabled(false);
+            this.settingsService.setFastTIPIMouseEnabled(true);
+        } else {
+            this.settingsService.setTIPIEnabled(false);
+            this.settingsService.setFastTIPIMouseEnabled(false);
         }
     }
 }

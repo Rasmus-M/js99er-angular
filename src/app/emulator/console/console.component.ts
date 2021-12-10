@@ -196,7 +196,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         // Handled by main component
                         break;
                     case Setting.TIPI:
-                        this.ti994A.getMemory().setTIPIEnabled(value);
+                        this.ti994A.getMemory().setTIPIEnabled(value || this.settingsService.isFastTIPIMouseEnabled());
                         this.ti994A.setTIPI();
                         resetRequired = true;
                         break;
@@ -206,6 +206,11 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         break;
                     case Setting.DEBUG_RESET:
                         this.ti994A.getMemory().setDebugResetEnabled(value);
+                        break;
+                    case Setting.FAST_TIPI_MOUSE:
+                        this.ti994A.getMemory().setTIPIEnabled(value || this.settingsService.isTIPIEnabled());
+                        this.ti994A.setTIPI();
+                        resetRequired = true;
                         break;
                 }
                 if (resetRequired) {

@@ -31,13 +31,18 @@
     <div class="checkbox-setting">
         <mat-checkbox label="" [ngModel]="enableGoogleDrive" (ngModelChange)="onEnableGoogleDriveChanged($event)">Google drives (GDR1, GDR2, GDR3) enabled</mat-checkbox>
     </div>
-    <div class="checkbox-setting">
-        <mat-checkbox label="" [ngModel]="enableTIPI" (ngModelChange)="onEnableTIPIChanged($event)">TIPI enabled.</mat-checkbox>
-        Requires external server at:
-        <mat-form-field>
-            <input matInput placeholder="Websocket URI" [ngModel]="tipiWebsocketURI" (ngModelChange)="onTIPIWebsocketURIChanged($event)" [ngModelOptions]="{updateOn: 'blur'}" (focus)="onTextFocus()" (blur)="onTextBlur()" />
-        </mat-form-field>
-    </div>
+    <mat-form-field class="setting">
+        <mat-label>TIPI emulation</mat-label>
+        <mat-select [(ngModel)]="tipiEmulation" (ngModelChange)="onTIPIEmulationChanged($event)">
+            <mat-option [value]="'none'">No TIPI emulation</mat-option>
+            <mat-option [value]="'mouse'">Mouse only</mat-option>
+            <mat-option [value]="'full'">Full TIPI emulation</mat-option>
+        </mat-select>
+    </mat-form-field>
+    <mat-form-field class="setting" *ngIf="tipiEmulation == 'full'">
+        <mat-label>RPi emulator, e.g. QEMU</mat-label>
+        <input matInput placeholder="Websocket URI" [ngModel]="tipiWebsocketURI" (ngModelChange)="onTIPIWebsocketURIChanged($event)" [ngModelOptions]="{updateOn: 'blur'}" (focus)="onTextFocus()" (blur)="onTextBlur()">
+    </mat-form-field>
     <div class="checkbox-setting">
         <mat-checkbox label="" [ngModel]="enablePixelated" (ngModelChange)="onEnablePixelatedChanged($event)">Pixelated image enabled (if supported by browser)</mat-checkbox>
     </div>
