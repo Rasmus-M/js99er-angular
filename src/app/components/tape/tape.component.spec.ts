@@ -1,4 +1,4 @@
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {waitForAsync, ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {TapeComponent} from './tape.component';
 import {NO_ERRORS_SCHEMA} from "@angular/core";
@@ -8,7 +8,7 @@ describe('TapeComponent', () => {
     let component: TapeComponent;
     let fixture: ComponentFixture<TapeComponent>;
 
-    beforeEach(async(() => {
+    beforeEach(waitForAsync(() => {
         TestBed.configureTestingModule({
             schemas: [NO_ERRORS_SCHEMA],
             declarations: [TapeComponent],

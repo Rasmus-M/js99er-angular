@@ -1,4 +1,4 @@
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {waitForAsync, ComponentFixture, TestBed} from '@angular/core/testing';
 import {MainControlsComponent} from './main-controls.component';
 import {NO_ERRORS_SCHEMA} from '@angular/core';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
@@ -7,7 +7,7 @@ describe('MainControlsComponent', () => {
     let component: MainControlsComponent;
     let fixture: ComponentFixture<MainControlsComponent>;
 
-    beforeEach(async(() => {
+    beforeEach(waitForAsync(() => {
         TestBed.configureTestingModule({
             schemas: [NO_ERRORS_SCHEMA],
             declarations: [MainControlsComponent],

@@ -1,4 +1,4 @@
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {waitForAsync, ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {SoftwareMenuComponent} from './software-menu.component';
 import {NO_ERRORS_SCHEMA} from "@angular/core";
@@ -13,7 +13,7 @@ describe('SoftwareMenuComponent', () => {
     let component: SoftwareMenuComponent;
     let fixture: ComponentFixture<SoftwareMenuComponent>;
 
-    beforeEach(async(() => {
+    beforeEach(waitForAsync(() => {
         TestBed.configureTestingModule({
             schemas: [NO_ERRORS_SCHEMA],
             declarations: [SoftwareMenuComponent],
