@@ -94,7 +94,7 @@ export class DiskService {
                         service.commandDispatcherService.loadSoftware(
                             service.objectLoaderService.getSoftware()
                         );
-                        subject.next();
+                        subject.next(null);
                     };
                     reader.onerror = function () {
                         subject.error(reader.error.name);

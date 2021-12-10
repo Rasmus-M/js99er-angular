@@ -164,7 +164,7 @@ export class GoogleDrive {
     reset() {
         this.ram = this.console.getVDP().getRAM();
         this.folderId = null;
-        this.diskImage = new DiskImage(name, null);
+        this.diskImage = new DiskImage(this.name, null);
         this.catalogFile = null;
     }
 
