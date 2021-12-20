@@ -68,6 +68,9 @@ export class Memory implements State, MemoryDevice {
     private peripheralROMs: Uint8Array[];
     private peripheralROMEnabled: boolean;
     private peripheralROMNumber: number;
+    private diskROMNumber = -1;
+    private tipiROMNumber = -1;
+    private gdrROMNumber = -1;
 
     private memoryMap: Function[][];
 
@@ -140,13 +143,28 @@ export class Memory implements State, MemoryDevice {
         this.peripheralROMs = [];
         this.peripheralROMEnabled = false;
         this.peripheralROMNumber = 0;
+        this.diskROMNumber = -1;
+        this.tipiROMNumber = -1;
+        this.gdrROMNumber = -1;
+        let romNumber = 1;
         if (this.enableTIPI) {
-            this.loadPeripheralROM(new Uint8Array(TIPI.DSR_ROM), 1);
+            if (this.settings.isTIPIEnabled()) {
+                this.tipiROMNumber = romNumber;
+                this.loadPeripheralROM(new Uint8Array(TIPI.DSR_ROM), romNumber++);
+            } else {
+                // Mouse only
+                this.diskROMNumber = romNumber;
+                this.loadPeripheralROM(new Uint8Array(DiskDrive.DSR_ROM), romNumber++);
+                this.tipiROMNumber = romNumber;
+                this.loadPeripheralROM(new Uint8Array(TIPI.DSR_ROM), romNumber++);
+            }
         } else {
-            this.loadPeripheralROM(new Uint8Array(DiskDrive.DSR_ROM), 1);
+            this.diskROMNumber = romNumber;
+            this.loadPeripheralROM(new Uint8Array(DiskDrive.DSR_ROM), romNumber++);
         }
         if (this.settings.isGoogleDriveEnabled()) {
-            this.loadPeripheralROM(new Uint8Array(GoogleDrive.DSR_ROM), 2);
+            this.gdrROMNumber = romNumber;
+            this.loadPeripheralROM(new Uint8Array(GoogleDrive.DSR_ROM), romNumber++);
         }
 
         this.buildMemoryMap();
@@ -352,13 +370,14 @@ export class Memory implements State, MemoryDevice {
         } else if (this.peripheralROMEnabled) {
             const peripheralROM = this.peripheralROMs[this.peripheralROMNumber];
             if (peripheralROM) {
-                if (this.enableTIPI && addr === TIPI.RC_IN) {
+                const isTIPIROM = this.isTIPIROMEnabled();
+                if (isTIPIROM && addr === TIPI.RC_IN) {
                     return this.console.getTIPI().getRC();
-                } else if (this.enableTIPI && addr === TIPI.RD_IN) {
+                } else if (isTIPIROM && addr === TIPI.RD_IN) {
                     return this.console.getTIPI().getRD();
-                } else if (this.enableTIPI && addr === TIPI.TC_OUT) {
+                } else if (isTIPIROM && addr === TIPI.TC_OUT) {
                     return this.console.getTIPI().getTC();
-                } else if (this.enableTIPI && addr === TIPI.TD_OUT) {
+                } else if (isTIPIROM && addr === TIPI.TD_OUT) {
                     return this.console.getTIPI().getTD();
                 } else {
                     // this.log.info("Read peripheral ROM " + addr.toHexWord() + ": " + (peripheralROM[addr - 0x4000] << 8 | peripheralROM[addr + 1 - 0x4000]).toHexWord());
@@ -371,11 +390,12 @@ export class Memory implements State, MemoryDevice {
 
     private writePeripheralROM(addr: number, w: number, cpu: CPU) {
         cpu.addCycles(4);
+        const isTIPIROM = this.isTIPIROMEnabled();
         if (this.enableSAMS && this.sams.hasRegisterAccess()) {
             this.sams.writeRegister((addr & 0x1F) >> 1, ((w & 0xFF) << 8) | (w >> 8));
-        } else if (this.enableTIPI && addr === TIPI.TC_OUT) {
+        } else if (isTIPIROM && addr === TIPI.TC_OUT) {
             this.console.getTIPI().setTC(w);
-        } else if (this.enableTIPI && addr === TIPI.TD_OUT) {
+        } else if (isTIPIROM && addr === TIPI.TD_OUT) {
             this.console.getTIPI().setTD(w);
         }
     }
@@ -734,6 +754,18 @@ export class Memory implements State, MemoryDevice {
 
     setVDP(vdp: VDP) {
         this.vdp = vdp;
+    }
+
+    isDiskROMEnabled() {
+        return this.peripheralROMNumber === this.diskROMNumber;
+    }
+
+    isTIPIROMEnabled() {
+        return this.peripheralROMNumber === this.tipiROMNumber;
+    }
+
+    isGoogleDriveROMEnabled() {
+        return this.peripheralROMNumber === this.gdrROMNumber;
     }
 
     getState(): object {

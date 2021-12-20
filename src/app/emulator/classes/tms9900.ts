@@ -144,28 +144,24 @@ export class TMS9900 extends CPUCommon implements CPU {
     }
 
     executeHooks() {
-        // Hook into disk DSR
         if (this.pc >= 0x4000 && this.pc < 0x6000) {
-            switch (this.memory.getPeripheralROMNumber()) {
-                case 1:
-                    if (this.pc >= DiskDrive.DSR_HOOK_START && this.pc <= DiskDrive.DSR_HOOK_END && !this.console.getTIPI()) {
-                        DiskDrive.execute(this.pc, this.diskDrives, this.memory);
+            // Hook into disk DSR
+            if (this.memory.isDiskROMEnabled()) {
+                if (this.pc >= DiskDrive.DSR_HOOK_START && this.pc <= DiskDrive.DSR_HOOK_END) {
+                    DiskDrive.execute(this.pc, this.diskDrives, this.memory);
+                }
+            } else if (this.memory.isGoogleDriveROMEnabled()) {
+                if (this.pc >= GoogleDrive.DSR_HOOK_START && this.pc <= GoogleDrive.DSR_HOOK_END) {
+                    if (GoogleDrive.execute(this.pc, this.googleDrives, this.memory, (success: boolean) => {
+                        this.log.debug("CPU resumed, success=" + success);
+                        this.setSuspended(false);
+                    })) {
+                        // A return value of true means an asynchronous action is taking place
+                        // We need to suspend and wait for the callback
+                        this.log.debug("CPU suspended");
+                        this.setSuspended(true);
                     }
-                    break;
-                case 2:
-                    if (this.pc >= GoogleDrive.DSR_HOOK_START && this.pc <= GoogleDrive.DSR_HOOK_END) {
-                        const that = this;
-                        if (GoogleDrive.execute(this.pc, this.googleDrives, this.memory, function (success: boolean) {
-                            that.log.debug("CPU resumed, success=" + success);
-                            that.setSuspended(false);
-                        })) {
-                            // A return value of true means an asynchronous action is taking place
-                            // We need to suspend and wait for the callback
-                            this.log.debug("CPU suspended");
-                            this.setSuspended(true);
-                        }
-                    }
-                    break;
+                }
             }
         } else if (this.pc === 0x478) {
             // MOVB R0,@>8375
