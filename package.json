@@ -1,11 +1,11 @@
 {
   "name": "js99er",
-  "version": "0.0.0",
+  "version": "8.7.1",
   "license": "MIT",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build --prod",
+    "serve": "ng serve",
+    "build": "ng build --configuration production",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
