@@ -600,5 +600,6 @@
     {"url": "forcecmd.rpk", "name": "Force Command"},
     {"url": "f18aracing8.bin", "name": "F18A Racing"},
     {"url": "stevie8.bin", "name": "Stevie programming editor"},
-    {"url": "zqx-one-8.bin", "name": "ZQX-ONE"}
+    {"url": "zqx-one-8.bin", "name": "ZQX-ONE"},
+    {"url": "xb29gem.rpk", "name": "XB 2.9 G.E.M."}
 ]
