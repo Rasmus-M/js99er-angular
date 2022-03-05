@@ -1,7 +1,6 @@
 import {VDP} from '../interfaces/vdp';
 import {CRU} from './cru';
 import {PSG} from '../interfaces/psg';
-import {Settings} from '../../classes/settings';
 import {TI994A} from './ti994a';
 import {F18AGPU} from './f18agpu';
 import {Log, LogLevel} from '../../classes/log';
@@ -102,7 +101,6 @@ export class F18A implements VDP {
     private console: TI994A;
     private psg: PSG;
     private cru: CRU;
-    private enableFlicker: boolean;
 
     // Allocate full 64K, but actually only using 16K VDP RAM + 2K VDP GRAM
     // + 32 bytes for GPU registers
@@ -209,11 +207,10 @@ export class F18A implements VDP {
 
     private log: Log = Log.getLog();
 
-    constructor(canvas: HTMLCanvasElement, console: TI994A, settings: Settings) {
+    constructor(canvas: HTMLCanvasElement, console: TI994A) {
         this.canvas = canvas;
         this.canvasContext = canvas.getContext('2d');
         this.console = console;
-        this.enableFlicker = settings.isFlickerEnabled();
 
         const imageObj = new Image();
         imageObj.onload = () => {
@@ -309,7 +306,7 @@ export class F18A implements VDP {
         this.bitmapWidth = 0;
         this.bitmapHeight = 0;
         this.interruptScanline = 0;
-        this.maxScanlineSprites = F18A.MAX_SCANLINE_SPRITES_JUMPER && !this.enableFlicker ? 32 : 4;
+        this.maxScanlineSprites = F18A.MAX_SCANLINE_SPRITES_JUMPER ? 32 : 4;
         this.maxSprites = 32;
         this.tileMap2AlwaysOnTop = true;
         this.ecmPositionAttributes = false;
@@ -1522,12 +1519,6 @@ export class F18A implements VDP {
         return window.performance ? window.performance.now() : (new Date()).getTime();
     }
 
-    setFlicker(value) {
-        this.enableFlicker = value;
-        this.maxScanlineSprites = F18A.MAX_SCANLINE_SPRITES_JUMPER && !this.enableFlicker ? 32 : 4;
-        this.log.info("Max scanline sprites: " + this.maxScanlineSprites);
-    }
-
     getPalette(): number[][] {
         return this.palette;
     }
@@ -1813,7 +1804,6 @@ export class F18A implements VDP {
 
     getState() {
         return {
-            enableFlicker: this.enableFlicker,
             ram: this.ram,
             registers: this.registers,
             addressRegister: this.addressRegister,
@@ -1904,7 +1894,6 @@ export class F18A implements VDP {
     }
 
     restoreState(state) {
-        this.enableFlicker = state.enableFlicker;
         this.ram = state.ram;
         this.registers = state.registers;
         this.addressRegister = state.addressRegister;

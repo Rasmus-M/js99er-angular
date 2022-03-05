@@ -168,9 +168,6 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         this.ti994A.setVDP();
                         resetRequired = true;
                         break;
-                    case Setting.FLICKER:
-                        this.ti994A.getVDP().setFlicker(value);
-                        break;
                     case Setting.PC_KEYBOARD:
                         this.ti994A.getKeyboard().setPCKeyboardEnabled(value);
                         break;

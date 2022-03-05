@@ -182,7 +182,7 @@ export class Keyboard implements State {
             });
             this.handleAdditionalKeys(key.code, down);
         }
-        if (!key || this.handledByBrowser()) {
+        if (!key || this.handledByBrowser(evt)) {
             // Let browser handle unused keys
             return;
         }
@@ -230,15 +230,16 @@ export class Keyboard implements State {
                 this.setTIKeyDown(TIKey.Ctrl, true);
             }
         }
-        if (!key || this.handledByBrowser()) {
+        if (!key || this.handledByBrowser(evt)) {
             // Let browser handle unused keys
             return;
         }
         evt.preventDefault();
     }
 
-    private handledByBrowser() {
-        return (this.isTIKeyDown(TIKey.Ctrl) && this.isTIKeyDown(TIKey.Shift) && this.isTIKeyDown(TIKey.KeyI) || // Ctrl + Shift + I (Developer console)
+    private handledByBrowser(evt: KeyboardEvent) {
+        return evt.metaKey ||
+            (this.isTIKeyDown(TIKey.Ctrl) && this.isTIKeyDown(TIKey.Shift) && this.isTIKeyDown(TIKey.KeyI) || // Ctrl + Shift + I (Developer console)
             (this.isTIKeyDown(TIKey.Ctrl) && this.isTIKeyDown(TIKey.KeyC)) || // Ctrl + C (copy)
             (this.isTIKeyDown(TIKey.Ctrl) && this.isTIKeyDown(TIKey.KeyV)));  // Ctrl + V (paste)
     }

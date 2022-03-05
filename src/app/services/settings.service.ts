@@ -33,9 +33,6 @@ export class SettingsService {
             if (storage.getItem('enableF18A') != null) {
                 this.settings.setF18AEnabled(storage.getItem('enableF18A') === 'true');
             }
-            if (storage.getItem('enableFlicker') != null) {
-                this.settings.setFlickerEnabled(storage.getItem('enableFlicker') === 'true');
-            }
             if (storage.getItem('enablePCKeyboard') != null) {
                 this.settings.setPCKeyboardEnabled(storage.getItem('enablePCKeyboard') === 'true');
             }
@@ -141,20 +138,6 @@ export class SettingsService {
                 this.storage.setItem('enableF18A', enabled);
             }
             this.commandDispatcherService.changeSetting(Setting.F18A, enabled);
-        }
-    }
-
-    isFlickerEnabled() {
-        return this.settings.isFlickerEnabled();
-    }
-
-    setFlickerEnabled(enabled) {
-        if (enabled !== this.settings.isFlickerEnabled()) {
-            this.settings.setFlickerEnabled(enabled);
-            if (this.persistent && this.storage) {
-                this.storage.setItem('enableFlicker', enabled);
-            }
-            this.commandDispatcherService.changeSetting(Setting.FLICKER, enabled);
         }
     }
 

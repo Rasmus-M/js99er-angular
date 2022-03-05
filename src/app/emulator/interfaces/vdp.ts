@@ -17,7 +17,6 @@ export interface VDP extends State, MemoryDevice {
     getRegsString(): string;
     getWord(addr: number): number;
     getCharAt(x: number, y: number): number;
-    setFlicker(value: boolean): void;
     getGPU(): CPU;
     getState(): object;
     drawPaletteImage(canvas: HTMLCanvasElement): void;

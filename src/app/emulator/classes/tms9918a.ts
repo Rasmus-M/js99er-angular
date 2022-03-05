@@ -3,8 +3,6 @@ import {Util} from '../../classes/util';
 import {VDP} from '../interfaces/vdp';
 import {CPU} from '../interfaces/cpu';
 import {TI994A} from './ti994a';
-import {Settings} from '../../classes/settings';
-import {Log} from '../../classes/log';
 import {MemoryView} from "../../classes/memoryview";
 
 export enum ScreenMode {
@@ -22,7 +20,6 @@ export class TMS9918A implements VDP {
     private canvas: HTMLCanvasElement;
     private console: TI994A;
     private cru: CRU;
-    private enableFlicker: boolean;
 
     private ram: Uint8Array = new Uint8Array(16384); // VDP RAM
     private registers: Uint8Array = new Uint8Array(8);
@@ -67,8 +64,6 @@ export class TMS9918A implements VDP {
     private fgColor: number;
     private bgColor: number;
 
-    private flicker: boolean;
-
     private canvasContext: CanvasRenderingContext2D;
     private imageData: ImageData;
     private width: number;
@@ -76,13 +71,10 @@ export class TMS9918A implements VDP {
 
     private spritePatternColorMap: {};
 
-    private log: Log = Log.getLog();
-
-    constructor(canvas: HTMLCanvasElement, console: TI994A, settings: Settings) {
+    constructor(canvas: HTMLCanvasElement, console: TI994A) {
         this.canvas = canvas;
         this.canvasContext = canvas.getContext('2d');
         this.console = console;
-        this.enableFlicker = settings.isFlickerEnabled();
     }
 
     reset() {
@@ -114,8 +106,6 @@ export class TMS9918A implements VDP {
         this.ramMask = 0x3FFF;
         this.fgColor = 0;
         this.bgColor = 0;
-
-        this.flicker = this.enableFlicker;
 
         this.canvas.width = 320;
         this.canvas.height = 240;
@@ -157,7 +147,7 @@ export class TMS9918A implements VDP {
             spriteSize: boolean = (this.registers[1] & 0x2) !== 0,
             spriteMagnify = this.registers[1] & 0x1,
             spriteDimension = (spriteSize ? 16 : 8) << (spriteMagnify ? 1 : 0),
-            maxSpritesOnLine = this.flicker ? 4 : 32,
+            maxSpritesOnLine = 4,
             palette = this.palette;
         let
             imageDataAddr: number = (y * width) << 2,
@@ -603,11 +593,6 @@ export class TMS9918A implements VDP {
         return 0;
     }
 
-    setFlicker(value: boolean) {
-        this.flicker = value;
-        this.enableFlicker = value;
-    }
-
     getGPU(): CPU {
         return undefined;
     }
@@ -779,7 +764,6 @@ export class TMS9918A implements VDP {
             ramMask: this.ramMask,
             fgColor: this.fgColor,
             bgColor: this.bgColor,
-            flicker: this.flicker
         };
     }
 
@@ -805,6 +789,5 @@ export class TMS9918A implements VDP {
         this.ramMask = state.ramMask;
         this.fgColor = state.fgColor;
         this.bgColor = state.bgColor;
-        this.flicker = state.flicker;
     }
 }

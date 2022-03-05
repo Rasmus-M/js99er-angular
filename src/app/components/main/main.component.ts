@@ -230,7 +230,6 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                 settings.setSpeechEnabled(state.speech.enabled);
                 settings.set32KRAMEnabled(state.memory.enable32KRAM);
                 settings.setF18AEnabled(that.settingsService.isF18AEnabled());
-                settings.setFlickerEnabled(state.vdp.enableFlicker);
                 settings.setPCKeyboardEnabled(state.keyboard.pcKeyboardEnabled);
                 settings.setMapArrowKeysEnabled(state.keyboard.mapArrowKeysToFctnSDEX);
                 settings.setGoogleDriveEnabled(that.settingsService.isGoogleDriveEnabled());
@@ -275,5 +274,4 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
             this.eventSubscription.unsubscribe();
         }
     }
-
 }

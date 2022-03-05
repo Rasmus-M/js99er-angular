@@ -3,7 +3,6 @@ export enum Setting {
     SPEECH = 1,
     RAM32K = 2,
     F18A = 3,
-    FLICKER = 4,
     PC_KEYBOARD = 5,
     MAP_ARROW_KEYS = 6,
     GOOGLE_DRIVE = 7,
@@ -24,7 +23,6 @@ export class Settings {
     private enableSpeech: boolean;
     private enable32KRAM: boolean;
     private enableF18A: boolean;
-    private enableFlicker: boolean;
     private enablePCKeyboard: boolean;
     private enableMapArrowKeys: boolean;
     private enableGoogleDrive: boolean;
@@ -43,7 +41,6 @@ export class Settings {
         this.enableSpeech = true;
         this.enable32KRAM = true;
         this.enableF18A = false;
-        this.enableFlicker = true;
         this.enablePCKeyboard = false;
         this.enableMapArrowKeys = false;
         this.enableGoogleDrive = false;
@@ -88,14 +85,6 @@ export class Settings {
 
     setF18AEnabled(enabled: boolean) {
         this.enableF18A = enabled;
-    }
-
-    isFlickerEnabled(): boolean {
-        return this.enableFlicker;
-    }
-
-    setFlickerEnabled(enabled: boolean) {
-        this.enableFlicker = enabled;
     }
 
     isPCKeyboardEnabled(): boolean {
@@ -199,7 +188,6 @@ export class Settings {
         this.enableSpeech = otherSettings.isSpeechEnabled();
         this.enable32KRAM = otherSettings.is32KRAMEnabled();
         this.enableF18A = otherSettings.isF18AEnabled();
-        this.enableFlicker = otherSettings.isFlickerEnabled();
         this.enablePCKeyboard = otherSettings.isPCKeyboardEnabled();
         this.enableMapArrowKeys = otherSettings.isMapArrowKeysEnabled();
         this.enableGoogleDrive = otherSettings.isGoogleDriveEnabled();

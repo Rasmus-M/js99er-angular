@@ -15,7 +15,6 @@ export class SettingsComponent implements OnInit {
     enableSound: boolean;
     enableSpeech: boolean;
     enableF18A: boolean;
-    enableFlicker: boolean;
     enablePCKeyboard: boolean;
     enableMapArrowKeys: boolean;
     enableGoogleDrive: boolean;
@@ -46,7 +45,6 @@ export class SettingsComponent implements OnInit {
         this.enableSound = this.settingsService.isSoundEnabled();
         this.enableSpeech = this.settingsService.isSpeechEnabled();
         this.enableF18A = this.settingsService.isF18AEnabled();
-        this.enableFlicker = this.settingsService.isFlickerEnabled();
         this.enablePCKeyboard = this.settingsService.isPCKeyboardEnabled();
         this.enableMapArrowKeys = this.settingsService.isMapArrowKeysToFctnSDEXEnabled();
         this.enableGoogleDrive = this.settingsService.isGoogleDriveEnabled();
@@ -87,16 +85,8 @@ export class SettingsComponent implements OnInit {
         this.settingsService.setSpeechEnabled(value);
     }
 
-    onEnableAMSChanged(value) {
-        this.settingsService.setSAMSEnabled(value);
-    }
-
     onEnableF18AChanged(value) {
         this.settingsService.setF18AEnabled(value);
-    }
-
-    onEnableFlickerChanged(value) {
-        this.settingsService.setFlickerEnabled(value);
     }
 
     onEnablePCKeyboardChanged(value) {

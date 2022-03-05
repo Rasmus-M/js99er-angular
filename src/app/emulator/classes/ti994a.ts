@@ -96,9 +96,9 @@ export class TI994A implements Console, State {
 
     setVDP() {
         if (this.settings.isF18AEnabled()) {
-            this.vdp = new F18A(this.canvas, this, this.settings);
+            this.vdp = new F18A(this.canvas, this);
         } else {
-            this.vdp = new TMS9918A(this.canvas, this, this.settings);
+            this.vdp = new TMS9918A(this.canvas, this);
         }
     }
 
