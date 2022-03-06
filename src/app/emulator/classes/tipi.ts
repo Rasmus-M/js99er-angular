@@ -435,9 +435,12 @@ export class TIPI {
     private tc = 0;
     private rd: number = null;
     private rc: number = null;
-    private msg: Uint8Array;
-    private msgIdx = 0;
-    private msgLen = 0;
+    private txMsg: Uint8Array;
+    private txLen: number = 0;
+    private txIdx: number = -2;
+    private rxMsgs: Uint8Array[] = [];
+    private rxIdx: number = -2;
+
     private mouseX = -1;
     private mouseY = -1;
     private tiX = -1;
@@ -483,50 +486,75 @@ export class TIPI {
             };
             this.websocket.onmessage = (evt) => {
                 const message = evt.data;
-                if (typeof message === "string") {
-                    const stringMessage: string = message;
-                    const prefix = stringMessage.substring(0, 3);
-                    if (prefix === "RD=") {
-                        this.rd = Number(stringMessage.substring(3));
-                    } else if (prefix === "RC=") {
-                        this.rc = Number(stringMessage.substring(3));
-                    }
-                } else if (typeof message === "object") {
-                    this.msg = new Uint8Array(message);
-                    this.msgLen = this.msg.length;
-                    this.msgIdx = -2;
-                    this.processMsg();
+                if (typeof message === "object") {
+                    this.rxMsgs.push(new Uint8Array(message));
                 }
             };
         }
     }
 
+    /*
+      DSR sequences:
+
+      Reset handshake:
+        TCOUT = TSRESET(0xF1)
+        while RCIN != 0xF1 {}
+
+      Transmit handshake: byte R2
+        TCOUT = R2
+        while RCIN != R2 {}
+        R2 ^= 1
+
+      Send message:
+        do reset handshake
+        R2 = TSWB(0x02)
+        TDOUT = MSB(length)
+        do transmit handshake TSWB(0x02)
+        TDOUT = LSB(length)
+        do transmit handshake TSWB(0x02)
+        while (length-- != 0) {
+          TDOUT = *data++
+          do transmit handshake TSWB(0x02)
+        }
+
+      Recv message:
+        do reset handshake
+        R2 = TSRB(0x06)
+        do transmit handshake TSRB(0x06)
+        MSB(length) = RDIN
+        do transmit handshake TSRB(0x06)
+        LSB(length) = RDIN
+        while (length-- != 0) {
+          do transmit handshake TSRB(0x06)
+          *data++ = RDIN
+        }
+    */
+
+
     getTD(): number {
-        return this.td;
+        return this.td;    // TDOUT - TI Data
     }
 
     setTD(value: number) {
-        this.td = value;
+        this.td = value;   // TDOUT - TI Data
     }
 
     getTC(): number {
-        return this.tc;
+        return this.tc;    // TCOUT - TI Control
     }
 
     setTC(value: number) {
-        const changed = (this.tc !== value);
-        this.tc = value;
-        if (changed) {
-            this.processMsg();
-        }
+        this.tc = value;  // TCOUT - TI Control
+        this.processMsg();
     }
 
     getRD(): number {
-        return this.rd;
+        return this.rd;  // RDIN - RPi Data
     }
 
     getRC(): number {
-        return this.rc;
+        this.processMsg();
+        return this.rc;  // RCIN - RPi Control
     }
 
     signalReset() {
@@ -540,32 +568,53 @@ export class TIPI {
     processMsg() {
         if (this.tc === 0xf1) {
             // TSRSET (reset-sync)
-            this.msg = null;
-            this.msgIdx = -2;
             this.rc = this.tc; // ack reset
-            if (this.websocketOpen) {
-                this.websocket.send("SYNC");
+            if (this.rxIdx != -2) {
+              console.log("TSRSET rxMsg is out of sync");
             }
+            this.rxIdx = -2;
+            if (this.txMsg != null && this.txIdx != -2) {
+              console.log("TSRSET txMsg is out of sync");
+              this.txMsg = null;
+            }
+            this.txIdx = -2;
+
+            // Note: sync handshake is no longer needed --
+            // websocket server is asynchronous, and client emulation
+            // must store multiple received messages (this.rxMsgs FIFO)
+
+            //console.log("TIPI TSRESET");
+            //if (this.websocketOpen) {
+            //    this.websocket.send("SYNC");
+            //}
+        } else if (this.tc === this.rc) {
+            // already acked, nothing to do
+
         } else if ((this.tc & 0xfe) === 0x02) {
             // TSWB (write-byte)
-            if (this.msgIdx === -2) {
-                this.msgLen = this.td << 8;
-            } else if (this.msgIdx === -1) {
-                this.msgLen += this.td;
-                this.msg = new Uint8Array(new ArrayBuffer(this.msgLen));
-            } else if (this.msg != null) {
-                this.msg[this.msgIdx] = this.td;
+            // idx=-2  message length high byte
+            // idx=-1  message length low byte
+            // idx>=0  message data bytes
+            if (this.txIdx === -2) {
+                this.txLen = this.td << 8;
+            } else if (this.txIdx === -1) {
+                this.txLen += this.td;
+                this.txMsg = new Uint8Array(new ArrayBuffer(this.txLen));
+            } else if (this.txMsg != null) {
+                this.txMsg[this.txIdx] = this.td;
             }
-            this.msgIdx++;
-            if (this.msg && this.msgIdx === this.msgLen) {
-                if (this.fastMouseEmulation && this.msgLen === 1 && this.msg[0] === 0x20) {
+            this.txIdx++;
+            if (this.txMsg && this.txIdx === this.txLen) {
+                if (this.fastMouseEmulation && this.txLen === 1 && this.txMsg[0] === 0x20) {
                     this.mouseRequested = true;
                 } else {
                     if (this.websocketOpen) {
-                        this.websocket.send(this.msg.buffer);
+                        this.websocket.send(this.txMsg.buffer);
                     }
-                    this.msg = null;
+                    this.txMsg = null;
+                    this.txIdx = -2;
                 }
+                //console.log("txMsg len="+this.txLen);
             }
             this.rc = this.tc; // ack
         } else if ((this.tc & 0xfe) === 0x06) {
@@ -574,19 +623,28 @@ export class TIPI {
                 this.createMouseMsg();
                 this.mouseRequested = false;
             }
-            if (this.msg != null) {
-                if (this.msgIdx === -2) {
-                    this.rd = (this.msgLen >> 8) & 0xff;
-                } else if (this.msgIdx === -1) {
-                    this.rd = this.msgLen & 0xff;
+            if (this.rxMsgs.length > 0) {
+                var msg = this.rxMsgs[0];
+                // idx=-2  message length high byte
+                // idx=-1  message length low byte
+                // idx>=0  message data bytes
+                if (this.rxIdx === -2) {
+                    //console.log("rxMsg len="+msg.length);
+                    this.rd = (msg.length >> 8) & 0xff;
+                } else if (this.rxIdx === -1) {
+                    this.rd = msg.length & 0xff;
                 } else {
-                    this.rd = this.msg[this.msgIdx];
+                    this.rd = msg[this.rxIdx];
                 }
-                this.msgIdx++;
+                this.rxIdx++;
+                if (this.rxIdx == msg.length) {
+                  this.rxMsgs.shift();
+                  this.rxIdx = -2;
+                }
                 this.rc = this.tc; // ack
             }
         } else {
-            console.log("TIPI write TC: " + Util.toHexByte(this.tc) + " (protocol error)");
+            //console.log("TIPI write TC: " + Util.toHexByte(this.tc) + " (protocol error)");
         }
     }
 
@@ -614,9 +672,9 @@ export class TIPI {
         mouseMsg[0] = dx;
         mouseMsg[1] = dy;
         mouseMsg[2] = this.buttons;
-        this.msg = mouseMsg;
-        this.msgIdx = -2;
-        this.msgLen = 3;
+        this.txMsg = mouseMsg;
+        this.txIdx = -2;
+        this.txLen = 3;
         this.mouseX = this.tiX;
         this.mouseY = this.tiY;
     }
