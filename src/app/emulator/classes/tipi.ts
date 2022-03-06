@@ -431,15 +431,16 @@ export class TIPI {
     private websocketURI: string;
     private websocketOpen: boolean;
     private closing: boolean;
-    private td = 0;
-    private tc = 0;
-    private rd: number = null;
-    private rc: number = null;
+    private td: number = 0;
+    private tc: number = 0;
+    private rd: number = 0;
+    private rc: number = 0;
     private txMsg: Uint8Array;
     private txLen: number = 0;
     private txIdx: number = -2;
     private rxMsgs: Uint8Array[] = [];
-    private rxIdx: number = -2;
+    private rxIdx: number;
+    private useSync: boolean;
 
     private mouseX = -1;
     private mouseY = -1;
@@ -462,6 +463,16 @@ export class TIPI {
     reset() {
         if (this.enableWebsocket && (!this.websocket || !this.websocketOpen)) {
             console.log("TIPI creating websocket");
+            this.td = 0;
+            this.tc = 0;
+            this.rd = 0;
+            this.rc = 0;
+            this.txMsg = null;
+            this.txLen = 0;
+            this.txIdx = -2;
+            this.rxMsgs = [];
+            this.rxIdx = -2;
+            this.useSync = true;
             this.websocket = new WebSocket(this.websocketURI);
             this.websocket.binaryType = "arraybuffer";
             this.websocket.onopen = (evt) => {
@@ -488,6 +499,9 @@ export class TIPI {
                 const message = evt.data;
                 if (typeof message === "object") {
                     this.rxMsgs.push(new Uint8Array(message));
+                } else if (message === "ASYNC") {
+                    this.useSync = false;
+                    console.log("TIPI async mode enabled");
                 }
             };
         }
@@ -579,14 +593,14 @@ export class TIPI {
             }
             this.txIdx = -2;
 
-            // Note: sync handshake is no longer needed --
+            // Note: sync handshake is no longer needed for async mode --
             // websocket server is asynchronous, and client emulation
             // must store multiple received messages (this.rxMsgs FIFO)
 
             //console.log("TIPI TSRESET");
-            //if (this.websocketOpen) {
-            //    this.websocket.send("SYNC");
-            //}
+            if (this.useSync && this.websocketOpen) {
+                this.websocket.send("SYNC");
+            }
         } else if (this.tc === this.rc) {
             // already acked, nothing to do
 
