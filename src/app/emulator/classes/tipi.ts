@@ -686,9 +686,7 @@ export class TIPI {
         mouseMsg[0] = dx;
         mouseMsg[1] = dy;
         mouseMsg[2] = this.buttons;
-        this.txMsg = mouseMsg;
-        this.txIdx = -2;
-        this.txLen = 3;
+        this.rxMsgs.push(mouseMsg);
         this.mouseX = this.tiX;
         this.mouseY = this.tiY;
     }
