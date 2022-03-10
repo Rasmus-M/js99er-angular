@@ -1,6 +1,5 @@
 import {CPU} from "../interfaces/cpu";
 import {Log} from "../../classes/log";
-import {Util} from "../../classes/util";
 
 export class TIPI {
 
@@ -423,21 +422,21 @@ export class TIPI {
         0x47, 0x94, 0x01, 0x1A, 0x00, 0x00, 0x00, 0x00
     ];
 
-    private cpu: CPU;
-    private canvas: HTMLCanvasElement = null;
-    private enableWebsocket: boolean;
-    private fastMouseEmulation: boolean;
+    private readonly cpu: CPU;
+    private readonly websocketURI: string;
+    private readonly canvas: HTMLCanvasElement = null;
+    private readonly enableWebsocket: boolean;
+    private readonly fastMouseEmulation: boolean;
     private websocket: WebSocket;
-    private websocketURI: string;
     private websocketOpen: boolean;
     private closing: boolean;
-    private td: number = 0;
-    private tc: number = 0;
-    private rd: number = 0;
-    private rc: number = 0;
+    private td = 0;
+    private tc = 0;
+    private rd = 0;
+    private rc = 0;
     private txMsg: Uint8Array;
-    private txLen: number = 0;
-    private txIdx: number = -2;
+    private txLen = 0;
+    private txIdx = -2;
     private rxMsgs: Uint8Array[] = [];
     private rxIdx: number;
     private useSync: boolean;
@@ -583,11 +582,11 @@ export class TIPI {
         if (this.tc === 0xf1) {
             // TSRSET (reset-sync)
             this.rc = this.tc; // ack reset
-            if (this.rxIdx != -2) {
+            if (this.rxIdx !== -2) {
               console.log("TSRSET rxMsg is out of sync");
             }
             this.rxIdx = -2;
-            if (this.txMsg != null && this.txIdx != -2) {
+            if (this.txMsg != null && this.txIdx !== -2) {
               console.log("TSRSET txMsg is out of sync");
               this.txMsg = null;
             }
@@ -597,7 +596,7 @@ export class TIPI {
             // websocket server is asynchronous, and client emulation
             // must store multiple received messages (this.rxMsgs FIFO)
 
-            //console.log("TIPI TSRESET");
+            // console.log("TIPI TSRESET");
             if (this.useSync && this.websocketOpen) {
                 this.websocket.send("SYNC");
             }
@@ -628,7 +627,7 @@ export class TIPI {
                     this.txMsg = null;
                     this.txIdx = -2;
                 }
-                //console.log("txMsg len="+this.txLen);
+                // console.log("txMsg len="+this.txLen);
             }
             this.rc = this.tc; // ack
         } else if ((this.tc & 0xfe) === 0x06) {
@@ -638,12 +637,12 @@ export class TIPI {
                 this.mouseRequested = false;
             }
             if (this.rxMsgs.length > 0) {
-                var msg = this.rxMsgs[0];
+                const msg = this.rxMsgs[0];
                 // idx=-2  message length high byte
                 // idx=-1  message length low byte
                 // idx>=0  message data bytes
                 if (this.rxIdx === -2) {
-                    //console.log("rxMsg len="+msg.length);
+                    // console.log("rxMsg len="+msg.length);
                     this.rd = (msg.length >> 8) & 0xff;
                 } else if (this.rxIdx === -1) {
                     this.rd = msg.length & 0xff;
@@ -651,14 +650,14 @@ export class TIPI {
                     this.rd = msg[this.rxIdx];
                 }
                 this.rxIdx++;
-                if (this.rxIdx == msg.length) {
+                if (this.rxIdx === msg.length) {
                   this.rxMsgs.shift();
                   this.rxIdx = -2;
                 }
                 this.rc = this.tc; // ack
             }
         } else {
-            //console.log("TIPI write TC: " + Util.toHexByte(this.tc) + " (protocol error)");
+            // console.log("TIPI write TC: " + Util.toHexByte(this.tc) + " (protocol error)");
         }
     }
 

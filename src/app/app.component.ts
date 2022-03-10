@@ -8,6 +8,6 @@ import {Component} from "@angular/core";
 export class AppComponent {
 
     static readonly TITLE = "JS99'er";
-    static readonly VERSION = "8.7.3";
-    static readonly DATE = "March 3, 2022";
+    static readonly VERSION = "8.7.4";
+    static readonly DATE = "March 10, 2022";
 }
