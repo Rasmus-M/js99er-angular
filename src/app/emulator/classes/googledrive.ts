@@ -656,7 +656,8 @@ export class GoogleDrive {
                 this.log.info("getFileContent: " + file.title);
                 const accessToken = gapi.auth.getToken().access_token;
                 const xhr = new XMLHttpRequest();
-                xhr.open('GET', file.downloadUrl);
+                // See https://stackoverflow.com/questions/68016649/google-drive-api-download-file-gives-lockeddomaincreationfailure-error
+                xhr.open('GET', file.downloadUrl.replace('content.googleapis.com', 'www.googleapis.com'));
                 xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
                 xhr.responseType = "arraybuffer";
                 xhr.onload = () => {
