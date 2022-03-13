@@ -52,7 +52,7 @@ export class DiskDrive implements State {
         0x40, 0x44,                     // >403A Link to next subprogram
         0x40, 0x80,                     // >403C Address of FILES subprogram
         0x05,                           // >403E Name length
-        0x46, 0x49, 0x4C, 0x45, 0x53,   // >4042 Name "FILES"
+        0x46, 0x49, 0x4C, 0x45, 0x53,   // >403F Name "FILES"
         // >10
         0x40, 0x4A,                     // >4044 Link to next subprogram
         0x40, 0x84,                     // >4046 Address of >10 subprogram
@@ -74,7 +74,7 @@ export class DiskDrive implements State {
         0x01,                           // >405A Name length
         0x13,                           // >405B Name >13
         // >14
-        0x40, 0x60,                     // >405C Link to next subprogram
+        0x40, 0x62,                     // >405C Link to next subprogram
         0x40, 0x94,                     // >405E Address of >14 subprogram
         0x01,                           // >4060 Name length
         0x14,                           // >4061 Name >14
@@ -170,6 +170,7 @@ export class DiskDrive implements State {
     static execute(pc: number, diskDrives: DiskDrive[], memory: Memory) {
         let status = 0;
         let drive = 0;
+        // Log.getLog().info("Executing DSR at PC=" + Util.toHexWord(pc) + ".");
         switch (pc) {
             case DiskDrive.DSR_ROM_POWER_UP:
                 DiskDrive.powerUp(memory);
@@ -223,7 +224,7 @@ export class DiskDrive implements State {
                 DiskDrive.setFiles(memory.getPADByte(0x834C), memory);
                 break;
             default:
-                // Log.getLog().warn("Subprogram at " + pc.toHexWord() + " not found.");
+                // Log.getLog().warn("Subprogram at " + Util.toHexWord(pc) + " not found.");
                 break;
         }
         memory.setPADByte(0x837C, memory.getPADByte(0x837C) | status);
