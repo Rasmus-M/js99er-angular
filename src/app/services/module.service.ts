@@ -238,7 +238,7 @@ export class ModuleService {
         const
             subject = new Subject<Software>(),
             software = new Software(),
-            baseFileName: string = entry.filename.split('.')[0],
+            baseFileName: string = this.getBaseFilename(entry.filename),
             zipService = this.zipService;
         if (this.getExtension(entry.filename) === 'bin') {
             const grom = baseFileName && (baseFileName.endsWith('g') || baseFileName.endsWith('G'));
@@ -274,7 +274,7 @@ export class ModuleService {
     loadBinModuleFromFile(file: File, considerExtensionForSecondBank: boolean): Observable<Software> {
         const
             subject = new Subject<Software>(),
-            baseFileName = file.name.split('.')[0],
+            baseFileName = this.getBaseFilename(file.name),
             inverted = baseFileName && (baseFileName.endsWith('3') || baseFileName.endsWith('9')),
             grom = baseFileName && (baseFileName.endsWith('g') || baseFileName.endsWith('G')),
             secondBank = considerExtensionForSecondBank && (baseFileName.endsWith('d') || baseFileName.endsWith('D')),
@@ -414,6 +414,12 @@ export class ModuleService {
         for (let i = 0; i < length; i++) {
             to[toIndex + i] = from[fromIndex + i];
         }
+    }
+
+    getBaseFilename(filename: string): string {
+        const parts = filename.split('.');
+        const baseParts = parts.slice(0, parts.length - 1);
+        return baseParts.join(".");
     }
 
     getExtension(filename: string): string {
