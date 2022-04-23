@@ -9,5 +9,5 @@ export class AppComponent {
 
     static readonly TITLE = "JS99'er";
     static readonly VERSION = "8.7.6";
-    static readonly DATE = "March 22, 2022";
+    static readonly DATE = "April 22, 2022";
 }
