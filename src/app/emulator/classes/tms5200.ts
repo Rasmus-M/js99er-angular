@@ -266,7 +266,7 @@ in MCU code). Look for a 16-pin chip at U6 labeled "ECHO-3 SN".
 
 ***********************************************************************************************/
 
-export class TMS5220 implements Speech {
+export class TMS5200 implements Speech {
 
     static ROM = System.SPEECH_ROM;
     static ROM_LENGTH = 0x8000;
@@ -383,7 +383,7 @@ export class TMS5220 implements Speech {
     private cpu: CPU;
     private enabled: boolean;
 
-    private m_coeff: any = TMS5220.coeff;
+    private m_coeff: any = TMS5200.coeff;
     private m_speak_external: boolean;
     private m_talk_status: boolean;
     private m_speaking_now: boolean;
@@ -449,7 +449,7 @@ export class TMS5220 implements Speech {
 
     reset() {
         this.cpu = this.console.getCPU();
-        this.m_coeff = TMS5220.coeff;
+        this.m_coeff = TMS5200.coeff;
         // this.m_speak_external = false;
         // this.m_talk_status = false;
         // this.m_speaking_now = false;
@@ -519,9 +519,9 @@ export class TMS5220 implements Speech {
         if (this.m_speak_external) { // If we're in speak external mode
             this.log.debug("External speech: " + Util.toHexByte(data));
             // add this byte to the FIFO
-            if (this.m_fifo_count < TMS5220.FIFO_SIZE) {
+            if (this.m_fifo_count < TMS5200.FIFO_SIZE) {
                 this.m_fifo[this.m_fifo_tail] = data;
-                this.m_fifo_tail = (this.m_fifo_tail + 1) % TMS5220.FIFO_SIZE;
+                this.m_fifo_tail = (this.m_fifo_tail + 1) % TMS5200.FIFO_SIZE;
                 this.m_fifo_count++;
 
                 this.update_status_and_ints();
@@ -532,7 +532,7 @@ export class TMS5220 implements Speech {
                     // ...then we now have enough bytes to start talking; clear out the new frame parameters (it will become old frame just before the first call to parse_frame() )
                     this.m_subcycle = this.m_subc_reload;
                     this.m_PC = 0;
-                    this.m_IP = TMS5220.reload_table[this.m_c_letiant_rate & 0x3]; // is this correct? should this be always 7 instead, so that the new frame is loaded quickly?
+                    this.m_IP = TMS5200.reload_table[this.m_c_letiant_rate & 0x3]; // is this correct? should this be always 7 instead, so that the new frame is loaded quickly?
                     this.m_new_frame_energy_idx = 0;
                     this.m_new_frame_pitch_idx = 0;
                     for (i = 0; i < 4; i++) {
@@ -641,7 +641,7 @@ export class TMS5220 implements Speech {
                 if (this.m_fifo_bits_taken >= 8) {
                     this.m_fifo_count--;
                     this.m_fifo[this.m_fifo_head] = 0; // zero the newly depleted fifo head byte
-                    this.m_fifo_head = (this.m_fifo_head + 1) % TMS5220.FIFO_SIZE;
+                    this.m_fifo_head = (this.m_fifo_head + 1) % TMS5200.FIFO_SIZE;
                     this.m_fifo_bits_taken = 0;
                     this.update_status_and_ints();
                 }
@@ -682,7 +682,7 @@ export class TMS5220 implements Speech {
      ***********************************************************************************************/
 
     private ready_read(): boolean {
-        return ((this.m_fifo_count < TMS5220.FIFO_SIZE) || (!this.m_speak_external)) && this.m_io_ready;
+        return ((this.m_fifo_count < TMS5200.FIFO_SIZE) || (!this.m_speak_external)) && this.m_io_ready;
     }
 
     /**********************************************************************************************
@@ -776,7 +776,7 @@ export class TMS5220 implements Speech {
                  */
                 if ((this.m_IP === 0) && (this.m_PC === 12) && (this.m_subcycle === 1)) {
                     /* appropriately override the interp count if needed; this will be incremented after the frame parse! */
-                    this.m_IP = TMS5220.reload_table[this.m_c_letiant_rate & 0x3];
+                    this.m_IP = TMS5200.reload_table[this.m_c_letiant_rate & 0x3];
 
                     /* if the talk status was clear last frame, halt speech now. */
                     if (!this.m_talk_status) {
@@ -884,7 +884,7 @@ export class TMS5220 implements Speech {
                     }
                 }
 
-                if (TMS5220.USE_JAVASCRIPT_RNG) {
+                if (TMS5200.USE_JAVASCRIPT_RNG) {
                     // RM: Don't want to spend time on this in JavaScript - just use built in RNG
                     this.m_RNG = Math.random() > 0.5 ? 1 : 0;
                 } else {
@@ -914,7 +914,7 @@ export class TMS5220 implements Speech {
                 if (!this.m_digital_select) {// analog SPK pin output is only 8 bits, with clipping
                     buffer[buf_count] = this.clip_analog(this_sample);
                 } else { // digital I/O pin output is 12 bits
-                    if (TMS5220.ALLOW_4_LSB) {
+                    if (TMS5200.ALLOW_4_LSB) {
                         // input:  ssss ssss ssss ssss ssnn nnnn nnnn nnnn
                         // N taps:                       ^                 = 0x2000;
                         // output: ssss ssss ssss ssss snnn nnnn nnnn nnnN
@@ -999,7 +999,7 @@ export class TMS5220 implements Speech {
             cliptemp = -2048;
         }
         /* at this point the analog output is tapped */
-        if (TMS5220.ALLOW_4_LSB) {
+        if (TMS5200.ALLOW_4_LSB) {
             // input:  ssss snnn nnnn nnnn
             // N taps:       ^^^ ^         = 0x0780
             // output: snnn nnnn nnnn NNNN
@@ -1124,7 +1124,7 @@ export class TMS5220 implements Speech {
             case 0x00:
             case 0x20: /* set rate (tms5220c and cd2501ecd only), otherwise NOP */
                 this.log.info("Speech: load frame rate");
-                if (TMS5220.HAS_RATE_CONTROL) {
+                if (TMS5200.HAS_RATE_CONTROL) {
                     this.m_c_letiant_rate = cmd & 0x0F;
                 }
                 break;
@@ -1161,7 +1161,7 @@ export class TMS5220 implements Speech {
                 // TO-DO: similar to the victory case described above, but for VSM speech
                 this.m_subcycle = this.m_subc_reload;
                 this.m_PC = 0;
-                this.m_IP = TMS5220.reload_table[this.m_c_letiant_rate & 0x3];
+                this.m_IP = TMS5200.reload_table[this.m_c_letiant_rate & 0x3];
                 this.m_new_frame_energy_idx = 0;
                 this.m_new_frame_pitch_idx = 0;
                 let i;
@@ -1217,9 +1217,9 @@ export class TMS5220 implements Speech {
          has a 2 bit rate preceding it, grab two bits here and store them as the rate; */
         if ((this.m_c_letiant_rate & 0x04) !== 0) {
             indx = this.extract_bits(2);
-            this.m_IP = TMS5220.reload_table[indx];
+            this.m_IP = TMS5200.reload_table[indx];
         } else { // non-5220C and 5220C in fixed rate mode
-            this.m_IP = TMS5220.reload_table[this.m_c_letiant_rate & 0x3];
+            this.m_IP = TMS5200.reload_table[this.m_c_letiant_rate & 0x3];
         }
 
         this.update_status_and_ints();
@@ -1330,9 +1330,9 @@ export class TMS5220 implements Speech {
 
     private device_reset() {
 
-        this.m_digital_select = TMS5220.FORCE_DIGITAL; // assume analog output
+        this.m_digital_select = TMS5200.FORCE_DIGITAL; // assume analog output
         /* initialize the FIFO */
-        this.m_fifo = new Uint8Array(TMS5220.FIFO_SIZE);
+        this.m_fifo = new Uint8Array(TMS5200.FIFO_SIZE);
         this.m_fifo_head = this.m_fifo_tail = this.m_fifo_count = this.m_fifo_bits_taken = 0;
 
         /* initialize the chip state */
@@ -1358,9 +1358,9 @@ export class TMS5220 implements Speech {
         this.m_inhibit = true;
         this.m_subcycle = this.m_c_letiant_rate = this.m_pitch_count = this.m_PC = 0;
 
-        this.m_subc_reload = TMS5220.FORCE_SUBC_RELOAD;
+        this.m_subc_reload = TMS5200.FORCE_SUBC_RELOAD;
         this.m_OLDE = this.m_OLDP = true;
-        this.m_IP = TMS5220.reload_table[this.m_c_letiant_rate & 0x3];
+        this.m_IP = TMS5200.reload_table[this.m_c_letiant_rate & 0x3];
         this.m_RNG = 0x1FFF;
 
         this.m_u = new Int32Array(11);
@@ -1394,17 +1394,17 @@ export class TMS5220 implements Speech {
             count--;
         }
 
-        if (this.m_speechROMaddr < TMS5220.ROM_LENGTH) {
+        if (this.m_speechROMaddr < TMS5200.ROM_LENGTH) {
             if (count < this.m_ROM_bits_count) {
                 this.m_ROM_bits_count -= count;
-                val = (TMS5220.ROM[this.m_speechROMaddr] >> this.m_ROM_bits_count) & (0xFF >> (8 - count));
+                val = (TMS5200.ROM[this.m_speechROMaddr] >> this.m_ROM_bits_count) & (0xFF >> (8 - count));
             } else {
-                val = TMS5220.ROM[this.m_speechROMaddr] << 8;
+                val = TMS5200.ROM[this.m_speechROMaddr] << 8;
 
-                this.m_speechROMaddr = (this.m_speechROMaddr + 1) & (TMS5220.ROM_LENGTH - 1);
+                this.m_speechROMaddr = (this.m_speechROMaddr + 1) & (TMS5200.ROM_LENGTH - 1);
 
-                if (this.m_speechROMaddr < TMS5220.ROM_LENGTH) {
-                    val |= TMS5220.ROM[this.m_speechROMaddr];
+                if (this.m_speechROMaddr < TMS5200.ROM_LENGTH) {
+                    val |= TMS5200.ROM[this.m_speechROMaddr];
                 }
 
                 this.m_ROM_bits_count += 8 - count;
@@ -1425,7 +1425,7 @@ export class TMS5220 implements Speech {
         /* tms5220 data sheet says that if we load only one 4-bit nibble, it won't work.
          This code does not care about this. */
         this.m_speechROMaddr = ( (this.m_speechROMaddr & ~(0xf << this.m_load_pointer))
-            | (((data & 0xf)) << this.m_load_pointer) ) & (TMS5220.ROM_LENGTH - 1);
+            | (((data & 0xf)) << this.m_load_pointer) ) & (TMS5200.ROM_LENGTH - 1);
         this.m_load_pointer += 4;
         this.m_ROM_bits_count = 8;
     }
@@ -1436,13 +1436,13 @@ export class TMS5220 implements Speech {
     private rom_read_and_branch() {
         /* tms5220 data sheet says that if more than one speech ROM (tms6100) is present,
          there is a bus contention.  This code does not care about this. */
-        if (this.m_speechROMaddr < TMS5220.ROM_LENGTH - 1) {
+        if (this.m_speechROMaddr < TMS5200.ROM_LENGTH - 1) {
             this.m_speechROMaddr = (this.m_speechROMaddr & 0x3c000)
-                | ((((TMS5220.ROM[this.m_speechROMaddr]) << 8)
-                | TMS5220.ROM[this.m_speechROMaddr + 1]) & 0x3fff);
-        } else if (this.m_speechROMaddr === TMS5220.ROM_LENGTH - 1) {
+                | ((((TMS5200.ROM[this.m_speechROMaddr]) << 8)
+                | TMS5200.ROM[this.m_speechROMaddr + 1]) & 0x3fff);
+        } else if (this.m_speechROMaddr === TMS5200.ROM_LENGTH - 1) {
             this.m_speechROMaddr = (this.m_speechROMaddr & 0x3c000)
-                | (((TMS5220.ROM[this.m_speechROMaddr]) << 8) & 0x3fff);
+                | (((TMS5200.ROM[this.m_speechROMaddr]) << 8) & 0x3fff);
         } else {
             this.m_speechROMaddr = (this.m_speechROMaddr & 0x3c000);
         }

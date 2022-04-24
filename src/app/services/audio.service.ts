@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {Tape} from '../emulator/classes/tape';
-import {TMS5220} from '../emulator/classes/tms5220';
+import {TMS5200} from '../emulator/classes/tms5200';
 import {PSG} from '../emulator/interfaces/psg';
 import {Speech} from '../emulator/interfaces/speech';
 import {Log} from '../classes/log';
@@ -66,7 +66,7 @@ export class AudioService {
                 this.psgScriptProcessor.addEventListener("audioprocess", function (event) { that.onPSGAudioProcess(event); });
             }
             if (speechDev) {
-                const speechSampleRate = TMS5220.SAMPLE_RATE;
+                const speechSampleRate = TMS5200.SAMPLE_RATE;
                 this.speechScale = this.sampleRate / speechSampleRate;
                 this.speechSampleBuffer = new Int16Array(Math.floor(this.bufferSize / this.speechScale) + 1);
                 this.speechScriptProcessor = AudioService.audioContext.createScriptProcessor(this.bufferSize, 0, 1);

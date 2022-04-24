@@ -3,7 +3,7 @@ import {TMS9919} from './tms9919';
 import {CRU} from './cru';
 import {Tape} from './tape';
 import {Keyboard} from './keyboard';
-import {TMS5220} from './tms5220';
+import {TMS5200} from './tms5200';
 import {Memory} from './memory';
 import {TMS9900} from './tms9900';
 import {Log} from '../../classes/log';
@@ -22,7 +22,6 @@ import {DiskDrive} from './diskdrive';
 import {DiskImage} from './diskimage';
 import {Console} from "../interfaces/console";
 import {TIPI} from "./tipi";
-import {MemoryDevice} from "../interfaces/memory-device";
 
 export class TI994A implements Console, State {
 
@@ -80,7 +79,7 @@ export class TI994A implements Console, State {
         this.cpu = new TMS9900(this);
         this.setVDP();
         this.psg = new TMS9919();
-        this.speech = new TMS5220(this, this.settings);
+        this.speech = new TMS5200(this, this.settings);
         this.cru = new CRU(this);
         this.keyboard = new Keyboard(this.document, this.settings);
         this.tape = new Tape();
