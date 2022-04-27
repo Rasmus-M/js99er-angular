@@ -50,6 +50,20 @@ export class ModuleService {
         }
     }
 
+    private static padROM(rom: Uint8Array): Uint8Array {
+        const length = rom.length;
+        const paddedLength = Math.max(Math.pow(2, Math.ceil(Math.log2(length))), 0x2000);
+        if (length !== paddedLength) {
+            const paddedRom = new Uint8Array(paddedLength);
+            for (let i = 0; i < length; i++) {
+                paddedRom[i] = rom[i];
+            }
+            return paddedRom;
+        } else {
+            return rom;
+        }
+    }
+
     loadModuleFromFiles(files: FileList): Observable<Software> {
         if (files.length === 1) {
             return this.loadModuleFromFile(files[0]);
@@ -289,7 +303,7 @@ export class ModuleService {
                 module.grom = byteArray;
             } else {
                 module.inverted = inverted;
-                module.rom = byteArray;
+                module.rom = ModuleService.padROM(byteArray);
                 module.secondBank = secondBank;
             }
             subject.next(module);
@@ -311,7 +325,7 @@ export class ModuleService {
                 const byteArray = new Uint8Array(data);
                 const module = new Software();
                 module.inverted = inverted;
-                module.rom = byteArray;
+                module.rom = ModuleService.padROM(byteArray);
                 subject.next(module);
                 subject.complete();
             },
@@ -375,7 +389,7 @@ export class ModuleService {
                         module.grom = software.grom;
                     } else if (software.rom) {
                         if (!software.secondBank) {
-                            module.rom = software.rom;
+                            module.rom = ModuleService.padROM(software.rom);
                             module.inverted = software.inverted;
                         } else if (!module.rom) {
                             module.rom = new Uint8Array(0x4000);
