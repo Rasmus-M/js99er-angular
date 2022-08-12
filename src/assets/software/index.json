@@ -212,6 +212,11 @@
                 },
                 {
                     "type": "ITEM",
+                    "name": "TIX",
+                    "url": "software/tix8.bin"
+                },
+                {
+                    "type": "ITEM",
                     "name": "Bouncy's obstacle course",
                     "url": "software/obstacle.rpk"
                 }
@@ -291,8 +296,23 @@
                 },
                 {
                     "type": "ITEM",
+                    "name": "Tower demo",
+                    "url": "software/tower8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Platform game demo",
+                    "url": "software/platform3-8.bin"
+                },
+                {
+                    "type": "ITEM",
                     "name": "Formula 99 demo",
                     "url": "software/formula99.rpk"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Formula 99+ demo",
+                    "url": "software/formula99p-8.bin"
                 },
                 {
                     "type": "ITEM",
