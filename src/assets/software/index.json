@@ -219,6 +219,11 @@
                     "type": "ITEM",
                     "name": "Bouncy's obstacle course",
                     "url": "software/obstacle.rpk"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Pinball 99",
+                    "url": "software/pinball99.rpk"
                 }
             ]
         },

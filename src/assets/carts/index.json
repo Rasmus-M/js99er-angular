@@ -604,5 +604,6 @@
     {"url": "xb29gem.rpk", "name": "XB 2.9 G.E.M."},
     {"url": "tix8.bin", "name": "TIX"},
     {"url": "formula99p-8.bin", "name": "Formula 99+"},
-    {"url": "spacetreat8.bin", "name": "Space Treat"}
+    {"url": "spacetreat8.bin", "name": "Space Treat"},
+    {"url": "pinball99.rpk", "name": "Pinball 99"}
 ]
