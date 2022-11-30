@@ -19,5 +19,7 @@
     <span class="margin-right"></span>
     <button mat-raised-button class="toolbar-button" (click)="saveState()"><fa-icon [icon]="saveStateIcon"></fa-icon> Save State</button>
     <button mat-raised-button class="toolbar-button" (click)="restoreState()"><fa-icon [icon]="restoreStateIcon"></fa-icon> Restore State</button>
+    <span class="margin-right"></span>
+    <button mat-raised-button class="toolbar-button" (click)="toggleSidePanel()"><fa-icon [icon]="sidePanelVisible ? hideSidePanelIcon : showSidePanelIcon"></fa-icon> {{sidePanelVisible ? 'Hide Panel' : 'Show Panel'}}</button>
 </mat-toolbar>
 <a id="download-link" style="display: none"></a>

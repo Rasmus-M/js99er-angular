@@ -1,8 +1,8 @@
-<div class="app">
+<div class="app" [ngClass]="{'hide-side-panel': !sidePanelVisible}">
     <div class="console">
         <app-console class="console" [diskImages]="diskImages"></app-console>
     </div>
-    <div class="side-panel">
+    <div class="side-panel" [hidden]="!sidePanelVisible">
         <mat-tab-group (selectedTabChange)="onTabSelected($event)">
             <mat-tab label="Log">
                 <div class="tab-content">

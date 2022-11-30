@@ -154,4 +154,8 @@ export class CommandDispatcherService {
     stopRecording() {
         this.commandSubject.next(new Command(CommandType.STOP_RECORDING, null));
     }
+
+    toggleSidePanel(visible: boolean) {
+        this.commandSubject.next(new Command(CommandType.TOGGLE_SIDE_PANEL, visible));
+    }
 }

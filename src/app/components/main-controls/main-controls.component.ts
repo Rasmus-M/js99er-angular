@@ -3,7 +3,7 @@ import {CommandDispatcherService} from '../../services/command-dispatcher.servic
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {Subscription} from 'rxjs';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
-import { faForward, faFastForward, faStepForward, faStop, faCreditCard, faCamera, faArrowCircleRight, faArrowCircleLeft, faCircle, faPlay, faSave, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
+import { faForward, faFastForward, faStepForward, faStop, faCreditCard, faCamera, faArrowCircleRight, faArrowCircleLeft, faCircle, faPlay, faSave, faSyncAlt, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
     selector: 'app-main-controls',
@@ -15,6 +15,7 @@ export class MainControlsComponent implements OnInit, OnDestroy {
     running = false;
     runningFast = false;
     recording = false;
+    sidePanelVisible = true;
 
     driveIndex = 0;
 
@@ -30,6 +31,8 @@ export class MainControlsComponent implements OnInit, OnDestroy {
     screenshotIcon = faCamera;
     saveStateIcon = faArrowCircleRight;
     restoreStateIcon = faArrowCircleLeft;
+    showSidePanelIcon = faEye;
+    hideSidePanelIcon = faEyeSlash;
 
     private subscription: Subscription;
 
@@ -104,6 +107,11 @@ export class MainControlsComponent implements OnInit, OnDestroy {
 
     record() {
         this.commandDispatcherService.startRecording();
+    }
+
+    toggleSidePanel() {
+        this.sidePanelVisible = !this.sidePanelVisible;
+        this.commandDispatcherService.toggleSidePanel(this.sidePanelVisible);
     }
 
     onEvent(event: ConsoleEvent) {

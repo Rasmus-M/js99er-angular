@@ -13,7 +13,7 @@ import {DatabaseService} from "../../services/database.service";
 import {ModuleService} from "../../services/module.service";
 import {MoreSoftwareService} from "../../services/more-software.service";
 import * as $ from "jquery";
-import { MatTabChangeEvent } from "@angular/material/tabs";
+import {MatTabChangeEvent} from "@angular/material/tabs";
 import {Command, CommandType} from "../../classes/command";
 import {Setting, Settings} from "../../classes/settings";
 import {ConsoleEvent, ConsoleEventType} from "../../classes/consoleevent";
@@ -40,6 +40,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     private started = false;
     private autoRun = false;
     private wasRunning = false;
+    public sidePanelVisible = true;
     private routerSubscription: Subscription;
     private commandSubscription: Subscription;
     private eventSubscription: Subscription;
@@ -119,6 +120,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                 break;
             case CommandType.RESTORE_STATE:
                 this.restoreState();
+                break;
+            case CommandType.TOGGLE_SIDE_PANEL:
+                this.sidePanelVisible = command.data;
                 break;
         }
     }
