@@ -5,3 +5,9 @@
     row-gap: 8px;
     padding: 14px;
 }
+
+@media all and (display-mode: fullscreen) {
+    .toolbar {
+        display: none;
+    }
+}

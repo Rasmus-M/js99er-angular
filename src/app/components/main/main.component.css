@@ -7,7 +7,9 @@
 
 .console {
     grid-area: console;
-    justify-self: start;
+    display: block;
+    width: 100%;
+    height: 100%;
 }
 
 .side-panel {
@@ -63,5 +65,45 @@
             "main_controls"
             "side_panel";
         grid-row-gap: 8px;
+    }
+}
+
+@media all and (display-mode: fullscreen) {
+    .side-panel {
+        display: none;
+    }
+
+    .tab-content {
+        padding: 0;
+    }
+}
+
+@media (min-aspect-ratio: 1/1) and (display-mode: fullscreen) {
+    .app {
+        display: grid;
+        --consoleHeight: 100vh;
+        --consoleWidth: calc(var(--consoleHeight) * 4 / 3);
+        grid-template-columns: 0.5fr var(--consoleWidth) 0.5fr;
+        grid-template-rows: var(--consoleHeight);
+        grid-template-areas:
+            ". console .";
+        grid-row-gap: 0;
+        grid-column-gap: 0;
+        overflow-y: hidden;
+    }
+}
+
+@media (max-aspect-ratio: 1/1) and (display-mode: fullscreen) {
+    .app {
+        display: grid;
+        --consoleWidth: 100vw;
+        --consoleHeight: calc(var(--consoleWidth) * 3 / 4);
+        grid-template-columns: 0.5fr var(--consoleWidth) 0.5fr;
+        grid-template-rows: var(--consoleHeight);
+        grid-template-areas:
+            ". console .";
+        grid-row-gap: 0;
+        grid-column-gap: 0;
+        overflow-y: hidden;
     }
 }
