@@ -447,6 +447,7 @@ export class TIPI {
     private tiY = -1;
     private buttons = 0;
     private mouseRequested = false;
+    private mouseInside = false;
 
     constructor(cpu: CPU, websocketURI: string, canvas: HTMLCanvasElement, enableWebsocket: boolean, fastMouseEmulation: boolean) {
         this.cpu = cpu;
@@ -457,6 +458,7 @@ export class TIPI {
         this.canvas.addEventListener('mousemove', this.mouseHandler.bind(this));
         this.canvas.addEventListener('mouseup', this.mouseHandler.bind(this));
         this.canvas.addEventListener('mousedown', this.mouseHandler.bind(this));
+        this.canvas.addEventListener('mouseenter', this.mouseEnter.bind(this));
     }
 
     reset() {
@@ -664,18 +666,36 @@ export class TIPI {
     mouseHandler(evt) {
         const rect = this.canvas.getBoundingClientRect();
         const scale = this.canvas.clientHeight / 240;
-        this.tiX = Math.floor((evt.clientX - rect.left) / scale);
-        this.tiY = Math.floor((evt.clientY - rect.top) / scale);
-        this.buttons = evt.buttons;
-        if (this.websocketOpen && !this.fastMouseEmulation) {
-            if (this.mouseX !== -1 || this.mouseY !== -1) {
-                const dx = this.tiX - this.mouseX;
-                const dy = this.tiY - this.mouseY;
-                this.websocket.send("MOUSE " + evt.buttons + " " + dx + " " + dy);
+        const tiX = Math.floor((evt.clientX - rect.left) / scale);
+        const tiY = Math.floor((evt.clientY - rect.top) / scale);
+        const borderX = 32;
+        const borderY = 24;
+        if (tiX >= borderX && tiX < 320 - borderX && tiY >= borderY && tiY < 240 - borderY) {
+            if (!this.mouseInside) {
+                this.mouseX = -1;
+                this.mouseY = -1;
+                this.mouseInside = true;
             }
-            this.mouseX = this.tiX;
-            this.mouseY = this.tiY;
+            this.tiX = tiX;
+            this.tiY = tiY;
+            this.buttons = evt.buttons;
+            if (this.websocketOpen && !this.fastMouseEmulation) {
+                if (this.mouseX !== -1 || this.mouseY !== -1) {
+                    const dx = this.tiX - this.mouseX;
+                    const dy = this.tiY - this.mouseY;
+                    this.websocket.send("MOUSE " + evt.buttons + " " + dx + " " + dy);
+                }
+                this.mouseX = this.tiX;
+                this.mouseY = this.tiY;
+            }
+        } else {
+            this.mouseInside = false;
         }
+    }
+
+    mouseEnter() {
+        this.mouseX = -1;
+        this.mouseY = -1;
     }
 
     createMouseMsg() {
@@ -702,5 +722,6 @@ export class TIPI {
         this.canvas.removeEventListener('mousemove', this.mouseHandler);
         this.canvas.removeEventListener('mouseup', this.mouseHandler);
         this.canvas.removeEventListener('mousedown', this.mouseHandler);
+        this.canvas.removeEventListener('mouseenter', this.mouseEnter);
     }
 }
