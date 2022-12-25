@@ -158,4 +158,8 @@ export class CommandDispatcherService {
     toggleSidePanel(visible: boolean) {
         this.commandSubject.next(new Command(CommandType.TOGGLE_SIDE_PANEL, visible));
     }
+
+    requestPointerLock() {
+        this.commandSubject.next(new Command(CommandType.REQUEST_POINTER_LOCK, null));
+    }
 }

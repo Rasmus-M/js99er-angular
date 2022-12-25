@@ -3,7 +3,25 @@ import {CommandDispatcherService} from '../../services/command-dispatcher.servic
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {Subscription} from 'rxjs';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
-import { faForward, faFastForward, faStepForward, faStop, faCreditCard, faCamera, faArrowCircleRight, faArrowCircleLeft, faCircle, faPlay, faSave, faSyncAlt, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import {
+    faArrowCircleLeft,
+    faArrowCircleRight,
+    faCamera,
+    faCircle,
+    faCreditCard,
+    faEye,
+    faEyeSlash,
+    faFastForward,
+    faForward,
+    faLock,
+    faMousePointer,
+    faPlay,
+    faSave,
+    faStepForward,
+    faStop,
+    faSyncAlt,
+    faUnlock
+} from '@fortawesome/free-solid-svg-icons';
 
 @Component({
     selector: 'app-main-controls',
@@ -16,6 +34,7 @@ export class MainControlsComponent implements OnInit, OnDestroy {
     runningFast = false;
     recording = false;
     sidePanelVisible = true;
+    pointerLocked = false;
 
     driveIndex = 0;
 
@@ -33,6 +52,9 @@ export class MainControlsComponent implements OnInit, OnDestroy {
     restoreStateIcon = faArrowCircleLeft;
     showSidePanelIcon = faEye;
     hideSidePanelIcon = faEyeSlash;
+    pointerLockIcon = faLock;
+    pointerUnlockIcon = faUnlock;
+    mousePointerIcon = faMousePointer;
 
     private subscription: Subscription;
 
@@ -114,6 +136,10 @@ export class MainControlsComponent implements OnInit, OnDestroy {
         this.commandDispatcherService.toggleSidePanel(this.sidePanelVisible);
     }
 
+    togglePointerLock() {
+        this.commandDispatcherService.requestPointerLock();
+    }
+
     onEvent(event: ConsoleEvent) {
         switch (event.type) {
             case ConsoleEventType.STARTED:
@@ -140,6 +166,12 @@ export class MainControlsComponent implements OnInit, OnDestroy {
                 });
                 const url = URL.createObjectURL(blob);
                 this.download(url, "js99er-" + this.getDateTime() + ".webm");
+                break;
+            case ConsoleEventType.POINTER_LOCKED:
+                this.pointerLocked = true;
+                break;
+            case ConsoleEventType.POINTER_UNLOCKED:
+                this.pointerLocked = false;
                 break;
         }
     }

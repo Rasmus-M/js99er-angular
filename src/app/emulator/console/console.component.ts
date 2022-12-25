@@ -32,6 +32,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
     private mediaRecorder: MediaRecorder;
     private recordings: Blob[];
     private subscription: Subscription;
+    private pointerLocked = false;
     private log: Log = Log.getLog();
 
     constructor(
@@ -56,6 +57,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         this.ti994A = this.consoleFactoryService.create(document, this.canvas, this.diskImages, this.settingsService.getSettings(), this.onBreakpoint.bind(this));
         this.ti994A.reset(false);
         this.eventDispatcherService.ready(this.ti994A);
+        document.addEventListener('pointerlockchange', this.lockChangeAlert.bind(this), false);
     }
 
     reset() {
@@ -299,6 +301,9 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
             case CommandType.STOP_RECORDING:
                 this.mediaRecorder.stop();
                 break;
+            case CommandType.REQUEST_POINTER_LOCK:
+                this.requestPointerLock();
+                break;
         }
     }
 
@@ -311,7 +316,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     onCanvasClick(evt) {
-        if (!this.settingsService.isTIPIEnabled()) {
+        if (!this.settingsService.isTIPIEnabled() && !this.pointerLocked) {
             const rect = this.canvas.getBoundingClientRect();
             const scale = this.canvas.clientHeight / 240;
             const tiX = Math.floor((evt.clientX - rect.left) / scale);
@@ -322,6 +327,19 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.log.info("Click at (" + tiX + "," + tiY + "). Simulated keypress: " + String.fromCharCode(charCode));
                 this.ti994A.getKeyboard().simulateKeyPress(charCode, null);
             }
+        }
+    }
+
+    requestPointerLock() {
+        this.canvas.requestPointerLock();
+    }
+
+    lockChangeAlert(evt) {
+        this.pointerLocked = document.pointerLockElement === this.canvas;
+        if (this.pointerLocked) {
+            this.eventDispatcherService.pointerLocked();
+        } else {
+            this.eventDispatcherService.pointerUnlocked();
         }
     }
 

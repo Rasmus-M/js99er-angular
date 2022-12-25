@@ -3,7 +3,7 @@
     min-height: 64px;
     flex-wrap: wrap;
     row-gap: 8px;
-    padding: 14px;
+    padding: 12px;
 }
 
 @media all and (display-mode: fullscreen) {
@@ -11,3 +11,9 @@
         display: none;
     }
 }
+
+/*@media all and (max-width: 1535px) {*/
+/*    .button-text {*/
+/*        display: none;*/
+/*    }*/
+/*}*/

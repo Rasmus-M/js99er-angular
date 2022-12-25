@@ -101,10 +101,6 @@
     .tab-content {
         padding: 0;
     }
-
-    .console {
-        cursor: none;
-    }
 }
 
 @media (min-aspect-ratio: 1/1) and (display-mode: fullscreen) {

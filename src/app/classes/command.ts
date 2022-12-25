@@ -32,7 +32,8 @@ export enum CommandType {
     START_KEYBOARD = "Start keyboard",
     START_RECORDING = "Start recording",
     STOP_RECORDING = "Stop recording",
-    TOGGLE_SIDE_PANEL = "Toggle side panel"
+    TOGGLE_SIDE_PANEL = "Toggle side panel",
+    REQUEST_POINTER_LOCK = "Request pointer lock"
 }
 
 export class Command {

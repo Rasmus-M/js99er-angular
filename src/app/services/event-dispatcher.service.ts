@@ -1,9 +1,6 @@
 import {Injectable} from '@angular/core';
-import {Subject} from 'rxjs';
-import {Observable} from 'rxjs';
-import {Subscription} from 'rxjs';
+import {Observable, Subject, Subscription} from 'rxjs';
 import {ConsoleEvent, ConsoleEventType} from '../classes/consoleevent';
-import {TI994A} from '../emulator/classes/ti994a';
 import {DiskImage} from '../emulator/classes/diskimage';
 import {DiskDrive} from '../emulator/classes/diskdrive';
 import {Console} from "../emulator/interfaces/console";
@@ -98,6 +95,14 @@ export class EventDispatcherService {
 
     recordingStopped(recordings: Blob[]) {
         this.sendAsyncEvent(ConsoleEventType.RECORDING_STOPPED, recordings);
+    }
+
+    pointerLocked() {
+        this.sendAsyncEvent(ConsoleEventType.POINTER_LOCKED, null);
+    }
+
+    pointerUnlocked() {
+        this.sendAsyncEvent(ConsoleEventType.POINTER_UNLOCKED, null);
     }
 
     sendAsyncEvent(eventType: ConsoleEventType, data: any) {

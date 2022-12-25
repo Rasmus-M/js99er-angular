@@ -441,13 +441,10 @@ export class TIPI {
     private rxIdx: number;
     private useSync: boolean;
 
-    private mouseX = -1;
-    private mouseY = -1;
-    private tiX = -1;
-    private tiY = -1;
+    private movementX = 0;
+    private movementY = 0;
     private buttons = 0;
     private mouseRequested = false;
-    private mouseInside = false;
 
     constructor(cpu: CPU, websocketURI: string, canvas: HTMLCanvasElement, enableWebsocket: boolean, fastMouseEmulation: boolean) {
         this.cpu = cpu;
@@ -458,7 +455,6 @@ export class TIPI {
         this.canvas.addEventListener('mousemove', this.mouseHandler.bind(this));
         this.canvas.addEventListener('mouseup', this.mouseHandler.bind(this));
         this.canvas.addEventListener('mousedown', this.mouseHandler.bind(this));
-        this.canvas.addEventListener('mouseenter', this.mouseEnter.bind(this));
     }
 
     reset() {
@@ -589,7 +585,7 @@ export class TIPI {
             }
             this.rxIdx = -2;
             if (this.txMsg != null && this.txIdx !== -2) {
-              console.log("TSRSET txMsg is out of sync");
+              // console.log("TSRSET txMsg is out of sync");
               this.txMsg = null;
             }
             this.txIdx = -2;
@@ -663,51 +659,24 @@ export class TIPI {
         }
     }
 
-    mouseHandler(evt) {
-        const rect = this.canvas.getBoundingClientRect();
+    mouseHandler(evt: MouseEvent) {
         const scale = this.canvas.clientHeight / 240;
-        const tiX = Math.floor((evt.clientX - rect.left) / scale);
-        const tiY = Math.floor((evt.clientY - rect.top) / scale);
-        const borderX = 32;
-        const borderY = 24;
-        if (tiX >= borderX && tiX < 320 - borderX && tiY >= borderY && tiY < 240 - borderY) {
-            if (!this.mouseInside) {
-                this.mouseX = -1;
-                this.mouseY = -1;
-                this.mouseInside = true;
-            }
-            this.tiX = tiX;
-            this.tiY = tiY;
-            this.buttons = evt.buttons;
-            if (this.websocketOpen && !this.fastMouseEmulation) {
-                if (this.mouseX !== -1 || this.mouseY !== -1) {
-                    const dx = this.tiX - this.mouseX;
-                    const dy = this.tiY - this.mouseY;
-                    this.websocket.send("MOUSE " + evt.buttons + " " + dx + " " + dy);
-                }
-                this.mouseX = this.tiX;
-                this.mouseY = this.tiY;
-            }
-        } else {
-            this.mouseInside = false;
+        this.movementX = Math.round(evt.movementX / scale);
+        this.movementY = Math.round(evt.movementY / scale);
+        this.buttons = evt.buttons;
+        if (this.websocketOpen && !this.fastMouseEmulation) {
+            this.websocket.send("MOUSE " + evt.buttons + " " + this.movementX + " " + this.movementY);
         }
     }
 
-    mouseEnter() {
-        this.mouseX = -1;
-        this.mouseY = -1;
-    }
-
     createMouseMsg() {
-        const dx = this.mouseX !== -1 ? this.tiX - this.mouseX : 0;
-        const dy = this.mouseY !== -1 ? this.tiY - this.mouseY : 0;
         const mouseMsg = new Uint8Array(3);
-        mouseMsg[0] = dx;
-        mouseMsg[1] = dy;
+        mouseMsg[0] = this.movementX;
+        mouseMsg[1] = this.movementY;
         mouseMsg[2] = this.buttons;
         this.rxMsgs.push(mouseMsg);
-        this.mouseX = this.tiX;
-        this.mouseY = this.tiY;
+        this.movementX = 0;
+        this.movementY = 0;
     }
 
     close() {
@@ -722,6 +691,5 @@ export class TIPI {
         this.canvas.removeEventListener('mousemove', this.mouseHandler);
         this.canvas.removeEventListener('mouseup', this.mouseHandler);
         this.canvas.removeEventListener('mousedown', this.mouseHandler);
-        this.canvas.removeEventListener('mouseenter', this.mouseEnter);
     }
 }
