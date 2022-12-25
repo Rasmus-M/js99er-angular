@@ -29,7 +29,7 @@
 @media (min-aspect-ratio: 14/9) {
     .app {
         display: grid;
-        --consoleHeight: calc(100vh - 96px);
+        --consoleHeight: calc(100vh - 80px);
         --consoleWidth: calc(var(--consoleHeight) * 4 / 3);
         grid-template-columns: var(--consoleWidth) 1fr;
         grid-template-rows: var(--consoleHeight) 1fr;
@@ -51,7 +51,7 @@
 @media (min-aspect-ratio: 11/9) and (max-aspect-ratio: 14/9) {
     .app {
         display: grid;
-        --consoleHeight: calc(100vh - 96px);
+        --consoleHeight: calc(100vh - 80px);
         --consoleWidth: calc(var(--consoleHeight) * 4 / 3);
         grid-template-columns: 1fr;
         grid-template-rows: var(--consoleHeight) auto 600px;
@@ -130,5 +130,17 @@
         grid-row-gap: 0;
         grid-column-gap: 0;
         overflow-y: hidden;
+    }
+}
+
+@media all and (max-width: 1535px) {
+    .button-text {
+        display: none;
+    }
+}
+
+@media all and (max-width: 1090px) {
+    .toolbar-button {
+        min-width: 0;
     }
 }

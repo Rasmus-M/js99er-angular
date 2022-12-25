@@ -19,6 +19,7 @@ import {MatSelectModule} from '@angular/material/select';
 import {MatTableModule} from '@angular/material/table';
 import {MatTabsModule} from '@angular/material/tabs';
 import {MatToolbarModule} from '@angular/material/toolbar';
+import {MatTooltipModule} from "@angular/material/tooltip";
 
 import {EmulatorModule} from './emulator/emulator.module';
 import {AppRoutingModule} from './app-routing.module';
@@ -83,7 +84,8 @@ import {EventDispatcherService} from './services/event-dispatcher.service';
         FontAwesomeModule,
         HttpClientModule,
         EmulatorModule,
-        AppRoutingModule
+        AppRoutingModule,
+        MatTooltipModule
     ],
     providers: [
         ModuleService,

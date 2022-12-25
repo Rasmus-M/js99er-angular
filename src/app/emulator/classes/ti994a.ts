@@ -193,7 +193,7 @@ export class TI994A implements Console, State {
     }
 
     start(fast: boolean, skipBreakpoint?: boolean) {
-        this.cpuSpeed = fast ? 2 : 1;
+        this.cpuSpeed = fast ? 3 : 1;
         if (!this.isRunning()) {
             this.cpu.setSuspended(false);
             this.tape.setPaused(false);

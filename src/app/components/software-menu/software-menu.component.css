@@ -1,0 +1,11 @@
+@media all and (max-width: 1535px) {
+    .button-text {
+        display: none;
+    }
+}
+
+@media all and (max-width: 1090px) {
+    .toolbar-button {
+        min-width: 52px;
+    }
+}

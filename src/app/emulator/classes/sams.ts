@@ -52,7 +52,7 @@ export class SAMS implements State {
     }
 
     setRegisterAccess(enabled: boolean) {
-        this.log.info("SAMS mapping register access " + (enabled ? "on" : "off"));
+        this.log.debug("SAMS mapping register access " + (enabled ? "on" : "off"));
         this.registerAccess = enabled;
     }
 
@@ -68,7 +68,7 @@ export class SAMS implements State {
 
     writeRegister(regNo: number, page: number) {
         if (this.registerAccess) {
-            this.log.info("Write " + Util.toHexWord(page) + " to SAMS register " + Util.toHexByte(regNo));
+            this.log.debug("Write " + Util.toHexWord(page) + " to SAMS register " + Util.toHexByte(regNo));
             this.registerMap[regNo & 0xF] = page;
         }
     }
