@@ -391,19 +391,20 @@ export class ModuleService {
                         if (!software.secondBank) {
                             module.rom = ModuleService.padROM(software.rom);
                             module.inverted = software.inverted;
-                        } else if (!module.rom) {
-                            module.rom = new Uint8Array(0x4000);
-                            this.copyArray(software.rom, module.rom, 0, 0x2000, 0x2000);
-                            module.inverted = true;
-                        } else if (module.rom && module.rom.length === 0x4000) {
-                            this.copyArray(software.rom, module.rom, 0, 0x2000, 0x2000);
-                            module.inverted = true;
-                        } else if (module.rom && module.rom.length === 0x2000) {
-                            const rom = new Uint8Array(0x4000);
-                            this.copyArray(module.rom, rom, 0, 0, 0x2000);
-                            this.copyArray(software.rom, rom, 0, 0x2000, 0x2000);
-                            module.rom = rom;
-                            module.inverted = true;
+                        } else {
+                            // 2nd bank
+                            if (!module.rom) {
+                                module.rom = new Uint8Array(0x4000);
+                                this.copyArray(software.rom, module.rom, 0, 0x2000, 0x2000);
+                            } else if (module.rom && module.rom.length === 0x2000) {
+                                const rom = new Uint8Array(0x4000);
+                                this.copyArray(module.rom, rom, 0, 0, 0x2000);
+                                this.copyArray(software.rom, rom, 0, 0x2000, 0x2000);
+                                module.rom = rom;
+                            } else if (module.rom && module.rom.length === 0x4000) {
+                                this.copyArray(software.rom, module.rom, 0, 0x2000, 0x2000);
+                            }
+                            module.inverted = false;
                         }
                     }
                     if (software.ramAt6000) {
