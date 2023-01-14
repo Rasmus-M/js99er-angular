@@ -2,7 +2,7 @@ import {Decoder} from "./decoder";
 import {Util} from "./util";
 import {MemoryDevice} from "../emulator/interfaces/memory-device";
 import {Opcode} from "./opcode";
-import {MemoryView} from "./memoryview";
+import {MemoryLine, MemoryView} from "./memoryview";
 
 export class Disassembler {
 
@@ -50,7 +50,7 @@ export class Disassembler {
     private disassembleRange(start: number, length: number, maxInstructions: number, anchorAddr: number, breakpointAddr: number): MemoryView {
         this.addr = start;
         const end = start + length;
-        const disassembly = [];
+        const disassembly: MemoryLine[] = [];
         let anchorLine = null;
         let breakpointLine = null;
         for (let i = 0; i < maxInstructions && this.addr < end; i++) {
@@ -65,9 +65,7 @@ export class Disassembler {
                 breakpointLine = i;
             }
             const line = this.disassembleNextInstruction();
-            disassembly.push(linePrefix + line);
-            if (anchorAddr !== null && anchorLine === null && instrAddr >= anchorAddr) {
-            }
+            disassembly.push(new MemoryLine(instrAddr , linePrefix + line));
             this.addr += 2;
         }
         return new MemoryView(disassembly, anchorLine, breakpointLine);

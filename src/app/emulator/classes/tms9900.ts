@@ -73,6 +73,7 @@ export class TMS9900 extends CPUCommon implements CPU {
         this.pasteToggle = false;
 
         this.disassembler.setMemory(this.console.getMemory());
+        this.cycleLog = new Int32Array(0x10000);
     }
 
     run(cyclesToRun: number, skipBreakpoint?: boolean): number {
@@ -97,9 +98,12 @@ export class TMS9900 extends CPUCommon implements CPU {
                 const tmpCycles = this.getCycles();
                 const instruction = this.readMemoryWord(this.pc);
                 this.inctPc();
-                this.addCycles(this.execute(instruction));
+                const cycles = this.execute(instruction);
+                this.addCycles(cycles);
+                const instrCycles = this.getCycles() - tmpCycles;
+                this.cycleLog[tmpPC] = instrCycles;
                 if (this.tracing) {
-                    this.log.info(Util.padr(this.disassembler.disassembleInstruction(tmpPC), ' ', 40) + (this.getCycles() - tmpCycles));
+                    this.log.info(Util.padr(this.disassembler.disassembleInstruction(tmpPC), ' ', 40) + instrCycles);
                 }
                 // Execute interrupt routine
                 if (this.getInterruptMask() >= 1 && (this.cru.isVDPInterrupt() || this.cru.isTimerInterrupt())) {
@@ -189,7 +193,6 @@ export class TMS9900 extends CPUCommon implements CPU {
     }
 
     writeMemoryWord(addr: number, w: number) {
-        this.memory.readWord(addr, this); // Read before write
         this.memory.writeWord(addr, w, this);
     }
 
@@ -370,6 +373,7 @@ export class TMS9900 extends CPUCommon implements CPU {
     xop(): number {
         this.dest &= 0xf;
 
+        this.readMemoryWord(this.source); // Unused
         const x1 = this.wp;
         this.setWp(this.readMemoryWord(0x0040 + (this.dest << 2)));
         this.writeMemoryWord(this.wp + 22, this.source);

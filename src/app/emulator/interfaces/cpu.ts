@@ -18,4 +18,5 @@ export interface CPU extends State {
     getRegsStringFormatted(): string;
     dumpProfile(): void;
     setTracing(tracing: boolean);
+    getCycleLog(): Int32Array;
 }

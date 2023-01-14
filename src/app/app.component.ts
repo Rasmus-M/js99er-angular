@@ -18,6 +18,6 @@ export const customTooltipDefaults: MatTooltipDefaultOptions = {
 export class AppComponent {
 
     static readonly TITLE = "JS99'er";
-    static readonly VERSION = "8.10.2";
-    static readonly DATE = "January 4, 2023";
+    static readonly VERSION = "8.11.0";
+    static readonly DATE = "January 14, 2023";
 }

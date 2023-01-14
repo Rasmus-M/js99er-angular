@@ -44,6 +44,9 @@ export abstract class CPUCommon {
     protected wStatusLookup = this.buildWStatusLookupTable();
     protected bStatusLookup = this.buildBStatusLookupTable();
 
+    // Logging
+    protected cycleLog = new Int32Array(0x10000);
+
     protected instructions: {[key: string]: () => number } = {
         LI: this.li,
         AI: this.ai,
@@ -495,6 +498,7 @@ export abstract class CPUCommon {
     // Branch: B src
     // Unconditional absolute branch
     b(): number {
+        this.readMemoryWord(this.source); // Unused
         this.setPc(this.source);
         return 8;
     }
@@ -617,6 +621,7 @@ export abstract class CPUCommon {
         // Note there is no stack, and no official return function.
         // A return is simply B *R11. Some assemblers define RT as this.
 
+        this.readMemoryWord(this.source); // Unused
         this.writeMemoryWord(this.wp + 22, this.pc);
         this.setPc(this.source);
 
@@ -1425,6 +1430,10 @@ export abstract class CPUCommon {
 
     logRegs() {
         this.log.info(this.getRegsString() + this.getInternalRegsString());
+    }
+
+    getCycleLog() {
+        return this.cycleLog;
     }
 
     getInternalRegsString(): string {

@@ -113,9 +113,12 @@ export class F18AGPU extends CPUCommon implements CPU {
                 cyclesToRun = -1;
             } else {
                 // Execute instruction
+                const tmpPC = this.getPc();
                 const instruction = this.readMemoryWord(this.pc);
                 this.inctPc();
-                this.addCycles(this.execute(instruction));
+                const cycles = this.execute(instruction);
+                this.addCycles(cycles);
+                this.cycleLog[tmpPC] = cycles;
                 skipBreakpoint = false;
             }
         }

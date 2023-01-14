@@ -119,13 +119,13 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                     break;
                 case MemoryViewType.SPLIT:
                     memoryView = this.getDisassemblyView(this.ti994A.isGPUActive() ? MemoryType.VDP : MemoryType.CPU);
-                    const viewObj2 = this.getHexView(this.memoryType, true);
-                    this.memoryString2 = viewObj2.lines.join("\n");
-                    this.scrollToAnchorLine(viewObj2, "memory2");
+                    const memoryView2 = this.getHexView(this.memoryType, true);
+                    this.memoryString2 = memoryView2.lines.map(l => l.text).join("\n");
+                    this.scrollToAnchorLine(memoryView2, "memory2");
                     break;
             }
-            this.memoryString = memoryView.lines.join("\n");
-            this.scrollToAnchorLine(memoryView, this.getAseemblyViewId());
+            this.memoryString = memoryView.lines.map(l => l.text).join("\n");
+            this.scrollToAnchorLine(memoryView, this.getAssemblyViewId());
             this.memoryView = memoryView;
         }
     }
@@ -146,6 +146,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         let memoryView: MemoryView;
         const breakpointAddress = this.getBreakpointAddress(null);
         const pc = this.ti994A.getPC();
+        const cycleLog = this.ti994A.getCPU().getCycleLog();
         if (this.ti994A.isRunning()) {
             // Running
             if (memoryType === MemoryType.CPU) {
@@ -164,6 +165,12 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                 this.disassemblerService.setMemory(this.ti994A.getMemory());
                 // viewObj = this.disassemblerService.disassemble(0, 0x10000, null, debuggerAddress);
                 memoryView = this.disassemblerService.disassemble(debuggerAddress - 0x800, 0x1000, null, debuggerAddress, breakpointAddress);
+                memoryView.lines.forEach((memoryLine) => {
+                    const cycles = cycleLog[memoryLine.addr];
+                    if (cycles) {
+                        memoryLine.text = Util.padr(memoryLine.text + ' ', ' ', 38) + cycles;
+                    }
+                });
             } else {
                 // VDP
                 this.disassemblerService.setMemory(this.ti994A.getVDP());
@@ -259,13 +266,12 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     onMemoryViewClicked(event: MouseEvent) {
-        console.log("click");
         if (this.memoryViewType !== MemoryViewType.HEX && !this.ti994A.isRunning() && this.memoryView && event.offsetX < 64) {
-            const $memory = $(this.element.nativeElement).find("#" + this.getAseemblyViewId());
+            const $memory = $(this.element.nativeElement).find("#" + this.getAssemblyViewId());
             const lineHeight = $memory.prop('scrollHeight') / this.memoryView.lines.length;
             const lineNo = Math.floor(($memory.prop('scrollTop') + event.offsetY) / lineHeight);
             const line = this.memoryView.lines[lineNo];
-            const addressString = line.substr(3, 4);
+            const addressString = line.text.substring(3, 7);
             if (addressString !== this.breakpointAddress) {
                 this.onBreakpointAddressChanged(addressString);
             } else {
@@ -275,7 +281,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         }
     }
 
-    getAseemblyViewId() {
+    getAssemblyViewId() {
         return this.memoryViewType !== MemoryViewType.SPLIT ? "memory" : "memory1";
     }
 }

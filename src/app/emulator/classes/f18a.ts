@@ -5,7 +5,7 @@ import {TI994A} from './ti994a';
 import {F18AGPU} from './f18agpu';
 import {Log, LogLevel} from '../../classes/log';
 import {Util} from '../../classes/util';
-import {MemoryView} from "../../classes/memoryview";
+import {MemoryLine, MemoryView} from "../../classes/memoryview";
 
 export class F18A implements VDP {
 
@@ -1462,7 +1462,7 @@ export class F18A implements VDP {
 
     hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
         const mask = width - 1;
-        const lines: string[] = [];
+        const lines: MemoryLine[] = [];
         let anchorLine: number = null;
         let addr = start;
         let lineNo = 0;
@@ -1480,7 +1480,7 @@ export class F18A implements VDP {
             ascii += byte >= 32 && byte < 127 ? String.fromCharCode(byte) : "\u25a1";
             if ((i & mask) === mask) {
                 line += " " + ascii;
-                lines.push(line);
+                lines.push({addr: addr, text: line});
                 line = "";
                 ascii = "";
                 lineNo++;

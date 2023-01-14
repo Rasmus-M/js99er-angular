@@ -12,7 +12,7 @@ import {Settings} from '../../classes/settings';
 import {PSG} from '../interfaces/psg';
 import {Speech} from '../interfaces/speech';
 import {MemoryDevice} from '../interfaces/memory-device';
-import {MemoryView} from "../../classes/memoryview";
+import {MemoryLine, MemoryView} from "../../classes/memoryview";
 import {TIPI} from "./tipi";
 import {coerceBooleanProperty} from "@angular/cdk/coercion";
 
@@ -452,7 +452,7 @@ export class Memory implements State, MemoryDevice {
     }
 
     private writeSound(addr: number, w: number, cpu: CPU) {
-        cpu.addCycles(4);
+        cpu.addCycles(32);
         this.psg.writeData(w >> 8);
     }
 
@@ -483,16 +483,17 @@ export class Memory implements State, MemoryDevice {
     }
 
     private writeSpeech(addr: number, w: number, cpu: CPU) {
-        cpu.addCycles(4);
+        cpu.addCycles(68);
         this.speech.writeSpeechData(w >> 8);
     }
 
     private readGROM(addr: number, cpu: CPU): number {
-        cpu.addCycles(4);
+        cpu.addCycles(17);
         const base = !this.multiGROMBases || this.gromAddress - 1 < 0x6000 ? 0 : (addr & 0x003C) >> 2;
         addr = addr & 0x9802;
         if (addr === Memory.GRMRD) {
             // Read data from GROM
+            cpu.addCycles(6);
             this.gromAccess = 2;
             const w = this.gromPrefetch[base] << 8;
             this.prefetchAndIncrementGROMAddress();
@@ -508,7 +509,7 @@ export class Memory implements State, MemoryDevice {
     }
 
     private writeGROM(addr: number, w: number, cpu: CPU) {
-        cpu.addCycles(23);
+        cpu.addCycles(23 + 6);
         addr = addr & 0x9C02;
         if (addr === Memory.GRMWD) {
             if (this.enableGRAM) {
@@ -538,6 +539,7 @@ export class Memory implements State, MemoryDevice {
     }
 
     private readNull(addr: number, cpu: CPU): number {
+        cpu.addCycles(4);
         return 0;
     }
 
@@ -676,7 +678,7 @@ export class Memory implements State, MemoryDevice {
 
      hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
         const mask = width - 1;
-        const lines: string[] = [];
+        const lines: MemoryLine[] = [];
         let anchorLine: number = null;
         let addr = start;
         let lineNo = 0;
@@ -694,7 +696,7 @@ export class Memory implements State, MemoryDevice {
             ascii += byte >= 32 && byte < 127 ? String.fromCharCode(byte) : "\u25a1";
             if ((i & mask) === mask) {
                 line += " " + ascii;
-                lines.push(line);
+                lines.push({addr: addr, text: line});
                 line = "";
                 ascii = "";
                 lineNo++;

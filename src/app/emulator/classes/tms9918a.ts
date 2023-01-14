@@ -3,7 +3,7 @@ import {Util} from '../../classes/util';
 import {VDP} from '../interfaces/vdp';
 import {CPU} from '../interfaces/cpu';
 import {TI994A} from './ti994a';
-import {MemoryView} from "../../classes/memoryview";
+import {MemoryLine, MemoryView} from "../../classes/memoryview";
 
 export enum ScreenMode {
     MODE_GRAPHICS = 0,
@@ -73,7 +73,7 @@ export class TMS9918A implements VDP {
 
     constructor(canvas: HTMLCanvasElement, console: TI994A) {
         this.canvas = canvas;
-        this.canvasContext = canvas.getContext('2d');
+        this.canvasContext = canvas.getContext('2d', {willReadFrequently: true});
         this.console = console;
     }
 
@@ -542,7 +542,7 @@ export class TMS9918A implements VDP {
 
     hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
         const mask = width - 1;
-        const lines: string[] = [];
+        const lines: MemoryLine[] = [];
         let anchorLine: number = null;
         let addr = start;
         let lineNo = 0;
@@ -560,7 +560,7 @@ export class TMS9918A implements VDP {
             ascii += byte >= 32 && byte < 127 ? String.fromCharCode(byte) : "\u25a1";
             if ((i & mask) === mask) {
                 line += " " + ascii;
-                lines.push(line);
+                lines.push({addr: addr, text: line});
                 line = "";
                 ascii = "";
                 lineNo++;
