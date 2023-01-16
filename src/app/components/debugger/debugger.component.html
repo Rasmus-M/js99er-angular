@@ -1,16 +1,20 @@
 <div class="debugger">
     <pre class="status mat-elevation-z1">{{statusString}}</pre>
-    <pre *ngIf="memoryViewType!==2" class="memory-view mat-elevation-z1" id="memory" (click)="onMemoryViewClicked($event)">{{memoryString}}</pre>
-    <pre *ngIf="memoryViewType===2" class="memory-view-1 mat-elevation-z1" id="memory1" (click)="onMemoryViewClicked($event)">{{memoryString}}</pre>
-    <pre *ngIf="memoryViewType===2" class="memory-view-2 mat-elevation-z1" id="memory2">{{memoryString2}}</pre>
+    <pre [hidden]="memoryViewType===2" class="memory-view mat-elevation-z1" id="memory" (click)="onMemoryViewClicked($event)">{{memoryString}}</pre>
+    <pre [hidden]="memoryViewType!==2" class="memory-view-1 mat-elevation-z1" id="memory1" (click)="onMemoryViewClicked($event)">{{memoryString}}</pre>
+    <pre [hidden]="memoryViewType!==2" class="memory-view-2 mat-elevation-z1" id="memory2">{{memoryString2}}</pre>
     <div class="debugger-toolbar">
         <mat-form-field class="memory-select">
             <mat-select placeholder="Memory View" [value]="memoryViewType" (selectionChange)="onMemoryViewChanged($event.value)">
                 <mat-option [value]="0">Disassembly</mat-option>
                 <mat-option [value]="1">Hex view</mat-option>
                 <mat-option [value]="2">Split view</mat-option>
+                <mat-option [value]="3">List view</mat-option>
             </mat-select>
         </mat-form-field>
+        <button *ngIf="memoryViewType===3" mat-raised-button class="toolbar-button" (click)="fileInputList.click()" matTooltip="Load list file">
+            <span class="button-text">Load</span><input #fileInputList type="file" (change)="openListFile(fileInputList)" accept=".lst" [hidden]="true"/>
+        </button>
         <span class="margin-right"></span>
         <mat-form-field class="memory-select">
             <mat-select placeholder="Memory Type" [value]="memoryType" (selectionChange)="onMemoryTypeChanged($event.value)">
@@ -21,7 +25,7 @@
         <span class="margin-right"></span>
         <mat-form-field class="address-entry">
             <span matPrefix>&gt;</span>
-            <input matInput placeholder="View Address" maxlength="5" [ngModel]="debuggerAddress" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onDebuggerAddressChanged($event)" (focus)="onTextFocus()" (blur)="onTextBlur()">
+            <input matInput placeholder="View Address" maxlength="5" [ngModel]="viewAddress" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onViewAddressChanged($event)" (focus)="onTextFocus()" (blur)="onTextBlur()">
             <mat-hint>Hexadecimal</mat-hint>
         </mat-form-field>
         <span class="margin-right"></span>

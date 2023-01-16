@@ -1,4 +1,6 @@
 export class MemoryLine {
+
+    index?: number;
     addr: number;
     text: string;
 
