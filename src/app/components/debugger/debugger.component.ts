@@ -338,7 +338,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                 const lines = text.split('\n');
                 this.listViewMap = new Map<number, MemoryLine>();
                 const memoryLines: MemoryLine[] = lines.map((line, index) => {
-                    const addr = Util.parseHexNumber(line.substring(5, 9));
+                    const addr = Util.parseHexNumber(line.substring(5, 10));
                     const memoryLine = {
                         index: index,
                         addr: !isNaN(addr) ? addr : null,
