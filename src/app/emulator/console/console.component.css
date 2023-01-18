@@ -1,5 +1,6 @@
 canvas {
-    height: 100%;
+    width: 75%;
+    transform: translateX(16.66%) translateY(16.66%) rotate(90deg);
 }
 
 .pixelated {
