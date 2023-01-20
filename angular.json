@@ -52,6 +52,14 @@
                   "with": "src/environments/environment.prod.ts"
                 }
               ]
+            },
+            "development": {
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
             }
           }
         },
@@ -63,6 +71,9 @@
           "configurations": {
             "production": {
               "browserTarget": "js99er:build:production"
+            },
+            "development": {
+              "browserTarget": "js99er:build:development"
             }
           }
         },
@@ -70,7 +81,8 @@
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
             "browserTarget": "js99er:build"
-          }
+          },
+          "defaultConfiguration": "development"
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
