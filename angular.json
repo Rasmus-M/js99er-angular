@@ -144,7 +144,6 @@
       }
     }
   },
-  "defaultProject": "js99er",
   "schematics": {
     "@schematics/angular:component": {
       "prefix": "app",

@@ -97,9 +97,6 @@ import {EventDispatcherService} from './services/event-dispatcher.service';
         ObjectLoaderService,
         SettingsService
     ],
-    entryComponents: [
-        MoreSoftwareComponent
-    ],
     bootstrap: [
         AppComponent
     ]

@@ -1,6 +1,6 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import {FormControl} from '@angular/forms';
+import {UntypedFormControl} from '@angular/forms';
 import {Observable} from 'rxjs';
 import {map, startWith} from 'rxjs/operators';
 import {Software} from '../../classes/software';
@@ -12,7 +12,7 @@ import {Software} from '../../classes/software';
 })
 export class MoreSoftwareComponent implements OnInit {
 
-    cartControl = new FormControl();
+    cartControl = new UntypedFormControl();
     filteredCarts: Observable<Software[]>;
 
     constructor(
