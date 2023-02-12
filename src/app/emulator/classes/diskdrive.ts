@@ -287,6 +287,7 @@ export class DiskDrive implements State {
         for (i = 0; i < fileNameLength; i++) {
             fileName += String.fromCharCode(this.ram[pabAddr + 10 + i]);
         }
+        fileName = fileName.trim();
         const recordType = (flagStatus & 0x10) >> 4;
         const datatype = (flagStatus & 0x08) >> 3;
         const operationMode = (flagStatus & 0x06) >> 1;
@@ -320,8 +321,8 @@ export class DiskDrive implements State {
         let errorCode = 0;
         let status = 0;
         if (this.diskImage != null) {
-            if (fileName.substr(0, this.name.length + 1) === this.name + ".") {
-                fileName = fileName.substr(this.name.length + 1);
+            if (fileName.substring(0, this.name.length + 1) === this.name + ".") {
+                fileName = fileName.substring(this.name.length + 1);
                 let file, record;
                 switch (opCode) {
                     case OpCode.OPEN:
@@ -533,10 +534,10 @@ export class DiskDrive implements State {
                         file = this.diskImage.getFile(fileName);
                         if (file == null) {
                             file = new DiskFile(fileName, FileType.PROGRAM, 0, 0, 0);
-                            file.setProgram(saveBuffer);
+                            file.setProgram(new Uint8Array(saveBuffer));
                             this.diskImage.putFile(file);
                         } else {
-                            file.setProgram(saveBuffer);
+                            file.setProgram(new Uint8Array(saveBuffer));
                         }
                         this.diskImage.setBinaryImage(null); // Invalidate binary image on write
                         break;
@@ -776,9 +777,8 @@ export class DiskDrive implements State {
         const xhr: XMLHttpRequest = new XMLHttpRequest();
         xhr.open('GET', url, true);
         xhr.responseType = 'arraybuffer';
-        const self = this;
-        xhr.onload = function () {
-            self.loadDSKFile("", new Uint8Array(xhr.response), eventHandler);
+        xhr.onload = () => {
+            this.loadDSKFile("", new Uint8Array(xhr.response), eventHandler);
             if (onLoad) {
                 onLoad();
             }
@@ -898,7 +898,7 @@ export class DiskDrive implements State {
                 }
                 diskFile.close();
                 if (fileType === FileType.PROGRAM) {
-                    diskFile.setProgram(program);
+                    diskFile.setProgram(new Uint8Array(program));
                 }
                 diskImage.putFile(diskFile);
             }
@@ -906,10 +906,6 @@ export class DiskDrive implements State {
         this.setDiskImage(diskImage);
         diskImage.setBinaryImage(fileBuffer);
         return diskImage;
-    }
-
-    setRAM(ram: Uint8Array) {
-        this.ram = ram;
     }
 
     getState(): object {
