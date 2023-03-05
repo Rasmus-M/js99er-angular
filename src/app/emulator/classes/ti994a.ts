@@ -22,6 +22,7 @@ import {DiskDrive} from './diskdrive';
 import {DiskImage} from './diskimage';
 import {Console} from "../interfaces/console";
 import {TIPI} from "./tipi";
+import {WasmService} from "../../services/wasm.service";
 
 export class TI994A implements Console, State {
 
@@ -32,6 +33,7 @@ export class TI994A implements Console, State {
     private canvas: HTMLCanvasElement;
     private document: HTMLDocument;
     private settings: Settings;
+    private wasmService: WasmService;
     private onBreakpoint: (cpu: CPU) => void;
 
     private memory: Memory;
@@ -57,10 +59,11 @@ export class TI994A implements Console, State {
     private frameInterval: number;
     private fpsInterval: number;
 
-    constructor(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: DiskImage[], settings: Settings, onBreakpoint: (CPU) => void) {
+    constructor(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: DiskImage[], settings: Settings, wasmService: WasmService, onBreakpoint: (CPU) => void) {
         this.document = document;
         this.canvas = canvas;
         this.settings = settings;
+        this.wasmService = wasmService;
         this.onBreakpoint = onBreakpoint;
 
         this.assemble(diskImages);
@@ -97,7 +100,7 @@ export class TI994A implements Console, State {
         if (this.settings.isF18AEnabled()) {
             this.vdp = new F18A(this.canvas, this);
         } else {
-            this.vdp = new TMS9918A(this.canvas, this);
+            this.vdp = new TMS9918A(this.canvas, this, this.wasmService);
         }
     }
 

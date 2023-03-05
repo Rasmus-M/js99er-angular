@@ -9,7 +9,10 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "postinstall": "ngcc"
+    "postinstall": "ngcc",
+    "asbuild:debug": "asc assembly/index.ts --target debug --importMemory --memoryBase 32768 --runtime stub",
+    "asbuild:release": "asc assembly/index.ts --target release",
+    "asbuild": "npm run asbuild:debug && npm run asbuild:release"
   },
   "private": true,
   "dependencies": {
@@ -48,6 +51,7 @@
     "@types/jquery": "^3.5.10",
     "@types/node": "^16.11.12",
     "@types/zip.js": "^2.0.29",
+    "assemblyscript": "^0.27.0",
     "codelyzer": "^6.0.2",
     "jasmine-core": "~3.10.1",
     "jasmine-spec-reporter": "~7.0.0",

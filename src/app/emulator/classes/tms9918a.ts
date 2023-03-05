@@ -4,6 +4,7 @@ import {VDP} from '../interfaces/vdp';
 import {CPU} from '../interfaces/cpu';
 import {TI994A} from './ti994a';
 import {MemoryLine, MemoryView} from "../../classes/memoryview";
+import {WasmService} from "../../services/wasm.service";
 
 export enum ScreenMode {
     MODE_GRAPHICS = 0,
@@ -20,6 +21,7 @@ export class TMS9918A implements VDP {
     private canvas: HTMLCanvasElement;
     private console: TI994A;
     private cru: CRU;
+    private wasmService: WasmService;
 
     private ram: Uint8Array = new Uint8Array(16384); // VDP RAM
     private registers: Uint8Array = new Uint8Array(8);
@@ -71,14 +73,16 @@ export class TMS9918A implements VDP {
 
     private spritePatternColorMap: {};
 
-    constructor(canvas: HTMLCanvasElement, console: TI994A) {
+    constructor(canvas: HTMLCanvasElement, console: TI994A, wasmService: WasmService) {
         this.canvas = canvas;
         this.canvasContext = canvas.getContext('2d', {willReadFrequently: true});
         this.console = console;
+        this.wasmService = wasmService;
     }
 
     reset() {
         this.cru = this.console.getCRU();
+        this.ram = this.wasmService.getMemoryBuffer();
         for (let i = 0; i < this.ram.length; i++) {
             this.ram[i] = 0;
         }
@@ -124,204 +128,36 @@ export class TMS9918A implements VDP {
     }
 
     drawScanline(y: number) {
-        const
-            imageData = this.imageData.data,
-            width = this.width,
-            screenMode = this.screenMode,
-            textMode: boolean = this.textMode,
-            bitmapMode: boolean = this.bitmapMode,
-            drawWidth = !textMode ? 256 : 240,
-            drawHeight = 192,
-            hBorder = (width - drawWidth) >> 1,
-            vBorder = (this.height - drawHeight) >> 1,
-            fgColor = this.fgColor,
-            bgColor = this.bgColor,
-            ram = this.ram,
-            nameTable = this.nameTable,
-            colorTable = this.colorTable,
-            charPatternTable = this.charPatternTable,
-            colorTableMask = this.colorTableMask,
-            patternTableMask = this.patternTableMask,
-            spriteAttributeTable = this.spriteAttributeTable,
-            spritePatternTable = this.spritePatternTable,
-            spriteSize: boolean = (this.registers[1] & 0x2) !== 0,
-            spriteMagnify = this.registers[1] & 0x1,
-            spriteDimension = (spriteSize ? 16 : 8) << (spriteMagnify ? 1 : 0),
-            maxSpritesOnLine = 4,
-            palette = this.palette;
-        let
-            imageDataAddr: number = (y * width) << 2,
-            collision = false,
-            fifthSprite = false,
-            fifthSpriteIndex = 31,
-            x: number,
-            color: number,
-            rgbColor: number[],
-            name: number,
-            tableOffset: number,
-            colorByte: number,
-            patternByte: number,
-            spriteBuffer: Uint8Array;
-        if (y >= vBorder && y < vBorder + drawHeight && this.displayOn) {
-            const y1 = y - vBorder;
-            // Pre-process sprites
-            if (!textMode) {
-                spriteBuffer = new Uint8Array(drawWidth);
-                let spritesOnLine = 0;
-                let endMarkerFound = false;
-                let spriteAttributeAddr = spriteAttributeTable;
-                let s;
-                for (s = 0; s < 32 && spritesOnLine <= maxSpritesOnLine && !endMarkerFound; s++) {
-                    let sy = ram[spriteAttributeAddr];
-                    if (sy !== 0xD0) {
-                        if (sy > 0xD0) {
-                            sy -= 256;
-                        }
-                        sy++;
-                        const sy1 = sy + spriteDimension;
-                        let y2 = -1;
-                        if (s < 8 || !bitmapMode || (this.registers[4] & 0x03) === 3) {
-                            if (y1 >= sy && y1 < sy1) {
-                                y2 = y1;
-                            }
-                        } else {
-                            // Emulate sprite duplication bug
-                            const yMasked = (y1 - 1) & (((this.registers[4] & 0x03) << 6) | 0x3F);
-                            if (yMasked >= sy && yMasked < sy1) {
-                                y2 = yMasked;
-                            } else if (y1 >= 64 && y1 < 128 && y1 >= sy && y1 < sy1) {
-                                y2 = y1;
-                            }
-                        }
-                        if (y2 !== -1) {
-                            if (spritesOnLine < maxSpritesOnLine) {
-                                let sx = ram[spriteAttributeAddr + 1];
-                                const sPatternNo = ram[spriteAttributeAddr + 2] & (spriteSize ? 0xFC : 0xFF);
-                                const sColor = ram[spriteAttributeAddr + 3] & 0x0F;
-                                if ((ram[spriteAttributeAddr + 3] & 0x80) !== 0) {
-                                    sx -= 32;
-                                }
-                                const sLine = (y2 - sy) >> spriteMagnify;
-                                const sPatternBase = spritePatternTable + (sPatternNo << 3) + sLine;
-                                for (let sx1 = 0; sx1 < spriteDimension; sx1++) {
-                                    const sx2 = sx + sx1;
-                                    if (sx2 >= 0 && sx2 < drawWidth) {
-                                        const sx3 = sx1 >> spriteMagnify;
-                                        const sPatternByte = ram[sPatternBase + (sx3 >= 8 ? 16 : 0)];
-                                        if ((sPatternByte & (0x80 >> (sx3 & 0x07))) !== 0) {
-                                            if (spriteBuffer[sx2] === 0) {
-                                                spriteBuffer[sx2] = sColor + 1; // Add one here so 0 means uninitialized. Subtract one before drawing.
-                                            } else {
-                                                collision = true;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            spritesOnLine++;
-                        }
-                        spriteAttributeAddr += 4;
-                    } else {
-                        endMarkerFound = true;
-                    }
-                }
-                if (spritesOnLine > 4) {
-                    fifthSprite = true;
-                    fifthSpriteIndex = s;
-                }
-            }
-            // Draw
-            const rowOffset = !textMode ? (y1 >> 3) << 5 : (y1 >> 3) * 40;
-            let lineOffset = y1 & 7;
-            for (x = 0; x < width; x++) {
-                if (x >= hBorder && x < hBorder + drawWidth) {
-                    const x1 = x - hBorder;
-                    // Tiles
-                    switch (screenMode) {
-                        case ScreenMode.MODE_GRAPHICS:
-                            name = ram[nameTable + rowOffset + (x1 >> 3)];
-                            colorByte = ram[colorTable + (name >> 3)];
-                            patternByte = ram[charPatternTable + (name << 3) + lineOffset];
-                            color = (patternByte & (0x80 >> (x1 & 7))) !== 0 ? (colorByte & 0xF0) >> 4 : colorByte & 0x0F;
-                            break;
-                        case ScreenMode.MODE_BITMAP:
-                            name = ram[nameTable + rowOffset + (x1 >> 3)];
-                            tableOffset = ((y1 & 0xC0) << 5) + (name << 3);
-                            colorByte = ram[colorTable + (tableOffset & colorTableMask) + lineOffset];
-                            patternByte = ram[charPatternTable + (tableOffset & patternTableMask) + lineOffset];
-                            color = (patternByte & (0x80 >> (x1 & 7))) !== 0 ? (colorByte & 0xF0) >> 4 : colorByte & 0x0F;
-                            break;
-                        case ScreenMode.MODE_MULTICOLOR:
-                            name = ram[nameTable + rowOffset + (x1 >> 3)];
-                            lineOffset = (y1 & 0x1C) >> 2;
-                            patternByte = ram[charPatternTable + (name << 3) + lineOffset];
-                            color = (x1 & 4) === 0 ? (patternByte & 0xF0) >> 4 : patternByte & 0x0F;
-                            break;
-                        case ScreenMode.MODE_TEXT:
-                            name = ram[nameTable + rowOffset + Math.floor(x1 / 6)];
-                            patternByte = ram[charPatternTable + (name << 3) + lineOffset];
-                            color = (patternByte & (0x80 >> (x1 % 6))) !== 0 ? fgColor : bgColor;
-                            break;
-                        case ScreenMode.MODE_BITMAP_TEXT:
-                            name = ram[nameTable + rowOffset + Math.floor(x1 / 6)];
-                            tableOffset = ((y1 & 0xC0) << 5) + (name << 3);
-                            patternByte = ram[charPatternTable + (tableOffset & patternTableMask) + lineOffset];
-                            color = (patternByte & (0x80 >> (x1 % 6))) !== 0 ? fgColor : bgColor;
-                            break;
-                        case ScreenMode.MODE_BITMAP_MULTICOLOR:
-                            name = ram[nameTable + rowOffset + (x1 >> 3)];
-                            lineOffset = (y1 & 0x1C) >> 2;
-                            tableOffset = ((y1 & 0xC0) << 5) + (name << 3);
-                            patternByte = ram[charPatternTable + (tableOffset & patternTableMask) + lineOffset];
-                            color = (x1 & 4) === 0 ? (patternByte & 0xF0) >> 4 : patternByte & 0x0F;
-                            break;
-                        case ScreenMode.MODE_ILLEGAL:
-                            color = (x1 & 4) === 0 ? fgColor : bgColor;
-                            break;
-                    }
-                    if (color === 0) {
-                        color = bgColor;
-                    }
-                    // Sprites
-                    if (!textMode) {
-                        const spriteColor = spriteBuffer[x1] - 1;
-                        if (spriteColor > 0) {
-                            color = spriteColor;
-                        }
-                    }
-                } else {
-                    color = bgColor;
-                }
-                rgbColor = palette[color];
-                imageData[imageDataAddr++] = rgbColor[0]; // R
-                imageData[imageDataAddr++] = rgbColor[1]; // G
-                imageData[imageDataAddr++] = rgbColor[2]; // B
-                imageDataAddr++; // Skip alpha
-            }
-        } else {
-            // Top/bottom border
-            rgbColor = palette[bgColor];
-            for (x = 0; x < width; x++) {
-                imageData[imageDataAddr++] = rgbColor[0]; // R
-                imageData[imageDataAddr++] = rgbColor[1]; // G
-                imageData[imageDataAddr++] = rgbColor[2]; // B
-                imageDataAddr++; // Skip alpha
-            }
+        this.statusRegister = this.wasmService.getExports().drawScanline(
+            y,
+            this.width,
+            this.height,
+            this.screenMode,
+            this.textMode ? 1 : 0,
+            this.bitmapMode ? 1 : 0,
+            this.fgColor,
+            this.bgColor,
+            this.nameTable,
+            this.colorTable,
+            this.charPatternTable,
+            this.colorTableMask,
+            this.patternTableMask,
+            this.spriteAttributeTable,
+            this.spritePatternTable,
+            this.registers[1],
+            this.registers[4],
+            this.displayOn ? 1 : 0,
+            this.statusRegister
+        );
+        if (this.interruptsOn && (this.statusRegister & 0x80) !== 0) {
+            this.cru.setVDPInterrupt(true);
         }
-        if (y === vBorder + drawHeight) {
-            this.statusRegister |= 0x80;
-            if (this.interruptsOn) {
-                this.cru.setVDPInterrupt(true);
-            }
-        }
-        if (collision) {
-            this.statusRegister |= 0x20;
-        }
-        if ((this.statusRegister & 0x40) === 0) {
-            this.statusRegister |= fifthSpriteIndex;
-        }
-        if (fifthSprite) {
-            this.statusRegister |= 0x40;
+        const imageDataData = this.imageData.data;
+        let imageDataAddr = (y * this.width) << 2;
+        // const buffer = new Uint8Array(this.wasmService.getExports().memory.buffer);
+        const buffer = new Uint8Array(this.wasmService.getMemoryBuffer());
+        for (let i = 0x4000; i < 0x4000 + (this.width << 2); i++) {
+            imageDataData[imageDataAddr++] = buffer[i] & 0xff;
         }
     }
 
@@ -587,7 +423,7 @@ export class TMS9918A implements VDP {
             if (!this.textMode) {
                 return this.ram[this.nameTable + (x >> 3) + (y >> 3) * 32];
             } else {
-                return this.ram[this.nameTable + Math.floor(x / 6) + (y >> 3) * 40];
+                return this.ram[this.nameTable + ((x / 6) | 0) + (y >> 3) * 40];
             }
         }
         return 0;
