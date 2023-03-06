@@ -4,6 +4,13 @@
  (type $i32_=>_i32 (func (param i32) (result i32)))
  (type $i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_=>_i32 (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
  (import "env" "memory" (memory $0 1))
+ (global $assembly/index/MODE_GRAPHICS i32 (i32.const 0))
+ (global $assembly/index/MODE_TEXT i32 (i32.const 1))
+ (global $assembly/index/MODE_BITMAP i32 (i32.const 2))
+ (global $assembly/index/MODE_MULTICOLOR i32 (i32.const 3))
+ (global $assembly/index/MODE_BITMAP_TEXT i32 (i32.const 4))
+ (global $assembly/index/MODE_BITMAP_MULTICOLOR i32 (i32.const 5))
+ (global $assembly/index/MODE_ILLEGAL i32 (i32.const 6))
  (table $0 1 1 funcref)
  (elem $0 (i32.const 1))
  (export "drawScanline" (func $assembly/index/drawScanline))
@@ -19,9 +26,11 @@
    if
     i32.const 24576
     local.get $i
+    i32.const 2
+    i32.shl
     i32.add
     i32.const -1
-    i32.store8 $0
+    i32.store $0
     local.get $i
     i32.const 1
     i32.add
@@ -33,9 +42,11 @@
  (func $assembly/index/setSpriteBuffer (param $offset i32) (param $value i32)
   i32.const 24576
   local.get $offset
+  i32.const 2
+  i32.shl
   i32.add
   local.get $value
-  i32.store8 $0
+  i32.store $0
  )
  (func $assembly/index/getColor (param $i i32) (result i32)
   (local $1 i32)
@@ -126,52 +137,52 @@
                    br_if $case15|0
                    br $break|0
                   end
-                  i32.const 0
+                  i32.const -16777216
                   return
                  end
-                 i32.const 0
+                 i32.const -16777216
                  return
                 end
-                i32.const 2213954
+                i32.const -12400607
                 return
                end
-               i32.const 6216824
+               i32.const -8856482
                return
               end
-              i32.const 5527021
+              i32.const -1223340
               return
              end
-             i32.const 8222460
+             i32.const -231811
              return
             end
-            i32.const 13914701
+            i32.const -11709740
             return
            end
-           i32.const 4385781
+           i32.const -660670
            return
           end
-          i32.const 16536916
+          i32.const -11250180
           return
          end
-         i32.const 16742776
+         i32.const -8881665
          return
         end
-        i32.const 13943124
+        i32.const -11222572
         return
        end
-       i32.const 15126144
+       i32.const -8335642
        return
       end
-      i32.const 2207803
+      i32.const -12865503
       return
      end
-     i32.const 13196218
+     i32.const -4564023
      return
     end
-    i32.const 13421772
+    i32.const -3355444
     return
    end
-   i32.const 16777215
+   i32.const -1
    return
   end
   i32.const 0
@@ -246,24 +257,6 @@
   (local $84 i32)
   (local $addr|85 i32)
   (local $value|86 i32)
-  (local $87 i32)
-  (local $addr|88 i32)
-  (local $value|89 i32)
-  (local $90 i32)
-  (local $addr|91 i32)
-  (local $value|92 i32)
-  (local $93 i32)
-  (local $addr|94 i32)
-  (local $value|95 i32)
-  (local $96 i32)
-  (local $addr|97 i32)
-  (local $value|98 i32)
-  (local $99 i32)
-  (local $addr|100 i32)
-  (local $value|101 i32)
-  (local $102 i32)
-  (local $addr|103 i32)
-  (local $value|104 i32)
   local.get $textMode
   i32.eqz
   if (result i32)
@@ -510,6 +503,8 @@
           i32.load8_u $0
           br $assembly/index/ramByte|inlined.1
          end
+         i32.const 255
+         i32.and
          local.set $sx
          block $assembly/index/ramByte|inlined.2 (result i32)
           local.get $spriteAttributeAddr
@@ -568,11 +563,7 @@
          local.get $spritePatternTable
          local.get $sPatternNo
          i32.const 3
-         i32.const 7
-         i32.and
          i32.shl
-         i32.const 255
-         i32.and
          i32.add
          local.get $sLine
          i32.add
@@ -585,8 +576,6 @@
           i32.lt_s
           if
            local.get $sx
-           i32.const 255
-           i32.and
            local.get $sx1
            i32.add
            local.set $sx2
@@ -621,15 +610,15 @@
              i32.load8_u $0
              br $assembly/index/ramByte|inlined.5
             end
+            i32.const 255
+            i32.and
             local.set $sPatternByte
             local.get $sPatternByte
             i32.const 128
             local.get $sx3
             i32.const 7
             i32.and
-            i32.const 7
-            i32.and
-            i32.shr_u
+            i32.shr_s
             i32.and
             i32.const 0
             i32.ne
@@ -639,11 +628,12 @@
               local.set $offset
               i32.const 24576
               local.get $offset
+              i32.const 2
+              i32.shl
               i32.add
-              i32.load8_s $0
+              i32.load $0
               br $assembly/index/getSpriteBuffer|inlined.0
              end
-             i32.extend8_s
              i32.const -1
              i32.eq
              if
@@ -749,31 +739,31 @@
               local.get $screenMode
               local.set $64
               local.get $64
-              i32.const 0
+              global.get $assembly/index/MODE_GRAPHICS
               i32.eq
               br_if $case0|3
               local.get $64
-              i32.const 2
+              global.get $assembly/index/MODE_BITMAP
               i32.eq
               br_if $case1|3
               local.get $64
-              i32.const 3
+              global.get $assembly/index/MODE_MULTICOLOR
               i32.eq
               br_if $case2|3
               local.get $64
-              i32.const 1
+              global.get $assembly/index/MODE_TEXT
               i32.eq
               br_if $case3|3
               local.get $64
-              i32.const 4
+              global.get $assembly/index/MODE_BITMAP_TEXT
               i32.eq
               br_if $case4|3
               local.get $64
-              i32.const 5
+              global.get $assembly/index/MODE_BITMAP_MULTICOLOR
               i32.eq
               br_if $case5|3
               local.get $64
-              i32.const 6
+              global.get $assembly/index/MODE_ILLEGAL
               i32.eq
               br_if $case6|3
               br $break|3
@@ -1188,18 +1178,18 @@
         local.set $offset|79
         i32.const 24576
         local.get $offset|79
+        i32.const 2
+        i32.shl
         i32.add
-        i32.load8_s $0
+        i32.load $0
         br $assembly/index/getSpriteBuffer|inlined.1
        end
        local.set $spriteColor
        local.get $spriteColor
-       i32.extend8_s
        i32.const 0
        i32.gt_s
        if
         local.get $spriteColor
-        i32.extend8_s
         local.set $color
        end
       end
@@ -1218,64 +1208,14 @@
      local.get $81
      local.set $addr|82
      local.get $rgbColor
-     i32.const 16711680
-     i32.and
-     i32.const 16
-     i32.shr_u
      local.set $value
-     local.get $addr|82
      i32.const 16384
+     local.get $addr|82
+     i32.const 2
+     i32.shl
      i32.add
      local.get $value
-     i32.store8 $0
-     local.get $imageDataAddr
-     local.tee $84
-     i32.const 1
-     i32.add
-     local.set $imageDataAddr
-     local.get $84
-     local.set $addr|85
-     local.get $rgbColor
-     i32.const 65280
-     i32.and
-     i32.const 8
-     i32.shr_u
-     local.set $value|86
-     local.get $addr|85
-     i32.const 16384
-     i32.add
-     local.get $value|86
-     i32.store8 $0
-     local.get $imageDataAddr
-     local.tee $87
-     i32.const 1
-     i32.add
-     local.set $imageDataAddr
-     local.get $87
-     local.set $addr|88
-     local.get $rgbColor
-     i32.const 255
-     i32.and
-     local.set $value|89
-     local.get $addr|88
-     i32.const 16384
-     i32.add
-     local.get $value|89
-     i32.store8 $0
-     local.get $imageDataAddr
-     local.tee $90
-     i32.const 1
-     i32.add
-     local.set $imageDataAddr
-     local.get $90
-     local.set $addr|91
-     i32.const 255
-     local.set $value|92
-     local.get $addr|91
-     i32.const 16384
-     i32.add
-     local.get $value|92
-     i32.store8 $0
+     i32.store $0
      local.get $x
      i32.const 1
      i32.add
@@ -1295,71 +1235,21 @@
     i32.lt_s
     if
      local.get $imageDataAddr
-     local.tee $93
+     local.tee $84
      i32.const 1
      i32.add
      local.set $imageDataAddr
-     local.get $93
-     local.set $addr|94
+     local.get $84
+     local.set $addr|85
      local.get $rgbColor
-     i32.const 16711680
-     i32.and
-     i32.const 16
-     i32.shr_u
-     local.set $value|95
-     local.get $addr|94
+     local.set $value|86
      i32.const 16384
+     local.get $addr|85
+     i32.const 2
+     i32.shl
      i32.add
-     local.get $value|95
-     i32.store8 $0
-     local.get $imageDataAddr
-     local.tee $96
-     i32.const 1
-     i32.add
-     local.set $imageDataAddr
-     local.get $96
-     local.set $addr|97
-     local.get $rgbColor
-     i32.const 65280
-     i32.and
-     i32.const 8
-     i32.shr_u
-     local.set $value|98
-     local.get $addr|97
-     i32.const 16384
-     i32.add
-     local.get $value|98
-     i32.store8 $0
-     local.get $imageDataAddr
-     local.tee $99
-     i32.const 1
-     i32.add
-     local.set $imageDataAddr
-     local.get $99
-     local.set $addr|100
-     local.get $rgbColor
-     i32.const 255
-     i32.and
-     local.set $value|101
-     local.get $addr|100
-     i32.const 16384
-     i32.add
-     local.get $value|101
-     i32.store8 $0
-     local.get $imageDataAddr
-     local.tee $102
-     i32.const 1
-     i32.add
-     local.set $imageDataAddr
-     local.get $102
-     local.set $addr|103
-     i32.const 255
-     local.set $value|104
-     local.get $addr|103
-     i32.const 16384
-     i32.add
-     local.get $value|104
-     i32.store8 $0
+     local.get $value|86
+     i32.store $0
      local.get $x
      i32.const 1
      i32.add

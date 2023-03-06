@@ -1,3 +1,11 @@
+const MODE_GRAPHICS = 0;
+const MODE_TEXT = 1;
+const MODE_BITMAP = 2;
+const MODE_MULTICOLOR = 3;
+const MODE_BITMAP_TEXT = 4;
+const MODE_BITMAP_MULTICOLOR = 5;
+const MODE_ILLEGAL = 6;
+
 export function drawScanline(
     y: i32,
     width: i32,
@@ -20,26 +28,19 @@ export function drawScanline(
     statusRegister: u8
 ): u8 {
     const
-        MODE_GRAPHICS = 0,
-        MODE_TEXT = 1,
-        MODE_BITMAP = 2,
-        MODE_MULTICOLOR = 3,
-        MODE_BITMAP_TEXT = 4,
-        MODE_BITMAP_MULTICOLOR = 5,
-        MODE_ILLEGAL = 6,
-        drawWidth = !textMode ? 256 : 240,
-        drawHeight = 192,
-        hBorder = (width - drawWidth) >> 1,
-        vBorder = (height - drawHeight) >> 1,
+        drawWidth: i32 = !textMode ? 256 : 240,
+        drawHeight: i32 = 192,
+        hBorder: i32 = (width - drawWidth) >> 1,
+        vBorder: i32 = (height - drawHeight) >> 1,
         spriteSize: bool = (vr1 & 0x2) !== 0,
-        spriteMagnify = vr1 & 0x1,
-        spriteDimension = (spriteSize ? 16 : 8) << (spriteMagnify ? 1 : 0),
-        maxSpritesOnLine = 4;
+        spriteMagnify: i32 = vr1 & 0x1,
+        spriteDimension: i32 = (spriteSize ? 16 : 8) << (spriteMagnify ? 1 : 0),
+        maxSpritesOnLine: i32 = 4;
     let
         imageDataAddr: i32 = 0,
-        collision = false,
-        fifthSprite = false,
-        fifthSpriteIndex = 31,
+        collision: bool = false,
+        fifthSprite: bool = false,
+        fifthSpriteIndex: i32 = 31,
         x: i32,
         color: i32 = 0,
         rgbColor: u32,
@@ -48,30 +49,30 @@ export function drawScanline(
         colorByte: i32,
         patternByte: i32;
     if (y >= vBorder && y < vBorder + drawHeight && displayOn) {
-        const y1 = y - vBorder;
+        const y1: i32 = y - vBorder;
         // Pre-process sprites
         if (!textMode) {
             initSpriteBuffer();
-            let spritesOnLine = 0;
-            let endMarkerFound = false;
-            let spriteAttributeAddr = spriteAttributeTable;
+            let spritesOnLine: i32 = 0;
+            let endMarkerFound: bool = false;
+            let spriteAttributeAddr: i32 = spriteAttributeTable;
             let s: i32;
             for (s = 0; s < 32 && spritesOnLine <= maxSpritesOnLine && !endMarkerFound; s++) {
-                let sy = <i32>ramByte(spriteAttributeAddr);
+                let sy: i32 = ramByte(spriteAttributeAddr);
                 if (sy !== 0xD0) {
                     if (sy > 0xD0) {
                         sy -= 256;
                     }
                     sy++;
-                    const sy1 = sy + spriteDimension;
-                    let y2 = -1;
+                    const sy1: i32 = sy + spriteDimension;
+                    let y2: i32 = -1;
                     if (s < 8 || !bitmapMode || (vr4 & 0x03) === 3) {
                         if (y1 >= sy && y1 < sy1) {
                             y2 = y1;
                         }
                     } else {
                         // Emulate sprite duplication bug
-                        const yMasked = (y1 - 1) & (((vr4 & 0x03) << 6) | 0x3F);
+                        const yMasked: i32 = (y1 - 1) & (((vr4 & 0x03) << 6) | 0x3F);
                         if (yMasked >= sy && yMasked < sy1) {
                             y2 = yMasked;
                         } else if (y1 >= 64 && y1 < 128 && y1 >= sy && y1 < sy1) {
@@ -80,20 +81,20 @@ export function drawScanline(
                     }
                     if (y2 !== -1) {
                         if (spritesOnLine < maxSpritesOnLine) {
-                            let sx = ramByte(spriteAttributeAddr + 1);
-                            const sPatternNo = ramByte(spriteAttributeAddr + 2) & (spriteSize ? 0xFC : 0xFF);
-                            const sColor = ramByte(spriteAttributeAddr + 3) & 0x0F;
+                            let sx: i32 = ramByte(spriteAttributeAddr + 1);
+                            const sPatternNo: i32 = ramByte(spriteAttributeAddr + 2) & (spriteSize ? 0xFC : 0xFF);
+                            const sColor: i32 = ramByte(spriteAttributeAddr + 3) & 0x0F;
                             if ((ramByte(spriteAttributeAddr + 3) & 0x80) !== 0) {
                                 sx -= 32;
                             }
-                            const sLine = (y2 - sy) >> spriteMagnify;
-                            const sPatternBase = spritePatternTable + (sPatternNo << 3) + sLine;
-                            for (let sx1 = 0; sx1 < spriteDimension; sx1++) {
-                                const sx2 = sx + sx1;
+                            const sLine: i32 = (y2 - sy) >> spriteMagnify;
+                            const sPatternBase: i32 = spritePatternTable + (sPatternNo << 3) + sLine;
+                            for (let sx1: i32 = 0; sx1 < spriteDimension; sx1++) {
+                                const sx2: i32 = sx + sx1;
                                 if (sx2 >= 0 && sx2 < drawWidth) {
-                                    const sx3 = sx1 >> spriteMagnify;
-                                    const sPatternByte = ramByte(sPatternBase + (sx3 >= 8 ? 16 : 0));
-                                    if ((sPatternByte & (0x80 >> (<u8>sx3 & 0x07))) !== 0) {
+                                    const sx3: i32 = sx1 >> spriteMagnify;
+                                    const sPatternByte: i32 = ramByte(sPatternBase + (sx3 >= 8 ? 16 : 0));
+                                    if ((sPatternByte & (0x80 >> (sx3 & 0x07))) !== 0) {
                                         if (getSpriteBuffer(sx2) === -1) {
                                             setSpriteBuffer(sx2, sColor);
                                         } else {
@@ -116,11 +117,11 @@ export function drawScanline(
             }
         }
         // Draw
-        const rowOffset = !textMode ? (y1 >> 3) << 5 : (y1 >> 3) * 40;
-        let lineOffset = y1 & 7;
+        const rowOffset: i32 = !textMode ? (y1 >> 3) << 5 : (y1 >> 3) * 40;
+        let lineOffset: i32 = y1 & 7;
         for (x = 0; x < width; x++) {
             if (x >= hBorder && x < hBorder + drawWidth) {
-                const x1 = x - hBorder;
+                const x1: i32 = x - hBorder;
                 // Tiles
                 switch (screenMode) {
                     case MODE_GRAPHICS:
@@ -169,7 +170,7 @@ export function drawScanline(
                 }
                 // Sprites
                 if (!textMode) {
-                    const spriteColor = getSpriteBuffer(x1);
+                    const spriteColor: i32 = getSpriteBuffer(x1);
                     if (spriteColor > 0) {
                         color = spriteColor;
                     }
@@ -178,19 +179,13 @@ export function drawScanline(
                 color = bgColor;
             }
             rgbColor = getColor(color);
-            setImageData(imageDataAddr++, <u8>((rgbColor & 0xff0000) >> 16)); // R
-            setImageData(imageDataAddr++, <u8>((rgbColor & 0x00ff00) >> 8)); // G
-            setImageData(imageDataAddr++, <u8>(rgbColor & 0x0000ff)); // B
-            setImageData(imageDataAddr++, 0xff); // alpha
+            setImageData(imageDataAddr++, rgbColor);
         }
     } else {
         // Top/bottom border
         rgbColor = getColor(bgColor);
         for (x = 0; x < width; x++) {
-            setImageData(imageDataAddr++, <u8>((rgbColor & 0xff0000) >> 16)); // R
-            setImageData(imageDataAddr++, <u8>((rgbColor & 0x00ff00) >> 8)); // G
-            setImageData(imageDataAddr++, <u8>(rgbColor & 0x0000ff)); // B
-            setImageData(imageDataAddr++, 0xff); // alpha
+            setImageData(imageDataAddr++, rgbColor);
         }
     }
     if (y === vBorder + drawHeight) {
@@ -210,20 +205,20 @@ export function drawScanline(
 
 function initSpriteBuffer(): void {
     for (let i = 0; i < 256; i++) {
-        store<i8>(0x6000 + i, -1);
+        store<i32>(0x6000 + (i << 2), -1);
     }
 }
 
 // @ts-ignore
 @Inline
-function setSpriteBuffer(offset: i32, value: i8): void {
-    store<i8>(0x6000 + offset, value);
+function setSpriteBuffer(offset: i32, value: i32): void {
+    store<i32>(0x6000 + (offset << 2), value);
 }
 
 // @ts-ignore
 @inline
-function getSpriteBuffer(offset: i32): i8 {
-    return load<i8>(0x6000 + offset);
+function getSpriteBuffer(offset: i32): i32 {
+    return load<i32>(0x6000 + (offset << 2));
 }
 
 // @ts-ignore
@@ -234,44 +229,44 @@ function ramByte(addr: i32): u8 {
 
 // @ts-ignore
 @inline
-function setImageData(addr: i32, value: u8): void {
-    store<u8>(addr + 0x4000, value);
+function setImageData(addr: i32, value: u32): void {
+    store<u32>(0x4000 + (addr << 2), value);
 }
 
 function getColor(i: i32): u32 {
     switch (i & 15) {
         case 0:
-            return 0x000000;
+            return 0xff000000;
         case 1:
-            return 0x000000;
+            return 0xff000000;
         case 2:
-            return 0x21c842;
+            return 0xff42c821;
         case 3:
-            return 0x5edc78;
+            return 0xff78dc5e;
         case 4:
-            return 0x5455ed;
+            return 0xffed5554;
         case 5:
-            return 0x7d76fc;
+            return 0xfffc767d;
         case 6:
-            return 0xd4524d;
+            return 0xff4d52d4;
         case 7:
-            return 0x42ebf5;
+            return 0xfff5eb42;
         case 8:
-            return 0xfc5554;
+            return 0xff5455fc;
         case 9:
-            return 0xff7978;
+            return 0xff7879ff;
         case 10:
-            return 0xd4c154;
+            return 0xff54c1d4;
         case 11:
-            return 0xe6ce80;
+            return 0xff80cee6;
         case 12:
-            return 0x21b03b;
+            return 0xff3bb021;
         case 13:
-            return 0xc95bba;
+            return 0xffba5bc9;
         case 14:
-            return 0xcccccc;
+            return 0xffcccccc;
         case 15:
-            return 0xffffff;
+            return 0xffffffff;
     }
     return 0;
 }
