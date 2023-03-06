@@ -258,12 +258,12 @@ export class TMS9918A implements VDP {
                             color = (x1 & 4) === 0 ? (patternByte & 0xF0) >> 4 : patternByte & 0x0F;
                             break;
                         case ScreenMode.MODE_TEXT:
-                            name = ram[nameTable + rowOffset + Math.floor(x1 / 6)];
+                            name = ram[nameTable + rowOffset + ((x1 / 6) | 0)];
                             patternByte = ram[charPatternTable + (name << 3) + lineOffset];
                             color = (patternByte & (0x80 >> (x1 % 6))) !== 0 ? fgColor : bgColor;
                             break;
                         case ScreenMode.MODE_BITMAP_TEXT:
-                            name = ram[nameTable + rowOffset + Math.floor(x1 / 6)];
+                            name = ram[nameTable + rowOffset + ((x1 / 6) | 0)];
                             tableOffset = ((y1 & 0xC0) << 5) + (name << 3);
                             patternByte = ram[charPatternTable + (tableOffset & patternTableMask) + lineOffset];
                             color = (patternByte & (0x80 >> (x1 % 6))) !== 0 ? fgColor : bgColor;
