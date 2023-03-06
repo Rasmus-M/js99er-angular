@@ -214,18 +214,26 @@ function initSpriteBuffer(): void {
     }
 }
 
+// @ts-ignore
+@Inline
 function setSpriteBuffer(offset: i32, value: i8): void {
     store<i8>(0x6000 + offset, value);
 }
 
+// @ts-ignore
+@inline
 function getSpriteBuffer(offset: i32): i8 {
     return load<i8>(0x6000 + offset);
 }
 
+// @ts-ignore
+@inline
 function ramByte(addr: i32): u8 {
     return load<u8>(addr);
 }
 
+// @ts-ignore
+@inline
 function setImageData(addr: i32, value: u8): void {
     store<u8>(addr + 0x4000, value);
 }

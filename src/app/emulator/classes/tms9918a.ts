@@ -152,13 +152,8 @@ export class TMS9918A implements VDP {
         if (this.interruptsOn && (this.statusRegister & 0x80) !== 0) {
             this.cru.setVDPInterrupt(true);
         }
-        const imageDataData = this.imageData.data;
-        let imageDataAddr = (y * this.width) << 2;
-        // const buffer = new Uint8Array(this.wasmService.getExports().memory.buffer);
-        const buffer = new Uint8Array(this.wasmService.getMemoryBuffer());
-        for (let i = 0x4000; i < 0x4000 + (this.width << 2); i++) {
-            imageDataData[imageDataAddr++] = buffer[i] & 0xff;
-        }
+        const buffer = new Uint8Array(this.wasmService.getMemoryBuffer().buffer, 0x4000, this.width << 2);
+        new Uint8Array(this.imageData.data.buffer).set(buffer, (y * this.width) << 2);
     }
 
     drawInvisibleScanline(y: number): void {

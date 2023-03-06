@@ -21,4 +21,4 @@ export const {
     catch { return globalThis.WebAssembly.compile(await (await import("node:fs/promises")).readFile(url)); }
   })(), {
   }
-))(new URL("debug.wasm", import.meta.url));
+))(new URL("index.wasm", import.meta.url));

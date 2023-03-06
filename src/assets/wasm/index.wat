@@ -1,7 +1,7 @@
 (module
- (type $i32_=>_i32 (func (param i32) (result i32)))
- (type $i32_i32_=>_none (func (param i32 i32)))
  (type $none_=>_none (func))
+ (type $i32_i32_=>_none (func (param i32 i32)))
+ (type $i32_=>_i32 (func (param i32) (result i32)))
  (type $i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_=>_i32 (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
  (import "env" "memory" (memory $0 1))
  (table $0 1 1 funcref)
@@ -29,18 +29,6 @@
     br $for-loop|0
    end
   end
- )
- (func $assembly/index/ramByte (param $addr i32) (result i32)
-  local.get $addr
-  i32.load8_u $0
-  return
- )
- (func $assembly/index/getSpriteBuffer (param $offset i32) (result i32)
-  i32.const 24576
-  local.get $offset
-  i32.add
-  i32.load8_s $0
-  return
  )
  (func $assembly/index/setSpriteBuffer (param $offset i32) (param $value i32)
   i32.const 24576
@@ -189,13 +177,6 @@
   i32.const 0
   return
  )
- (func $assembly/index/setImageData (param $addr i32) (param $value i32)
-  local.get $addr
-  i32.const 16384
-  i32.add
-  local.get $value
-  i32.store8 $0
- )
  (func $assembly/index/drawScanline (param $y i32) (param $width i32) (param $height i32) (param $screenMode i32) (param $textMode i32) (param $bitmapMode i32) (param $fgColor i32) (param $bgColor i32) (param $nameTable i32) (param $colorTable i32) (param $charPatternTable i32) (param $colorTableMask i32) (param $patternTableMask i32) (param $spriteAttributeTable i32) (param $spritePatternTable i32) (param $vr1 i32) (param $vr4 i32) (param $displayOn i32) (param $statusRegister i32) (result i32)
   (local $drawWidth i32)
   (local $hBorder i32)
@@ -219,32 +200,70 @@
   (local $endMarkerFound i32)
   (local $spriteAttributeAddr i32)
   (local $s i32)
+  (local $addr i32)
   (local $sy i32)
   (local $sy1 i32)
   (local $y2 i32)
   (local $yMasked i32)
+  (local $addr|46 i32)
   (local $sx i32)
+  (local $addr|48 i32)
   (local $sPatternNo i32)
+  (local $addr|50 i32)
   (local $sColor i32)
+  (local $addr|52 i32)
   (local $sLine i32)
   (local $sPatternBase i32)
   (local $sx1 i32)
   (local $sx2 i32)
   (local $sx3 i32)
+  (local $addr|58 i32)
   (local $sPatternByte i32)
+  (local $offset i32)
   (local $rowOffset i32)
   (local $lineOffset i32)
   (local $x1 i32)
-  (local $57 i32)
-  (local $spriteColor i32)
-  (local $59 i32)
-  (local $60 i32)
-  (local $61 i32)
-  (local $62 i32)
-  (local $63 i32)
   (local $64 i32)
-  (local $65 i32)
-  (local $66 i32)
+  (local $addr|65 i32)
+  (local $addr|66 i32)
+  (local $addr|67 i32)
+  (local $addr|68 i32)
+  (local $addr|69 i32)
+  (local $addr|70 i32)
+  (local $addr|71 i32)
+  (local $addr|72 i32)
+  (local $addr|73 i32)
+  (local $addr|74 i32)
+  (local $addr|75 i32)
+  (local $addr|76 i32)
+  (local $addr|77 i32)
+  (local $addr|78 i32)
+  (local $offset|79 i32)
+  (local $spriteColor i32)
+  (local $81 i32)
+  (local $addr|82 i32)
+  (local $value i32)
+  (local $84 i32)
+  (local $addr|85 i32)
+  (local $value|86 i32)
+  (local $87 i32)
+  (local $addr|88 i32)
+  (local $value|89 i32)
+  (local $90 i32)
+  (local $addr|91 i32)
+  (local $value|92 i32)
+  (local $93 i32)
+  (local $addr|94 i32)
+  (local $value|95 i32)
+  (local $96 i32)
+  (local $addr|97 i32)
+  (local $value|98 i32)
+  (local $99 i32)
+  (local $addr|100 i32)
+  (local $value|101 i32)
+  (local $102 i32)
+  (local $addr|103 i32)
+  (local $value|104 i32)
   local.get $textMode
   i32.eqz
   if (result i32)
@@ -351,8 +370,15 @@
       i32.const 0
      end
      if
-      local.get $spriteAttributeAddr
-      call $assembly/index/ramByte
+      block $assembly/index/ramByte|inlined.0 (result i32)
+       local.get $spriteAttributeAddr
+       local.set $addr
+       local.get $addr
+       i32.load8_u $0
+       br $assembly/index/ramByte|inlined.0
+      end
+      i32.const 255
+      i32.and
       local.set $sy
       local.get $sy
       i32.const 208
@@ -475,15 +501,25 @@
         i32.const 4
         i32.lt_s
         if
-         local.get $spriteAttributeAddr
-         i32.const 1
-         i32.add
-         call $assembly/index/ramByte
+         block $assembly/index/ramByte|inlined.1 (result i32)
+          local.get $spriteAttributeAddr
+          i32.const 1
+          i32.add
+          local.set $addr|46
+          local.get $addr|46
+          i32.load8_u $0
+          br $assembly/index/ramByte|inlined.1
+         end
          local.set $sx
-         local.get $spriteAttributeAddr
-         i32.const 2
-         i32.add
-         call $assembly/index/ramByte
+         block $assembly/index/ramByte|inlined.2 (result i32)
+          local.get $spriteAttributeAddr
+          i32.const 2
+          i32.add
+          local.set $addr|48
+          local.get $addr|48
+          i32.load8_u $0
+          br $assembly/index/ramByte|inlined.2
+         end
          local.get $spriteSize
          if (result i32)
           i32.const 252
@@ -492,17 +528,27 @@
          end
          i32.and
          local.set $sPatternNo
-         local.get $spriteAttributeAddr
-         i32.const 3
-         i32.add
-         call $assembly/index/ramByte
+         block $assembly/index/ramByte|inlined.3 (result i32)
+          local.get $spriteAttributeAddr
+          i32.const 3
+          i32.add
+          local.set $addr|50
+          local.get $addr|50
+          i32.load8_u $0
+          br $assembly/index/ramByte|inlined.3
+         end
          i32.const 15
          i32.and
          local.set $sColor
-         local.get $spriteAttributeAddr
-         i32.const 3
-         i32.add
-         call $assembly/index/ramByte
+         block $assembly/index/ramByte|inlined.4 (result i32)
+          local.get $spriteAttributeAddr
+          i32.const 3
+          i32.add
+          local.set $addr|52
+          local.get $addr|52
+          i32.load8_u $0
+          br $assembly/index/ramByte|inlined.4
+         end
          i32.const 128
          i32.and
          i32.const 0
@@ -559,17 +605,22 @@
             local.get $spriteMagnify
             i32.shr_s
             local.set $sx3
-            local.get $sPatternBase
-            local.get $sx3
-            i32.const 8
-            i32.ge_s
-            if (result i32)
-             i32.const 16
-            else
-             i32.const 0
+            block $assembly/index/ramByte|inlined.5 (result i32)
+             local.get $sPatternBase
+             local.get $sx3
+             i32.const 8
+             i32.ge_s
+             if (result i32)
+              i32.const 16
+             else
+              i32.const 0
+             end
+             i32.add
+             local.set $addr|58
+             local.get $addr|58
+             i32.load8_u $0
+             br $assembly/index/ramByte|inlined.5
             end
-            i32.add
-            call $assembly/index/ramByte
             local.set $sPatternByte
             local.get $sPatternByte
             i32.const 128
@@ -583,8 +634,16 @@
             i32.const 0
             i32.ne
             if
-             local.get $sx2
-             call $assembly/index/getSpriteBuffer
+             block $assembly/index/getSpriteBuffer|inlined.0 (result i32)
+              local.get $sx2
+              local.set $offset
+              i32.const 24576
+              local.get $offset
+              i32.add
+              i32.load8_s $0
+              br $assembly/index/getSpriteBuffer|inlined.0
+             end
+             i32.extend8_s
              i32.const -1
              i32.eq
              if
@@ -688,61 +747,82 @@
             block $case1|3
              block $case0|3
               local.get $screenMode
-              local.set $57
-              local.get $57
+              local.set $64
+              local.get $64
               i32.const 0
               i32.eq
               br_if $case0|3
-              local.get $57
+              local.get $64
               i32.const 2
               i32.eq
               br_if $case1|3
-              local.get $57
+              local.get $64
               i32.const 3
               i32.eq
               br_if $case2|3
-              local.get $57
+              local.get $64
               i32.const 1
               i32.eq
               br_if $case3|3
-              local.get $57
+              local.get $64
               i32.const 4
               i32.eq
               br_if $case4|3
-              local.get $57
+              local.get $64
               i32.const 5
               i32.eq
               br_if $case5|3
-              local.get $57
+              local.get $64
               i32.const 6
               i32.eq
               br_if $case6|3
               br $break|3
              end
-             local.get $nameTable
-             local.get $rowOffset
-             i32.add
-             local.get $x1
-             i32.const 3
-             i32.shr_s
-             i32.add
-             call $assembly/index/ramByte
+             block $assembly/index/ramByte|inlined.6 (result i32)
+              local.get $nameTable
+              local.get $rowOffset
+              i32.add
+              local.get $x1
+              i32.const 3
+              i32.shr_s
+              i32.add
+              local.set $addr|65
+              local.get $addr|65
+              i32.load8_u $0
+              br $assembly/index/ramByte|inlined.6
+             end
+             i32.const 255
+             i32.and
              local.set $name
-             local.get $colorTable
-             local.get $name
-             i32.const 3
-             i32.shr_s
-             i32.add
-             call $assembly/index/ramByte
+             block $assembly/index/ramByte|inlined.7 (result i32)
+              local.get $colorTable
+              local.get $name
+              i32.const 3
+              i32.shr_s
+              i32.add
+              local.set $addr|66
+              local.get $addr|66
+              i32.load8_u $0
+              br $assembly/index/ramByte|inlined.7
+             end
+             i32.const 255
+             i32.and
              local.set $colorByte
-             local.get $charPatternTable
-             local.get $name
-             i32.const 3
-             i32.shl
-             i32.add
-             local.get $lineOffset
-             i32.add
-             call $assembly/index/ramByte
+             block $assembly/index/ramByte|inlined.8 (result i32)
+              local.get $charPatternTable
+              local.get $name
+              i32.const 3
+              i32.shl
+              i32.add
+              local.get $lineOffset
+              i32.add
+              local.set $addr|67
+              local.get $addr|67
+              i32.load8_u $0
+              br $assembly/index/ramByte|inlined.8
+             end
+             i32.const 255
+             i32.and
              local.set $patternByte
              local.get $patternByte
              i32.const 128
@@ -767,14 +847,21 @@
              local.set $color
              br $break|3
             end
-            local.get $nameTable
-            local.get $rowOffset
-            i32.add
-            local.get $x1
-            i32.const 3
-            i32.shr_s
-            i32.add
-            call $assembly/index/ramByte
+            block $assembly/index/ramByte|inlined.9 (result i32)
+             local.get $nameTable
+             local.get $rowOffset
+             i32.add
+             local.get $x1
+             i32.const 3
+             i32.shr_s
+             i32.add
+             local.set $addr|68
+             local.get $addr|68
+             i32.load8_u $0
+             br $assembly/index/ramByte|inlined.9
+            end
+            i32.const 255
+            i32.and
             local.set $name
             local.get $y1
             i32.const 192
@@ -786,23 +873,37 @@
             i32.shl
             i32.add
             local.set $tableOffset
-            local.get $colorTable
-            local.get $tableOffset
-            local.get $colorTableMask
+            block $assembly/index/ramByte|inlined.10 (result i32)
+             local.get $colorTable
+             local.get $tableOffset
+             local.get $colorTableMask
+             i32.and
+             i32.add
+             local.get $lineOffset
+             i32.add
+             local.set $addr|69
+             local.get $addr|69
+             i32.load8_u $0
+             br $assembly/index/ramByte|inlined.10
+            end
+            i32.const 255
             i32.and
-            i32.add
-            local.get $lineOffset
-            i32.add
-            call $assembly/index/ramByte
             local.set $colorByte
-            local.get $charPatternTable
-            local.get $tableOffset
-            local.get $patternTableMask
+            block $assembly/index/ramByte|inlined.11 (result i32)
+             local.get $charPatternTable
+             local.get $tableOffset
+             local.get $patternTableMask
+             i32.and
+             i32.add
+             local.get $lineOffset
+             i32.add
+             local.set $addr|70
+             local.get $addr|70
+             i32.load8_u $0
+             br $assembly/index/ramByte|inlined.11
+            end
+            i32.const 255
             i32.and
-            i32.add
-            local.get $lineOffset
-            i32.add
-            call $assembly/index/ramByte
             local.set $patternByte
             local.get $patternByte
             i32.const 128
@@ -827,14 +928,21 @@
             local.set $color
             br $break|3
            end
-           local.get $nameTable
-           local.get $rowOffset
-           i32.add
-           local.get $x1
-           i32.const 3
-           i32.shr_s
-           i32.add
-           call $assembly/index/ramByte
+           block $assembly/index/ramByte|inlined.12 (result i32)
+            local.get $nameTable
+            local.get $rowOffset
+            i32.add
+            local.get $x1
+            i32.const 3
+            i32.shr_s
+            i32.add
+            local.set $addr|71
+            local.get $addr|71
+            i32.load8_u $0
+            br $assembly/index/ramByte|inlined.12
+           end
+           i32.const 255
+           i32.and
            local.set $name
            local.get $y1
            i32.const 28
@@ -842,14 +950,21 @@
            i32.const 2
            i32.shr_s
            local.set $lineOffset
-           local.get $charPatternTable
-           local.get $name
-           i32.const 3
-           i32.shl
-           i32.add
-           local.get $lineOffset
-           i32.add
-           call $assembly/index/ramByte
+           block $assembly/index/ramByte|inlined.13 (result i32)
+            local.get $charPatternTable
+            local.get $name
+            i32.const 3
+            i32.shl
+            i32.add
+            local.get $lineOffset
+            i32.add
+            local.set $addr|72
+            local.get $addr|72
+            i32.load8_u $0
+            br $assembly/index/ramByte|inlined.13
+           end
+           i32.const 255
+           i32.and
            local.set $patternByte
            local.get $x1
            i32.const 4
@@ -870,23 +985,37 @@
            local.set $color
            br $break|3
           end
-          local.get $nameTable
-          local.get $rowOffset
-          i32.add
-          local.get $x1
-          i32.const 6
-          i32.div_s
-          i32.add
-          call $assembly/index/ramByte
+          block $assembly/index/ramByte|inlined.14 (result i32)
+           local.get $nameTable
+           local.get $rowOffset
+           i32.add
+           local.get $x1
+           i32.const 6
+           i32.div_s
+           i32.add
+           local.set $addr|73
+           local.get $addr|73
+           i32.load8_u $0
+           br $assembly/index/ramByte|inlined.14
+          end
+          i32.const 255
+          i32.and
           local.set $name
-          local.get $charPatternTable
-          local.get $name
-          i32.const 3
-          i32.shl
-          i32.add
-          local.get $lineOffset
-          i32.add
-          call $assembly/index/ramByte
+          block $assembly/index/ramByte|inlined.15 (result i32)
+           local.get $charPatternTable
+           local.get $name
+           i32.const 3
+           i32.shl
+           i32.add
+           local.get $lineOffset
+           i32.add
+           local.set $addr|74
+           local.get $addr|74
+           i32.load8_u $0
+           br $assembly/index/ramByte|inlined.15
+          end
+          i32.const 255
+          i32.and
           local.set $patternByte
           local.get $patternByte
           i32.const 128
@@ -905,14 +1034,21 @@
           local.set $color
           br $break|3
          end
-         local.get $nameTable
-         local.get $rowOffset
-         i32.add
-         local.get $x1
-         i32.const 6
-         i32.div_s
-         i32.add
-         call $assembly/index/ramByte
+         block $assembly/index/ramByte|inlined.16 (result i32)
+          local.get $nameTable
+          local.get $rowOffset
+          i32.add
+          local.get $x1
+          i32.const 6
+          i32.div_s
+          i32.add
+          local.set $addr|75
+          local.get $addr|75
+          i32.load8_u $0
+          br $assembly/index/ramByte|inlined.16
+         end
+         i32.const 255
+         i32.and
          local.set $name
          local.get $y1
          i32.const 192
@@ -924,14 +1060,21 @@
          i32.shl
          i32.add
          local.set $tableOffset
-         local.get $charPatternTable
-         local.get $tableOffset
-         local.get $patternTableMask
+         block $assembly/index/ramByte|inlined.17 (result i32)
+          local.get $charPatternTable
+          local.get $tableOffset
+          local.get $patternTableMask
+          i32.and
+          i32.add
+          local.get $lineOffset
+          i32.add
+          local.set $addr|76
+          local.get $addr|76
+          i32.load8_u $0
+          br $assembly/index/ramByte|inlined.17
+         end
+         i32.const 255
          i32.and
-         i32.add
-         local.get $lineOffset
-         i32.add
-         call $assembly/index/ramByte
          local.set $patternByte
          local.get $patternByte
          i32.const 128
@@ -950,14 +1093,21 @@
          local.set $color
          br $break|3
         end
-        local.get $nameTable
-        local.get $rowOffset
-        i32.add
-        local.get $x1
-        i32.const 3
-        i32.shr_s
-        i32.add
-        call $assembly/index/ramByte
+        block $assembly/index/ramByte|inlined.18 (result i32)
+         local.get $nameTable
+         local.get $rowOffset
+         i32.add
+         local.get $x1
+         i32.const 3
+         i32.shr_s
+         i32.add
+         local.set $addr|77
+         local.get $addr|77
+         i32.load8_u $0
+         br $assembly/index/ramByte|inlined.18
+        end
+        i32.const 255
+        i32.and
         local.set $name
         local.get $y1
         i32.const 28
@@ -975,14 +1125,21 @@
         i32.shl
         i32.add
         local.set $tableOffset
-        local.get $charPatternTable
-        local.get $tableOffset
-        local.get $patternTableMask
+        block $assembly/index/ramByte|inlined.19 (result i32)
+         local.get $charPatternTable
+         local.get $tableOffset
+         local.get $patternTableMask
+         i32.and
+         i32.add
+         local.get $lineOffset
+         i32.add
+         local.set $addr|78
+         local.get $addr|78
+         i32.load8_u $0
+         br $assembly/index/ramByte|inlined.19
+        end
+        i32.const 255
         i32.and
-        i32.add
-        local.get $lineOffset
-        i32.add
-        call $assembly/index/ramByte
         local.set $patternByte
         local.get $x1
         i32.const 4
@@ -1026,14 +1183,23 @@
       local.get $textMode
       i32.eqz
       if
-       local.get $x1
-       call $assembly/index/getSpriteBuffer
+       block $assembly/index/getSpriteBuffer|inlined.1 (result i32)
+        local.get $x1
+        local.set $offset|79
+        i32.const 24576
+        local.get $offset|79
+        i32.add
+        i32.load8_s $0
+        br $assembly/index/getSpriteBuffer|inlined.1
+       end
        local.set $spriteColor
        local.get $spriteColor
+       i32.extend8_s
        i32.const 0
        i32.gt_s
        if
         local.get $spriteColor
+        i32.extend8_s
         local.set $color
        end
       end
@@ -1045,47 +1211,71 @@
      call $assembly/index/getColor
      local.set $rgbColor
      local.get $imageDataAddr
-     local.tee $59
+     local.tee $81
      i32.const 1
      i32.add
      local.set $imageDataAddr
-     local.get $59
+     local.get $81
+     local.set $addr|82
      local.get $rgbColor
      i32.const 16711680
      i32.and
      i32.const 16
      i32.shr_u
-     call $assembly/index/setImageData
+     local.set $value
+     local.get $addr|82
+     i32.const 16384
+     i32.add
+     local.get $value
+     i32.store8 $0
      local.get $imageDataAddr
-     local.tee $60
+     local.tee $84
      i32.const 1
      i32.add
      local.set $imageDataAddr
-     local.get $60
+     local.get $84
+     local.set $addr|85
      local.get $rgbColor
      i32.const 65280
      i32.and
      i32.const 8
      i32.shr_u
-     call $assembly/index/setImageData
+     local.set $value|86
+     local.get $addr|85
+     i32.const 16384
+     i32.add
+     local.get $value|86
+     i32.store8 $0
      local.get $imageDataAddr
-     local.tee $61
+     local.tee $87
      i32.const 1
      i32.add
      local.set $imageDataAddr
-     local.get $61
+     local.get $87
+     local.set $addr|88
      local.get $rgbColor
      i32.const 255
      i32.and
-     call $assembly/index/setImageData
+     local.set $value|89
+     local.get $addr|88
+     i32.const 16384
+     i32.add
+     local.get $value|89
+     i32.store8 $0
      local.get $imageDataAddr
-     local.tee $62
+     local.tee $90
      i32.const 1
      i32.add
      local.set $imageDataAddr
-     local.get $62
+     local.get $90
+     local.set $addr|91
      i32.const 255
-     call $assembly/index/setImageData
+     local.set $value|92
+     local.get $addr|91
+     i32.const 16384
+     i32.add
+     local.get $value|92
+     i32.store8 $0
      local.get $x
      i32.const 1
      i32.add
@@ -1105,47 +1295,71 @@
     i32.lt_s
     if
      local.get $imageDataAddr
-     local.tee $63
+     local.tee $93
      i32.const 1
      i32.add
      local.set $imageDataAddr
-     local.get $63
+     local.get $93
+     local.set $addr|94
      local.get $rgbColor
      i32.const 16711680
      i32.and
      i32.const 16
      i32.shr_u
-     call $assembly/index/setImageData
+     local.set $value|95
+     local.get $addr|94
+     i32.const 16384
+     i32.add
+     local.get $value|95
+     i32.store8 $0
      local.get $imageDataAddr
-     local.tee $64
+     local.tee $96
      i32.const 1
      i32.add
      local.set $imageDataAddr
-     local.get $64
+     local.get $96
+     local.set $addr|97
      local.get $rgbColor
      i32.const 65280
      i32.and
      i32.const 8
      i32.shr_u
-     call $assembly/index/setImageData
+     local.set $value|98
+     local.get $addr|97
+     i32.const 16384
+     i32.add
+     local.get $value|98
+     i32.store8 $0
      local.get $imageDataAddr
-     local.tee $65
+     local.tee $99
      i32.const 1
      i32.add
      local.set $imageDataAddr
-     local.get $65
+     local.get $99
+     local.set $addr|100
      local.get $rgbColor
      i32.const 255
      i32.and
-     call $assembly/index/setImageData
+     local.set $value|101
+     local.get $addr|100
+     i32.const 16384
+     i32.add
+     local.get $value|101
+     i32.store8 $0
      local.get $imageDataAddr
-     local.tee $66
+     local.tee $102
      i32.const 1
      i32.add
      local.set $imageDataAddr
-     local.get $66
+     local.get $102
+     local.set $addr|103
      i32.const 255
-     call $assembly/index/setImageData
+     local.set $value|104
+     local.get $addr|103
+     i32.const 16384
+     i32.add
+     local.get $value|104
+     i32.store8 $0
      local.get $x
      i32.const 1
      i32.add
