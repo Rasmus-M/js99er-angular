@@ -10,8 +10,8 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "postinstall": "ngcc",
-    "asbuild:debug": "asc assembly/index.ts --target debug --importMemory --memoryBase 32768 --runtime stub",
-    "asbuild:release": "asc assembly/index.ts --target release --importMemory --memoryBase 32768 --runtime stub",
+    "asbuild:debug": "asc assembly/index.ts --target debug --importMemory --memoryBase 32768 --lowMemoryLimit --runtime stub",
+    "asbuild:release": "asc assembly/index.ts --target release --importMemory --memoryBase 32768 --lowMemoryLimit --runtime stub",
     "asbuild": "npm run asbuild:debug && npm run asbuild:release"
   },
   "private": true,

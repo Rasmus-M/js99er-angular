@@ -17,7 +17,7 @@ export class WasmService implements Resolve<any> {
     }
 
     private instantiateWasm() {
-        const memory = new WebAssembly.Memory({ initial: 2, maximum: 4 });
+        const memory = new WebAssembly.Memory({ initial: 1, maximum: 1 });
         return WebAssembly.instantiateStreaming(fetch('assets/wasm/index.wasm'), {env: {
                 memory,
                 abort: (message, fileName, lineNumber, columnNumber) => { console.error(message); }

@@ -1,7 +1,6 @@
 (module
  (type $none_=>_none (func))
  (type $i32_i32_=>_none (func (param i32 i32)))
- (type $i32_=>_i32 (func (param i32) (result i32)))
  (type $i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_=>_i32 (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
  (import "env" "memory" (memory $0 1))
  (global $assembly/index/MODE_GRAPHICS i32 (i32.const 0))
@@ -11,33 +10,234 @@
  (global $assembly/index/MODE_BITMAP_TEXT i32 (i32.const 4))
  (global $assembly/index/MODE_BITMAP_MULTICOLOR i32 (i32.const 5))
  (global $assembly/index/MODE_ILLEGAL i32 (i32.const 6))
+ (global $assembly/index/colorsInitialized (mut i32) (i32.const 0))
  (table $0 1 1 funcref)
  (elem $0 (i32.const 1))
  (export "drawScanline" (func $assembly/index/drawScanline))
  (export "memory" (memory $0))
- (func $assembly/index/initSpriteBuffer
+ (func $assembly/index/initColors
   (local $i i32)
+  (local $value i32)
+  (local $i|2 i32)
+  (local $value|3 i32)
+  (local $i|4 i32)
+  (local $value|5 i32)
+  (local $i|6 i32)
+  (local $value|7 i32)
+  (local $i|8 i32)
+  (local $value|9 i32)
+  (local $i|10 i32)
+  (local $value|11 i32)
+  (local $i|12 i32)
+  (local $value|13 i32)
+  (local $i|14 i32)
+  (local $value|15 i32)
+  (local $i|16 i32)
+  (local $value|17 i32)
+  (local $i|18 i32)
+  (local $value|19 i32)
+  (local $i|20 i32)
+  (local $value|21 i32)
+  (local $i|22 i32)
+  (local $value|23 i32)
+  (local $i|24 i32)
+  (local $value|25 i32)
+  (local $i|26 i32)
+  (local $value|27 i32)
+  (local $i|28 i32)
+  (local $value|29 i32)
+  (local $i|30 i32)
+  (local $value|31 i32)
+  global.get $assembly/index/colorsInitialized
+  if
+   nop
+  end
   i32.const 0
   local.set $i
-  loop $for-loop|0
-   local.get $i
-   i32.const 256
-   i32.lt_s
-   if
-    i32.const 24576
-    local.get $i
-    i32.const 2
-    i32.shl
-    i32.add
-    i32.const -1
-    i32.store $0
-    local.get $i
-    i32.const 1
-    i32.add
-    local.set $i
-    br $for-loop|0
-   end
-  end
+  i32.const -16777216
+  local.set $value
+  i32.const 20480
+  local.get $i
+  i32.const 2
+  i32.shl
+  i32.add
+  local.get $value
+  i32.store $0
+  i32.const 1
+  local.set $i|2
+  i32.const -16777216
+  local.set $value|3
+  i32.const 20480
+  local.get $i|2
+  i32.const 2
+  i32.shl
+  i32.add
+  local.get $value|3
+  i32.store $0
+  i32.const 2
+  local.set $i|4
+  i32.const -12400607
+  local.set $value|5
+  i32.const 20480
+  local.get $i|4
+  i32.const 2
+  i32.shl
+  i32.add
+  local.get $value|5
+  i32.store $0
+  i32.const 3
+  local.set $i|6
+  i32.const -8856482
+  local.set $value|7
+  i32.const 20480
+  local.get $i|6
+  i32.const 2
+  i32.shl
+  i32.add
+  local.get $value|7
+  i32.store $0
+  i32.const 4
+  local.set $i|8
+  i32.const -1223340
+  local.set $value|9
+  i32.const 20480
+  local.get $i|8
+  i32.const 2
+  i32.shl
+  i32.add
+  local.get $value|9
+  i32.store $0
+  i32.const 5
+  local.set $i|10
+  i32.const -231811
+  local.set $value|11
+  i32.const 20480
+  local.get $i|10
+  i32.const 2
+  i32.shl
+  i32.add
+  local.get $value|11
+  i32.store $0
+  i32.const 6
+  local.set $i|12
+  i32.const -11709740
+  local.set $value|13
+  i32.const 20480
+  local.get $i|12
+  i32.const 2
+  i32.shl
+  i32.add
+  local.get $value|13
+  i32.store $0
+  i32.const 7
+  local.set $i|14
+  i32.const -660670
+  local.set $value|15
+  i32.const 20480
+  local.get $i|14
+  i32.const 2
+  i32.shl
+  i32.add
+  local.get $value|15
+  i32.store $0
+  i32.const 8
+  local.set $i|16
+  i32.const -11250180
+  local.set $value|17
+  i32.const 20480
+  local.get $i|16
+  i32.const 2
+  i32.shl
+  i32.add
+  local.get $value|17
+  i32.store $0
+  i32.const 9
+  local.set $i|18
+  i32.const -8881665
+  local.set $value|19
+  i32.const 20480
+  local.get $i|18
+  i32.const 2
+  i32.shl
+  i32.add
+  local.get $value|19
+  i32.store $0
+  i32.const 10
+  local.set $i|20
+  i32.const -11222572
+  local.set $value|21
+  i32.const 20480
+  local.get $i|20
+  i32.const 2
+  i32.shl
+  i32.add
+  local.get $value|21
+  i32.store $0
+  i32.const 11
+  local.set $i|22
+  i32.const -8335642
+  local.set $value|23
+  i32.const 20480
+  local.get $i|22
+  i32.const 2
+  i32.shl
+  i32.add
+  local.get $value|23
+  i32.store $0
+  i32.const 12
+  local.set $i|24
+  i32.const -12865503
+  local.set $value|25
+  i32.const 20480
+  local.get $i|24
+  i32.const 2
+  i32.shl
+  i32.add
+  local.get $value|25
+  i32.store $0
+  i32.const 13
+  local.set $i|26
+  i32.const -4564023
+  local.set $value|27
+  i32.const 20480
+  local.get $i|26
+  i32.const 2
+  i32.shl
+  i32.add
+  local.get $value|27
+  i32.store $0
+  i32.const 14
+  local.set $i|28
+  i32.const -3355444
+  local.set $value|29
+  i32.const 20480
+  local.get $i|28
+  i32.const 2
+  i32.shl
+  i32.add
+  local.get $value|29
+  i32.store $0
+  i32.const 15
+  local.set $i|30
+  i32.const -1
+  local.set $value|31
+  i32.const 20480
+  local.get $i|30
+  i32.const 2
+  i32.shl
+  i32.add
+  local.get $value|31
+  i32.store $0
+  i32.const 1
+  global.set $assembly/index/colorsInitialized
+ )
+ (func $assembly/index/initSpriteBuffer
+  i32.const 24576
+  i32.const 255
+  i32.const 256
+  i32.const 2
+  i32.shl
+  memory.fill $0
  )
  (func $assembly/index/setSpriteBuffer (param $offset i32) (param $value i32)
   i32.const 24576
@@ -47,146 +247,6 @@
   i32.add
   local.get $value
   i32.store $0
- )
- (func $assembly/index/getColor (param $i i32) (result i32)
-  (local $1 i32)
-  block $break|0
-   block $case15|0
-    block $case14|0
-     block $case13|0
-      block $case12|0
-       block $case11|0
-        block $case10|0
-         block $case9|0
-          block $case8|0
-           block $case7|0
-            block $case6|0
-             block $case5|0
-              block $case4|0
-               block $case3|0
-                block $case2|0
-                 block $case1|0
-                  block $case0|0
-                   local.get $i
-                   i32.const 15
-                   i32.and
-                   local.set $1
-                   local.get $1
-                   i32.const 0
-                   i32.eq
-                   br_if $case0|0
-                   local.get $1
-                   i32.const 1
-                   i32.eq
-                   br_if $case1|0
-                   local.get $1
-                   i32.const 2
-                   i32.eq
-                   br_if $case2|0
-                   local.get $1
-                   i32.const 3
-                   i32.eq
-                   br_if $case3|0
-                   local.get $1
-                   i32.const 4
-                   i32.eq
-                   br_if $case4|0
-                   local.get $1
-                   i32.const 5
-                   i32.eq
-                   br_if $case5|0
-                   local.get $1
-                   i32.const 6
-                   i32.eq
-                   br_if $case6|0
-                   local.get $1
-                   i32.const 7
-                   i32.eq
-                   br_if $case7|0
-                   local.get $1
-                   i32.const 8
-                   i32.eq
-                   br_if $case8|0
-                   local.get $1
-                   i32.const 9
-                   i32.eq
-                   br_if $case9|0
-                   local.get $1
-                   i32.const 10
-                   i32.eq
-                   br_if $case10|0
-                   local.get $1
-                   i32.const 11
-                   i32.eq
-                   br_if $case11|0
-                   local.get $1
-                   i32.const 12
-                   i32.eq
-                   br_if $case12|0
-                   local.get $1
-                   i32.const 13
-                   i32.eq
-                   br_if $case13|0
-                   local.get $1
-                   i32.const 14
-                   i32.eq
-                   br_if $case14|0
-                   local.get $1
-                   i32.const 15
-                   i32.eq
-                   br_if $case15|0
-                   br $break|0
-                  end
-                  i32.const -16777216
-                  return
-                 end
-                 i32.const -16777216
-                 return
-                end
-                i32.const -12400607
-                return
-               end
-               i32.const -8856482
-               return
-              end
-              i32.const -1223340
-              return
-             end
-             i32.const -231811
-             return
-            end
-            i32.const -11709740
-            return
-           end
-           i32.const -660670
-           return
-          end
-          i32.const -11250180
-          return
-         end
-         i32.const -8881665
-         return
-        end
-        i32.const -11222572
-        return
-       end
-       i32.const -8335642
-       return
-      end
-      i32.const -12865503
-      return
-     end
-     i32.const -4564023
-     return
-    end
-    i32.const -3355444
-    return
-   end
-   i32.const -1
-   return
-  end
-  i32.const 0
-  return
  )
  (func $assembly/index/drawScanline (param $y i32) (param $width i32) (param $height i32) (param $screenMode i32) (param $textMode i32) (param $bitmapMode i32) (param $fgColor i32) (param $bgColor i32) (param $nameTable i32) (param $colorTable i32) (param $charPatternTable i32) (param $colorTableMask i32) (param $patternTableMask i32) (param $spriteAttributeTable i32) (param $spritePatternTable i32) (param $vr1 i32) (param $vr4 i32) (param $displayOn i32) (param $statusRegister i32) (result i32)
   (local $drawWidth i32)
@@ -251,12 +311,14 @@
   (local $addr|78 i32)
   (local $offset|79 i32)
   (local $spriteColor i32)
-  (local $81 i32)
-  (local $addr|82 i32)
+  (local $i i32)
+  (local $82 i32)
+  (local $addr|83 i32)
   (local $value i32)
-  (local $84 i32)
-  (local $addr|85 i32)
-  (local $value|86 i32)
+  (local $i|85 i32)
+  (local $86 i32)
+  (local $addr|87 i32)
+  (local $value|88 i32)
   local.get $textMode
   i32.eqz
   if (result i32)
@@ -311,6 +373,7 @@
   local.set $fifthSpriteIndex
   i32.const 0
   local.set $color
+  call $assembly/index/initColors
   local.get $y
   local.get $vBorder
   i32.ge_s
@@ -1197,20 +1260,29 @@
       local.get $bgColor
       local.set $color
      end
-     local.get $color
-     call $assembly/index/getColor
+     block $assembly/index/getColor|inlined.0 (result i32)
+      local.get $color
+      local.set $i
+      i32.const 20480
+      local.get $i
+      i32.const 2
+      i32.shl
+      i32.add
+      i32.load $0
+      br $assembly/index/getColor|inlined.0
+     end
      local.set $rgbColor
      local.get $imageDataAddr
-     local.tee $81
+     local.tee $82
      i32.const 1
      i32.add
      local.set $imageDataAddr
-     local.get $81
-     local.set $addr|82
+     local.get $82
+     local.set $addr|83
      local.get $rgbColor
      local.set $value
      i32.const 16384
-     local.get $addr|82
+     local.get $addr|83
      i32.const 2
      i32.shl
      i32.add
@@ -1224,8 +1296,17 @@
     end
    end
   else
-   local.get $bgColor
-   call $assembly/index/getColor
+   block $assembly/index/getColor|inlined.1 (result i32)
+    local.get $bgColor
+    local.set $i|85
+    i32.const 20480
+    local.get $i|85
+    i32.const 2
+    i32.shl
+    i32.add
+    i32.load $0
+    br $assembly/index/getColor|inlined.1
+   end
    local.set $rgbColor
    i32.const 0
    local.set $x
@@ -1235,20 +1316,20 @@
     i32.lt_s
     if
      local.get $imageDataAddr
-     local.tee $84
+     local.tee $86
      i32.const 1
      i32.add
      local.set $imageDataAddr
-     local.get $84
-     local.set $addr|85
+     local.get $86
+     local.set $addr|87
      local.get $rgbColor
-     local.set $value|86
+     local.set $value|88
      i32.const 16384
-     local.get $addr|85
+     local.get $addr|87
      i32.const 2
      i32.shl
      i32.add
-     local.get $value|86
+     local.get $value|88
      i32.store $0
      local.get $x
      i32.const 1

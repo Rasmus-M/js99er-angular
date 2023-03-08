@@ -6,6 +6,8 @@ const MODE_BITMAP_TEXT = 4;
 const MODE_BITMAP_MULTICOLOR = 5;
 const MODE_ILLEGAL = 6;
 
+let colorsInitialized = false;
+
 export function drawScanline(
     y: i32,
     width: i32,
@@ -48,6 +50,7 @@ export function drawScanline(
         tableOffset: i32,
         colorByte: i32,
         patternByte: i32;
+    initColors();
     if (y >= vBorder && y < vBorder + drawHeight && displayOn) {
         const y1: i32 = y - vBorder;
         // Pre-process sprites
@@ -204,9 +207,7 @@ export function drawScanline(
 }
 
 function initSpriteBuffer(): void {
-    for (let i = 0; i < 256; i++) {
-        store<i32>(0x6000 + (i << 2), -1);
-    }
+    memory.fill(0x6000, 0xff, 256 << 2);
 }
 
 // @ts-ignore
@@ -233,40 +234,37 @@ function setImageData(addr: i32, value: u32): void {
     store<u32>(0x4000 + (addr << 2), value);
 }
 
-function getColor(i: i32): u32 {
-    switch (i & 15) {
-        case 0:
-            return 0xff000000;
-        case 1:
-            return 0xff000000;
-        case 2:
-            return 0xff42c821;
-        case 3:
-            return 0xff78dc5e;
-        case 4:
-            return 0xffed5554;
-        case 5:
-            return 0xfffc767d;
-        case 6:
-            return 0xff4d52d4;
-        case 7:
-            return 0xfff5eb42;
-        case 8:
-            return 0xff5455fc;
-        case 9:
-            return 0xff7879ff;
-        case 10:
-            return 0xff54c1d4;
-        case 11:
-            return 0xff80cee6;
-        case 12:
-            return 0xff3bb021;
-        case 13:
-            return 0xffba5bc9;
-        case 14:
-            return 0xffcccccc;
-        case 15:
-            return 0xffffffff;
+function initColors(): void {
+    if (colorsInitialized) {
+        // return;
     }
-    return 0;
+    setColor(0, 0xff000000);
+    setColor(1, 0xff000000);
+    setColor(2, 0xff42c821);
+    setColor(3, 0xff78dc5e);
+    setColor(4, 0xffed5554);
+    setColor(5, 0xfffc767d);
+    setColor(6, 0xff4d52d4);
+    setColor(7, 0xfff5eb42);
+    setColor(8, 0xff5455fc);
+    setColor(9, 0xff7879ff);
+    setColor(10, 0xff54c1d4);
+    setColor(11, 0xff80cee6);
+    setColor(12, 0xff3bb021);
+    setColor(13, 0xffba5bc9);
+    setColor(14, 0xffcccccc);
+    setColor(15, 0xffffffff);
+    colorsInitialized = true;
+}
+
+// @ts-ignore
+@inline
+function setColor(i: i32, value: u32): void {
+    store<u32>(0x5000 + (i << 2), value);
+}
+
+// @ts-ignore
+@inline
+function getColor(i: i32): u32 {
+    return load<u32>(0x5000 + (i << 2));
 }
