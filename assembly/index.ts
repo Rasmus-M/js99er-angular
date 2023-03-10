@@ -6,7 +6,10 @@ const MODE_BITMAP_TEXT = 4;
 const MODE_BITMAP_MULTICOLOR = 5;
 const MODE_ILLEGAL = 6;
 
-let colorsInitialized = false;
+const vdpRAMAddr = 0x0000;
+const paletteAddr = 0x4000;
+const scanlineColorBufferAddr = 0x5000;
+const spriteBufferAddr = 0x6000;
 
 export function drawScanline(
     y: i32,
@@ -50,7 +53,7 @@ export function drawScanline(
         tableOffset: i32,
         colorByte: i32,
         patternByte: i32;
-    initColors();
+
     if (y >= vBorder && y < vBorder + drawHeight && displayOn) {
         const y1: i32 = y - vBorder;
         // Pre-process sprites
@@ -61,7 +64,7 @@ export function drawScanline(
             let spriteAttributeAddr: i32 = spriteAttributeTable;
             let s: i32;
             for (s = 0; s < 32 && spritesOnLine <= maxSpritesOnLine && !endMarkerFound; s++) {
-                let sy: i32 = ramByte(spriteAttributeAddr);
+                let sy: i32 = getRAMByte(spriteAttributeAddr);
                 if (sy !== 0xD0) {
                     if (sy > 0xD0) {
                         sy -= 256;
@@ -84,10 +87,10 @@ export function drawScanline(
                     }
                     if (y2 !== -1) {
                         if (spritesOnLine < maxSpritesOnLine) {
-                            let sx: i32 = ramByte(spriteAttributeAddr + 1);
-                            const sPatternNo: i32 = ramByte(spriteAttributeAddr + 2) & (spriteSize ? 0xFC : 0xFF);
-                            const sColor: i32 = ramByte(spriteAttributeAddr + 3) & 0x0F;
-                            if ((ramByte(spriteAttributeAddr + 3) & 0x80) !== 0) {
+                            let sx: i32 = getRAMByte(spriteAttributeAddr + 1);
+                            const sPatternNo: i32 = getRAMByte(spriteAttributeAddr + 2) & (spriteSize ? 0xFC : 0xFF);
+                            const sColor: i32 = getRAMByte(spriteAttributeAddr + 3) & 0x0F;
+                            if ((getRAMByte(spriteAttributeAddr + 3) & 0x80) !== 0) {
                                 sx -= 32;
                             }
                             const sLine: i32 = (y2 - sy) >> spriteMagnify;
@@ -96,7 +99,7 @@ export function drawScanline(
                                 const sx2: i32 = sx + sx1;
                                 if (sx2 >= 0 && sx2 < drawWidth) {
                                     const sx3: i32 = sx1 >> spriteMagnify;
-                                    const sPatternByte: i32 = ramByte(sPatternBase + (sx3 >= 8 ? 16 : 0));
+                                    const sPatternByte: i32 = getRAMByte(sPatternBase + (sx3 >= 8 ? 16 : 0));
                                     if ((sPatternByte & (0x80 >> (sx3 & 0x07))) !== 0) {
                                         if (getSpriteBuffer(sx2) === -1) {
                                             setSpriteBuffer(sx2, sColor);
@@ -128,40 +131,40 @@ export function drawScanline(
                 // Tiles
                 switch (screenMode) {
                     case MODE_GRAPHICS:
-                        name = ramByte(nameTable + rowOffset + (x1 >> 3));
-                        colorByte = ramByte(colorTable + (name >> 3));
-                        patternByte = ramByte(charPatternTable + (name << 3) + lineOffset);
+                        name = getRAMByte(nameTable + rowOffset + (x1 >> 3));
+                        colorByte = getRAMByte(colorTable + (name >> 3));
+                        patternByte = getRAMByte(charPatternTable + (name << 3) + lineOffset);
                         color = (patternByte & (0x80 >> (x1 & 7))) !== 0 ? (colorByte & 0xF0) >> 4 : colorByte & 0x0F;
                         break;
                     case MODE_BITMAP:
-                        name = ramByte(nameTable + rowOffset + (x1 >> 3));
+                        name = getRAMByte(nameTable + rowOffset + (x1 >> 3));
                         tableOffset = ((y1 & 0xC0) << 5) + (name << 3);
-                        colorByte = ramByte(colorTable + (tableOffset & colorTableMask) + lineOffset);
-                        patternByte = ramByte(charPatternTable + (tableOffset & patternTableMask) + lineOffset);
+                        colorByte = getRAMByte(colorTable + (tableOffset & colorTableMask) + lineOffset);
+                        patternByte = getRAMByte(charPatternTable + (tableOffset & patternTableMask) + lineOffset);
                         color = (patternByte & (0x80 >> (x1 & 7))) !== 0 ? (colorByte & 0xF0) >> 4 : colorByte & 0x0F;
                         break;
                     case MODE_MULTICOLOR:
-                        name = ramByte(nameTable + rowOffset + (x1 >> 3));
+                        name = getRAMByte(nameTable + rowOffset + (x1 >> 3));
                         lineOffset = (y1 & 0x1C) >> 2;
-                        patternByte = ramByte(charPatternTable + (name << 3) + lineOffset);
+                        patternByte = getRAMByte(charPatternTable + (name << 3) + lineOffset);
                         color = (x1 & 4) === 0 ? (patternByte & 0xF0) >> 4 : patternByte & 0x0F;
                         break;
                     case MODE_TEXT:
-                        name = ramByte(nameTable + rowOffset + x1 / 6);
-                        patternByte = ramByte(charPatternTable + (name << 3) + lineOffset);
+                        name = getRAMByte(nameTable + rowOffset + x1 / 6);
+                        patternByte = getRAMByte(charPatternTable + (name << 3) + lineOffset);
                         color = (patternByte & (0x80 >> (x1 % 6))) !== 0 ? fgColor : bgColor;
                         break;
                     case MODE_BITMAP_TEXT:
-                        name = ramByte(nameTable + rowOffset + x1 / 6);
+                        name = getRAMByte(nameTable + rowOffset + x1 / 6);
                         tableOffset = ((y1 & 0xC0) << 5) + (name << 3);
-                        patternByte = ramByte(charPatternTable + (tableOffset & patternTableMask) + lineOffset);
+                        patternByte = getRAMByte(charPatternTable + (tableOffset & patternTableMask) + lineOffset);
                         color = (patternByte & (0x80 >> (x1 % 6))) !== 0 ? fgColor : bgColor;
                         break;
                     case MODE_BITMAP_MULTICOLOR:
-                        name = ramByte(nameTable + rowOffset + (x1 >> 3));
+                        name = getRAMByte(nameTable + rowOffset + (x1 >> 3));
                         lineOffset = (y1 & 0x1C) >> 2;
                         tableOffset = ((y1 & 0xC0) << 5) + (name << 3);
-                        patternByte = ramByte(charPatternTable + (tableOffset & patternTableMask) + lineOffset);
+                        patternByte = getRAMByte(charPatternTable + (tableOffset & patternTableMask) + lineOffset);
                         color = (x1 & 4) === 0 ? (patternByte & 0xF0) >> 4 : patternByte & 0x0F;
                         break;
                     case MODE_ILLEGAL:
@@ -206,65 +209,36 @@ export function drawScanline(
     return statusRegister;
 }
 
-function initSpriteBuffer(): void {
-    memory.fill(0x6000, 0xff, 256 << 2);
-}
-
-// @ts-ignore
-@Inline
-function setSpriteBuffer(offset: i32, value: i32): void {
-    store<i32>(0x6000 + (offset << 2), value);
-}
-
 // @ts-ignore
 @inline
-function getSpriteBuffer(offset: i32): i32 {
-    return load<i32>(0x6000 + (offset << 2));
-}
-
-// @ts-ignore
-@inline
-function ramByte(addr: i32): u8 {
-    return load<u8>(addr);
-}
-
-// @ts-ignore
-@inline
-function setImageData(addr: i32, value: u32): void {
-    store<u32>(0x4000 + (addr << 2), value);
-}
-
-function initColors(): void {
-    if (colorsInitialized) {
-        // return;
-    }
-    setColor(0, 0xff000000);
-    setColor(1, 0xff000000);
-    setColor(2, 0xff42c821);
-    setColor(3, 0xff78dc5e);
-    setColor(4, 0xffed5554);
-    setColor(5, 0xfffc767d);
-    setColor(6, 0xff4d52d4);
-    setColor(7, 0xfff5eb42);
-    setColor(8, 0xff5455fc);
-    setColor(9, 0xff7879ff);
-    setColor(10, 0xff54c1d4);
-    setColor(11, 0xff80cee6);
-    setColor(12, 0xff3bb021);
-    setColor(13, 0xffba5bc9);
-    setColor(14, 0xffcccccc);
-    setColor(15, 0xffffffff);
-    colorsInitialized = true;
-}
-
-// @ts-ignore
-@inline
-function setColor(i: i32, value: u32): void {
-    store<u32>(0x5000 + (i << 2), value);
+function getRAMByte(addr: i32): u8 {
+    return load<u8>(vdpRAMAddr + addr);
 }
 
 // @ts-ignore
 @inline
 function getColor(i: i32): u32 {
-    return load<u32>(0x5000 + (i << 2));
+    return load<u32>(paletteAddr + (i << 2));
+}
+
+function initSpriteBuffer(): void {
+    memory.fill(spriteBufferAddr, 0xff, 256 << 2);
+}
+
+// @ts-ignore
+@Inline
+function setSpriteBuffer(offset: i32, value: i32): void {
+    store<i32>(spriteBufferAddr + (offset << 2), value);
+}
+
+// @ts-ignore
+@inline
+function getSpriteBuffer(offset: i32): i32 {
+    return load<i32>(spriteBufferAddr + (offset << 2));
+}
+
+// @ts-ignore
+@inline
+function setImageData(addr: i32, value: u32): void {
+    store<u32>(scanlineColorBufferAddr + (addr << 2), value);
 }

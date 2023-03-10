@@ -8,7 +8,7 @@ import {Observable} from "rxjs";
 export class WasmService implements Resolve<any> {
 
     private exports: any;
-    private buffer: Uint8Array;
+    private buffer: ArrayBuffer;
 
     constructor() {}
 
@@ -24,7 +24,7 @@ export class WasmService implements Resolve<any> {
             }}).then(
             (source: WebAssembly.WebAssemblyInstantiatedSource) => {
                 this.exports = source.instance.exports;
-                this.buffer = new Uint8Array(memory.buffer);
+                this.buffer = memory.buffer;
             }
         );
     }
@@ -33,7 +33,7 @@ export class WasmService implements Resolve<any> {
         return this.exports;
     }
 
-    public getMemoryBuffer(): Uint8Array {
+    public getMemoryBuffer(): ArrayBuffer {
         return this.buffer;
     }
 }

@@ -16,6 +16,10 @@ export enum ScreenMode {
     MODE_ILLEGAL = 6
 }
 
+// WASM memory addresses
+const paletteAddr = 0x4000;
+const scanlineColorBufferAddr = 0x5000;
+
 export class TMS9918A implements VDP {
 
     private canvas: HTMLCanvasElement;
@@ -82,7 +86,7 @@ export class TMS9918A implements VDP {
 
     reset() {
         this.cru = this.console.getCRU();
-        this.ram = this.wasmService.getMemoryBuffer();
+        this.ram = new Uint8Array(this.wasmService.getMemoryBuffer(), 0, 0x4000);
         for (let i = 0; i < this.ram.length; i++) {
             this.ram[i] = 0;
         }
@@ -116,10 +120,18 @@ export class TMS9918A implements VDP {
         this.canvasContext.fillStyle = 'rgba(' + this.palette[7].join(',') + ',1.0)';
         this.canvasContext.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Build the array containing the canvas bitmap (256 * 192 * 4 bytes (r,g,b,a) format each pixel)
         this.imageData = this.canvasContext.getImageData(0, 0, this.canvas.width, this.canvas.height);
         this.width = this.canvas.width;
         this.height = this.canvas.height;
+
+        const colorMemory = new Uint8Array(this.wasmService.getMemoryBuffer(), paletteAddr, 64);
+        let addr = 0;
+        for (let i = 0; i < this.palette.length; i++) {
+            colorMemory[addr++] = this.palette[i][0];
+            colorMemory[addr++] = this.palette[i][1];
+            colorMemory[addr++] = this.palette[i][2];
+            colorMemory[addr++] = 0xff;
+        }
 
         this.spritePatternColorMap = {};
     }
@@ -152,7 +164,7 @@ export class TMS9918A implements VDP {
         if (this.interruptsOn && (this.statusRegister & 0x80) !== 0) {
             this.cru.setVDPInterrupt(true);
         }
-        const buffer = new Uint8Array(this.wasmService.getMemoryBuffer().buffer, 0x4000, this.width << 2);
+        const buffer = new Uint8Array(this.wasmService.getMemoryBuffer(), scanlineColorBufferAddr, this.width << 2);
         new Uint8Array(this.imageData.data.buffer).set(buffer, (y * this.width) << 2);
     }
 
