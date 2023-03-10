@@ -605,5 +605,6 @@
     {"url": "tix8.bin", "name": "TIX"},
     {"url": "formula99p-8.bin", "name": "Formula 99+"},
     {"url": "spacetreat8.bin", "name": "Space Treat"},
-    {"url": "pinball99.rpk", "name": "Pinball 99"}
+    {"url": "pinball99.rpk", "name": "Pinball 99"},
+    {"url": "avaris2-8.bin", "name": "Avaris II"}
 ]
