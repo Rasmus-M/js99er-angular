@@ -611,7 +611,7 @@ export class TMS9918A implements VDP {
     }
 
     restoreState(state: any) {
-        this.ram = state.ram;
+        this.ram.set(state.ram);
         this.registers = state.registers;
         this.addressRegister = state.addressRegister;
         this.statusRegister = state.statusRegister;
