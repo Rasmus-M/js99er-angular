@@ -142,13 +142,37 @@
                 },
                 {
                     "type": "ITEM",
-                    "name": "Rasmus 8-in-1 game cart",
-                    "url": "software/rasmus-8in1-cart.rpk"
+                    "name": "JetPac",
+                    "url": "software/JetPac3.bin"
                 },
                 {
                     "type": "ITEM",
-                    "name": "Road Hunter/TI Scramble/Titanium",
-                    "url": "software/scrolling-trilogy.json"
+                    "name": "Pitfall!",
+                    "url": "software/pitfall.json"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Break Free",
+                    "url": "software/brkfree.rpk"
+                }
+            ]
+        },
+        {
+            "type": "DIVIDER"
+        },
+        {
+            "type": "SUBMENU",
+            "name": "My games",
+            "items": [
+                {
+                    "type": "ITEM",
+                    "name": "Titanium",
+                    "url": "software/titanium.rpk"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "TI Scramble",
+                    "url": "software/tiscramble.rpk"
                 },
                 {
                     "type": "ITEM",
@@ -157,12 +181,12 @@
                 },
                 {
                     "type": "ITEM",
-                    "name": "Sabre Wulf",
-                    "url": "software/sabrewulf.rpk"
+                    "name": "Road hunter",
+                    "url": "software/roadhunter.rpk"
                 },
                 {
                     "type": "ITEM",
-                    "name": "Sports",
+                    "name": "Sports game",
                     "url": "software/sports.rpk"
                 },
                 {
@@ -177,33 +201,33 @@
                 },
                 {
                     "type": "ITEM",
+                    "name": "Sabre Wulf",
+                    "url": "software/sabrewulf.rpk"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Dungeons of Asgaard",
+                    "url": "software/doa8.bin"
+                },
+                {
+                    "type": "ITEM",
                     "name": "Knight Lore",
                     "url": "software/knightlore8.bin"
                 },
                 {
                     "type": "ITEM",
-                    "name": "Skyway",
-                    "url": "software/skyway8.bin"
-                },
-                {
-                    "type": "ITEM",
-                    "name": "JetPac",
-                    "url": "software/JetPac3.bin"
-                },
-                {
-                    "type": "ITEM",
-                    "name": "Pitfall!",
-                    "url": "software/pitfall.json"
-                },
-                {
-                    "type": "ITEM",
-                    "name": "Break Free",
-                    "url": "software/brkfree.rpk"
-                },
-                {
-                    "type": "ITEM",
                     "name": "Flying Shark",
                     "url": "software/flying-shark-v1.2.rpk"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "FORK",
+                    "url": "software/fork.rpk"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Skyway",
+                    "url": "software/skyway8.bin"
                 },
                 {
                     "type": "ITEM",
@@ -222,12 +246,26 @@
                 },
                 {
                     "type": "ITEM",
+                    "name": "F18A ZQX-ONE",
+                    "url": "software/zqx-one-8.bin"
+                },
+                {
+                    "type": "ITEM",
                     "name": "Pinball 99",
                     "url": "software/pinball99.rpk"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Through the Trap Door",
+                    "url": "software/trapdoor8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "West Bank",
+                    "url": "software/westbank.rpk"
                 }
             ]
-        },
-        {
+        },        {
             "type": "DIVIDER"
         },
         {
