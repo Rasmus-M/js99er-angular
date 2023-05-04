@@ -606,5 +606,8 @@
     {"url": "formula99p-8.bin", "name": "Formula 99+"},
     {"url": "spacetreat8.bin", "name": "Space Treat"},
     {"url": "pinball99.rpk", "name": "Pinball 99"},
-    {"url": "avaris2-8.bin", "name": "Avaris II"}
+    {"url": "avaris2-8.bin", "name": "Avaris II"},
+    {"url": "trapdoor8.bin", "name": "Through the Trap Door"},
+    {"url": "westbank.rpk", "name": "West Bank"}
 ]
+
