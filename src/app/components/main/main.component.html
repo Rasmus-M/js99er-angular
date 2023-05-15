@@ -1,5 +1,5 @@
-<div class="app" [ngClass]="{'hide-side-panel': !sidePanelVisible}">
-    <div class="console">
+<div *ngIf="sidePanelVisible || toolbarVisible" class="app" [ngClass]="{'hide-side-panel': !sidePanelVisible, 'hide-main-controls': !toolbarVisible}">
+    <div class="console-wrapper">
         <app-console class="console" [diskImages]="diskImages"></app-console>
     </div>
     <div class="side-panel" [hidden]="!sidePanelVisible">
@@ -46,7 +46,11 @@
             </mat-tab>
         </mat-tab-group>
     </div>
-    <div class="main-controls">
+    <div class="main-controls" [hidden]="!toolbarVisible">
         <app-main-controls></app-main-controls>
     </div>
+</div>
+
+<div *ngIf="!sidePanelVisible && !toolbarVisible" class="console-wrapper">
+    <app-console class="console" [diskImages]="diskImages"></app-console>
 </div>

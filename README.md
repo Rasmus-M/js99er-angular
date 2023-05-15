@@ -2,7 +2,7 @@
 
 This is the new version of js99er.net developed using Angular and TypeScript. Try it [here](https://js99er.net).
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.7.3.
+This project was originally generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.7.3.
 
 ## Setting up the development environment
 
@@ -17,22 +17,38 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
 
-## Code scaffolding
-
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
-
 ## Build
 
 Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `-prod` flag for a production build.
 
-## Running unit tests
+## Embedding into a website
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+First build the project. Then edit the dist/index.html file and insert a config attribute into the js99er element, e.g.:
 
-## Running end-to-end tests
+```
+<js99er config='{"sidePanelVisible": false, "toolbarVisible": false, "cartridgeURL": "my-folder/my-cart.rpk", "settings": {}}'></js99er>
+```
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+The config attribute is formatted as a JSON object. Setting both sidePanelVisible and toolbarVisible to false will disable the JS99er UI leaving only the console canvas.
 
-## Further help
+The settings object may contain the following properties, shown here with the defaults:
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+```
+"settings": {
+    "SoundEnabled": true,
+    "SpeechEnabled": true,
+    "32KRAMEnabled": true,
+    "F18AEnabled": false,
+    "PCKeyboardEnabled": false,
+    "MapArrowKeysEnabled": false,
+    "GoogleDriveEnabled": false,
+    "SAMSEnabled": false,
+    "GRAMEnabled": false,
+    "PixelatedEnabled": false,
+    "PauseOnFocusLostEnabled": false,
+    "TIPIEnabled": false,
+    "DebugResetEnabled": false,
+    "H264CodexEnabled": false,
+    "FastTIPIMouseEnabled": false
+}
+```

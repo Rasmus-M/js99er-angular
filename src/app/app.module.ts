@@ -23,7 +23,7 @@ import {MatTooltipModule} from "@angular/material/tooltip";
 
 import {EmulatorModule} from './emulator/emulator.module';
 import {AppRoutingModule} from './app-routing.module';
-import {AppComponent} from './app.component';
+import {Js99erComponent} from './js99er.component';
 import {MainComponent} from './components/main/main.component';
 import {DebuggerComponent} from './components/debugger/debugger.component';
 import {MainControlsComponent} from './components/main-controls/main-controls.component';
@@ -44,10 +44,11 @@ import {CommandDispatcherService} from './services/command-dispatcher.service';
 import {ObjectLoaderService} from './services/object-loader.service';
 import {SettingsService} from './services/settings.service';
 import {EventDispatcherService} from './services/event-dispatcher.service';
+import {ConfigService} from "./services/config.service";
 
 @NgModule({
     declarations: [
-        AppComponent,
+        Js99erComponent,
         DebuggerComponent,
         MainControlsComponent,
         SettingsComponent,
@@ -95,10 +96,11 @@ import {EventDispatcherService} from './services/event-dispatcher.service';
         CommandDispatcherService,
         EventDispatcherService,
         ObjectLoaderService,
-        SettingsService
+        SettingsService,
+        ConfigService
     ],
     bootstrap: [
-        AppComponent
+        Js99erComponent
     ]
 })
 export class AppModule {

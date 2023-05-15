@@ -18,8 +18,9 @@ import {Command, CommandType} from "../../classes/command";
 import {Setting, Settings} from "../../classes/settings";
 import {ConsoleEvent, ConsoleEventType} from "../../classes/consoleevent";
 import {Software} from "../../classes/software";
-import {AppComponent} from "../../app.component";
+import {Js99erComponent} from "../../js99er.component";
 import {map, mergeMap} from "rxjs/operators";
+import {ConfigService} from "../../services/config.service";
 
 @Component({
   selector: 'app-main',
@@ -32,15 +33,17 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     ti994A: TI994A;
     tabIndex: number;
 
-    title = AppComponent.TITLE;
-    version = AppComponent.VERSION;
-    date = AppComponent.DATE;
+    title = Js99erComponent.TITLE;
+    version = Js99erComponent.VERSION;
+    date = Js99erComponent.DATE;
 
-    private cartName = "extended_basic";
+    private cartURL: string;
+    private cartName = 'extended_basic';
     private started = false;
     private autoRun = false;
     private wasRunning = false;
     public sidePanelVisible = true;
+    public toolbarVisible = true;
     private routerSubscription: Subscription;
     private commandSubscription: Subscription;
     private eventSubscription: Subscription;
@@ -56,15 +59,17 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         private diskService: DiskService,
         private databaseService: DatabaseService,
         private moduleService: ModuleService,
-        private moreSoftwareService: MoreSoftwareService
+        private moreSoftwareService: MoreSoftwareService,
+        private configService: ConfigService
     ) {}
 
     ngOnInit() {
+        this.configure();
         this.diskImages = this.diskService.createDefaultDiskImages();
         this.commandSubscription = this.commandDispatcherService.subscribe(this.onCommand.bind(this));
         this.eventSubscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
         this.route.paramMap.subscribe(this.onParametersChanged.bind(this));
-        this.log.info("Welcome to " + AppComponent.TITLE + " version " + AppComponent.VERSION);
+        this.log.info("Welcome to " + Js99erComponent.TITLE + " version " + Js99erComponent.VERSION);
         this.log.info("--------------------------------");
     }
 
@@ -87,6 +92,20 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                 }
             }
         });
+    }
+
+    configure() {
+        const config = this.configService.config;
+        if (config) {
+            this.sidePanelVisible = config.sidePanelVisible !== undefined ? config.sidePanelVisible : true;
+            this.toolbarVisible = config.toolbarVisible !== undefined ? config.toolbarVisible : true;
+            if (config.settings) {
+                this.settingsService.setSettings(config.settings);
+            }
+            if (config.cartridgeURL) {
+                this.cartURL = config.cartridgeURL;
+            }
+        }
     }
 
     onParametersChanged(params: ParamMap) {
@@ -133,7 +152,11 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
             case ConsoleEventType.READY:
                 this.ti994A = event.data;
                 this.audioService.init(this.settingsService.isSoundEnabled(), this.ti994A.getPSG(), this.ti994A.getSpeech(), this.ti994A.getTape());
-                this.loadCartridge(this.cartName);
+                if (this.cartURL) {
+                    this.loadCartridgeFromURL(this.cartURL);
+                } else if (this.cartName) {
+                    this.loadCartridge(this.cartName);
+                }
                 this.commandDispatcherService.start();
                 break;
             case ConsoleEventType.STARTED:
@@ -154,17 +177,21 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         this.log.info("Load cart: " + cartName);
         this.moreSoftwareService.getByName(cartName.replace(/_/g, ' ')).subscribe(
             (cart: Software) => {
-                this.moduleService.loadModuleFromURL(cart.url).subscribe(
-                    (software: Software) => {
-                        this.commandDispatcherService.loadSoftware(software);
-                    },
-                    (error) => {
-                        this.log.error(error + " " + cart.url);
-                    }
-                );
+                this.loadCartridgeFromURL(cart.url);
             },
             (error) => {
                 this.log.error(error);
+            }
+        );
+    }
+
+    loadCartridgeFromURL(url: string) {
+        this.moduleService.loadModuleFromURL(url).subscribe(
+            (software: Software) => {
+                this.commandDispatcherService.loadSoftware(software);
+            },
+            (error) => {
+                this.log.error(error + " " + url);
             }
         );
     }

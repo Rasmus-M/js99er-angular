@@ -1,5 +1,5 @@
 import {async, TestBed} from '@angular/core/testing';
-import {AppComponent} from './app.component';
+import {Js99erComponent} from './js99er.component';
 import {NO_ERRORS_SCHEMA} from '@angular/core';
 
 describe('AppComponent', () => {
@@ -7,12 +7,12 @@ describe('AppComponent', () => {
         TestBed.configureTestingModule({
             schemas: [NO_ERRORS_SCHEMA],
             declarations: [
-                AppComponent
+                Js99erComponent
             ]
         }).compileComponents();
     }));
     it('should create the app', () => {
-        const fixture = TestBed.createComponent(AppComponent);
+        const fixture = TestBed.createComponent(Js99erComponent);
         const app = fixture.componentInstance;
         expect(app).toBeTruthy();
     });
