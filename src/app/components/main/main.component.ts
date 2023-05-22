@@ -42,6 +42,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     private started = false;
     private autoRun = false;
     private wasRunning = false;
+    private wasFast = false;
     public sidePanelVisible = true;
     public toolbarVisible = true;
     private routerSubscription: Subscription;
@@ -83,6 +84,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         $(window).on("blur", () => {
             if (this.settingsService.isPauseOnFocusLostEnabled()) {
                 this.wasRunning = this.ti994A.isRunning();
+                this.wasFast = this.ti994A.isFast();
                 if (this.wasRunning) {
                     this.commandDispatcherService.stop();
                 }
@@ -91,7 +93,11 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         $(window).on("focus", () => {
             if (this.settingsService.isPauseOnFocusLostEnabled()) {
                 if (this.wasRunning) {
-                    this.commandDispatcherService.start();
+                    if (this.wasFast) {
+                        this.commandDispatcherService.fast();
+                    } else {
+                        this.commandDispatcherService.start();
+                    }
                 }
             }
         });

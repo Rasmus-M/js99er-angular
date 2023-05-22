@@ -136,39 +136,53 @@ export class TI994A implements Console, State {
     getCPU(): CPU {
         return this.cpu;
     }
+
     getVDP(): VDP {
         return this.vdp;
     }
+
     getPSG(): PSG {
         return this.psg;
     }
+
     getSpeech(): Speech {
         return this.speech;
     }
+
     getCRU(): CRU {
         return this.cru;
     }
+
     getMemory(): Memory {
         return this.memory;
     }
+
     getKeyboard(): Keyboard {
         return this.keyboard;
     }
+
     getTape(): Tape {
         return this.tape;
     }
+
     getDiskDrives(): DiskDrive[] {
         return this.diskDrives;
     }
+
     getGoogleDrives(): GoogleDrive[] {
         return this.googleDrives;
     }
+
     getTIPI(): TIPI {
         return this.tipi;
     }
 
     isRunning() {
         return this.running;
+    }
+
+    isFast() {
+        return this.cpuSpeed > 1;
     }
 
     reset(keepCart: boolean) {
@@ -196,7 +210,7 @@ export class TI994A implements Console, State {
     }
 
     start(fast: boolean, skipBreakpoint?: boolean) {
-        this.cpuSpeed = fast ? 2 : 1;
+        this.cpuSpeed = fast ? 3 : 1;
         if (!this.isRunning()) {
             this.cpu.setSuspended(false);
             this.tape.setPaused(false);

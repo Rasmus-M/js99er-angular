@@ -6,8 +6,9 @@
     "declaration": false,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false,
     "moduleResolution": "node",
-    "target": "es2015",
+    "target": "es2022",
     "module": "es2020",
     "lib": ["es2018", "dom"],
     "typeRoots": [
