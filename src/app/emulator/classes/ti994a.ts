@@ -81,11 +81,11 @@ export class TI994A implements Console, State {
         this.memory = new Memory(this, this.settings);
         this.cpu = new TMS9900(this);
         this.setVDP();
-        this.psg = new TMS9919();
+        this.tape = new Tape();
+        this.psg = new TMS9919(this.cpu, this.tape);
         this.speech = new TMS5200(this, this.settings);
         this.cru = new CRU(this);
         this.keyboard = new Keyboard(this.document, this.settings);
-        this.tape = new Tape();
         this.diskDrives = [
             new DiskDrive("DSK1", diskImages[0], this),
             new DiskDrive("DSK2", diskImages[1], this),

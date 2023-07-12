@@ -14,7 +14,6 @@ import {Speech} from '../interfaces/speech';
 import {MemoryDevice} from '../interfaces/memory-device';
 import {MemoryLine, MemoryView} from "../../classes/memoryview";
 import {TIPI} from "./tipi";
-import {coerceBooleanProperty} from "@angular/cdk/coercion";
 
 export class Memory implements State, MemoryDevice {
 

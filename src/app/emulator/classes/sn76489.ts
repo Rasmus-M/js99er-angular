@@ -391,6 +391,10 @@ export class SN76489 implements State {
         } // end for loop
     }
 
+    isSample(b: number) {
+        return (b & 0x90) === 0x90 && (b & 0x60) !== 0x60 && this.reg[(b & 0x60) >> 4] <= 6;
+    }
+
     getState(): object {
         return {
             clock : this.clock,

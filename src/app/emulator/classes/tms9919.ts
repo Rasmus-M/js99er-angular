@@ -2,14 +2,20 @@ import {Log} from '../../classes/log';
 import {SN76489} from './sn76489';
 import {Util} from '../../classes/util';
 import {PSG} from '../interfaces/psg';
+import {Tape} from "./tape";
+import {CPU} from "../interfaces/cpu";
 
 export class TMS9919 implements PSG {
 
     private sn76489: SN76489;
+    private cpu: CPU;
+    private tape: Tape;
     private sampleRate: number;
     private log: Log;
 
-    constructor () {
+    constructor (cpu: CPU, tape: Tape) {
+        this.cpu = cpu;
+        this.tape = tape;
         this.sn76489 = new SN76489();
         this.sampleRate = SN76489.SAMPLE_FREQUENCY;
         this.log = Log.getLog();
@@ -27,7 +33,11 @@ export class TMS9919 implements PSG {
 
     writeData(b: number) {
         this.log.debug("PSG: " + Util.toHexByte(b));
-        this.sn76489.write(b);
+        if (this.sn76489.isSample(b)) {
+            this.tape.setAudioGate((b - 128) / 96, this.cpu.getCycles());
+        } else {
+            this.sn76489.write(b);
+        }
     }
 
     mute() {
