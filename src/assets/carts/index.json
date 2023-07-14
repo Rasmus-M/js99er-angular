@@ -608,6 +608,7 @@
     {"url": "pinball99.rpk", "name": "Pinball 99"},
     {"url": "avaris2-8.bin", "name": "Avaris II"},
     {"url": "trapdoor8.bin", "name": "Through the Trap Door"},
-    {"url": "westbank.rpk", "name": "West Bank"}
+    {"url": "westbank.rpk", "name": "West Bank"},
+    {"url": "westbank-v2.rpk", "name": "West Bank V2"}
 ]
 
