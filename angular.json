@@ -28,8 +28,7 @@
               "file-saver",
               "jquery",
               "image-map-resizer"
-            ],
-            "webWorkerTsConfig": "tsconfig.worker.json"
+            ]
           },
           "configurations": {
             "production": {
@@ -102,8 +101,7 @@
             "assets": [
               "src/assets",
               "src/favicon.ico"
-            ],
-            "webWorkerTsConfig": "tsconfig.worker.json"
+            ]
           }
         },
         "lint": {

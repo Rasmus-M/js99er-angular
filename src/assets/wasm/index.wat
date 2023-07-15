@@ -536,12 +536,20 @@
      end
     end
     local.get $spritesOnLine
-    i32.const 4
-    i32.gt_s
+    i32.const 5
+    i32.eq
+    if (result i32)
+     local.get $fifthSprite
+     i32.eqz
+    else
+     i32.const 0
+    end
     if
      i32.const 1
      local.set $fifthSprite
      local.get $s
+     i32.const 1
+     i32.sub
      local.set $fifthSpriteIndex
     end
    end
@@ -1190,16 +1198,18 @@
   i32.eq
   if
    local.get $statusRegister
+   i32.const 224
+   i32.and
    local.get $fifthSpriteIndex
    i32.or
    local.set $statusRegister
-  end
-  local.get $fifthSprite
-  if
-   local.get $statusRegister
-   i32.const 64
-   i32.or
-   local.set $statusRegister
+   local.get $fifthSprite
+   if
+    local.get $statusRegister
+    i32.const 64
+    i32.or
+    local.set $statusRegister
+   end
   end
   local.get $statusRegister
   i32.const 255

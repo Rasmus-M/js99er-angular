@@ -415,10 +415,10 @@ export class F18A implements VDP {
             this.statusRegister |= 0x20;
         }
         if ((this.statusRegister & 0x40) === 0) {
-            this.statusRegister |= (this.reportMax ? this.registers[30] : this.fifthSpriteIndex);
-        }
-        if (this.fifthSprite) {
-            this.statusRegister |= 0x40;
+            this.statusRegister = (this.statusRegister & 0xe0) | (this.reportMax ? this.registers[30] : this.fifthSpriteIndex);
+            if (this.fifthSprite) {
+                this.statusRegister |= 0x40;
+            }
         }
         if (this.gpuHsyncTrigger) {
             this.gpu.setIdle(false);
@@ -1456,7 +1456,7 @@ export class F18A implements VDP {
         }
         s += "\nSIT:" + Util.toHexWord(this.nameTable) + " PDT:" + Util.toHexWord(this.charPatternTable) + " (" + Util.toHexWord(this.patternTableSize()) + ")" +
             " CT:" + Util.toHexWord(this.colorTable) + " (" + Util.toHexWord(this.colorTableSize()) + ") SDT:" + Util.toHexWord(this.spritePatternTable) +
-            " SAL:" + Util.toHexWord(this.spriteAttributeTable) + "\nVDP: " + Util.toHexWord(this.addressRegister);
+            " SAL:" + Util.toHexWord(this.spriteAttributeTable)  + "\nVDP:" + Util.toHexWord(this.addressRegister) + ' ST:' + Util.toHexByte(this.statusRegister);
         return s;
     }
 

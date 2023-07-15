@@ -379,7 +379,7 @@ export class TMS9918A implements VDP {
             ' CT:' + Util.toHexWord(this.colorTable) + ' (' + Util.toHexWord(this.colorTableSize()) + ')' +
             ' SDT:' + Util.toHexWord(this.spritePatternTable) +
             ' SAL:' + Util.toHexWord(this.spriteAttributeTable) +
-            '\nVDP: ' + Util.toHexWord(this.addressRegister);
+            '\nVDP:' + Util.toHexWord(this.addressRegister) + ' ST:' + Util.toHexByte(this.statusRegister);
         return s;
     }
 

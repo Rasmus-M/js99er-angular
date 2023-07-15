@@ -45,7 +45,7 @@ export function drawScanline(
         imageDataAddr: i32 = 0,
         collision: bool = false,
         fifthSprite: bool = false,
-        fifthSpriteIndex: i32 = 31,
+        fifthSpriteIndex: u8 = 31,
         x: i32,
         color: i32 = 0,
         rgbColor: u32,
@@ -117,9 +117,9 @@ export function drawScanline(
                     endMarkerFound = true;
                 }
             }
-            if (spritesOnLine > 4) {
+            if (spritesOnLine === 5 && !fifthSprite) {
                 fifthSprite = true;
-                fifthSpriteIndex = s;
+                fifthSpriteIndex = <u8> s - 1;
             }
         }
         // Draw
@@ -201,10 +201,10 @@ export function drawScanline(
         statusRegister |= 0x20;
     }
     if ((statusRegister & 0x40) === 0) {
-        statusRegister |= <u8>fifthSpriteIndex;
-    }
-    if (fifthSprite) {
-        statusRegister |= 0x40;
+        statusRegister = (statusRegister & 0xe0) | fifthSpriteIndex;
+        if (fifthSprite) {
+            statusRegister |= 0x40;
+        }
     }
     return statusRegister;
 }
