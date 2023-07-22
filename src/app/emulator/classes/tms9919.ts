@@ -32,19 +32,19 @@ export class TMS9919 implements PSG {
     }
 
     writeData(b: number) {
-        this.log.debug("PSG: " + Util.toHexByte(b));
+        // this.log.debug("PSG: " + Util.toHexByte(b));
         if (this.sn76489.isSample(b)) {
-            this.tape.setAudioGate((b - 128) / 96, this.cpu.getCycles());
+            this.tape.setAudioGate((15 - (b & 0x0f)) / 16, this.cpu.getCycles());
         } else {
             this.sn76489.write(b);
         }
     }
 
     mute() {
-        this.writeData(0x9F);
-        this.writeData(0xBF);
-        this.writeData(0xDF);
-        this.writeData(0xFF);
+        this.sn76489.write(0x9F);
+        this.sn76489.write(0xBF);
+        this.sn76489.write(0xDF);
+        this.sn76489.write(0xFF);
     }
 
     setGROMClock(gromClock: number) {

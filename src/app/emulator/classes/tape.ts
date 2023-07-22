@@ -163,7 +163,7 @@ export class Tape implements State {
     }
 
     setAudioGate(value, time) {
-        if (this.lastAudioGateChange !== -1) {
+        if (this.lastAudioGateChange !== -1 && Math.abs(time - this.lastAudioGateChange) < 1000) {
             const audioGate = typeof value === 'boolean' ? (value ? 0.75 : -0.75) : value;
             const timePassed = Math.min(((time - this.lastAudioGateChange) >> 6), 8);
             for (let i = 0; i < timePassed; i++) {
