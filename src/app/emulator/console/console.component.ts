@@ -315,19 +315,34 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         this.eventDispatcherService.recordingStopped(this.recordings);
     }
 
-    onCanvasClick(evt) {
-        if (!this.settingsService.isTIPIEnabled() && !this.pointerLocked) {
-            const rect = this.canvas.getBoundingClientRect();
-            const scale = this.canvas.clientHeight / 240;
-            const tiX = Math.floor((evt.clientX - rect.left) / scale);
-            const tiY = Math.floor((evt.clientY - rect.top) / scale);
-            let charCode = this.ti994A.getVDP().getCharAt(tiX, tiY);
-            if (charCode > 0) {
-                charCode = charCode >= 128 ? charCode - 96 : charCode;
-                this.log.info("Click at (" + tiX + "," + tiY + "). Simulated keypress: " + String.fromCharCode(charCode));
-                this.ti994A.getKeyboard().simulateKeyPress(charCode, null);
-            }
+    onCanvasClick(evt: MouseEvent) {
+        let charCode = this.getCharCode(evt);
+        if (charCode > 0) {
+            charCode = charCode >= 128 ? charCode - 96 : charCode;
+            this.ti994A.getKeyboard().simulateKeyPress(charCode, null);
         }
+    }
+
+    onCanvasRightClick(evt: MouseEvent) {
+        if (this.getCharCode(evt) > 0) {
+            this.ti994A.getKeyboard().simulateKeyPresses(String.fromCharCode(27), null);
+            evt.preventDefault();
+        }
+    }
+
+    private getCharCode(evt: MouseEvent): number {
+        if (this.settingsService.isTIPIEnabled() || this.pointerLocked) {
+            return -1;
+        }
+        const rect = this.canvas.getBoundingClientRect();
+        const scale = this.canvas.clientHeight / 240;
+        const tiX = Math.floor((evt.clientX - rect.left) / scale);
+        const tiY = Math.floor((evt.clientY - rect.top) / scale);
+        const charCode = this.ti994A.getVDP().getCharAt(tiX, tiY);
+        if (charCode > 0) {
+            this.log.info("Click at (" + tiX + "," + tiY + "). Simulated keypress: " + String.fromCharCode(charCode));
+        }
+        return charCode;
     }
 
     requestPointerLock() {
