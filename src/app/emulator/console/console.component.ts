@@ -324,7 +324,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     onCanvasRightClick(evt: MouseEvent) {
-        if (this.getCharCode(evt) > 0) {
+        if (this.getCharCode(evt) >= 0) {
             this.ti994A.getKeyboard().simulateKeyPresses(String.fromCharCode(27), null);
             evt.preventDefault();
         }
@@ -339,7 +339,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         const tiX = Math.floor((evt.clientX - rect.left) / scale);
         const tiY = Math.floor((evt.clientY - rect.top) / scale);
         const charCode = this.ti994A.getVDP().getCharAt(tiX, tiY);
-        if (charCode > 0) {
+        if (charCode >= 0) {
             this.log.info("Click at (" + tiX + "," + tiY + "). Simulated keypress: " + String.fromCharCode(charCode));
         }
         return charCode;

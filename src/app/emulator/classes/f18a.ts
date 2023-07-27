@@ -1501,7 +1501,7 @@ export class F18A implements VDP {
         }
         x -= this.leftBorder;
         y -= this.topBorder;
-        if (x < this.drawWidth && y < this.drawHeight) {
+        if (x >= 0 && x < this.drawWidth && y >= 0 && y < this.drawHeight) {
             switch (this.screenMode) {
                 case F18A.MODE_GRAPHICS:
                 case F18A.MODE_BITMAP:
@@ -1512,7 +1512,7 @@ export class F18A implements VDP {
                     return this.ram[this.nameTable + Math.floor((x - 16) / 6) + (y >> 3) * 80];
             }
         }
-        return 0;
+        return -1;
     }
 
     getTime() {

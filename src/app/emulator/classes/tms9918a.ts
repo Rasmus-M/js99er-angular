@@ -426,14 +426,14 @@ export class TMS9918A implements VDP {
             vBorder = (this.height - drawHeight) >> 1;
         x -= hBorder;
         y -= vBorder;
-        if (x < drawWidth && y < drawHeight) {
+        if (x >= 0 && x < drawWidth && y >= 0 && y < drawHeight) {
             if (!this.textMode) {
                 return this.ram[this.nameTable + (x >> 3) + (y >> 3) * 32];
             } else {
                 return this.ram[this.nameTable + ((x / 6) | 0) + (y >> 3) * 40];
             }
         }
-        return 0;
+        return -1;
     }
 
     getGPU(): CPU {
