@@ -32,6 +32,7 @@ export enum DataType {
 }
 
 export enum OperationMode {
+    NONE = -1,
     UPDATE = 0, // Read and write
     OUTPUT = 1, // Create and write
     INPUT = 2,  // Read only

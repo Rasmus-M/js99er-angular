@@ -23,7 +23,7 @@ export class DiskFile implements State {
         this.recordType = recordType;
         this.recordLength = recordLength;
         this.dataType = dataType;
-        this.operationMode = -1;
+        this.operationMode = OperationMode.NONE;
         this.recordPointer = -1;
         this.records = [];
         this.program = null;
@@ -181,7 +181,7 @@ export class DiskFile implements State {
     }
 
     close() {
-        this.operationMode = -1;
+        this.operationMode = OperationMode.NONE;
         this.recordPointer = -1;
     }
 
