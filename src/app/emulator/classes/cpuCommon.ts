@@ -524,6 +524,7 @@ export abstract class CPUCommon {
     // CLeaR: CLR src
     // sets word to 0
     clr(): number {
+        this.readMemoryWord(this.source); // Wasted
         this.writeMemoryWord(this.source, 0);
         return 10;
     }
@@ -642,8 +643,8 @@ export abstract class CPUCommon {
     // SET to One: SETO src
     // sets word to 0xffff
     seto(): number {
+        this.readMemoryWord(this.source); // Wasted
         this.writeMemoryWord(this.source, 0xffff);
-
         return 10;
     }
 
