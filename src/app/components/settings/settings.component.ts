@@ -26,6 +26,7 @@ export class SettingsComponent implements OnInit {
     enableH264Codec: boolean;
     ramExpansion: string;
     tipiEmulation: string;
+    enableDisk: boolean;
 
     private subscription: Subscription;
 
@@ -67,6 +68,7 @@ export class SettingsComponent implements OnInit {
         } else {
             this.tipiEmulation = "none";
         }
+        this.enableDisk = this.settingsService.isDiskEnabled();
     }
 
     onEvent(event: ConsoleEvent) {
@@ -77,51 +79,51 @@ export class SettingsComponent implements OnInit {
         }
     }
 
-    onEnableSoundChanged(value) {
+    onEnableSoundChanged(value: boolean) {
         this.settingsService.setSoundEnabled(value);
     }
 
-    onEnableSpeechChanged(value) {
+    onEnableSpeechChanged(value: boolean) {
         this.settingsService.setSpeechEnabled(value);
     }
 
-    onEnableF18AChanged(value) {
+    onEnableF18AChanged(value: boolean) {
         this.settingsService.setF18AEnabled(value);
     }
 
-    onEnablePCKeyboardChanged(value) {
+    onEnablePCKeyboardChanged(value: boolean) {
         this.settingsService.setPCKeyboardEnabled(value);
     }
 
-    onEnableMapArrowKeysChanged(value) {
+    onEnableMapArrowKeysChanged(value: boolean) {
         this.settingsService.setMapArrowKeysEnabled(value);
     }
 
-    onEnableGoogleDriveChanged(value) {
+    onEnableGoogleDriveChanged(value: boolean) {
         this.settingsService.setGoogleDriveEnabled(value);
     }
 
-    onEnableGRAMChanged(value) {
+    onEnableGRAMChanged(value: boolean) {
         this.settingsService.setGRAMEnabled(value);
     }
 
-    onEnablePixelatedChanged(value) {
+    onEnablePixelatedChanged(value: boolean) {
         this.settingsService.setPixelatedEnabled(value);
     }
 
-    onEnablePauseOnFocusLostChanged(value) {
+    onEnablePauseOnFocusLostChanged(value: boolean) {
         this.settingsService.setPauseOnFocusLostEnabled(value);
     }
 
-    onTIPIWebsocketURIChanged(value) {
+    onTIPIWebsocketURIChanged(value: string) {
         this.settingsService.setTIPIWebsocketURI(value);
     }
 
-    onEnableDebugResetChanged(value) {
+    onEnableDebugResetChanged(value: boolean) {
         this.settingsService.setDebugResetEnabled(value);
     }
 
-    onEnableH264CodecChanged(value) {
+    onEnableH264CodecChanged(value: boolean) {
         this.settingsService.setH264CodecEnabled(value);
     }
 
@@ -133,7 +135,7 @@ export class SettingsComponent implements OnInit {
         this.commandDispatcherService.startKeyboard();
     }
 
-    onRAMExpansionChanged(value) {
+    onRAMExpansionChanged(value: string) {
         if (value === "32K") {
             this.settingsService.set32KRAMEnabled(true);
             this.settingsService.setSAMSEnabled(false);
@@ -146,7 +148,7 @@ export class SettingsComponent implements OnInit {
         }
     }
 
-    onTIPIEmulationChanged(value) {
+    onTIPIEmulationChanged(value: string) {
         if (value === "full") {
             this.settingsService.setTIPIEnabled(true);
             this.settingsService.setFastTIPIMouseEnabled(false);
@@ -157,5 +159,9 @@ export class SettingsComponent implements OnInit {
             this.settingsService.setTIPIEnabled(false);
             this.settingsService.setFastTIPIMouseEnabled(false);
         }
+    }
+
+    onEnableDiskChanged(value: boolean) {
+        this.settingsService.setDiskEnabled(value);
     }
 }

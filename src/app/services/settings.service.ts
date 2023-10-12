@@ -69,6 +69,9 @@ export class SettingsService {
             if (storage.getItem('enableFastTIPIMouse') != null) {
                 this.settings.setFastTIPIMouseEnabled(storage.getItem('enableFastTIPIMouse') === 'true');
             }
+            if (storage.getItem('enableDisk') != null) {
+                this.settings.setDiskEnabled(storage.getItem('enableDisk') === 'true');
+            }
             this.storage = storage;
         }
     }
@@ -98,11 +101,11 @@ export class SettingsService {
         return this.settings.isSoundEnabled();
     }
 
-    setSoundEnabled(enabled) {
+    setSoundEnabled(enabled: boolean) {
         if (enabled !== this.settings.isSoundEnabled()) {
             this.settings.setSoundEnabled(enabled);
             if (this.persistent && this.storage) {
-                this.storage.setItem('enableSound', enabled);
+                this.storage.setItem('enableSound', enabled ? 'true' : 'false');
             }
             this.commandDispatcherService.changeSetting(Setting.SOUND, enabled);
         }
@@ -112,11 +115,11 @@ export class SettingsService {
         return this.settings.isSpeechEnabled();
     }
 
-    setSpeechEnabled(enabled) {
+    setSpeechEnabled(enabled: boolean) {
         if (enabled !== this.settings.isSpeechEnabled()) {
             this.settings.setSpeechEnabled(enabled);
             if (this.persistent && this.storage) {
-                this.storage.setItem('enableSpeech', enabled);
+                this.storage.setItem('enableSpeech', enabled ? 'true' : 'false');
             }
             this.commandDispatcherService.changeSetting(Setting.SPEECH, enabled);
         }
@@ -126,11 +129,11 @@ export class SettingsService {
         return this.settings.is32KRAMEnabled();
     }
 
-    set32KRAMEnabled(enabled) {
+    set32KRAMEnabled(enabled: boolean) {
         if (enabled !== this.settings.is32KRAMEnabled()) {
             this.settings.set32KRAMEnabled(enabled);
             if (this.persistent && this.storage) {
-                this.storage.setItem('enable32KRAM', enabled);
+                this.storage.setItem('enable32KRAM', enabled ? 'true' : 'false');
             }
             this.commandDispatcherService.changeSetting(Setting.RAM32K, enabled);
         }
@@ -140,11 +143,11 @@ export class SettingsService {
         return this.settings.isF18AEnabled();
     }
 
-    setF18AEnabled(enabled) {
+    setF18AEnabled(enabled: boolean) {
         if (enabled !== this.settings.isF18AEnabled()) {
             this.settings.setF18AEnabled(enabled);
             if (this.persistent && this.storage) {
-                this.storage.setItem('enableF18A', enabled);
+                this.storage.setItem('enableF18A', enabled ? 'true' : 'false');
             }
             this.commandDispatcherService.changeSetting(Setting.F18A, enabled);
         }
@@ -154,11 +157,11 @@ export class SettingsService {
         return this.settings.isPCKeyboardEnabled();
     }
 
-    setPCKeyboardEnabled(enabled) {
+    setPCKeyboardEnabled(enabled: boolean) {
         if (enabled !== this.settings.isPCKeyboardEnabled()) {
             this.settings.setPCKeyboardEnabled(enabled);
             if (this.persistent && this.storage) {
-                this.storage.setItem('enablePCKeyboard', enabled);
+                this.storage.setItem('enablePCKeyboard', enabled ? 'true' : 'false');
             }
             this.commandDispatcherService.changeSetting(Setting.PC_KEYBOARD, enabled);
         }
@@ -168,11 +171,11 @@ export class SettingsService {
         return this.settings.isMapArrowKeysEnabled();
     }
 
-    setMapArrowKeysEnabled(enabled) {
+    setMapArrowKeysEnabled(enabled: boolean) {
         if (enabled !== this.settings.isMapArrowKeysEnabled()) {
             this.settings.setMapArrowKeysEnabled(enabled);
             if (this.persistent && this.storage) {
-                this.storage.setItem('enableMapArrowKeysToFctnSDEX', enabled);
+                this.storage.setItem('enableMapArrowKeysToFctnSDEX', enabled ? 'true' : 'false');
             }
             this.commandDispatcherService.changeSetting(Setting.MAP_ARROW_KEYS, enabled);
         }
@@ -182,11 +185,11 @@ export class SettingsService {
         return this.settings.isGoogleDriveEnabled();
     }
 
-    setGoogleDriveEnabled(enabled) {
+    setGoogleDriveEnabled(enabled: boolean) {
         if (enabled !== this.settings.isGoogleDriveEnabled()) {
             this.settings.setGoogleDriveEnabled(enabled);
             if (this.persistent && this.storage) {
-                this.storage.setItem('enableGoogleDrive', enabled);
+                this.storage.setItem('enableGoogleDrive', enabled ? 'true' : 'false');
             }
             this.commandDispatcherService.changeSetting(Setting.GOOGLE_DRIVE, enabled);
         }
@@ -196,11 +199,11 @@ export class SettingsService {
         return this.settings.isSAMSEnabled();
     }
 
-    setSAMSEnabled(enabled) {
+    setSAMSEnabled(enabled: boolean) {
         if (enabled !== this.settings.isSAMSEnabled()) {
             this.settings.setSAMSEnabled(enabled);
             if (this.persistent && this.storage) {
-                this.storage.setItem('enableSAMS', enabled);
+                this.storage.setItem('enableSAMS', enabled ? 'true' : 'false');
             }
             this.commandDispatcherService.changeSetting(Setting.SAMS, enabled);
         }
@@ -210,11 +213,11 @@ export class SettingsService {
         return this.settings.isGRAMEnabled();
     }
 
-    setGRAMEnabled(enabled) {
+    setGRAMEnabled(enabled: boolean) {
         if (enabled !== this.settings.isGRAMEnabled()) {
             this.settings.setGRAMEnabled(enabled);
             if (this.persistent && this.storage) {
-                this.storage.setItem('enableGRAM', enabled);
+                this.storage.setItem('enableGRAM', enabled ? 'true' : 'false');
             }
             this.commandDispatcherService.changeSetting(Setting.GRAM, enabled);
         }
@@ -224,11 +227,11 @@ export class SettingsService {
         return this.settings.isPixelatedEnabled();
     }
 
-    setPixelatedEnabled(enabled) {
+    setPixelatedEnabled(enabled: boolean) {
         if (enabled !== this.settings.isPixelatedEnabled()) {
             this.settings.setPixelatedEnabled(enabled);
             if (this.persistent && this.storage) {
-                this.storage.setItem('enablePixelated', enabled);
+                this.storage.setItem('enablePixelated', enabled ? 'true' : 'false');
             }
             this.commandDispatcherService.changeSetting(Setting.PIXELATED, enabled);
         }
@@ -238,11 +241,11 @@ export class SettingsService {
         return this.settings.isPauseOnFocusLostEnabled();
     }
 
-    setPauseOnFocusLostEnabled(enabled) {
+    setPauseOnFocusLostEnabled(enabled: boolean) {
         if (enabled !== this.settings.isPauseOnFocusLostEnabled()) {
             this.settings.setPauseOnFocusLostEnabled(enabled);
             if (this.persistent && this.storage) {
-                this.storage.setItem('enablePauseOnFocusLost', enabled);
+                this.storage.setItem('enablePauseOnFocusLost', enabled ? 'true' : 'false');
             }
             this.commandDispatcherService.changeSetting(Setting.PAUSE_ON_FOCUS_LOST, enabled);
         }
@@ -252,11 +255,11 @@ export class SettingsService {
         return this.settings.isTIPIEnabled();
     }
 
-    setTIPIEnabled(enabled) {
+    setTIPIEnabled(enabled: boolean) {
         if (enabled !== this.settings.isTIPIEnabled()) {
             this.settings.setTIPIEnabled(enabled);
             if (this.persistent && this.storage) {
-                this.storage.setItem('enableTIPI', enabled);
+                this.storage.setItem('enableTIPI', enabled ? 'true' : 'false');
             }
             this.commandDispatcherService.changeSetting(Setting.TIPI, enabled);
         }
@@ -283,11 +286,11 @@ export class SettingsService {
         return this.settings.isDebugResetEnabled();
     }
 
-    setDebugResetEnabled(enabled) {
+    setDebugResetEnabled(enabled: boolean) {
         if (enabled !== this.settings.isDebugResetEnabled()) {
             this.settings.setDebugResetEnabled(enabled);
             if (this.persistent && this.storage) {
-                this.storage.setItem('enableDebugReset', enabled);
+                this.storage.setItem('enableDebugReset', enabled ? 'true' : 'false');
             }
             this.commandDispatcherService.changeSetting(Setting.DEBUG_RESET, enabled);
         }
@@ -297,11 +300,11 @@ export class SettingsService {
         return this.settings.isH264CodexEnabled();
     }
 
-    setH264CodecEnabled(enabled) {
+    setH264CodecEnabled(enabled: boolean) {
         if (enabled !== this.settings.isH264CodexEnabled()) {
             this.settings.setH264CodecEnabled(enabled);
             if (this.persistent && this.storage) {
-                this.storage.setItem('enableH264Codec', enabled);
+                this.storage.setItem('enableH264Codec', enabled ? 'true' : 'false');
             }
             this.commandDispatcherService.changeSetting(Setting.H264_CODEC, enabled);
         }
@@ -311,13 +314,27 @@ export class SettingsService {
         return this.settings.isFastTIPIMouseEnabled();
     }
 
-    setFastTIPIMouseEnabled(enabled) {
+    setFastTIPIMouseEnabled(enabled: boolean) {
         if (enabled !== this.settings.isFastTIPIMouseEnabled()) {
             this.settings.setFastTIPIMouseEnabled(enabled);
             if (this.persistent && this.storage) {
-                this.storage.setItem('enableFastTIPIMouse', enabled);
+                this.storage.setItem('enableFastTIPIMouse', enabled ? 'true' : 'false');
             }
             this.commandDispatcherService.changeSetting(Setting.FAST_TIPI_MOUSE, enabled);
+        }
+    }
+
+    isDiskEnabled() {
+        return this.settings.isDiskEnabled();
+    }
+
+    setDiskEnabled(enabled: boolean) {
+        if (enabled !== this.settings.isDiskEnabled()) {
+            this.settings.setDiskEnabled(enabled);
+            if (this.persistent && this.storage) {
+                this.storage.setItem('enableDisk', enabled ? 'true' : 'false');
+                this.commandDispatcherService.changeSetting(Setting.DISK, enabled);
+            }
         }
     }
 }

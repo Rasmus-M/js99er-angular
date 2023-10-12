@@ -39,6 +39,7 @@ export class Memory implements State, MemoryDevice {
     private enableSAMS: boolean;
     private enableGRAM: boolean;
     private enableTIPI: boolean;
+    private enableDisk: boolean;
     private ramAt6000: boolean;
     private ramAt7000: boolean;
     private debugReset: boolean;
@@ -91,6 +92,7 @@ export class Memory implements State, MemoryDevice {
         this.enableSAMS = this.settings.isSAMSEnabled();
         this.enableGRAM = this.settings.isGRAMEnabled();
         this.enableTIPI = this.settings.isTIPIEnabled() || this.settings.isFastTIPIMouseEnabled();
+        this.enableDisk = this.settings.isDiskEnabled();
         this.debugReset = this.settings.isDebugResetEnabled();
         this.ram = new Uint8Array(0x10000);
         if (this.debugReset) {
@@ -157,7 +159,8 @@ export class Memory implements State, MemoryDevice {
                 this.tipiROMNumber = romNumber;
                 this.loadPeripheralROM(new Uint8Array(TIPI.DSR_ROM), romNumber++);
             }
-        } else {
+        }
+        if (this.enableDisk) {
             this.diskROMNumber = romNumber;
             this.loadPeripheralROM(new Uint8Array(DiskDrive.DSR_ROM), romNumber++);
         }
@@ -165,7 +168,6 @@ export class Memory implements State, MemoryDevice {
             this.gdrROMNumber = romNumber;
             this.loadPeripheralROM(new Uint8Array(GoogleDrive.DSR_ROM), romNumber++);
         }
-
         this.buildMemoryMap();
     }
 
@@ -729,6 +731,10 @@ export class Memory implements State, MemoryDevice {
         }
     }
 
+    setDiskEnabled(enabled: boolean) {
+
+    }
+
     getPeripheralROMNumber(): number {
         return this.peripheralROMNumber;
     }
@@ -739,6 +745,10 @@ export class Memory implements State, MemoryDevice {
 
     isTIPIEnabled(): boolean {
         return this.enableTIPI;
+    }
+
+    isDiskEnabled(): boolean {
+        return this.enableDisk;
     }
 
     isSAMSEnabled(): boolean {
@@ -774,6 +784,8 @@ export class Memory implements State, MemoryDevice {
             enable32KRAM: this.enable32KRAM,
             enableSAMS: this.enableSAMS,
             enableGRAM: this.enableGRAM,
+            enableTIPI: this.enableTIPI,
+            enableDisk: this.enableDisk,
             ramAt6000: this.ramAt6000,
             ramAt7000: this.ramAt7000,
             ram: this.ram,
@@ -802,6 +814,8 @@ export class Memory implements State, MemoryDevice {
         this.enable32KRAM = state.enable32KRAM;
         this.enableSAMS = state.enableSAMS;
         this.enableGRAM = state.enableGRAM;
+        this.enableTIPI = state.enabled;
+        this.enableDisk = state.enableDisk;
         this.ramAt6000 = state.ramAt6000;
         this.ramAt7000 = state.ramAt7000;
         this.ram = state.ram;

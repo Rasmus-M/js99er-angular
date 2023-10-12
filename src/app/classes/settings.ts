@@ -14,7 +14,8 @@ export enum Setting {
     TIPI_WEBSOCKET_URI = 13,
     DEBUG_RESET = 14,
     H264_CODEC = 15,
-    FAST_TIPI_MOUSE = 16
+    FAST_TIPI_MOUSE = 16,
+    DISK = 17
 }
 
 export class Settings {
@@ -35,6 +36,7 @@ export class Settings {
     private enableDebugReset: boolean;
     private enableH264Codec: boolean;
     private enableFastTIPIMouse: boolean;
+    private enableDisk: boolean;
 
     constructor() {
         this.enableSound = true;
@@ -53,6 +55,7 @@ export class Settings {
         this.enableDebugReset = false;
         this.enableH264Codec = false;
         this.enableFastTIPIMouse = false;
+        this.enableDisk = true;
     }
 
     isSoundEnabled(): boolean {
@@ -183,6 +186,14 @@ export class Settings {
         this.enableFastTIPIMouse = enabled;
     }
 
+    isDiskEnabled() {
+        return this.enableDisk;
+    }
+
+    setDiskEnabled(enabled: boolean) {
+        this.enableDisk = enabled;
+    }
+
     copyFrom(otherSettings: Settings) {
         this.enableSound = otherSettings.isSoundEnabled();
         this.enableSpeech = otherSettings.isSpeechEnabled();
@@ -200,5 +211,6 @@ export class Settings {
         this.enableDebugReset = otherSettings.isDebugResetEnabled();
         this.enableH264Codec = otherSettings.isH264CodexEnabled();
         this.enableFastTIPIMouse = otherSettings.enableFastTIPIMouse;
+        this.enableDisk = otherSettings.enableDisk;
     }
 }
