@@ -55,48 +55,48 @@ export function drawScanline(
         patternByte: i32;
 
     if (y >= vBorder && y < vBorder + drawHeight && displayOn) {
-        const y1: i32 = y - vBorder;
+        const yScreen: i32 = y - vBorder;
         // Pre-process sprites
         if (!textMode) {
             initSpriteBuffer();
             let spritesOnLine: i32 = 0;
             let endMarkerFound: bool = false;
             let spriteAttributeAddr: i32 = spriteAttributeTable;
-            let s: i32;
-            for (s = 0; s < 32 && spritesOnLine <= maxSpritesOnLine && !endMarkerFound; s++) {
-                let sy: i32 = getRAMByte(spriteAttributeAddr);
-                if (sy !== 0xD0) {
-                    if (sy > 0xD0) {
-                        sy -= 256;
+            let spriteIndex: i32;
+            for (spriteIndex = 0; spriteIndex < 32 && spritesOnLine <= maxSpritesOnLine && !endMarkerFound; spriteIndex++) {
+                let ySpriteTop: i32 = getRAMByte(spriteAttributeAddr);
+                if (ySpriteTop !== 0xD0) {
+                    if (ySpriteTop > 0xD0) {
+                        ySpriteTop -= 256;
                     }
-                    sy++;
-                    const sy1: i32 = sy + spriteDimension;
-                    let y2: i32 = -1;
-                    if (s < 8 || !bitmapMode || (vr4 & 0x03) === 3) {
-                        if (y1 >= sy && y1 < sy1) {
-                            y2 = y1;
+                    ySpriteTop++;
+                    const ySpriteBottom: i32 = ySpriteTop + spriteDimension;
+                    let yAdjusted: i32 = -1;
+                    if (spriteIndex < 8 || !bitmapMode || (vr4 & 0x03) === 3) {
+                        if (yScreen >= ySpriteTop && yScreen < ySpriteBottom) {
+                            yAdjusted = yScreen;
                         }
                     } else {
                         // Emulate sprite duplication bug
-                        const yMasked: i32 = (y1 - 1) & (((vr4 & 0x03) << 6) | 0x3F);
-                        if (yMasked >= sy && yMasked < sy1) {
-                            y2 = yMasked;
-                        } else if (y1 >= 64 && y1 < 128 && y1 >= sy && y1 < sy1) {
-                            y2 = y1;
+                        const yMasked: i32 = (yScreen - 1) & (((vr4 & 0x03) << 6) | 0x3F);
+                        if (yMasked >= ySpriteTop && yMasked < ySpriteBottom) {
+                            yAdjusted = yMasked;
+                        } else if (yScreen >= 64 && yScreen < 128 && yScreen >= ySpriteTop && yScreen < ySpriteBottom) {
+                            yAdjusted = yScreen;
                         }
                     }
-                    if (y2 !== -1) {
+                    if (yAdjusted !== -1) {
                         if (spritesOnLine < maxSpritesOnLine) {
-                            let sx: i32 = getRAMByte(spriteAttributeAddr + 1);
+                            let xSprite: i32 = getRAMByte(spriteAttributeAddr + 1);
                             const sPatternNo: i32 = getRAMByte(spriteAttributeAddr + 2) & (spriteSize ? 0xFC : 0xFF);
                             const sColor: i32 = getRAMByte(spriteAttributeAddr + 3) & 0x0F;
                             if ((getRAMByte(spriteAttributeAddr + 3) & 0x80) !== 0) {
-                                sx -= 32;
+                                xSprite -= 32;
                             }
-                            const sLine: i32 = (y2 - sy) >> spriteMagnify;
+                            const sLine: i32 = (yAdjusted - ySpriteTop) >> spriteMagnify;
                             const sPatternBase: i32 = spritePatternTable + (sPatternNo << 3) + sLine;
                             for (let sx1: i32 = 0; sx1 < spriteDimension; sx1++) {
-                                const sx2: i32 = sx + sx1;
+                                const sx2: i32 = xSprite + sx1;
                                 if (sx2 >= 0 && sx2 < drawWidth) {
                                     const sx3: i32 = sx1 >> spriteMagnify;
                                     const sPatternByte: i32 = getRAMByte(sPatternBase + (sx3 >= 8 ? 16 : 0));
@@ -119,12 +119,12 @@ export function drawScanline(
             }
             if (spritesOnLine === 5 && !fifthSprite) {
                 fifthSprite = true;
-                fifthSpriteIndex = <u8> s - 1;
+                fifthSpriteIndex = <u8> spriteIndex - 1;
             }
         }
         // Draw
-        const rowOffset: i32 = !textMode ? (y1 >> 3) << 5 : (y1 >> 3) * 40;
-        let lineOffset: i32 = y1 & 7;
+        const rowOffset: i32 = !textMode ? (yScreen >> 3) << 5 : (yScreen >> 3) * 40;
+        let lineOffset: i32 = yScreen & 7;
         for (x = 0; x < width; x++) {
             if (x >= hBorder && x < hBorder + drawWidth) {
                 const x1: i32 = x - hBorder;
@@ -138,14 +138,14 @@ export function drawScanline(
                         break;
                     case MODE_BITMAP:
                         name = getRAMByte(nameTable + rowOffset + (x1 >> 3));
-                        tableOffset = ((y1 & 0xC0) << 5) + (name << 3);
+                        tableOffset = ((yScreen & 0xC0) << 5) + (name << 3);
                         colorByte = getRAMByte(colorTable + (tableOffset & colorTableMask) + lineOffset);
                         patternByte = getRAMByte(charPatternTable + (tableOffset & patternTableMask) + lineOffset);
                         color = (patternByte & (0x80 >> (x1 & 7))) !== 0 ? (colorByte & 0xF0) >> 4 : colorByte & 0x0F;
                         break;
                     case MODE_MULTICOLOR:
                         name = getRAMByte(nameTable + rowOffset + (x1 >> 3));
-                        lineOffset = (y1 & 0x1C) >> 2;
+                        lineOffset = (yScreen & 0x1C) >> 2;
                         patternByte = getRAMByte(charPatternTable + (name << 3) + lineOffset);
                         color = (x1 & 4) === 0 ? (patternByte & 0xF0) >> 4 : patternByte & 0x0F;
                         break;
@@ -156,14 +156,14 @@ export function drawScanline(
                         break;
                     case MODE_BITMAP_TEXT:
                         name = getRAMByte(nameTable + rowOffset + x1 / 6);
-                        tableOffset = ((y1 & 0xC0) << 5) + (name << 3);
+                        tableOffset = ((yScreen & 0xC0) << 5) + (name << 3);
                         patternByte = getRAMByte(charPatternTable + (tableOffset & patternTableMask) + lineOffset);
                         color = (patternByte & (0x80 >> (x1 % 6))) !== 0 ? fgColor : bgColor;
                         break;
                     case MODE_BITMAP_MULTICOLOR:
                         name = getRAMByte(nameTable + rowOffset + (x1 >> 3));
-                        lineOffset = (y1 & 0x1C) >> 2;
-                        tableOffset = ((y1 & 0xC0) << 5) + (name << 3);
+                        lineOffset = (yScreen & 0x1C) >> 2;
+                        tableOffset = ((yScreen & 0xC0) << 5) + (name << 3);
                         patternByte = getRAMByte(charPatternTable + (tableOffset & patternTableMask) + lineOffset);
                         color = (x1 & 4) === 0 ? (patternByte & 0xF0) >> 4 : patternByte & 0x0F;
                         break;
