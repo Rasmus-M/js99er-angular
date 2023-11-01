@@ -6,7 +6,7 @@
             </mat-select>
         </mat-form-field>
         <mat-form-field>
-            <mat-select placeholder="Image" [value]="diskImageIndex" (selectionChange)="onDiskImageChanged($event.value)">
+            <mat-select placeholder="Image" [value]="diskImageIndex" (selectionChange)="insertDiskIndex($event.value)">
                 <mat-option [value]="-1"><fa-icon [icon]="emptyIcon"></fa-icon> None</mat-option>
                 <mat-option *ngFor="let diskImage of diskImages; index as i" [value]="i"><fa-icon [icon]="diskIcon"></fa-icon> {{diskImage.getName()}} {{diskImageDrives[i]}}</mat-option>
             </mat-select>

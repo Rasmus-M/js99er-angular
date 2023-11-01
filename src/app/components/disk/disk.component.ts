@@ -123,6 +123,11 @@ export class DiskComponent implements OnInit, OnDestroy {
         this.commandDispatcherService.addDisk();
     }
 
+    insertDiskIndex(index: number) {
+        this.diskImageIndex = index;
+        this.insertDisk();
+    }
+
     insertDisk() {
         const index = this.diskImageIndex;
         if (index >= 0) {
