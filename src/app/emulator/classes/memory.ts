@@ -148,21 +148,17 @@ export class Memory implements State, MemoryDevice {
         this.tipiROMNumber = -1;
         this.gdrROMNumber = -1;
         let romNumber = 1;
-        if (this.enableTIPI) {
-            if (this.settings.isTIPIEnabled()) {
-                this.tipiROMNumber = romNumber;
-                this.loadPeripheralROM(new Uint8Array(TIPI.DSR_ROM), romNumber++);
-            } else {
-                // Mouse only
-                this.diskROMNumber = romNumber;
-                this.loadPeripheralROM(new Uint8Array(DiskDrive.DSR_ROM), romNumber++);
-                this.tipiROMNumber = romNumber;
-                this.loadPeripheralROM(new Uint8Array(TIPI.DSR_ROM), romNumber++);
-            }
+        if (this.enableTIPI && this.settings.isTIPIEnabled()) {
+            this.tipiROMNumber = romNumber;
+            this.loadPeripheralROM(new Uint8Array(TIPI.DSR_ROM), romNumber++);
         }
         if (this.enableDisk) {
             this.diskROMNumber = romNumber;
             this.loadPeripheralROM(new Uint8Array(DiskDrive.DSR_ROM), romNumber++);
+        }
+        if (this.enableTIPI && this.settings.isFastTIPIMouseEnabled()) {
+            this.tipiROMNumber = romNumber;
+            this.loadPeripheralROM(new Uint8Array(TIPI.DSR_ROM), romNumber++);
         }
         if (this.settings.isGoogleDriveEnabled()) {
             this.gdrROMNumber = romNumber;

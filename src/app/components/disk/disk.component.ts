@@ -76,11 +76,11 @@ export class DiskComponent implements OnInit, OnDestroy {
                 this.updateAllDiskImageDrives();
                 break;
             case ConsoleEventType.DISK_REMOVED:
-                this.updateAllDiskImageDrives();
+                // this.updateAllDiskImageDrives();
                 if (this.deletingDisk) {
                     this.commandDispatcherService.deleteDisk(this.diskImages[this.diskImageIndex]);
-                    this.onDiskImageChanged(-1);
                 }
+                this.onDiskImageChanged(-1);
                 break;
             case ConsoleEventType.DISK_DELETED:
                 this.updateAllDiskImageDrives();
