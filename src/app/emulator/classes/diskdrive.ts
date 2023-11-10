@@ -847,17 +847,21 @@ export class DiskDrive implements State {
                 let nLast = -1;
                 for (let dataChainPointerIndex = 0; dataChainPointerIndex < 0x4C; dataChainPointerIndex++) {
                     const dataChainPointer = fileDescriptorRecord + 0x1C + 3 * dataChainPointerIndex;
-                    let m = ((fileBuffer[dataChainPointer + 1] & 0x0F) << 8) | fileBuffer[dataChainPointer];
+                    const m = ((fileBuffer[dataChainPointer + 1] & 0x0F) << 8) | fileBuffer[dataChainPointer];
                     const n = (fileBuffer[dataChainPointer + 2] << 4) | ((fileBuffer[dataChainPointer + 1] & 0xF0) >> 4);
                     if (m !== 0) {
                         // this.log.info("Data chain pointer index " + dataChainPointerIndex);
                         if (totalSectors > 1600) {
                             // For high capacity disks (> 1600 sectors) multiply by sectors/AU
-                            m *= 2;
+                            // But apparently this is wrong
+                            // m *= 2;
                         }
                         const startSector = m;
                         const endSector = m + n - (nLast + 1);
                         // this.log.info("Sectors " + startSector + " to " + endSector);
+                        if (endSector > totalSectors) {
+                            this.log.warn("End sector: " + endSector + " > total sectors: " + totalSectors);
+                        }
                         nLast = n;
                         for (let sector = startSector; sector <= endSector; sector++) {
                             sectorsLeft--;
@@ -873,18 +877,22 @@ export class DiskDrive implements State {
                                     }
                                 } else {
                                     let i = sector * 256;
-                                    recordLength = fileBuffer[i++];
-                                    // TODO: Correct to stop loading if recordLength is zero?
-                                    while (recordLength !== 0xFF && recordLength !== 0) {
-                                        const data = [];
-                                        for (let j = 0; j < recordLength; j++) {
-                                            data[j] = fileBuffer[i++];
-                                        }
-                                        diskFile.putRecord(new VariableRecord(data));
+                                    if (i < fileBuffer.length) {
                                         recordLength = fileBuffer[i++];
-                                    }
-                                    if (recordLength === 0) {
-                                        this.log.info("Missing EOF marker.");
+                                        // TODO: Correct to stop loading if recordLength is zero?
+                                        while (recordLength !== undefined && recordLength !== 0xFF && recordLength !== 0) {
+                                            const data = [];
+                                            for (let j = 0; j < recordLength; j++) {
+                                                data[j] = fileBuffer[i++];
+                                            }
+                                            diskFile.putRecord(new VariableRecord(data));
+                                            recordLength = fileBuffer[i++];
+                                        }
+                                        if (recordLength === undefined || recordLength === 0) {
+                                            this.log.info("Missing EOF marker.");
+                                        }
+                                    } else {
+                                        this.log.warn("Sector out of range: " + sector);
                                     }
                                 }
                             } else {
