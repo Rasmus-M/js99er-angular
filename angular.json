@@ -28,7 +28,9 @@
               "file-saver",
               "jquery",
               "image-map-resizer"
-            ]
+            ],
+            "serviceWorker": true,
+            "ngswConfigPath": "ngsw-config.json"
           },
           "configurations": {
             "production": {
