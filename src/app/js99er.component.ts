@@ -20,8 +20,8 @@ export const customTooltipDefaults: MatTooltipDefaultOptions = {
 export class Js99erComponent implements OnInit {
 
     static readonly TITLE = "JS99'er";
-    static readonly VERSION = "9.5.1";
-    static readonly DATE = "December 3, 2023";
+    static readonly VERSION = "9.5.3";
+    static readonly DATE = "December 5, 2023";
 
     constructor(
         private elm: ElementRef,

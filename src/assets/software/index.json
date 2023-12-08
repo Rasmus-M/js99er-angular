@@ -154,6 +154,11 @@
                     "type": "ITEM",
                     "name": "Break Free",
                     "url": "software/brkfree.rpk"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Ghostbusters",
+                    "url": "software/ghostbusters8.bin"
                 }
             ]
         },

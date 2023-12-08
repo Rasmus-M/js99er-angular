@@ -609,6 +609,7 @@
     {"url": "avaris2-8.bin", "name": "Avaris II"},
     {"url": "trapdoor8.bin", "name": "Through the Trap Door"},
     {"url": "westbank.rpk", "name": "West Bank"},
-    {"url": "westbank-v2.rpk", "name": "West Bank V2"}
+    {"url": "westbank-v2.rpk", "name": "West Bank V2"},
+    {"url": "ghostbusters8.bin", "name": "Ghostbusters"}
 ]
 
