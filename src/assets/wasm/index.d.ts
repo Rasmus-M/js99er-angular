@@ -1,7 +1,7 @@
 /** Exported memory */
 export declare const memory: WebAssembly.Memory;
 /**
- * assembly/index/drawScanline
+ * assembly/tms9918a/drawScanline
  * @param y `i32`
  * @param width `i32`
  * @param height `i32`
@@ -23,4 +23,9 @@ export declare const memory: WebAssembly.Memory;
  * @param statusRegister `u8`
  * @returns `u8`
  */
-export declare function drawScanline(y: number, width: number, height: number, screenMode: number, textMode: boolean, bitmapMode: boolean, fgColor: number, bgColor: number, nameTable: number, colorTable: number, charPatternTable: number, colorTableMask: number, patternTableMask: number, spriteAttributeTable: number, spritePatternTable: number, vr1: number, vr4: number, displayOn: boolean, statusRegister: number): number;
+export declare function drawScanline9918a(y: number, width: number, height: number, screenMode: number, textMode: boolean, bitmapMode: boolean, fgColor: number, bgColor: number, nameTable: number, colorTable: number, charPatternTable: number, colorTableMask: number, patternTableMask: number, spriteAttributeTable: number, spritePatternTable: number, vr1: number, vr4: number, displayOn: boolean, statusRegister: number): number;
+/**
+ * assembly/f18a/drawScanline
+ * @returns `i32`
+ */
+export declare function drawScanlineF18a(): number;

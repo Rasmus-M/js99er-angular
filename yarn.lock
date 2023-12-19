@@ -2836,13 +2836,13 @@ asn1@~0.2.3:
   dependencies:
     safer-buffer "~2.1.0"
 
-assemblyscript@^0.27.0:
-  version "0.27.0"
-  resolved "https://registry.yarnpkg.com/assemblyscript/-/assemblyscript-0.27.0.tgz#d6c3f8c361184eb7eca0e15431b4e43929168e05"
-  integrity sha512-qD/pH71hHwI6dpR4LGMBASUH8E9jlLxIJXpuzC+2h2CzGS6JAq7nD2SHwG6uOVuzClYljo3gOr2JBzWTYpbq/Q==
+assemblyscript@^0.27.22:
+  version "0.27.22"
+  resolved "https://registry.yarnpkg.com/assemblyscript/-/assemblyscript-0.27.22.tgz#5825828602119c90173e974a4b55ac88769598d3"
+  integrity sha512-6ClobsR4Hxn6K0daYp/+n9qWTqVbpdVeSGSVDqRvUEz66vvFb8atS6nLm+fnQ54JXuXmzLQy0uWYYgB8G59btQ==
   dependencies:
-    binaryen "111.0.0-nightly.20230111"
-    long "^5.2.0"
+    binaryen "116.0.0-nightly.20231102"
+    long "^5.2.1"
 
 assert-plus@1.0.0, assert-plus@^1.0.0:
   version "1.0.0"
@@ -2968,10 +2968,10 @@ binary-extensions@^2.0.0:
   resolved "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-2.2.0.tgz#75f502eeaf9ffde42fc98829645be4ea76bd9e2d"
   integrity sha512-jDctJ/IVQbZoJykoeHbhXpOlNBqGNcwXJKJog42E5HDPUwQTSdjCHdihjj0DlnheQ7blbT6dHOafNAiS8ooQKA==
 
-binaryen@111.0.0-nightly.20230111:
-  version "111.0.0-nightly.20230111"
-  resolved "https://registry.yarnpkg.com/binaryen/-/binaryen-111.0.0-nightly.20230111.tgz#251226c419ec2fb64037314f476d0e47965c3a84"
-  integrity sha512-CUEED/yMHoGeGnOZhQJW5+Luf5z/F58PHK5lw2feh5fbbqauodgnxyYkc2oxSjYwHHRCmFmaYyeQH4zlhRbebg==
+binaryen@116.0.0-nightly.20231102:
+  version "116.0.0-nightly.20231102"
+  resolved "https://registry.yarnpkg.com/binaryen/-/binaryen-116.0.0-nightly.20231102.tgz#0bbf0181ef8a4d963859b1bf68c9bd2d24911dc7"
+  integrity sha512-aPU9tlKdw/gcXx6u4PxtDgOtGjg/ZKnYdk23ctYb70GxZgPhWnGWmnBt01aV5dt5yFFo2V4rbB7SzpSFhViFQA==
 
 bl@^4.1.0:
   version "4.1.0"
@@ -5514,10 +5514,10 @@ log4js@^6.4.1:
     rfdc "^1.3.0"
     streamroller "^3.0.4"
 
-long@^5.2.0:
-  version "5.2.1"
-  resolved "https://registry.yarnpkg.com/long/-/long-5.2.1.tgz#e27595d0083d103d2fa2c20c7699f8e0c92b897f"
-  integrity sha512-GKSNGeNAtw8IryjjkhZxuKB3JzlcLTwjtiQCHKvqQet81I93kXslhDQruGI/QsddO83mcDToBVy7GqGS/zYf/A==
+long@^5.2.1:
+  version "5.2.3"
+  resolved "https://registry.yarnpkg.com/long/-/long-5.2.3.tgz#a3ba97f3877cf1d778eccbcb048525ebb77499e1"
+  integrity sha512-lcHwpNoggQTObv5apGNCTdJrO69eHOZMi4BNC+rTLER8iHAqGrUVeLh/irVIM7zTw2bOXA8T6uNPeujwOLg/2Q==
 
 lru-cache@^5.1.1:
   version "5.1.1"

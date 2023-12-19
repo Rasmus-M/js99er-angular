@@ -140,7 +140,7 @@ export class TMS9918A implements VDP {
     }
 
     drawScanline(y: number) {
-        this.statusRegister = this.wasmService.getExports().drawScanline(
+        this.statusRegister = this.wasmService.getExports().drawScanline9918a(
             y,
             this.width,
             this.height,

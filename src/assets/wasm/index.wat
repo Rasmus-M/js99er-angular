@@ -1,41 +1,43 @@
 (module
- (type $none_=>_none (func))
- (type $i32_i32_=>_none (func (param i32 i32)))
- (type $i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_=>_i32 (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
+ (type $0 (func))
+ (type $1 (func (param i32 i32)))
+ (type $2 (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
+ (type $3 (func (result i32)))
  (import "env" "memory" (memory $0 1))
- (global $assembly/index/MODE_GRAPHICS i32 (i32.const 0))
- (global $assembly/index/MODE_TEXT i32 (i32.const 1))
- (global $assembly/index/MODE_BITMAP i32 (i32.const 2))
- (global $assembly/index/MODE_MULTICOLOR i32 (i32.const 3))
- (global $assembly/index/MODE_BITMAP_TEXT i32 (i32.const 4))
- (global $assembly/index/MODE_BITMAP_MULTICOLOR i32 (i32.const 5))
- (global $assembly/index/MODE_ILLEGAL i32 (i32.const 6))
- (global $assembly/index/vdpRAMAddr i32 (i32.const 0))
- (global $assembly/index/paletteAddr i32 (i32.const 16384))
- (global $assembly/index/scanlineColorBufferAddr i32 (i32.const 20480))
- (global $assembly/index/spriteBufferAddr i32 (i32.const 24576))
+ (global $assembly/tms9918a/MODE_GRAPHICS i32 (i32.const 0))
+ (global $assembly/tms9918a/MODE_TEXT i32 (i32.const 1))
+ (global $assembly/tms9918a/MODE_BITMAP i32 (i32.const 2))
+ (global $assembly/tms9918a/MODE_MULTICOLOR i32 (i32.const 3))
+ (global $assembly/tms9918a/MODE_BITMAP_TEXT i32 (i32.const 4))
+ (global $assembly/tms9918a/MODE_BITMAP_MULTICOLOR i32 (i32.const 5))
+ (global $assembly/tms9918a/MODE_ILLEGAL i32 (i32.const 6))
+ (global $assembly/tms9918a/vdpRAMAddr i32 (i32.const 0))
+ (global $assembly/tms9918a/paletteAddr i32 (i32.const 16384))
+ (global $assembly/tms9918a/scanlineColorBufferAddr i32 (i32.const 20480))
+ (global $assembly/tms9918a/spriteBufferAddr i32 (i32.const 24576))
  (table $0 1 1 funcref)
  (elem $0 (i32.const 1))
- (export "drawScanline" (func $assembly/index/drawScanline))
+ (export "drawScanline9918a" (func $assembly/tms9918a/drawScanline))
+ (export "drawScanlineF18a" (func $assembly/f18a/drawScanline))
  (export "memory" (memory $0))
- (func $assembly/index/initSpriteBuffer
-  global.get $assembly/index/spriteBufferAddr
+ (func $assembly/tms9918a/initSpriteBuffer
+  global.get $assembly/tms9918a/spriteBufferAddr
   i32.const 255
   i32.const 256
   i32.const 2
   i32.shl
-  memory.fill $0
+  memory.fill
  )
- (func $assembly/index/setSpriteBuffer (param $offset i32) (param $value i32)
-  global.get $assembly/index/spriteBufferAddr
+ (func $assembly/tms9918a/setSpriteBuffer (param $offset i32) (param $value i32)
+  global.get $assembly/tms9918a/spriteBufferAddr
   local.get $offset
   i32.const 2
   i32.shl
   i32.add
   local.get $value
-  i32.store $0
+  i32.store
  )
- (func $assembly/index/drawScanline (param $y i32) (param $width i32) (param $height i32) (param $screenMode i32) (param $textMode i32) (param $bitmapMode i32) (param $fgColor i32) (param $bgColor i32) (param $nameTable i32) (param $colorTable i32) (param $charPatternTable i32) (param $colorTableMask i32) (param $patternTableMask i32) (param $spriteAttributeTable i32) (param $spritePatternTable i32) (param $vr1 i32) (param $vr4 i32) (param $displayOn i32) (param $statusRegister i32) (result i32)
+ (func $assembly/tms9918a/drawScanline (param $y i32) (param $width i32) (param $height i32) (param $screenMode i32) (param $textMode i32) (param $bitmapMode i32) (param $fgColor i32) (param $bgColor i32) (param $nameTable i32) (param $colorTable i32) (param $charPatternTable i32) (param $colorTableMask i32) (param $patternTableMask i32) (param $spriteAttributeTable i32) (param $spritePatternTable i32) (param $vr1 i32) (param $vr4 i32) (param $displayOn i32) (param $statusRegister i32) (result i32)
   (local $drawWidth i32)
   (local $hBorder i32)
   (local $vBorder i32)
@@ -53,18 +55,18 @@
   (local $tableOffset i32)
   (local $colorByte i32)
   (local $patternByte i32)
-  (local $y1 i32)
+  (local $yScreen i32)
   (local $spritesOnLine i32)
   (local $endMarkerFound i32)
   (local $spriteAttributeAddr i32)
-  (local $s i32)
+  (local $spriteIndex i32)
   (local $addr i32)
-  (local $sy i32)
-  (local $sy1 i32)
-  (local $y2 i32)
+  (local $ySpriteTop i32)
+  (local $ySpriteBottom i32)
+  (local $yAdjusted i32)
   (local $yMasked i32)
   (local $addr|46 i32)
-  (local $sx i32)
+  (local $xSprite i32)
   (local $addr|48 i32)
   (local $sPatternNo i32)
   (local $addr|50 i32)
@@ -181,11 +183,11 @@
    local.get $y
    local.get $vBorder
    i32.sub
-   local.set $y1
+   local.set $yScreen
    local.get $textMode
    i32.eqz
    if
-    call $assembly/index/initSpriteBuffer
+    call $assembly/tms9918a/initSpriteBuffer
     i32.const 0
     local.set $spritesOnLine
     i32.const 0
@@ -193,9 +195,9 @@
     local.get $spriteAttributeTable
     local.set $spriteAttributeAddr
     i32.const 0
-    local.set $s
+    local.set $spriteIndex
     loop $for-loop|0
-     local.get $s
+     local.get $spriteIndex
      i32.const 32
      i32.lt_s
      if (result i32)
@@ -212,42 +214,42 @@
       i32.const 0
      end
      if
-      block $assembly/index/getRAMByte|inlined.0 (result i32)
+      block $assembly/tms9918a/getRAMByte|inlined.0 (result i32)
        local.get $spriteAttributeAddr
        local.set $addr
-       global.get $assembly/index/vdpRAMAddr
+       global.get $assembly/tms9918a/vdpRAMAddr
        local.get $addr
        i32.add
-       i32.load8_u $0
-       br $assembly/index/getRAMByte|inlined.0
+       i32.load8_u
+       br $assembly/tms9918a/getRAMByte|inlined.0
       end
       i32.const 255
       i32.and
-      local.set $sy
-      local.get $sy
+      local.set $ySpriteTop
+      local.get $ySpriteTop
       i32.const 208
       i32.ne
       if
-       local.get $sy
+       local.get $ySpriteTop
        i32.const 208
        i32.gt_s
        if
-        local.get $sy
+        local.get $ySpriteTop
         i32.const 256
         i32.sub
-        local.set $sy
+        local.set $ySpriteTop
        end
-       local.get $sy
+       local.get $ySpriteTop
        i32.const 1
        i32.add
-       local.set $sy
-       local.get $sy
+       local.set $ySpriteTop
+       local.get $ySpriteTop
        local.get $spriteDimension
        i32.add
-       local.set $sy1
+       local.set $ySpriteBottom
        i32.const -1
-       local.set $y2
-       local.get $s
+       local.set $yAdjusted
+       local.get $spriteIndex
        i32.const 8
        i32.lt_s
        if (result i32)
@@ -266,22 +268,22 @@
         i32.eq
        end
        if
-        local.get $y1
-        local.get $sy
+        local.get $yScreen
+        local.get $ySpriteTop
         i32.ge_s
         if (result i32)
-         local.get $y1
-         local.get $sy1
+         local.get $yScreen
+         local.get $ySpriteBottom
          i32.lt_s
         else
          i32.const 0
         end
         if
-         local.get $y1
-         local.set $y2
+         local.get $yScreen
+         local.set $yAdjusted
         end
        else
-        local.get $y1
+        local.get $yScreen
         i32.const 1
         i32.sub
         local.get $vr4
@@ -294,50 +296,50 @@
         i32.and
         local.set $yMasked
         local.get $yMasked
-        local.get $sy
+        local.get $ySpriteTop
         i32.ge_s
         if (result i32)
          local.get $yMasked
-         local.get $sy1
+         local.get $ySpriteBottom
          i32.lt_s
         else
          i32.const 0
         end
         if
          local.get $yMasked
-         local.set $y2
+         local.set $yAdjusted
         else
-         local.get $y1
+         local.get $yScreen
          i32.const 64
          i32.ge_s
          if (result i32)
-          local.get $y1
+          local.get $yScreen
           i32.const 128
           i32.lt_s
          else
           i32.const 0
          end
          if (result i32)
-          local.get $y1
-          local.get $sy
+          local.get $yScreen
+          local.get $ySpriteTop
           i32.ge_s
          else
           i32.const 0
          end
          if (result i32)
-          local.get $y1
-          local.get $sy1
+          local.get $yScreen
+          local.get $ySpriteBottom
           i32.lt_s
          else
           i32.const 0
          end
          if
-          local.get $y1
-          local.set $y2
+          local.get $yScreen
+          local.set $yAdjusted
          end
         end
        end
-       local.get $y2
+       local.get $yAdjusted
        i32.const -1
        i32.ne
        if
@@ -345,30 +347,30 @@
         i32.const 4
         i32.lt_s
         if
-         block $assembly/index/getRAMByte|inlined.1 (result i32)
+         block $assembly/tms9918a/getRAMByte|inlined.1 (result i32)
           local.get $spriteAttributeAddr
           i32.const 1
           i32.add
           local.set $addr|46
-          global.get $assembly/index/vdpRAMAddr
+          global.get $assembly/tms9918a/vdpRAMAddr
           local.get $addr|46
           i32.add
-          i32.load8_u $0
-          br $assembly/index/getRAMByte|inlined.1
+          i32.load8_u
+          br $assembly/tms9918a/getRAMByte|inlined.1
          end
          i32.const 255
          i32.and
-         local.set $sx
-         block $assembly/index/getRAMByte|inlined.2 (result i32)
+         local.set $xSprite
+         block $assembly/tms9918a/getRAMByte|inlined.2 (result i32)
           local.get $spriteAttributeAddr
           i32.const 2
           i32.add
           local.set $addr|48
-          global.get $assembly/index/vdpRAMAddr
+          global.get $assembly/tms9918a/vdpRAMAddr
           local.get $addr|48
           i32.add
-          i32.load8_u $0
-          br $assembly/index/getRAMByte|inlined.2
+          i32.load8_u
+          br $assembly/tms9918a/getRAMByte|inlined.2
          end
          local.get $spriteSize
          if (result i32)
@@ -378,43 +380,43 @@
          end
          i32.and
          local.set $sPatternNo
-         block $assembly/index/getRAMByte|inlined.3 (result i32)
+         block $assembly/tms9918a/getRAMByte|inlined.3 (result i32)
           local.get $spriteAttributeAddr
           i32.const 3
           i32.add
           local.set $addr|50
-          global.get $assembly/index/vdpRAMAddr
+          global.get $assembly/tms9918a/vdpRAMAddr
           local.get $addr|50
           i32.add
-          i32.load8_u $0
-          br $assembly/index/getRAMByte|inlined.3
+          i32.load8_u
+          br $assembly/tms9918a/getRAMByte|inlined.3
          end
          i32.const 15
          i32.and
          local.set $sColor
-         block $assembly/index/getRAMByte|inlined.4 (result i32)
+         block $assembly/tms9918a/getRAMByte|inlined.4 (result i32)
           local.get $spriteAttributeAddr
           i32.const 3
           i32.add
           local.set $addr|52
-          global.get $assembly/index/vdpRAMAddr
+          global.get $assembly/tms9918a/vdpRAMAddr
           local.get $addr|52
           i32.add
-          i32.load8_u $0
-          br $assembly/index/getRAMByte|inlined.4
+          i32.load8_u
+          br $assembly/tms9918a/getRAMByte|inlined.4
          end
          i32.const 128
          i32.and
          i32.const 0
          i32.ne
          if
-          local.get $sx
+          local.get $xSprite
           i32.const 32
           i32.sub
-          local.set $sx
+          local.set $xSprite
          end
-         local.get $y2
-         local.get $sy
+         local.get $yAdjusted
+         local.get $ySpriteTop
          i32.sub
          local.get $spriteMagnify
          i32.shr_s
@@ -434,7 +436,7 @@
           local.get $spriteDimension
           i32.lt_s
           if
-           local.get $sx
+           local.get $xSprite
            local.get $sx1
            i32.add
            local.set $sx2
@@ -453,7 +455,7 @@
             local.get $spriteMagnify
             i32.shr_s
             local.set $sx3
-            block $assembly/index/getRAMByte|inlined.5 (result i32)
+            block $assembly/tms9918a/getRAMByte|inlined.5 (result i32)
              local.get $sPatternBase
              local.get $sx3
              i32.const 8
@@ -465,11 +467,11 @@
              end
              i32.add
              local.set $addr|58
-             global.get $assembly/index/vdpRAMAddr
+             global.get $assembly/tms9918a/vdpRAMAddr
              local.get $addr|58
              i32.add
-             i32.load8_u $0
-             br $assembly/index/getRAMByte|inlined.5
+             i32.load8_u
+             br $assembly/tms9918a/getRAMByte|inlined.5
             end
             i32.const 255
             i32.and
@@ -484,23 +486,23 @@
             i32.const 0
             i32.ne
             if
-             block $assembly/index/getSpriteBuffer|inlined.0 (result i32)
+             block $assembly/tms9918a/getSpriteBuffer|inlined.0 (result i32)
               local.get $sx2
               local.set $offset
-              global.get $assembly/index/spriteBufferAddr
+              global.get $assembly/tms9918a/spriteBufferAddr
               local.get $offset
               i32.const 2
               i32.shl
               i32.add
-              i32.load $0
-              br $assembly/index/getSpriteBuffer|inlined.0
+              i32.load
+              br $assembly/tms9918a/getSpriteBuffer|inlined.0
              end
              i32.const -1
              i32.eq
              if
               local.get $sx2
               local.get $sColor
-              call $assembly/index/setSpriteBuffer
+              call $assembly/tms9918a/setSpriteBuffer
              else
               i32.const 1
               local.set $collision
@@ -528,10 +530,10 @@
        i32.const 1
        local.set $endMarkerFound
       end
-      local.get $s
+      local.get $spriteIndex
       i32.const 1
       i32.add
-      local.set $s
+      local.set $spriteIndex
       br $for-loop|0
      end
     end
@@ -547,7 +549,7 @@
     if
      i32.const 1
      local.set $fifthSprite
-     local.get $s
+     local.get $spriteIndex
      i32.const 1
      i32.sub
      local.set $fifthSpriteIndex
@@ -556,20 +558,20 @@
    local.get $textMode
    i32.eqz
    if (result i32)
-    local.get $y1
+    local.get $yScreen
     i32.const 3
     i32.shr_s
     i32.const 5
     i32.shl
    else
-    local.get $y1
+    local.get $yScreen
     i32.const 3
     i32.shr_s
     i32.const 40
     i32.mul
    end
    local.set $rowOffset
-   local.get $y1
+   local.get $yScreen
    i32.const 7
    i32.and
    local.set $lineOffset
@@ -608,36 +610,36 @@
               local.get $screenMode
               local.set $64
               local.get $64
-              global.get $assembly/index/MODE_GRAPHICS
+              global.get $assembly/tms9918a/MODE_GRAPHICS
               i32.eq
               br_if $case0|3
               local.get $64
-              global.get $assembly/index/MODE_BITMAP
+              global.get $assembly/tms9918a/MODE_BITMAP
               i32.eq
               br_if $case1|3
               local.get $64
-              global.get $assembly/index/MODE_MULTICOLOR
+              global.get $assembly/tms9918a/MODE_MULTICOLOR
               i32.eq
               br_if $case2|3
               local.get $64
-              global.get $assembly/index/MODE_TEXT
+              global.get $assembly/tms9918a/MODE_TEXT
               i32.eq
               br_if $case3|3
               local.get $64
-              global.get $assembly/index/MODE_BITMAP_TEXT
+              global.get $assembly/tms9918a/MODE_BITMAP_TEXT
               i32.eq
               br_if $case4|3
               local.get $64
-              global.get $assembly/index/MODE_BITMAP_MULTICOLOR
+              global.get $assembly/tms9918a/MODE_BITMAP_MULTICOLOR
               i32.eq
               br_if $case5|3
               local.get $64
-              global.get $assembly/index/MODE_ILLEGAL
+              global.get $assembly/tms9918a/MODE_ILLEGAL
               i32.eq
               br_if $case6|3
               br $break|3
              end
-             block $assembly/index/getRAMByte|inlined.6 (result i32)
+             block $assembly/tms9918a/getRAMByte|inlined.6 (result i32)
               local.get $nameTable
               local.get $rowOffset
               i32.add
@@ -646,32 +648,32 @@
               i32.shr_s
               i32.add
               local.set $addr|65
-              global.get $assembly/index/vdpRAMAddr
+              global.get $assembly/tms9918a/vdpRAMAddr
               local.get $addr|65
               i32.add
-              i32.load8_u $0
-              br $assembly/index/getRAMByte|inlined.6
+              i32.load8_u
+              br $assembly/tms9918a/getRAMByte|inlined.6
              end
              i32.const 255
              i32.and
              local.set $name
-             block $assembly/index/getRAMByte|inlined.7 (result i32)
+             block $assembly/tms9918a/getRAMByte|inlined.7 (result i32)
               local.get $colorTable
               local.get $name
               i32.const 3
               i32.shr_s
               i32.add
               local.set $addr|66
-              global.get $assembly/index/vdpRAMAddr
+              global.get $assembly/tms9918a/vdpRAMAddr
               local.get $addr|66
               i32.add
-              i32.load8_u $0
-              br $assembly/index/getRAMByte|inlined.7
+              i32.load8_u
+              br $assembly/tms9918a/getRAMByte|inlined.7
              end
              i32.const 255
              i32.and
              local.set $colorByte
-             block $assembly/index/getRAMByte|inlined.8 (result i32)
+             block $assembly/tms9918a/getRAMByte|inlined.8 (result i32)
               local.get $charPatternTable
               local.get $name
               i32.const 3
@@ -680,11 +682,11 @@
               local.get $lineOffset
               i32.add
               local.set $addr|67
-              global.get $assembly/index/vdpRAMAddr
+              global.get $assembly/tms9918a/vdpRAMAddr
               local.get $addr|67
               i32.add
-              i32.load8_u $0
-              br $assembly/index/getRAMByte|inlined.8
+              i32.load8_u
+              br $assembly/tms9918a/getRAMByte|inlined.8
              end
              i32.const 255
              i32.and
@@ -712,7 +714,7 @@
              local.set $color
              br $break|3
             end
-            block $assembly/index/getRAMByte|inlined.9 (result i32)
+            block $assembly/tms9918a/getRAMByte|inlined.9 (result i32)
              local.get $nameTable
              local.get $rowOffset
              i32.add
@@ -721,16 +723,16 @@
              i32.shr_s
              i32.add
              local.set $addr|68
-             global.get $assembly/index/vdpRAMAddr
+             global.get $assembly/tms9918a/vdpRAMAddr
              local.get $addr|68
              i32.add
-             i32.load8_u $0
-             br $assembly/index/getRAMByte|inlined.9
+             i32.load8_u
+             br $assembly/tms9918a/getRAMByte|inlined.9
             end
             i32.const 255
             i32.and
             local.set $name
-            local.get $y1
+            local.get $yScreen
             i32.const 192
             i32.and
             i32.const 5
@@ -740,7 +742,7 @@
             i32.shl
             i32.add
             local.set $tableOffset
-            block $assembly/index/getRAMByte|inlined.10 (result i32)
+            block $assembly/tms9918a/getRAMByte|inlined.10 (result i32)
              local.get $colorTable
              local.get $tableOffset
              local.get $colorTableMask
@@ -749,16 +751,16 @@
              local.get $lineOffset
              i32.add
              local.set $addr|69
-             global.get $assembly/index/vdpRAMAddr
+             global.get $assembly/tms9918a/vdpRAMAddr
              local.get $addr|69
              i32.add
-             i32.load8_u $0
-             br $assembly/index/getRAMByte|inlined.10
+             i32.load8_u
+             br $assembly/tms9918a/getRAMByte|inlined.10
             end
             i32.const 255
             i32.and
             local.set $colorByte
-            block $assembly/index/getRAMByte|inlined.11 (result i32)
+            block $assembly/tms9918a/getRAMByte|inlined.11 (result i32)
              local.get $charPatternTable
              local.get $tableOffset
              local.get $patternTableMask
@@ -767,11 +769,11 @@
              local.get $lineOffset
              i32.add
              local.set $addr|70
-             global.get $assembly/index/vdpRAMAddr
+             global.get $assembly/tms9918a/vdpRAMAddr
              local.get $addr|70
              i32.add
-             i32.load8_u $0
-             br $assembly/index/getRAMByte|inlined.11
+             i32.load8_u
+             br $assembly/tms9918a/getRAMByte|inlined.11
             end
             i32.const 255
             i32.and
@@ -799,7 +801,7 @@
             local.set $color
             br $break|3
            end
-           block $assembly/index/getRAMByte|inlined.12 (result i32)
+           block $assembly/tms9918a/getRAMByte|inlined.12 (result i32)
             local.get $nameTable
             local.get $rowOffset
             i32.add
@@ -808,22 +810,22 @@
             i32.shr_s
             i32.add
             local.set $addr|71
-            global.get $assembly/index/vdpRAMAddr
+            global.get $assembly/tms9918a/vdpRAMAddr
             local.get $addr|71
             i32.add
-            i32.load8_u $0
-            br $assembly/index/getRAMByte|inlined.12
+            i32.load8_u
+            br $assembly/tms9918a/getRAMByte|inlined.12
            end
            i32.const 255
            i32.and
            local.set $name
-           local.get $y1
+           local.get $yScreen
            i32.const 28
            i32.and
            i32.const 2
            i32.shr_s
            local.set $lineOffset
-           block $assembly/index/getRAMByte|inlined.13 (result i32)
+           block $assembly/tms9918a/getRAMByte|inlined.13 (result i32)
             local.get $charPatternTable
             local.get $name
             i32.const 3
@@ -832,11 +834,11 @@
             local.get $lineOffset
             i32.add
             local.set $addr|72
-            global.get $assembly/index/vdpRAMAddr
+            global.get $assembly/tms9918a/vdpRAMAddr
             local.get $addr|72
             i32.add
-            i32.load8_u $0
-            br $assembly/index/getRAMByte|inlined.13
+            i32.load8_u
+            br $assembly/tms9918a/getRAMByte|inlined.13
            end
            i32.const 255
            i32.and
@@ -860,7 +862,7 @@
            local.set $color
            br $break|3
           end
-          block $assembly/index/getRAMByte|inlined.14 (result i32)
+          block $assembly/tms9918a/getRAMByte|inlined.14 (result i32)
            local.get $nameTable
            local.get $rowOffset
            i32.add
@@ -869,16 +871,16 @@
            i32.div_s
            i32.add
            local.set $addr|73
-           global.get $assembly/index/vdpRAMAddr
+           global.get $assembly/tms9918a/vdpRAMAddr
            local.get $addr|73
            i32.add
-           i32.load8_u $0
-           br $assembly/index/getRAMByte|inlined.14
+           i32.load8_u
+           br $assembly/tms9918a/getRAMByte|inlined.14
           end
           i32.const 255
           i32.and
           local.set $name
-          block $assembly/index/getRAMByte|inlined.15 (result i32)
+          block $assembly/tms9918a/getRAMByte|inlined.15 (result i32)
            local.get $charPatternTable
            local.get $name
            i32.const 3
@@ -887,11 +889,11 @@
            local.get $lineOffset
            i32.add
            local.set $addr|74
-           global.get $assembly/index/vdpRAMAddr
+           global.get $assembly/tms9918a/vdpRAMAddr
            local.get $addr|74
            i32.add
-           i32.load8_u $0
-           br $assembly/index/getRAMByte|inlined.15
+           i32.load8_u
+           br $assembly/tms9918a/getRAMByte|inlined.15
           end
           i32.const 255
           i32.and
@@ -913,7 +915,7 @@
           local.set $color
           br $break|3
          end
-         block $assembly/index/getRAMByte|inlined.16 (result i32)
+         block $assembly/tms9918a/getRAMByte|inlined.16 (result i32)
           local.get $nameTable
           local.get $rowOffset
           i32.add
@@ -922,16 +924,16 @@
           i32.div_s
           i32.add
           local.set $addr|75
-          global.get $assembly/index/vdpRAMAddr
+          global.get $assembly/tms9918a/vdpRAMAddr
           local.get $addr|75
           i32.add
-          i32.load8_u $0
-          br $assembly/index/getRAMByte|inlined.16
+          i32.load8_u
+          br $assembly/tms9918a/getRAMByte|inlined.16
          end
          i32.const 255
          i32.and
          local.set $name
-         local.get $y1
+         local.get $yScreen
          i32.const 192
          i32.and
          i32.const 5
@@ -941,7 +943,7 @@
          i32.shl
          i32.add
          local.set $tableOffset
-         block $assembly/index/getRAMByte|inlined.17 (result i32)
+         block $assembly/tms9918a/getRAMByte|inlined.17 (result i32)
           local.get $charPatternTable
           local.get $tableOffset
           local.get $patternTableMask
@@ -950,11 +952,11 @@
           local.get $lineOffset
           i32.add
           local.set $addr|76
-          global.get $assembly/index/vdpRAMAddr
+          global.get $assembly/tms9918a/vdpRAMAddr
           local.get $addr|76
           i32.add
-          i32.load8_u $0
-          br $assembly/index/getRAMByte|inlined.17
+          i32.load8_u
+          br $assembly/tms9918a/getRAMByte|inlined.17
          end
          i32.const 255
          i32.and
@@ -976,7 +978,7 @@
          local.set $color
          br $break|3
         end
-        block $assembly/index/getRAMByte|inlined.18 (result i32)
+        block $assembly/tms9918a/getRAMByte|inlined.18 (result i32)
          local.get $nameTable
          local.get $rowOffset
          i32.add
@@ -985,22 +987,22 @@
          i32.shr_s
          i32.add
          local.set $addr|77
-         global.get $assembly/index/vdpRAMAddr
+         global.get $assembly/tms9918a/vdpRAMAddr
          local.get $addr|77
          i32.add
-         i32.load8_u $0
-         br $assembly/index/getRAMByte|inlined.18
+         i32.load8_u
+         br $assembly/tms9918a/getRAMByte|inlined.18
         end
         i32.const 255
         i32.and
         local.set $name
-        local.get $y1
+        local.get $yScreen
         i32.const 28
         i32.and
         i32.const 2
         i32.shr_s
         local.set $lineOffset
-        local.get $y1
+        local.get $yScreen
         i32.const 192
         i32.and
         i32.const 5
@@ -1010,7 +1012,7 @@
         i32.shl
         i32.add
         local.set $tableOffset
-        block $assembly/index/getRAMByte|inlined.19 (result i32)
+        block $assembly/tms9918a/getRAMByte|inlined.19 (result i32)
          local.get $charPatternTable
          local.get $tableOffset
          local.get $patternTableMask
@@ -1019,11 +1021,11 @@
          local.get $lineOffset
          i32.add
          local.set $addr|78
-         global.get $assembly/index/vdpRAMAddr
+         global.get $assembly/tms9918a/vdpRAMAddr
          local.get $addr|78
          i32.add
-         i32.load8_u $0
-         br $assembly/index/getRAMByte|inlined.19
+         i32.load8_u
+         br $assembly/tms9918a/getRAMByte|inlined.19
         end
         i32.const 255
         i32.and
@@ -1070,16 +1072,16 @@
       local.get $textMode
       i32.eqz
       if
-       block $assembly/index/getSpriteBuffer|inlined.1 (result i32)
+       block $assembly/tms9918a/getSpriteBuffer|inlined.1 (result i32)
         local.get $x1
         local.set $offset|79
-        global.get $assembly/index/spriteBufferAddr
+        global.get $assembly/tms9918a/spriteBufferAddr
         local.get $offset|79
         i32.const 2
         i32.shl
         i32.add
-        i32.load $0
-        br $assembly/index/getSpriteBuffer|inlined.1
+        i32.load
+        br $assembly/tms9918a/getSpriteBuffer|inlined.1
        end
        local.set $spriteColor
        local.get $spriteColor
@@ -1094,16 +1096,16 @@
       local.get $bgColor
       local.set $color
      end
-     block $assembly/index/getColor|inlined.0 (result i32)
+     block $assembly/tms9918a/getColor|inlined.0 (result i32)
       local.get $color
       local.set $i
-      global.get $assembly/index/paletteAddr
+      global.get $assembly/tms9918a/paletteAddr
       local.get $i
       i32.const 2
       i32.shl
       i32.add
-      i32.load $0
-      br $assembly/index/getColor|inlined.0
+      i32.load
+      br $assembly/tms9918a/getColor|inlined.0
      end
      local.set $rgbColor
      local.get $imageDataAddr
@@ -1115,13 +1117,13 @@
      local.set $addr|83
      local.get $rgbColor
      local.set $value
-     global.get $assembly/index/scanlineColorBufferAddr
+     global.get $assembly/tms9918a/scanlineColorBufferAddr
      local.get $addr|83
      i32.const 2
      i32.shl
      i32.add
      local.get $value
-     i32.store $0
+     i32.store
      local.get $x
      i32.const 1
      i32.add
@@ -1130,16 +1132,16 @@
     end
    end
   else
-   block $assembly/index/getColor|inlined.1 (result i32)
+   block $assembly/tms9918a/getColor|inlined.1 (result i32)
     local.get $bgColor
     local.set $i|85
-    global.get $assembly/index/paletteAddr
+    global.get $assembly/tms9918a/paletteAddr
     local.get $i|85
     i32.const 2
     i32.shl
     i32.add
-    i32.load $0
-    br $assembly/index/getColor|inlined.1
+    i32.load
+    br $assembly/tms9918a/getColor|inlined.1
    end
    local.set $rgbColor
    i32.const 0
@@ -1158,13 +1160,13 @@
      local.set $addr|87
      local.get $rgbColor
      local.set $value|88
-     global.get $assembly/index/scanlineColorBufferAddr
+     global.get $assembly/tms9918a/scanlineColorBufferAddr
      local.get $addr|87
      i32.const 2
      i32.shl
      i32.add
      local.get $value|88
-     i32.store $0
+     i32.store
      local.get $x
      i32.const 1
      i32.add
@@ -1214,6 +1216,10 @@
   local.get $statusRegister
   i32.const 255
   i32.and
+  return
+ )
+ (func $assembly/f18a/drawScanline (result i32)
+  i32.const 1
   return
  )
 )
