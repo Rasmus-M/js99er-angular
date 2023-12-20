@@ -12,36 +12,133 @@ const COLOR_MODE_ECM_3 = 3;
 const vdpRAMAddr = 0x0000;
 const paletteAddr = 0x4000;
 const scanlineColorBufferAddr = 0x5000;
-const spriteBufferAddr = 0x6000;
+const spriteColorBufferAddr = 0x6000;
+const spritePaletteBaseIndexBufferAddr = 0x7000;
+
+class Pixel {
+    tilePriority: bool = false;
+    transparentColor0: bool = false;
+    color: i32 = 0;
+    paletteBaseIndex: i32 = 0;
+    constructor(
+        tilePriority: bool,
+        transparentColor0: bool,
+        color: i32,
+        paletteBaseIndex: i32
+    ) {
+        this.tilePriority = tilePriority;
+        this.transparentColor0 = transparentColor0;
+        this.color = color;
+        this.paletteBaseIndex = paletteBaseIndex;
+    }
+}
+
+class VDPStatus {
+    collision: bool = false;
+    fifthSprite: bool = false;
+    fifthSpriteIndex: i32 = -1;
+}
 
 export function drawScanline(
-    y: i32
-) {
-    const imageData = imageDataData;
-    let imageDataAddr = imageDataAddr;
+    y: i32,
+    imageDataAddr: i32,
+    displayOn: bool,
+    topBorder: i32,
+    drawHeight: i32,
+    unlocked: bool,
+    screenMode: i32,
+    drawWidth: i32,
+    vPageSize1: i32,
+    vPageSize2: i32,
+    hPageSize1: i32,
+    hPageSize2: i32,
+    vScroll1: i32,
+    vScroll2: i32,
+    tileLayer2Enabled: bool,
+    bitmapEnable: bool,
+    bitmapBaseAddr: i32,
+    bitmapX: i32,
+    bitmapY: i32,
+    bitmapWidth: i32,
+    bitmapHeight: i32,
+    bitmapTransparent: bool,
+    bitmapFat: bool,
+    bitmapPriority: bool,
+    bitmapPaletteSelect: i32,
+    nameTable: i32,
+    nameTable2: i32,
+    canvasWidth: i32,
+    scanLines: bool,
+    bgColor: i32,
+    leftBorder: i32,
+    tileLayer1Enabled: bool,
+    tileMap2AlwaysOnTop: bool,
+    colorTable: i32,
+    colorTable2: i32,
+    hScroll1: i32,
+    hScroll2: i32,
+    tilePaletteSelect1: i32,
+    tilePaletteSelect2: i32,
+    tileColorMode: i32,
+    row30Enabled: bool,
+    spriteLinkingEnabled: bool,
+    realSpriteYCoord: bool,
+    maxSprites: i32,
+    maxScanlineSprites: i32,
+    spriteColorMode: i32,
+    spritePaletteSelect: i32,
+    spritePlaneOffset: i32,
+    spriteSize: i32,
+    spriteMag: i32,
+    spriteAttributeTable: i32,
+    spritePatternTable: i32,
+    ecmPositionAttributes: bool,
+    charPatternTable: i32,
+    tilePlaneOffset: i32,
+    patternTableMask: i32,
+    colorTableMask: i32,
+    fgColor: i32,
+    status: VDPStatus
+
+): i32 {
     if (displayOn && y >= topBorder && y < topBorder + drawHeight) {
         y -= topBorder;
         // Prepare sprites
-        let spriteColorBuffer: Uint8Array, spritePaletteBaseIndexBuffer: Uint8Array;
         if (unlocked || (screenMode !== MODE_TEXT && screenMode !== MODE_TEXT_80)) {
-            spriteColorBuffer = new Uint8Array(drawWidth);
-            spritePaletteBaseIndexBuffer = new Uint8Array(drawWidth);
-            prepareSprites(y, spriteColorBuffer, spritePaletteBaseIndexBuffer);
+            prepareSprites(
+                y,
+                drawWidth,
+                screenMode,
+                row30Enabled,
+                unlocked,
+                spriteLinkingEnabled,
+                realSpriteYCoord,
+                maxSprites,
+                maxScanlineSprites,
+                spriteColorMode,
+                spritePaletteSelect,
+                spritePlaneOffset,
+                spriteSize,
+                spriteMag,
+                spriteAttributeTable,
+                spritePatternTable,
+                status
+            );
         }
-        let scrollWidth = drawWidth;
-        const scrollHeight = drawHeight;
+        let scrollWidth: i32 = drawWidth;
+        const scrollHeight: i32 = drawHeight;
         // Border in text modes
         const borderWidth = screenMode === MODE_TEXT ? 8 : (screenMode === MODE_TEXT_80 ? 16 : 0);
         scrollWidth -= (borderWidth << 1);
         // Prepare values for Tile layer 1
-        const nameTableCanonicalBase = vPageSize1 ? nameTable & 0x3000 : (hPageSize1 ? nameTable & 0x3800 : nameTable);
-        let nameTableBaseAddr = nameTable;
-        let y1 = y + vScroll1;
+        const nameTableCanonicalBase: i32 = vPageSize1 ? nameTable & 0x3000 : (hPageSize1 ? nameTable & 0x3800 : nameTable);
+        let nameTableBaseAddr: i32 = nameTable;
+        let y1: i32 = y + vScroll1;
         if (y1 >= scrollHeight) {
             y1 -= scrollHeight;
             nameTableBaseAddr ^= vPageSize1;
         }
-        let rowOffset;
+        let rowOffset: i32 = 0;
         switch (screenMode) {
             case MODE_GRAPHICS:
             case MODE_BITMAP:
@@ -57,7 +154,11 @@ export function drawScanline(
         }
         const lineOffset = y1 & 7;
         // Prepare values for Tile layer 2
-        let rowOffset2, nameTableCanonicalBase2, nameTableBaseAddr2, lineOffset2, y12;
+        let rowOffset2: i32 = 0,
+            nameTableCanonicalBase2: i32 = 0,
+            nameTableBaseAddr2: i32 = 0,
+            lineOffset2: i32 = 0,
+            y12: i32 = 0;
         if (tileLayer2Enabled) {
             nameTableCanonicalBase2 = vPageSize2 ? nameTable2 & 0x3000 : (hPageSize2 ? nameTable2 & 0x3800 : nameTable2);
             nameTableBaseAddr2 = nameTable2;
@@ -82,7 +183,10 @@ export function drawScanline(
             lineOffset2 = y12 & 7;
         }
         // Prepare values for Bitmap layer
-        let bitmapX2, bitmapY1, bitmapY2, bitmapYOffset;
+        let bitmapX2: i32 = 0,
+            bitmapY1: i32 = 0,
+            bitmapY2: i32 = 0,
+            bitmapYOffset: i32 = 0;
         if (bitmapEnable) {
             bitmapX2 = bitmapX + bitmapWidth;
             bitmapY1 = y - bitmapY;
@@ -94,31 +198,81 @@ export function drawScanline(
         // Draw line
         for (let xc = 0; xc < canvasWidth; xc++) {
             // Draw pixel
-            let color = bgColor;
-            let paletteBaseIndex = 0;
+            let color: i32 = bgColor;
+            let paletteBaseIndex: i32 = 0;
             if (xc >= leftBorder && xc < leftBorder + drawWidth) {
-                const x = xc - leftBorder;
-                let havePixel = false,
-                    tilePriority = false;
+                const x: i32 = xc - leftBorder;
+                let havePixel: bool = false,
+                    tilePriority: bool = false;
                 // Tile layer 1
                 if (tileLayer1Enabled) {
-                    const {tilePriority: tilePriority1, transparentColor0: transparentColor01, color: tileColor1, paletteBaseIndex: tilePaletteBaseIndex1} =
-                        drawTileLayer(x, y, y1, rowOffset, lineOffset, nameTableCanonicalBase, nameTableBaseAddr, colorTable, borderWidth, scrollWidth, hScroll1, hPageSize1, tilePaletteSelect1);
-                    if (tileColor1 > 0 || !transparentColor01) {
-                        color = tileColor1;
-                        paletteBaseIndex = tilePaletteBaseIndex1;
-                        tilePriority = tilePriority1;
+                    const pixel1 =
+                        drawTileLayer(
+                            x,
+                            y,
+                            y1,
+                            rowOffset,
+                            lineOffset,
+                            nameTableCanonicalBase,
+                            nameTableBaseAddr,
+                            colorTable,
+                            borderWidth,
+                            scrollWidth,
+                            hScroll1,
+                            hPageSize1,
+                            tilePaletteSelect1,
+                            screenMode,
+                            tileColorMode,
+                            unlocked,
+                            ecmPositionAttributes,
+                            charPatternTable,
+                            tilePlaneOffset,
+                            patternTableMask,
+                            colorTableMask,
+                            drawWidth,
+                            fgColor,
+                            bgColor
+                        );
+                    if (pixel1.color > 0 || !pixel1.transparentColor0) {
+                        color = pixel1.color;
+                        paletteBaseIndex = pixel1.paletteBaseIndex;
+                        tilePriority = pixel1.tilePriority;
                         havePixel = true;
                     }
                 }
                 // Tile layer 2
                 if (tileLayer2Enabled) {
-                    const {tilePriority: tilePriority2, transparentColor0: transparentColor02, color: tileColor2, paletteBaseIndex: tilePaletteBaseIndex2} =
-                        drawTileLayer(x, y, y1, rowOffset2, lineOffset2, nameTableCanonicalBase2, nameTableBaseAddr2, colorTable2, borderWidth, scrollWidth, hScroll2, hPageSize2, tilePaletteSelect2);
-                    if (tileColor2 > 0 || !transparentColor02) {
-                        color = tileColor2;
-                        paletteBaseIndex = tilePaletteBaseIndex2;
-                        tilePriority = tilePriority2 || tileMap2AlwaysOnTop;
+                    const pixel2 =
+                        drawTileLayer(
+                            x,
+                            y,
+                            y1,
+                            rowOffset2,
+                            lineOffset2,
+                            nameTableCanonicalBase2,
+                            nameTableBaseAddr2,
+                            colorTable2,
+                            borderWidth,
+                            scrollWidth,
+                            hScroll2,
+                            hPageSize2,
+                            tilePaletteSelect2,
+                            screenMode,
+                            tileColorMode,
+                            unlocked,
+                            ecmPositionAttributes,
+                            charPatternTable,
+                            tilePlaneOffset,
+                            patternTableMask,
+                            colorTableMask,
+                            drawWidth,
+                            fgColor,
+                            bgColor
+                        );
+                    if (pixel2.color > 0 || !pixel2.transparentColor0) {
+                        color = pixel2.color;
+                        paletteBaseIndex = pixel2.paletteBaseIndex;
+                        tilePriority = pixel2.tilePriority || tileMap2AlwaysOnTop;
                         havePixel = true;
                     }
                 }
@@ -128,8 +282,9 @@ export function drawScanline(
                     if (bmpX >= bitmapX && bmpX < bitmapX2 && y >= bitmapY && y < bitmapY2) {
                         const bitmapX1 = x - bitmapX;
                         const bitmapPixelOffset = bitmapX1 + bitmapYOffset;
-                        const bitmapByte = ram[bitmapBaseAddr + (bitmapPixelOffset >> 2)];
-                        let bitmapBitShift, bitmapColor;
+                        const bitmapByte = getRAMByte(bitmapBaseAddr + (bitmapPixelOffset >> 2));
+                        let bitmapBitShift,
+                            bitmapColor;
                         if (bitmapFat) {
                             // 16 color bitmap with fat pixels
                             bitmapBitShift = (2 - (bitmapPixelOffset & 2)) << 1;
@@ -147,79 +302,88 @@ export function drawScanline(
                 }
                 // Sprite layer
                 if (spritesEnabled && !(tilePriority && havePixel)) {
-                    const spriteColor = spriteColorBuffer[x] - 1;
+                    const spriteColor = getSpriteColorBuffer(x) - 1;
                     if (spriteColor > 0) {
                         color = spriteColor;
-                        paletteBaseIndex = spritePaletteBaseIndexBuffer[x];
+                        paletteBaseIndex = getSpritePaletteBaseIndexBuffer(x);
                     }
                 }
             }
             // Draw pixel
-            const rgbColor = palette[color + paletteBaseIndex];
-            imageData[imageDataAddr++] = rgbColor[0];
-            imageData[imageDataAddr++] = rgbColor[1];
-            imageData[imageDataAddr++] = rgbColor[2];
-            imageDataAddr++;
+            const rgbColor = getColor(color + paletteBaseIndex);
+            setImageData(imageDataAddr++, rgbColor);
         }
     } else {
         // Empty scanline
-        const rgbColor = palette[bgColor];
+        const rgbColor = getColor(bgColor);
         for (let xc = 0; xc < canvasWidth; xc++) {
-            imageData[imageDataAddr++] = rgbColor[0]; // R
-            imageData[imageDataAddr++] = rgbColor[1]; // G
-            imageData[imageDataAddr++] = rgbColor[2]; // B
-            imageDataAddr++; // Skip alpha
+            setImageData(imageDataAddr++, rgbColor);
         }
     }
     if (scanLines && (y & 1) !== 0) {
         // Dim last scan line
         let imagedataAddr2 = imageDataAddr - (canvasWidth << 2);
         for (let xc = 0; xc < canvasWidth; xc++) {
-            imageData[imagedataAddr2++] *= 0.75;
-            imageData[imagedataAddr2++] *= 0.75;
-            imageData[imagedataAddr2++] *= 0.75;
-            imagedataAddr2++;
+            const rgbColor = getImageData(imagedataAddr2);
+            setImageData(imagedataAddr2++, rgbColor); // TODO: * 0.75
         }
     }
-    imageDataAddr = imageDataAddr;
+    return imageDataAddr;
 }
 
 function drawTileLayer(
-    x: number,
-    y: number,
-    y1: number,
-    rowOffset: number,
-    lineOffset: number,
-    nameTableCanonicalBase: number,
-    nameTableBaseAddr: number,
-    colorTable: number,
-    borderWidth: number,
-    scrollWidth: number,
-    hScroll: number,
-    hPageSize: number,
-    tilePaletteSelect: number
-): { tilePriority: boolean; transparentColor0: boolean; color: number; paletteBaseIndex: number } {
-    let tilePriority = false;
-    let transparentColor0 = false;
-    let tileColor = 0;
-    let paletteBaseIndex = 0;
-    let nameTableAddr = nameTableBaseAddr;
-    let x1 = x - borderWidth + (hScroll << (screenMode === MODE_TEXT_80 ? 1 : 0));
+    x: i32,
+    y: i32,
+    y1: i32,
+    rowOffset: i32,
+    lineOffset: i32,
+    nameTableCanonicalBase: i32,
+    nameTableBaseAddr: i32,
+    colorTable: i32,
+    borderWidth: i32,
+    scrollWidth: i32,
+    hScroll: i32,
+    hPageSize: i32,
+    tilePaletteSelect: i32,
+    screenMode: i32,
+    tileColorMode: i32,
+    unlocked: bool,
+    ecmPositionAttributes: bool,
+    charPatternTable: i32,
+    tilePlaneOffset: i32,
+    patternTableMask: i32,
+    colorTableMask: i32,
+    drawWidth: i32,
+    fgColor: i32,
+    bgColor: i32,
+): Pixel {
+    let tilePriority = false,
+        transparentColor0 = false,
+        tileColor = 0,
+        paletteBaseIndex = 0,
+        nameTableAddr = nameTableBaseAddr,
+        x1 = x - borderWidth + (hScroll << (screenMode === MODE_TEXT_80 ? 1 : 0));
     if (x1 >= scrollWidth) {
         x1 -= scrollWidth;
         nameTableAddr ^= hPageSize;
     }
-    let charNo, bitShift, bit, patternAddr, patternByte;
-    let colorByte, tileAttributeByte;
-    let tilePaletteBaseIndex, lineOffset1;
+    let charNo: i32,
+        bitShift: i32,
+        bit: i32,
+        patternAddr: i32,
+        patternByte: i32,
+        colorByte: u8 = 0,
+        tileAttributeByte: u8 = 0,
+        tilePaletteBaseIndex: i32 = 0,
+        lineOffset1: i32;
     switch (screenMode) {
         case MODE_GRAPHICS:
             nameTableAddr += (x1 >> 3) + rowOffset;
-            charNo = ram[nameTableAddr];
+            charNo = getRAMByte(nameTableAddr);
             bitShift = x1 & 7;
             lineOffset1 = lineOffset;
             if (tileColorMode !== COLOR_MODE_NORMAL) {
-                tileAttributeByte = ram[colorTable + (ecmPositionAttributes ? nameTableAddr - nameTableCanonicalBase : charNo)];
+                tileAttributeByte = getRAMByte(colorTable + (ecmPositionAttributes ? nameTableAddr - nameTableCanonicalBase : charNo));
                 tilePriority = (tileAttributeByte & 0x80) !== 0;
                 if ((tileAttributeByte & 0x40) !== 0) {
                     // Flip X
@@ -233,10 +397,10 @@ function drawTileLayer(
             }
             bit = 0x80 >> bitShift;
             patternAddr = charPatternTable + (charNo << 3) + lineOffset1;
-            patternByte = ram[patternAddr];
+            patternByte = getRAMByte(patternAddr);
             switch (tileColorMode) {
                 case COLOR_MODE_NORMAL:
-                    const colorSet = ram[colorTable + (charNo >> 3)];
+                    const colorSet = getRAMByte(colorTable + (charNo >> 3));
                     tileColor = (patternByte & bit) !== 0 ? (colorSet & 0xF0) >> 4 : colorSet & 0x0F;
                     tilePaletteBaseIndex = tilePaletteSelect;
                     transparentColor0 = true;
@@ -249,27 +413,27 @@ function drawTileLayer(
                 case COLOR_MODE_ECM_2:
                     tileColor =
                         ((patternByte & bit) >> (7 - bitShift)) |
-                        (((ram[(patternAddr + tilePlaneOffset) & 0x3fff] & bit) >> (7 - bitShift)) << 1);
+                        (((getRAMByte((patternAddr + tilePlaneOffset) & 0x3fff) & bit) >> (7 - bitShift)) << 1);
                     tilePaletteBaseIndex = ((tileAttributeByte & 0x0f) << 2);
                     break;
                 case COLOR_MODE_ECM_3:
                     tileColor =
                         ((patternByte & bit) >> (7 - bitShift)) |
-                        (((ram[(patternAddr + tilePlaneOffset) & 0x3fff] & bit) >> (7 - bitShift)) << 1) |
-                        (((ram[(patternAddr + (tilePlaneOffset << 1)) & 0x3fff] & bit) >> (7 - bitShift)) << 2);
+                        (((getRAMByte((patternAddr + tilePlaneOffset) & 0x3fff) & bit) >> (7 - bitShift)) << 1) |
+                        (((getRAMByte((patternAddr + (tilePlaneOffset << 1)) & 0x3fff) & bit) >> (7 - bitShift)) << 2);
                     tilePaletteBaseIndex = ((tileAttributeByte & 0x0e) << 2);
                     break;
             }
             paletteBaseIndex = tilePaletteBaseIndex;
             break;
         case MODE_BITMAP:
-            charNo = ram[nameTableAddr + (x1 >> 3) + rowOffset];
+            charNo = getRAMByte(nameTableAddr + (x1 >> 3) + rowOffset);
             bitShift = x1 & 7;
             bit = 0x80 >> bitShift;
             const charSetOffset = (y & 0xC0) << 5;
-            patternByte = ram[charPatternTable + (((charNo << 3) + charSetOffset) & patternTableMask) + lineOffset];
+            patternByte = getRAMByte(charPatternTable + (((charNo << 3) + charSetOffset) & patternTableMask) + lineOffset);
             const colorAddr = colorTable + (((charNo << 3) + charSetOffset) & colorTableMask) + lineOffset;
-            colorByte = ram[colorAddr];
+            colorByte = getRAMByte(colorAddr);
             tileColor = (patternByte & bit) !== 0 ? (colorByte & 0xF0) >> 4 : (colorByte & 0x0F);
             paletteBaseIndex = tilePaletteSelect;
             transparentColor0 = true;
@@ -278,11 +442,11 @@ function drawTileLayer(
         case MODE_TEXT_80:
             if (x >= borderWidth && x < drawWidth - borderWidth) {
                 nameTableAddr += Math.floor(x1 / 6) + rowOffset;
-                charNo = ram[nameTableAddr];
+                charNo = getRAMByte(nameTableAddr);
                 bitShift = x1 % 6;
                 lineOffset1 = lineOffset;
                 if (tileColorMode !== COLOR_MODE_NORMAL) {
-                    tileAttributeByte = ram[colorTable + (ecmPositionAttributes ? nameTableAddr - nameTableCanonicalBase : charNo)];
+                    tileAttributeByte = getRAMByte(colorTable + (ecmPositionAttributes ? nameTableAddr - nameTableCanonicalBase : charNo));
                     tilePriority = (tileAttributeByte & 0x80) !== 0;
                     if ((tileAttributeByte & 0x40) !== 0) {
                         // Flip X
@@ -296,11 +460,11 @@ function drawTileLayer(
                 }
                 bit = 0x80 >> bitShift;
                 patternAddr = charPatternTable + (charNo << 3) + lineOffset1;
-                patternByte = ram[patternAddr];
+                patternByte = getRAMByte(patternAddr);
                 switch (tileColorMode) {
                     case COLOR_MODE_NORMAL:
                         if (unlocked && ecmPositionAttributes) {
-                            tileAttributeByte = ram[colorTable + nameTableAddr - nameTableCanonicalBase];
+                            tileAttributeByte = getRAMByte(colorTable + nameTableAddr - nameTableCanonicalBase);
                             tileColor = (patternByte & bit) !== 0 ? tileAttributeByte >> 4 : tileAttributeByte & 0xF;
                         } else {
                             tileColor = (patternByte & bit) !== 0 ? fgColor : bgColor;
@@ -316,14 +480,14 @@ function drawTileLayer(
                     case COLOR_MODE_ECM_2:
                         tileColor =
                             ((patternByte & bit) >> (7 - bitShift)) |
-                            (((ram[(patternAddr + tilePlaneOffset) & 0x3fff] & bit) >> (7 - bitShift)) << 1);
+                            (((getRAMByte((patternAddr + tilePlaneOffset) & 0x3fff) & bit) >> (7 - bitShift)) << 1);
                         tilePaletteBaseIndex = ((tileAttributeByte & 0x0f) << 2);
                         break;
                     case COLOR_MODE_ECM_3:
                         tileColor =
                             ((patternByte & bit) >> (7 - bitShift)) |
-                            (((ram[(patternAddr + tilePlaneOffset) & 0x3fff] & bit) >> (7 - bitShift)) << 1) |
-                            (((ram[(patternAddr + (tilePlaneOffset << 1)) & 0x3fff] & bit) >> (7 - bitShift)) << 2);
+                            (((getRAMByte((patternAddr + tilePlaneOffset) & 0x3fff) & bit) >> (7 - bitShift)) << 1) |
+                            (((getRAMByte((patternAddr + (tilePlaneOffset << 1)) & 0x3fff) & bit) >> (7 - bitShift)) << 2);
                         tilePaletteBaseIndex = ((tileAttributeByte & 0x0e) << 2);
                         break;
                 }
@@ -332,38 +496,57 @@ function drawTileLayer(
             }
             break;
         case MODE_MULTICOLOR:
-            charNo = ram[nameTableAddr + (x1 >> 3) + rowOffset];
-            colorByte = ram[charPatternTable + (charNo << 3) + ((y1 & 0x1c) >> 2)];
+            charNo = getRAMByte(nameTableAddr + (x1 >> 3) + rowOffset);
+            colorByte = getRAMByte(charPatternTable + (charNo << 3) + ((y1 & 0x1c) >> 2));
             tileColor = (x1 & 4) === 0 ? (colorByte & 0xf0) >> 4 : (colorByte & 0x0f);
             paletteBaseIndex = tilePaletteSelect;
             transparentColor0 = true;
             break;
     }
-    return {
-        tilePriority: tilePriority,
-        transparentColor0: transparentColor0,
-        color: tileColor,
-        paletteBaseIndex: paletteBaseIndex
-    };
+    return new Pixel(
+        tilePriority,
+        transparentColor0,
+        tileColor,
+        paletteBaseIndex
+    );
 }
 
-function prepareSprites(y: number, spriteColorBuffer: Uint8Array, spritePaletteBaseIndexBuffer: Uint8Array) {
+function prepareSprites(
+    y: i32,
+    drawWidth: i32,
+    screenMode: i32,
+    row30Enabled: bool,
+    unlocked: bool,
+    spriteLinkingEnabled: bool,
+    realSpriteYCoord: bool,
+    maxSprites: i32,
+    maxScanlineSprites: i32,
+    spriteColorMode: i32,
+    spritePaletteSelect: i32,
+    spritePlaneOffset: i32,
+    defaultSpriteSize: i32,
+    spriteMag: i32,
+    spriteAttributeTable: i32,
+    spritePatternTable: i32,
+    status: VDPStatus
+) {
+    initSpriteBuffer();
     let spritesOnLine = 0;
     const outOfScreenY = row30Enabled ? 0xF0 : 0xC0;
     const negativeScreenY = row30Enabled ? 0xF0 : 0xD0;
     const maxSpriteAttrAddr = spriteAttributeTable + (maxSprites << 2);
     for (let spriteAttrAddr = spriteAttributeTable, index = 0;
-         (row30Enabled || ram[spriteAttrAddr] !== 0xd0) && spriteAttrAddr < maxSpriteAttrAddr && spritesOnLine <= maxScanlineSprites; spriteAttrAddr += 4, index++) {
+         (row30Enabled || getRAMByte(spriteAttrAddr) !== 0xd0) && spriteAttrAddr < maxSpriteAttrAddr && spritesOnLine <= maxScanlineSprites; spriteAttrAddr += 4, index++) {
         let parentSpriteAttrAddr = null;
         if (spriteLinkingEnabled) {
-            const spriteLinkingAttr = ram[spriteAttributeTable + 0x80 + ((spriteAttrAddr - spriteAttributeTable) >> 2)];
+            const spriteLinkingAttr = getRAMByte(spriteAttributeTable + 0x80 + ((spriteAttrAddr - spriteAttributeTable) >> 2));
             if ((spriteLinkingAttr & 0x20) !== 0) {
                 parentSpriteAttrAddr = spriteAttributeTable + ((spriteLinkingAttr & 0x1F) << 2);
             }
         }
-        let spriteY = ram[spriteAttrAddr];
+        let spriteY = getRAMByte(spriteAttrAddr);
         if (parentSpriteAttrAddr !== null) {
-            spriteY = (spriteY + ram[parentSpriteAttrAddr]) & 0xFF;
+            spriteY = (spriteY + getRAMByte(parentSpriteAttrAddr)) & 0xFF;
         }
         if (!realSpriteYCoord) {
             spriteY++;
@@ -372,9 +555,8 @@ function prepareSprites(y: number, spriteColorBuffer: Uint8Array, spritePaletteB
             if (spriteY > negativeScreenY) {
                 spriteY -= 256;
             }
-            const spriteAttr = ram[spriteAttrAddr + 3];
-            const spriteSize = !unlocked || (spriteAttr & 0x10) === 0 ? spriteSize : 1;
-            const spriteMag = spriteMag;
+            const spriteAttr = getRAMByte(spriteAttrAddr + 3);
+            const spriteSize = !unlocked || (spriteAttr & 0x10) === 0 ? defaultSpriteSize : 1;
             const spriteHeight = 8 << spriteSize; // 8 or 16
             const spriteDimensionY = spriteHeight << spriteMag; // 8, 16 or 32
             if (y >= spriteY && y < spriteY + spriteDimensionY) {
@@ -383,21 +565,21 @@ function prepareSprites(y: number, spriteColorBuffer: Uint8Array, spritePaletteB
                     const spriteWidth = spriteHeight;
                     //noinspection JSSuspiciousNameCombination
                     const spriteDimensionX = spriteDimensionY;
-                    let spriteX = ram[spriteAttrAddr + 1];
+                    let spriteX = getRAMByte(spriteAttrAddr + 1);
                     if (parentSpriteAttrAddr === null) {
                         if ((spriteAttr & 0x80) !== 0) {
                             spriteX -= 32; // Early clock
                         }
                     } else {
                         // Linked
-                        spriteX = (spriteX + ram[parentSpriteAttrAddr + 1]) & 0xFF;
-                        if ((ram[parentSpriteAttrAddr + 3] & 0x80) !== 0) {
+                        spriteX = (spriteX + getRAMByte(parentSpriteAttrAddr + 1)) & 0xFF;
+                        if ((getRAMByte(parentSpriteAttrAddr + 3) & 0x80) !== 0) {
                             spriteX -= 32; // Early clock of parent
                         }
                     }
-                    const patternNo = (ram[spriteAttrAddr + 2] & (spriteSize !== 0 ? 0xFC : 0xFF));
-                    const spriteFlipY: boolean = unlocked && (spriteAttr & 0x20) !== 0;
-                    const spriteFlipX: boolean = unlocked && (spriteAttr & 0x40) !== 0;
+                    const patternNo = (getRAMByte(spriteAttrAddr + 2) & (spriteSize !== 0 ? 0xFC : 0xFF));
+                    const spriteFlipY: bool = unlocked && (spriteAttr & 0x20) !== 0;
+                    const spriteFlipX: bool = unlocked && (spriteAttr & 0x40) !== 0;
                     const baseColor = spriteAttr & 0x0F;
                     let sprPaletteBaseIndex = 0;
                     switch (spriteColorMode) {
@@ -421,13 +603,13 @@ function prepareSprites(y: number, spriteColorBuffer: Uint8Array, spritePaletteB
                     }
                     for (let dx = 0; dx < spriteWidth; dx += 8) {
                         const spritePatternAddr = spritePatternBaseAddr + dy + (dx << 1);
-                        const spritePatternByte0 = ram[spritePatternAddr];
-                        const spritePatternByte1 = ram[(spritePatternAddr + spritePlaneOffset) & 0x3fff];
-                        const spritePatternByte2 = ram[(spritePatternAddr + (spritePlaneOffset << 1)) & 0x3fff];
+                        const spritePatternByte0 = getRAMByte(spritePatternAddr);
+                        const spritePatternByte1 = getRAMByte((spritePatternAddr + spritePlaneOffset) & 0x3fff);
+                        const spritePatternByte2 = getRAMByte((spritePatternAddr + (spritePlaneOffset << 1)) & 0x3fff);
                         let spriteBit = 0x80;
                         let spriteBitShift2 = 7;
                         for (let spriteBitShift1 = 0; spriteBitShift1 < 8; spriteBitShift1++) {
-                            let sprColor;
+                            let sprColor = 0;
                             let pixelOn = false;
                             switch (spriteColorMode) {
                                 case COLOR_MODE_NORMAL:
@@ -452,21 +634,21 @@ function prepareSprites(y: number, spriteColorBuffer: Uint8Array, spritePaletteB
                             if (sprColor > 0 || pixelOn) {
                                 let x2 = spriteX + ((spriteFlipX ? spriteDimensionX - (dx + spriteBitShift1) - 1 : dx + spriteBitShift1) << spriteMag);
                                 if (x2 >= 0 && x2 < drawWidth) {
-                                    if (spriteColorBuffer[x2] === 0) {
-                                        spriteColorBuffer[x2] = sprColor + 1; // Add one here so 0 means uninitialized. Subtract one before drawing.
-                                        spritePaletteBaseIndexBuffer[x2] = sprPaletteBaseIndex;
+                                    if (getSpriteColorBuffer(x2) === 0) {
+                                        setSpriteColorBuffer(x2, sprColor + 1); // Add one here so 0 means uninitialized. Subtract one before drawing.
+                                        setSpritePaletteBaseIndexBuffer(x2, sprPaletteBaseIndex);
                                     } else {
-                                        collision = true;
+                                        status.collision = true;
                                     }
                                 }
                                 if (spriteMag) {
                                     x2++;
                                     if (x2 >= 0 && x2 < drawWidth) {
-                                        if (spriteColorBuffer[x2] === 0) {
-                                            spriteColorBuffer[x2] = sprColor + 1; // Add one here so 0 means uninitialized. Subtract one before drawing.
-                                            spritePaletteBaseIndexBuffer[x2] = sprPaletteBaseIndex;
+                                        if (getSpriteColorBuffer(x2) === 0) {
+                                            setSpriteColorBuffer(x2, sprColor + 1); // Add one here so 0 means uninitialized. Subtract one before drawing.
+                                            setSpritePaletteBaseIndexBuffer(x2, sprPaletteBaseIndex);
                                         } else {
-                                            collision = true;
+                                            status.collision = true;
                                         }
                                     }
                                 }
@@ -477,19 +659,19 @@ function prepareSprites(y: number, spriteColorBuffer: Uint8Array, spritePaletteB
                     }
                 }
                 spritesOnLine++;
-                if (spritesOnLine === 5 && !fifthSprite) {
-                    fifthSprite = true;
-                    fifthSpriteIndex = index;
+                if (spritesOnLine === 5 && !status.fifthSprite) {
+                    status.fifthSprite = true;
+                    status.fifthSpriteIndex = index;
                 }
             }
         }
     }
     if (screenMode === MODE_TEXT_80) {
         for (let x1 = drawWidth >> 1; x1 >= 0; x1--) {
-            spriteColorBuffer[x1 << 1] = spriteColorBuffer[x1];
-            spritePaletteBaseIndexBuffer[x1 << 1] = spritePaletteBaseIndexBuffer[x1];
-            spriteColorBuffer[(x1 << 1) + 1] = spriteColorBuffer[x1];
-            spritePaletteBaseIndexBuffer[(x1 << 1) + 1] = spritePaletteBaseIndexBuffer[x1];
+            setSpriteColorBuffer(x1 << 1, x1);
+            setSpritePaletteBaseIndexBuffer(x1 << 1, x1);
+            setSpriteColorBuffer((x1 << 1) + 1, x1);
+            setSpritePaletteBaseIndexBuffer((x1 << 1) + 1, x1);
         }
     }
 }
@@ -508,23 +690,42 @@ function getColor(i: i32): u32 {
 }
 
 function initSpriteBuffer(): void {
-    memory.fill(spriteBufferAddr, 0xff, 256 << 2);
+    memory.fill(spriteColorBufferAddr, 0x00, 256 << 2);
+    memory.fill(spritePaletteBaseIndexBufferAddr, 0x00, 256 << 2);
 }
 
 // @ts-ignore
 @Inline
-function setSpriteBuffer(offset: i32, value: i32): void {
-    store<i32>(spriteBufferAddr + (offset << 2), value);
+function setSpriteColorBuffer(offset: i32, value: i32): void {
+    store<i32>(spriteColorBufferAddr + (offset << 2), value);
 }
 
 // @ts-ignore
 @inline
-function getSpriteBuffer(offset: i32): i32 {
-    return load<i32>(spriteBufferAddr + (offset << 2));
+function getSpriteColorBuffer(offset: i32): i32 {
+    return load<i32>(spriteColorBufferAddr + (offset << 2));
+}
+
+// @ts-ignore
+@Inline
+function setSpritePaletteBaseIndexBuffer(offset: i32, value: i32): void {
+    store<i32>(spritePaletteBaseIndexBufferAddr + (offset << 2), value);
+}
+
+// @ts-ignore
+@inline
+function getSpritePaletteBaseIndexBuffer(offset: i32): i32 {
+    return load<i32>(spritePaletteBaseIndexBufferAddr + (offset << 2));
 }
 
 // @ts-ignore
 @inline
 function setImageData(addr: i32, value: u32): void {
     store<u32>(scanlineColorBufferAddr + (addr << 2), value);
+}
+
+// @ts-ignore
+@inline
+function getImageData(addr: i32): u32 {
+    return load<u32>(scanlineColorBufferAddr + (addr << 2));
 }
