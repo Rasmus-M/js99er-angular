@@ -6,10 +6,10 @@ const MODE_BITMAP_TEXT = 4;
 const MODE_BITMAP_MULTICOLOR = 5;
 const MODE_ILLEGAL = 6;
 
-const vdpRAMAddr = 0x0000;
-const paletteAddr = 0x4000;
-const scanlineColorBufferAddr = 0x5000;
-const spriteBufferAddr = 0x6000;
+const vdpRAMAddr = 0x00000;
+const paletteAddr = 0x10000;
+const scanlineColorBufferAddr = 0x11000;
+const spriteBufferAddr = 0x12000;
 
 export function drawScanline(
     y: i32,

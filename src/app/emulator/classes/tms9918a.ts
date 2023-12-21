@@ -17,8 +17,8 @@ export enum ScreenMode {
 }
 
 // WASM memory addresses
-const paletteAddr = 0x4000;
-const scanlineColorBufferAddr = 0x5000;
+const paletteAddr = 0x10000;
+const scanlineColorBufferAddr = 0x11000;
 
 export class TMS9918A implements VDP {
 

@@ -25,6 +25,7 @@ export class F18AGPU extends CPUCommon implements CPU {
     private vdpRAM: Uint8Array;
     private flash: F18AFlash;
     private flashLoaded = false;
+    private tmpColor: number;
 
     // Misc
     private cpuIdle: boolean;
@@ -57,10 +58,9 @@ export class F18AGPU extends CPUCommon implements CPU {
 
         // Flash RAM
         if (!this.flash) {
-            const gpu = this;
-            this.flash = new F18AFlash(function (restored) {
+            this.flash = new F18AFlash((restored) => {
                 if (restored) {
-                    gpu.flashLoaded = true;
+                    this.flashLoaded = true;
                 }
             });
         } else {
@@ -170,14 +170,17 @@ export class F18AGPU extends CPUCommon implements CPU {
             this.vdpRAM[addr & 0x47FF] = b;
         } else if (addr < 0x6000) {
             const colNo = (addr & 0x7F) >> 1;
-            const color = this.f18a.getPalette()[colNo];
             if ((addr & 1) === 0) {
                 // MSB
-                color[0] = (b & 0x0F) * 17;
+                this.tmpColor = (b & 0x0F) * 17;
             } else {
                 // LSB
-                color[1] = ((b & 0xF0) >> 4) * 17;
-                color[2] = (b & 0x0F) * 17;
+                this.f18a.setPaletteEntry(
+                    colNo,
+                    this.tmpColor,
+                    ((b & 0xF0) >> 4) * 17,
+                    (b & 0x0F) * 17
+                );
             }
         } else if (addr < 0x7000) {
             this.f18a.writeRegister(addr & 0x3F, b);
