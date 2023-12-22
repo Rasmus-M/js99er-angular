@@ -350,8 +350,8 @@ function drawTileLayer(
         bit: i32,
         patternAddr: i32,
         patternByte: i32,
-        colorByte: u8 = 0,
-        tileAttributeByte: u8 = 0,
+        colorByte: i32 = 0,
+        tileAttributeByte: i32 = 0,
         tilePaletteBaseIndex: i32 = 0,
         lineOffset1: i32;
     switch (screenMode) {
@@ -506,7 +506,7 @@ function prepareSprites(
     spritePatternTable: i32,
     statusRegister: u8
 ): u8 {
-    initSpriteBuffer();
+    initSpriteBuffer(drawWidth);
     let spritesOnLine: i32 = 0;
     const outOfScreenY: i32 = row30Enabled ? 0xF0 : 0xC0;
     const negativeScreenY: i32 = row30Enabled ? 0xF0 : 0xD0;
@@ -644,10 +644,12 @@ function prepareSprites(
     }
     if (screenMode === MODE_TEXT_80) {
         for (let x1: i32 = drawWidth >> 1; x1 >= 0; x1--) {
-            setSpriteColorBuffer(x1 << 1, x1);
-            setSpritePaletteBaseIndexBuffer(x1 << 1, x1);
-            setSpriteColorBuffer((x1 << 1) + 1, x1);
-            setSpritePaletteBaseIndexBuffer((x1 << 1) + 1, x1);
+            const spriteColorBufferValue = getSpriteColorBuffer(x1);
+            const spritePaletteBaseIndexBufferValue = getSpritePaletteBaseIndexBuffer(x1);
+            setSpriteColorBuffer(x1 << 1, spriteColorBufferValue);
+            setSpritePaletteBaseIndexBuffer(x1 << 1, spritePaletteBaseIndexBufferValue);
+            setSpriteColorBuffer((x1 << 1) + 1, spriteColorBufferValue);
+            setSpritePaletteBaseIndexBuffer((x1 << 1) + 1, spritePaletteBaseIndexBufferValue);
         }
     }
     return statusRegister;
@@ -666,9 +668,9 @@ function getColor(i: i32): u32 {
     return load<u32>(paletteAddr + (i << 2));
 }
 
-function initSpriteBuffer(): void {
-    memory.fill(spriteColorBufferAddr, 0x00, 256 << 2);
-    memory.fill(spritePaletteBaseIndexBufferAddr, 0x00, 256 << 2);
+function initSpriteBuffer(drawWidth: i32): void {
+    memory.fill(spriteColorBufferAddr, 0x00, drawWidth << 2);
+    memory.fill(spritePaletteBaseIndexBufferAddr, 0x00, drawWidth << 2);
 }
 
 // @ts-ignore

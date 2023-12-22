@@ -196,7 +196,6 @@ export class F18A implements VDP {
     private leftBorder: number;
     private topBorder: number;
     private imageData: ImageData;
-    private imageDataAddr: number;
     private imageDataData: Uint8ClampedArray;
     private frameCounter: number;
     private lastTime: number;
@@ -328,7 +327,6 @@ export class F18A implements VDP {
         this.resetRegs();
 
         this.setDimensions(true);
-        this.imageDataAddr = 0;
         this.frameCounter = 0;
         this.lastTime = 0;
 
@@ -416,7 +414,6 @@ export class F18A implements VDP {
     }
 
     initFrame() {
-        this.imageDataAddr = 0;
     }
 
     drawScanline(y) {
@@ -485,10 +482,10 @@ export class F18A implements VDP {
         );
 
         const buffer = new Uint8Array(this.wasmService.getMemoryBuffer(), scanlineColorBufferAddr, this.canvasWidth << 2);
-        new Uint8Array(this.imageData.data.buffer).set(buffer, (y * this.canvasWidth) << 2);
+        new Uint8Array(this.imageData.data.buffer).set(buffer, (y * this.canvasWidth) << (this.screenMode === F18A.MODE_TEXT_80 ? 3 : 2));
 
         if (this.screenMode === F18A.MODE_TEXT_80) {
-            this._duplicateScanline();
+            this._duplicateScanline(y);
         }
 
         this.blanking = 1; // GPU code after scanline may depend on this
@@ -519,6 +516,7 @@ export class F18A implements VDP {
         }
     }
 
+
     updateCanvas() {
         this.canvasContext.putImageData(this.imageData, 0, 0);
         if (this.splashImage && this.frameCounter < 300) {
@@ -526,11 +524,12 @@ export class F18A implements VDP {
         }
     }
 
-    _duplicateScanline() {
+    _duplicateScanline(y: number) {
         const lineBytes = this.canvasWidth << 2;
-        let imagedataAddr2 = this.imageDataAddr - lineBytes;
+        let imageDataAddr = y * 2 * lineBytes;
+        let imageDataAddr2 = imageDataAddr + lineBytes;
         for (let i = 0; i < lineBytes; i++) {
-            this.imageDataData[this.imageDataAddr++] = this.imageDataData[imagedataAddr2++];
+            this.imageDataData[imageDataAddr2++] = this.imageDataData[imageDataAddr++];
         }
     }
 

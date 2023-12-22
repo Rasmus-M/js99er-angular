@@ -2,6 +2,7 @@
  (type $i32_i32_=>_none (func (param i32 i32)))
  (type $none_=>_none (func))
  (type $i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_=>_i32 (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
+ (type $i32_=>_none (func (param i32)))
  (type $i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_=>_i32 (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
  (type $i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_=>_none (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32)))
  (type $i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_=>_i32 (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
@@ -1238,16 +1239,16 @@
   i32.and
   return
  )
- (func $assembly/f18a/initSpriteBuffer
+ (func $assembly/f18a/initSpriteBuffer (param $drawWidth i32)
   global.get $assembly/f18a/spriteColorBufferAddr
   i32.const 0
-  i32.const 256
+  local.get $drawWidth
   i32.const 2
   i32.shl
   memory.fill $0
   global.get $assembly/f18a/spritePaletteBaseIndexBufferAddr
   i32.const 0
-  i32.const 256
+  local.get $drawWidth
   i32.const 2
   i32.shl
   memory.fill $0
@@ -1322,6 +1323,11 @@
   (local $offset i32)
   (local $offset|66 i32)
   (local $x1 i32)
+  (local $offset|68 i32)
+  (local $spriteColorBufferValue i32)
+  (local $offset|70 i32)
+  (local $spritePaletteBaseIndexBufferValue i32)
+  local.get $drawWidth
   call $assembly/f18a/initSpriteBuffer
   i32.const 0
   local.set $spritesOnLine
@@ -2094,29 +2100,53 @@
     i32.const 0
     i32.ge_s
     if
+     block $assembly/f18a/getSpriteColorBuffer|inlined.2 (result i32)
+      local.get $x1
+      local.set $offset|68
+      global.get $assembly/f18a/spriteColorBufferAddr
+      local.get $offset|68
+      i32.const 2
+      i32.shl
+      i32.add
+      i32.load $0
+      br $assembly/f18a/getSpriteColorBuffer|inlined.2
+     end
+     local.set $spriteColorBufferValue
+     block $assembly/f18a/getSpritePaletteBaseIndexBuffer|inlined.0 (result i32)
+      local.get $x1
+      local.set $offset|70
+      global.get $assembly/f18a/spritePaletteBaseIndexBufferAddr
+      local.get $offset|70
+      i32.const 2
+      i32.shl
+      i32.add
+      i32.load $0
+      br $assembly/f18a/getSpritePaletteBaseIndexBuffer|inlined.0
+     end
+     local.set $spritePaletteBaseIndexBufferValue
      local.get $x1
      i32.const 1
      i32.shl
-     local.get $x1
+     local.get $spriteColorBufferValue
      call $assembly/f18a/setSpriteColorBuffer
      local.get $x1
      i32.const 1
      i32.shl
-     local.get $x1
+     local.get $spritePaletteBaseIndexBufferValue
      call $assembly/f18a/setSpritePaletteBaseIndexBuffer
      local.get $x1
      i32.const 1
      i32.shl
      i32.const 1
      i32.add
-     local.get $x1
+     local.get $spriteColorBufferValue
      call $assembly/f18a/setSpriteColorBuffer
      local.get $x1
      i32.const 1
      i32.shl
      i32.const 1
      i32.add
-     local.get $x1
+     local.get $spritePaletteBaseIndexBufferValue
      call $assembly/f18a/setSpritePaletteBaseIndexBuffer
      local.get $x1
      i32.const 1
@@ -2292,6 +2322,8 @@
          i32.load8_u $0
          br $assembly/f18a/getRAMByte|inlined.13
         end
+        i32.const 255
+        i32.and
         local.set $tileAttributeByte
         local.get $tileAttributeByte
         i32.const 128
@@ -2433,11 +2465,7 @@
           i32.const 15
           i32.and
           i32.const 1
-          i32.const 7
-          i32.and
           i32.shl
-          i32.const 255
-          i32.and
           i32.or
           local.set $tilePaletteBaseIndex
           br $break|1
@@ -2478,11 +2506,7 @@
          i32.const 15
          i32.and
          i32.const 2
-         i32.const 7
-         i32.and
          i32.shl
-         i32.const 255
-         i32.and
          local.set $tilePaletteBaseIndex
          br $break|1
         end
@@ -2548,11 +2572,7 @@
         i32.const 14
         i32.and
         i32.const 2
-        i32.const 7
-        i32.and
         i32.shl
-        i32.const 255
-        i32.and
         local.set $tilePaletteBaseIndex
         br $break|1
        end
@@ -2635,6 +2655,8 @@
        i32.load8_u $0
        br $assembly/f18a/getRAMByte|inlined.21
       end
+      i32.const 255
+      i32.and
       local.set $colorByte
       local.get $patternByte
       local.get $bit
@@ -2646,9 +2668,7 @@
        i32.const 240
        i32.and
        i32.const 4
-       i32.const 7
-       i32.and
-       i32.shr_u
+       i32.shr_s
       else
        local.get $colorByte
        i32.const 15
@@ -2723,6 +2743,8 @@
        i32.load8_u $0
        br $assembly/f18a/getRAMByte|inlined.23
       end
+      i32.const 255
+      i32.and
       local.set $tileAttributeByte
       local.get $tileAttributeByte
       i32.const 128
@@ -2828,6 +2850,8 @@
            i32.load8_u $0
            br $assembly/f18a/getRAMByte|inlined.25
           end
+          i32.const 255
+          i32.and
           local.set $tileAttributeByte
           local.get $patternByte
           local.get $bit
@@ -2836,12 +2860,8 @@
           i32.ne
           if (result i32)
            local.get $tileAttributeByte
-           i32.const 255
-           i32.and
            i32.const 4
-           i32.const 7
-           i32.and
-           i32.shr_u
+           i32.shr_s
           else
            local.get $tileAttributeByte
            i32.const 15
@@ -2884,11 +2904,7 @@
         i32.const 15
         i32.and
         i32.const 1
-        i32.const 7
-        i32.and
         i32.shl
-        i32.const 255
-        i32.and
         i32.or
         local.set $tilePaletteBaseIndex
         br $break|2
@@ -2929,11 +2945,7 @@
        i32.const 15
        i32.and
        i32.const 2
-       i32.const 7
-       i32.and
        i32.shl
-       i32.const 255
-       i32.and
        local.set $tilePaletteBaseIndex
        br $break|2
       end
@@ -2999,11 +3011,7 @@
       i32.const 14
       i32.and
       i32.const 2
-      i32.const 7
-      i32.and
       i32.shl
-      i32.const 255
-      i32.and
       local.set $tilePaletteBaseIndex
       br $break|2
      end
@@ -3050,6 +3058,8 @@
     i32.load8_u $0
     br $assembly/f18a/getRAMByte|inlined.30
    end
+   i32.const 255
+   i32.and
    local.set $colorByte
    local.get $x1
    i32.const 4
@@ -3061,9 +3071,7 @@
     i32.const 240
     i32.and
     i32.const 4
-    i32.const 7
-    i32.and
-    i32.shr_u
+    i32.shr_s
    else
     local.get $colorByte
     i32.const 15
@@ -3741,7 +3749,7 @@
        i32.const 0
       end
       if
-       block $assembly/f18a/getSpriteColorBuffer|inlined.2 (result i32)
+       block $assembly/f18a/getSpriteColorBuffer|inlined.3 (result i32)
         local.get $x
         local.set $offset
         global.get $assembly/f18a/spriteColorBufferAddr
@@ -3750,7 +3758,7 @@
         i32.shl
         i32.add
         i32.load $0
-        br $assembly/f18a/getSpriteColorBuffer|inlined.2
+        br $assembly/f18a/getSpriteColorBuffer|inlined.3
        end
        i32.const 1
        i32.sub
@@ -3761,7 +3769,7 @@
        if
         local.get $spriteColor
         local.set $color
-        block $assembly/f18a/getSpritePaletteBaseIndexBuffer|inlined.0 (result i32)
+        block $assembly/f18a/getSpritePaletteBaseIndexBuffer|inlined.1 (result i32)
          local.get $x
          local.set $offset|94
          global.get $assembly/f18a/spritePaletteBaseIndexBufferAddr
@@ -3770,7 +3778,7 @@
          i32.shl
          i32.add
          i32.load $0
-         br $assembly/f18a/getSpritePaletteBaseIndexBuffer|inlined.0
+         br $assembly/f18a/getSpritePaletteBaseIndexBuffer|inlined.1
         end
         local.set $paletteBaseIndex
        end

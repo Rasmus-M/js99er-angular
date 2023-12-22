@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "ng": "ng",
-    "serve": "ng serve",
+    "serve": "ng serve --configuration development",
     "build": "yarn asbuild:release && ng build --configuration production",
     "test": "ng test",
     "lint": "ng lint",
