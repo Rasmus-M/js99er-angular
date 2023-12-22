@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input, NgZone, OnDestroy, OnInit} from '@angular/core';
 import {DiskImage} from '../classes/diskimage';
 import {Setting} from '../../classes/settings';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
@@ -43,7 +43,8 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         private diskService: DiskService,
         private settingsService: SettingsService,
         private consoleFactoryService: ConsoleFactoryService,
-        private audioService: AudioService
+        private audioService: AudioService,
+        private zone: NgZone
     ) {
     }
 
@@ -62,32 +63,56 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
 
     reset() {
         this.ti994A.reset(true);
-        this.ti994A.start(false);
+        this.zone.runOutsideAngular(
+            () => {
+                this.ti994A.start(false);
+            }
+        );
         this.eventDispatcherService.started(false);
     }
 
     start(fast: boolean) {
-        this.ti994A.start(fast, true);
+        this.zone.runOutsideAngular(
+        () => {
+                this.ti994A.start(fast, true);
+            }
+        );
         this.eventDispatcherService.started(fast);
     }
 
     frame() {
-        this.ti994A.frame(true);
+        this.zone.runOutsideAngular(
+            () => {
+                this.ti994A.frame(true);
+            }
+        );
         this.eventDispatcherService.stopped();
     }
 
     step() {
-        this.ti994A.step();
+        this.zone.runOutsideAngular(
+            () => {
+                this.ti994A.step();
+            }
+        );
         this.eventDispatcherService.stopped();
     }
 
     stepOver() {
-        this.ti994A.stepOver();
+        this.zone.runOutsideAngular(
+            () => {
+                this.ti994A.stepOver();
+            }
+        );
         this.eventDispatcherService.stopped();
     }
 
     stop() {
-        this.ti994A.stop();
+        this.zone.runOutsideAngular(
+            () => {
+                this.ti994A.stop();
+                }
+            );
         this.eventDispatcherService.stopped();
     }
 
@@ -144,7 +169,11 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                     const software: Software = command.data.software;
                     this.ti994A.loadSoftware(software);
                     this.ti994A.getMemory().setPADWord(0x83C0, Math.floor(Math.random() * 0xFFFF));
-                    this.ti994A.start(false);
+                    this.zone.runOutsideAngular(
+                        () => {
+                            this.ti994A.start(false);
+                        }
+                    );
                     this.eventDispatcherService.started(false);
                 }
                 break;
