@@ -1232,8 +1232,10 @@ export class F18A implements VDP {
                 this.gpu.setPc(this.registers[54] << 8 | this.registers[55]);
                 break;
             case 56:
-                this.gpu.setPc(this.registers[54] << 8 | this.registers[55]);
-                if ((this.registers[56] & 1) === 0) {
+                if ((this.registers[56] & 1) === 1) {
+                    this.gpu.setIdle(false);
+                } else {
+                    this.gpu.setPc(this.registers[54] << 8 | this.registers[55]);
                     this.gpu.setIdle(true);
                     this.log.info("F18A GPU stopped.");
                 }
