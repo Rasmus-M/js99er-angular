@@ -24,12 +24,10 @@ export class F18AGPU extends CPUCommon implements CPU {
     private f18a: F18A;
     private vdpRAM: Uint8Array;
     private flash: F18AFlash;
-    private flashLoaded = false;
     private tmpColor: number;
 
     // Misc
     private cpuIdle: boolean;
-    private cyclesRemaining: number;
 
     constructor(f18a) {
         super();
@@ -60,7 +58,7 @@ export class F18AGPU extends CPUCommon implements CPU {
         if (!this.flash) {
             this.flash = new F18AFlash((restored) => {
                 if (restored) {
-                    this.flashLoaded = true;
+                    this.log.info("F18A flash restored.");
                 }
             });
         } else {
@@ -88,7 +86,6 @@ export class F18AGPU extends CPUCommon implements CPU {
 
         // Misc
         this.cycles = 0;
-        this.cyclesRemaining = 0;
         this.illegalCount = 0;
     }
 
@@ -108,7 +105,6 @@ export class F18AGPU extends CPUCommon implements CPU {
             if (atBreakpoint) {
                 // Handle breakpoint
                 this.auxBreakpoint = null;
-                this.cyclesRemaining = cyclesToRun - (this.cycles - startCycles);
                 this.stoppedAtBreakpoint = true;
                 cyclesToRun = -1;
             } else {
@@ -161,85 +157,108 @@ export class F18AGPU extends CPUCommon implements CPU {
     }
 
     writeMemoryByte(addr: number, b: number) {
-        // GPU register
-        if (addr >= this.wp) {
-            this.vdpRAM[addr] = b;
-        } else if (addr < 0x4000) {
-            this.vdpRAM[addr] = b;
-        } else if (addr < 0x5000) {
-            this.vdpRAM[addr & 0x47FF] = b;
-        } else if (addr < 0x6000) {
-            const colNo = (addr & 0x7F) >> 1;
-            if ((addr & 1) === 0) {
-                // MSB
-                this.tmpColor = (b & 0x0F) * 17;
-            } else {
-                // LSB
-                this.f18a.setPaletteEntry(
-                    colNo,
-                    this.tmpColor,
-                    ((b & 0xF0) >> 4) * 17,
-                    (b & 0x0F) * 17
-                );
-            }
-        } else if (addr < 0x7000) {
-            this.f18a.writeRegister(addr & 0x3F, b);
-        } else if (addr < 0x8000) {
-            //  Read only
-        } else if (addr < 0x9000) {
-            if ((addr & 0xF) === 8) {
-                // Trigger DMA
-                let src = (this.vdpRAM[0x8000] << 8) | this.vdpRAM[0x8001];
-                let dst = (this.vdpRAM[0x8002] << 8) | this.vdpRAM[0x8003];
-                const width = this.vdpRAM[0x8004];
-                // if (width === 0) {
-                //     width = 0x100;
-                // }
-                const height = this.vdpRAM[0x8005];
-                // if (height === 0) {
-                //     height = 0x100;
-                // }
-                const stride = this.vdpRAM[0x8006];
-                // if (stride === 0) {
-                //     stride = 0x100;
-                // }
-                const dir = (this.vdpRAM[0x8007] & 0x02) === 0 ? 1 : -1;
-                const diff = dir * (stride - width);
-                const copy = (this.vdpRAM[0x8007] & 0x01) === 0;
-                const srcByte = this.vdpRAM[src];
-                this.log.debug("DMA triggered src=" + Util.toHexWord(src) + " dst=" + Util.toHexWord(dst) + " width=" + Util.toHexByte(width) +
-                    " height=" + Util.toHexByte(height) + " stride=" + stride + " copy=" + copy + " dir=" + dir + " srcByte=" + srcByte);
-                let x, y;
-                if (copy) {
-                    for (y = 0; y < height; y++) {
-                        for (x = 0; x < width; x++) {
-                            this.vdpRAM[dst] = this.vdpRAM[src];
-                            src += dir;
-                            dst += dir;
-                        }
-                        src += diff;
-                        dst += diff;
-                    }
+        switch (addr & 0xF000) {
+            // VRAM
+            case 0x0000:
+            case 0x1000:
+            case 0x2000:
+            case 0x3000:
+                this.vdpRAM[addr] = b;
+                break;
+            // GRAM
+            case 0x4000:
+                this.vdpRAM[addr & 0x47FF] = b;
+                break;
+            // PRAM
+            case 0x5000:
+                const colNo = (addr & 0x7F) >> 1;
+                if ((addr & 1) === 0) {
+                    // MSB
+                    this.tmpColor = (b & 0x0F) * 17;
                 } else {
-                    for (y = 0; y < height; y++) {
-                        for (x = 0; x < width; x++) {
-                            this.vdpRAM[dst] = srcByte;
-                            dst += dir;
-                        }
-                        dst += diff;
-                    }
+                    // LSB
+                    this.f18a.setPaletteEntry(
+                        colNo,
+                        this.tmpColor,
+                        ((b & 0xF0) >> 4) * 17,
+                        (b & 0x0F) * 17
+                    );
                 }
-                this.addCycles(width * height); // ?
-            } else {
-                // Setup
-                this.vdpRAM[addr & 0x800F] = b;
-            }
-        } else if (addr < 0xA000) {
-        } else if (addr < 0xB000) {
-            //  Read only
-        } else if (addr < 0xC000) {
-            // 7 least significant bits, goes to an enhanced status register for the host CPU to read
-            this.vdpRAM[0xB000] = b & 0x7F;
+                break;
+            // VREG
+            case 0x6000:
+                this.f18a.writeRegister(addr & 0x3F, b);
+                break;
+            // Scanline and blanking
+            case 0x7000:
+                break;
+            //  DMA
+            case 0x8000:
+                if ((addr & 0xF) === 8) {
+                    // Trigger DMA
+                    let src = (this.vdpRAM[0x8000] << 8) | this.vdpRAM[0x8001];
+                    let dst = (this.vdpRAM[0x8002] << 8) | this.vdpRAM[0x8003];
+                    const width = this.vdpRAM[0x8004];
+                    // if (width === 0) {
+                    //     width = 0x100;
+                    // }
+                    const height = this.vdpRAM[0x8005];
+                    // if (height === 0) {
+                    //     height = 0x100;
+                    // }
+                    const stride = this.vdpRAM[0x8006];
+                    // if (stride === 0) {
+                    //     stride = 0x100;
+                    // }
+                    const dir = (this.vdpRAM[0x8007] & 0x02) === 0 ? 1 : -1;
+                    const diff = dir * (stride - width);
+                    const copy = (this.vdpRAM[0x8007] & 0x01) === 0;
+                    const srcByte = this.vdpRAM[src];
+                    this.log.debug("DMA triggered src=" + Util.toHexWord(src) + " dst=" + Util.toHexWord(dst) + " width=" + Util.toHexByte(width) +
+                        " height=" + Util.toHexByte(height) + " stride=" + stride + " copy=" + copy + " dir=" + dir + " srcByte=" + srcByte);
+                    let x, y;
+                    if (copy) {
+                        for (y = 0; y < height; y++) {
+                            for (x = 0; x < width; x++) {
+                                this.vdpRAM[dst] = this.vdpRAM[src];
+                                src += dir;
+                                dst += dir;
+                            }
+                            src += diff;
+                            dst += diff;
+                        }
+                    } else {
+                        for (y = 0; y < height; y++) {
+                            for (x = 0; x < width; x++) {
+                                this.vdpRAM[dst] = srcByte;
+                                dst += dir;
+                            }
+                            dst += diff;
+                        }
+                    }
+                    this.addCycles(width * height); // ?
+                } else {
+                    // Setup
+                    this.vdpRAM[addr & 0x800F] = b;
+                }
+                break;
+            case 0x9000:
+                break;
+            // Version
+            case 0xA000:
+                break;
+            case 0xB000:
+                // 7 least significant bits, goes to an enhanced status register for the host CPU to read
+                this.vdpRAM[0xB000] = b & 0x7F;
+                break;
+            case 0xC000:
+            case 0xD000:
+            case 0xE000:
+                break;
+            // GPU register
+            case 0xF000:
+                this.vdpRAM[addr] = b;
+                break;
         }
     }
 
@@ -258,55 +277,55 @@ export class F18AGPU extends CPUCommon implements CPU {
     -- F18A version     @ >A000 to >Axxx (1010 xxxx xxxx xxxx)
     */
     readMemoryByte(addr: number): number {
-        // GPU register
-        if (addr >= this.wp) {
-            return this.vdpRAM[addr];
+        switch (addr & 0xF000) {
+            // VRAM
+            case 0x0000:
+            case 0x1000:
+            case 0x2000:
+            case 0x3000:
+                return this.vdpRAM[addr];
+            // GRAM
+            case 0x4000:
+                return this.vdpRAM[addr & 0x47FF];
+            // PRAM
+            case 0x5000:
+                const color = this.f18a.getPalette()[(addr & 0x7F) >> 1];
+                if ((addr & 1) === 0) {
+                    // MSB
+                    return Math.floor(color[0] / 17);
+                } else {
+                    // LSB
+                    return (Math.floor(color[1] / 17) << 4) | Math.floor(color[2] / 17);
+                }
+            // VREG
+            case 0x6000:
+                return this.f18a.readRegister(addr & 0x3F);
+            // Scanline and blanking
+            case 0x7000:
+                if ((addr & 1) === 0) {
+                    // Current scanline
+                    return this.f18a.getCurrentScanline();
+                } else {
+                    // Blanking
+                    return this.f18a.getBlanking();
+                }
+            // DMA
+            case 0x8000:
+                return this.vdpRAM[addr & 0x8007];
+            case 0x9000:
+                return 0;
+            // Version
+            case 0xA000:
+                return this.f18a.getVersion();
+            case 0xB000:
+            case 0xC000:
+            case 0xD000:
+                return 0;
+            case 0xE000:
+            // GPU register
+            case 0xF000:
+                return this.vdpRAM[addr];
         }
-        // VRAM
-        if (addr < 0x4000) {
-            return this.vdpRAM[addr];
-        }
-        // GRAM
-        if (addr < 0x5000) {
-            return this.vdpRAM[addr & 0x47FF];
-        }
-        // PRAM
-        if (addr < 0x6000) {
-            const color = this.f18a.getPalette()[(addr & 0x7F) >> 1];
-            if ((addr & 1) === 0) {
-                // MSB
-                return Math.floor(color[0] / 17);
-            } else {
-                // LSB
-                return (Math.floor(color[1] / 17) << 4) | Math.floor(color[2] / 17);
-            }
-        }
-        // VREG >6000->603F
-        if (addr < 0x7000) {
-            return this.f18a.readRegister(addr & 0x3F);
-        }
-        // Scanline and blanking
-        if (addr < 0x8000) {
-            if ((addr & 1) === 0) {
-                // Current scanline
-                return this.f18a.getCurrentScanline();
-            } else {
-                // Blanking
-                return this.f18a.getBlanking();
-            }
-        }
-        // DMA
-        if (addr < 0x9000) {
-            return this.vdpRAM[addr & 0x8007];
-        } else if (addr < 0xA000) {
-            return 0;
-        } else if (addr < 0xB000) {
-            return this.f18a.getVersion();
-        } else if (addr < 0xC000) {
-            // Write only
-            return 0;
-        }
-        return 0;
     }
 
     getMemoryWord(addr: number): number {

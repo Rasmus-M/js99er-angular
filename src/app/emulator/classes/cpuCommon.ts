@@ -183,11 +183,11 @@ export abstract class CPUCommon {
     }
 
     inctPc() {
-        this.setPc(this.pc + 2);
+        this.pc = (this.pc + 2) & 0xFFFE;
     }
 
     addPc(value) {
-        this.setPc(this.pc + value);
+        this.pc = (this.pc + value) & 0xFFFE;
     }
 
     getWp(): number {
