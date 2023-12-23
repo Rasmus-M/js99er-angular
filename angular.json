@@ -19,8 +19,7 @@
             "polyfills": "src/polyfills.ts",
             "assets": [
               "src/assets",
-              "src/favicon.ico",
-              "src/manifest.json"
+              "src/favicon.ico"
             ],
             "styles": [
               "src/styles.scss"
@@ -52,9 +51,7 @@
                   "replace": "src/environments/environment.ts",
                   "with": "src/environments/environment.prod.ts"
                 }
-              ],
-              "serviceWorker": true,
-              "ngswConfigPath": "ngsw-config.json"
+              ]
             },
             "development": {
               "buildOptimizer": false,
@@ -62,8 +59,7 @@
               "vendorChunk": true,
               "extractLicenses": false,
               "sourceMap": true,
-              "namedChunks": true,
-              "serviceWorker": false
+              "namedChunks": true
             }
           }
         },
