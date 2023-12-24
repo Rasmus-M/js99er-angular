@@ -21,8 +21,6 @@ export class F18AGPU extends CPUCommon implements CPU {
         "03A0320332313231323136013630060216FD03C00C000340"
     ];
 
-    static vdpRAM: Uint8Array;
-
     private f18a: F18A;
     private vdpRAM: Uint8Array;
     private flash: F18AFlash;
@@ -51,7 +49,6 @@ export class F18AGPU extends CPUCommon implements CPU {
         this.intReset();
 
         this.vdpRAM = this.f18a.getRAM();
-        F18AGPU.vdpRAM  = this.f18a.getRAM();
         this.wp = 0xF000; // Place workspace in an unused part of the memory space
         for (let i = 0; i < 32; i++) {
             this.vdpRAM[this.wp + i] = 0;
