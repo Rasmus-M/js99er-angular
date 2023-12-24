@@ -21,6 +21,8 @@ export class F18AGPU extends CPUCommon implements CPU {
         "03A0320332313231323136013630060216FD03C00C000340"
     ];
 
+    static vdpRAM: Uint8Array;
+
     private f18a: F18A;
     private vdpRAM: Uint8Array;
     private flash: F18AFlash;
@@ -49,6 +51,7 @@ export class F18AGPU extends CPUCommon implements CPU {
         this.intReset();
 
         this.vdpRAM = this.f18a.getRAM();
+        F18AGPU.vdpRAM  = this.f18a.getRAM();
         this.wp = 0xF000; // Place workspace in an unused part of the memory space
         for (let i = 0; i < 32; i++) {
             this.vdpRAM[this.wp + i] = 0;
@@ -157,17 +160,18 @@ export class F18AGPU extends CPUCommon implements CPU {
     }
 
     writeMemoryByte(addr: number, b: number) {
+        const vdpRAM = this.vdpRAM; // F18AGPU.vdpRAM;
         switch (addr & 0xF000) {
             // VRAM
             case 0x0000:
             case 0x1000:
             case 0x2000:
             case 0x3000:
-                this.vdpRAM[addr] = b;
+                vdpRAM[addr] = b;
                 break;
             // GRAM
             case 0x4000:
-                this.vdpRAM[addr & 0x47FF] = b;
+                vdpRAM[addr & 0x47FF] = b;
                 break;
             // PRAM
             case 0x5000:
@@ -196,31 +200,31 @@ export class F18AGPU extends CPUCommon implements CPU {
             case 0x8000:
                 if ((addr & 0xF) === 8) {
                     // Trigger DMA
-                    let src = (this.vdpRAM[0x8000] << 8) | this.vdpRAM[0x8001];
-                    let dst = (this.vdpRAM[0x8002] << 8) | this.vdpRAM[0x8003];
-                    const width = this.vdpRAM[0x8004];
+                    let src = (vdpRAM[0x8000] << 8) | vdpRAM[0x8001];
+                    let dst = (vdpRAM[0x8002] << 8) | vdpRAM[0x8003];
+                    const width = vdpRAM[0x8004];
                     // if (width === 0) {
                     //     width = 0x100;
                     // }
-                    const height = this.vdpRAM[0x8005];
+                    const height = vdpRAM[0x8005];
                     // if (height === 0) {
                     //     height = 0x100;
                     // }
-                    const stride = this.vdpRAM[0x8006];
+                    const stride = vdpRAM[0x8006];
                     // if (stride === 0) {
                     //     stride = 0x100;
                     // }
-                    const dir = (this.vdpRAM[0x8007] & 0x02) === 0 ? 1 : -1;
+                    const dir = (vdpRAM[0x8007] & 0x02) === 0 ? 1 : -1;
                     const diff = dir * (stride - width);
-                    const copy = (this.vdpRAM[0x8007] & 0x01) === 0;
-                    const srcByte = this.vdpRAM[src];
+                    const copy = (vdpRAM[0x8007] & 0x01) === 0;
+                    const srcByte = vdpRAM[src];
                     this.log.debug("DMA triggered src=" + Util.toHexWord(src) + " dst=" + Util.toHexWord(dst) + " width=" + Util.toHexByte(width) +
                         " height=" + Util.toHexByte(height) + " stride=" + stride + " copy=" + copy + " dir=" + dir + " srcByte=" + srcByte);
                     let x, y;
                     if (copy) {
                         for (y = 0; y < height; y++) {
                             for (x = 0; x < width; x++) {
-                                this.vdpRAM[dst] = this.vdpRAM[src];
+                                vdpRAM[dst] = vdpRAM[src];
                                 src += dir;
                                 dst += dir;
                             }
@@ -230,7 +234,7 @@ export class F18AGPU extends CPUCommon implements CPU {
                     } else {
                         for (y = 0; y < height; y++) {
                             for (x = 0; x < width; x++) {
-                                this.vdpRAM[dst] = srcByte;
+                                vdpRAM[dst] = srcByte;
                                 dst += dir;
                             }
                             dst += diff;
@@ -239,7 +243,7 @@ export class F18AGPU extends CPUCommon implements CPU {
                     this.addCycles(width * height); // ?
                 } else {
                     // Setup
-                    this.vdpRAM[addr & 0x800F] = b;
+                    vdpRAM[addr & 0x800F] = b;
                 }
                 break;
             case 0x9000:
@@ -249,7 +253,7 @@ export class F18AGPU extends CPUCommon implements CPU {
                 break;
             case 0xB000:
                 // 7 least significant bits, goes to an enhanced status register for the host CPU to read
-                this.vdpRAM[0xB000] = b & 0x7F;
+                vdpRAM[0xB000] = b & 0x7F;
                 break;
             case 0xC000:
             case 0xD000:
@@ -257,7 +261,7 @@ export class F18AGPU extends CPUCommon implements CPU {
                 break;
             // GPU register
             case 0xF000:
-                this.vdpRAM[addr] = b;
+                vdpRAM[addr] = b;
                 break;
         }
     }
@@ -277,16 +281,17 @@ export class F18AGPU extends CPUCommon implements CPU {
     -- F18A version     @ >A000 to >Axxx (1010 xxxx xxxx xxxx)
     */
     readMemoryByte(addr: number): number {
+        const vdpRAM = this.vdpRAM; // F18AGPU.vdpRAM;
         switch (addr & 0xF000) {
             // VRAM
             case 0x0000:
             case 0x1000:
             case 0x2000:
             case 0x3000:
-                return this.vdpRAM[addr];
+                return vdpRAM[addr];
             // GRAM
             case 0x4000:
-                return this.vdpRAM[addr & 0x47FF];
+                return vdpRAM[addr & 0x47FF];
             // PRAM
             case 0x5000:
                 const color = this.f18a.getPalette()[(addr & 0x7F) >> 1];
@@ -311,7 +316,7 @@ export class F18AGPU extends CPUCommon implements CPU {
                 }
             // DMA
             case 0x8000:
-                return this.vdpRAM[addr & 0x8007];
+                return vdpRAM[addr & 0x8007];
             case 0x9000:
                 return 0;
             // Version
@@ -324,7 +329,7 @@ export class F18AGPU extends CPUCommon implements CPU {
             case 0xE000:
             // GPU register
             case 0xF000:
-                return this.vdpRAM[addr];
+                return vdpRAM[addr];
         }
     }
 
