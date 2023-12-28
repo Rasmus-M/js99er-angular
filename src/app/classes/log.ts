@@ -6,16 +6,24 @@ export enum LogLevel {
     NONE = 4
 }
 
+interface LogTextNode {
+    node: Text;
+    lines: number;
+}
+
 export class Log {
 
-    private static readonly BUFFER_SIZE = 20;
+    private static readonly BUFFER_SIZE = 32;
+    private static readonly MAX_LOG_LINES = 4096;
 
     private static instance: Log;
 
     private minLevel = LogLevel.INFO;
     private element: HTMLElement;
-    private buffer = [];
+    private buffer: string[] = [];
     private sameMessageCount = 0;
+    private textNodes: LogTextNode[] = [];
+    private totalLines = 0;
 
     static getLog(): Log {
         if (!this.instance) {
@@ -25,9 +33,8 @@ export class Log {
     }
 
     constructor() {
-        const that = this;
-        setInterval(function () {
-            that.flushBuffer();
+        setInterval(() => {
+            this.flushBuffer();
         }, 1000);
     }
 
@@ -48,11 +55,18 @@ export class Log {
     }
 
     flushBuffer() {
+        while (this.totalLines > Log.MAX_LOG_LINES) {
+            const logTextNode = this.textNodes.shift();
+            this.element.removeChild(logTextNode.node);
+            this.totalLines -= logTextNode.lines;
+        }
         if (this.buffer.length) {
             this.updateSameMessage();
             const messages = this.buffer.join('\n') + (this.buffer.length ? '\n' : '');
             if (this.element) {
-                this.element.appendChild(document.createTextNode(messages));
+                const textNode = this.element.appendChild(document.createTextNode(messages));
+                this.textNodes.push({node: textNode, lines: this.buffer.length});
+                this.totalLines += this.buffer.length;
                 this.element.scrollTop = this.element.scrollHeight;
             } else {
                 console.log(this.buffer);
@@ -108,7 +122,7 @@ export class Log {
 
     /**
      * Log debug message.
-     * @param message fatal message
+     * @param message debug message
      */
     debug(message: string) {
         if (LogLevel.DEBUG >= this.minLevel) {
