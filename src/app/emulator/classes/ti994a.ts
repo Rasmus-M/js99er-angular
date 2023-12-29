@@ -23,11 +23,11 @@ import {DiskImage} from './diskimage';
 import {Console} from "../interfaces/console";
 import {TIPI} from "./tipi";
 import {WasmService} from "../../services/wasm.service";
+import * as $ from "jquery";
 
 export class TI994A implements Console, State {
 
-    static FRAMES_TO_RUN = Number.MAX_VALUE;
-    static FRAME_MS = 17;
+    static FRAME_MS = 1000 / 60;
     static FPS_MS = 4000;
 
     private canvas: HTMLCanvasElement;
@@ -48,16 +48,21 @@ export class TI994A implements Console, State {
     private googleDrives: GoogleDrive[];
     private tipi: TIPI;
 
-    private cpuSpeed: number;
-    private frameCount: number;
-    private lastFpsTime: number;
-    private fpsFrameCount: number;
     private running: boolean;
+    private cpuSpeed: number;
     private activeCPU: CPU;
+    private wasRunning = false;
+    private wasFast = false;
+    private useVsync = false;
+
+    private frameCount: number;
+    private frameInterval: number;
+    private lastFrameTime: number;
+    private fpsFrameCount: number;
+    private fpsInterval: number;
+    private lastFpsTime: number;
 
     private log: Log;
-    private frameInterval: number;
-    private fpsInterval: number;
 
     constructor(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: DiskImage[], settings: Settings, wasmService: WasmService, onBreakpoint: (CPU) => void) {
         this.document = document;
@@ -68,13 +73,36 @@ export class TI994A implements Console, State {
 
         this.assemble(diskImages);
 
-        this.cpuSpeed = 1;
-        this.frameCount = 0;
-        this.lastFpsTime = null;
-        this.fpsFrameCount = 0;
         this.running = false;
+        this.cpuSpeed = 1;
         this.activeCPU = this.cpu;
+        this.wasRunning = false;
+        this.wasFast = false;
+        this.useVsync = navigator.userAgent.indexOf('Firefox') !== -1;
+
+        this.frameCount = 0;
+        this.lastFrameTime = null;
+        this.fpsFrameCount = 0;
+        this.lastFpsTime = null;
+
         this.log = Log.getLog();
+
+        $(window).on("blur", () => {
+            if (this.settings.isPauseOnFocusLostEnabled() || this.useVsync) {
+                this.wasRunning = this.isRunning();
+                this.wasFast = this.isFast();
+                if (this.wasRunning) {
+                    this.stop();
+                }
+            }
+        });
+        $(window).on("focus", () => {
+            if (this.settings.isPauseOnFocusLostEnabled() || this.useVsync) {
+                if (this.wasRunning) {
+                    this.start(this.wasFast);
+                }
+            }
+        });
     }
 
     assemble(diskImages: DiskImage[]) {
@@ -215,16 +243,12 @@ export class TI994A implements Console, State {
             this.cpu.setSuspended(false);
             this.tape.setPaused(false);
             this.keyboard.start();
-            this.frameInterval = window.setInterval(
-                () => {
-                    if (this.frameCount < TI994A.FRAMES_TO_RUN) {
-                        this.frame(skipBreakpoint);
-                    } else {
-                        this.stop();
-                    }
-                },
-                TI994A.FRAME_MS
-            );
+            if (this.useVsync) {
+                this.lastFrameTime = null;
+                this.runWithVsync(skipBreakpoint);
+            } else {
+                this.runWithInterval(skipBreakpoint);
+            }
             this.resetFps();
             this.printFps();
             this.fpsInterval = window.setInterval(
@@ -235,6 +259,29 @@ export class TI994A implements Console, State {
             );
         }
         this.running = true;
+    }
+
+    runWithVsync(skipBreakpoint?: boolean) {
+        window.requestAnimationFrame(
+            (time) => {
+                if (this.running) {
+                    if (this.lastFrameTime === null || time - this.lastFrameTime - TI994A.FRAME_MS > -1.0) {
+                        this.frame(skipBreakpoint);
+                        this.lastFrameTime = time;
+                    }
+                    this.runWithVsync(skipBreakpoint);
+                }
+            }
+        );
+    }
+
+    runWithInterval(skipBreakpoint?: boolean) {
+        this.frameInterval = window.setInterval(
+            () => {
+                this.frame(skipBreakpoint);
+            },
+            Math.ceil(TI994A.FRAME_MS)
+        );
     }
 
     frame(skipBreakpoint?: boolean) {
@@ -303,7 +350,9 @@ export class TI994A implements Console, State {
     }
 
     stop() {
-        window.clearInterval(this.frameInterval);
+        if (this.frameInterval) {
+            window.clearInterval(this.frameInterval);
+        }
         window.clearInterval(this.fpsInterval);
         this.psg.mute();
         this.tape.setPaused(true);
