@@ -159,6 +159,11 @@
                     "type": "ITEM",
                     "name": "Ghostbusters",
                     "url": "software/ghostbusters8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Mario Bros",
+                    "url": "software/mario8.bin"
                 }
             ]
         },
@@ -429,7 +434,7 @@
                 {
                     "type": "ITEM",
                     "name": "TI-99 Mario Bros",
-                    "url": "software/Mario3.bin"
+                    "url": "software/super-mario-bros-8.bin"
                 },
                 {
                     "type": "ITEM",
