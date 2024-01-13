@@ -376,6 +376,106 @@
                     "type": "ITEM",
                     "name": "Texcaster demo",
                     "url": "software/texcaster.rpk"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Battleground demo",
+                    "url": "software/battleground8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Blue river demo",
+                    "url": "software/blue-river8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Bitmap scroll",
+                    "url": "software/bmpscroll8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Copper bars",
+                    "url": "software/coppers8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "DIEP demo",
+                    "url": "software/diep-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Fireworks",
+                    "url": "software/fireworks8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Marathon demo",
+                    "url": "software/marathon8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Multicolor platform demo",
+                    "url": "software/mc-platform-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Mini karts demo",
+                    "url": "software/mini-karts8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Multicolor 3D demo",
+                    "url": "software/multicolor-3d-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Oscilloscope demo",
+                    "url": "software/oscilloscope-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Parallax scroller",
+                    "url": "software/parallax-scroller-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Pillars 3D demo",
+                    "url": "software/pillars-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Plasma",
+                    "url": "software/plasma-9918a-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Poly 3D",
+                    "url": "software/poly-3d-bitmap-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Roto-zoom",
+                    "url": "software/rotozoom8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Soft sprites",
+                    "url": "software/soft-sprites-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Split screen sprites",
+                    "url": "software/split-screen-sprites-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Sprite duplication test",
+                    "url": "software/sprite-dup-test-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Vertical copper bars",
+                    "url": "software/vertical-copper-bars-8.bin"
                 }
             ]
         },
@@ -455,6 +555,51 @@
                     "type": "ITEM",
                     "name": "F18A ZQX-ONE",
                     "url": "software/zqx-one-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "2-plane scrolling",
+                    "url": "software/2plane-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Bomb Jack screens",
+                    "url": "software/bomb-jack1-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Char rotation (GPU)",
+                    "url": "software/char-rotation-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Copper bars",
+                    "url": "software/coppers-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Copper bars 2",
+                    "url": "software/coppers2-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Plasma",
+                    "url": "software/plasma-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Raycaster",
+                    "url": "software/raycaster-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Scanline scroll (GPU)",
+                    "url": "software/scanline-scroll-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Soft sprites",
+                    "url": "software/softsprites-8.bin"
                 }
             ]
         },
