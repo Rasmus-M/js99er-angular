@@ -52,6 +52,8 @@ export class Tape implements State {
     private audioGateBufferStart = 0;
     private audioGateBufferEnd = 0;
     private lastAudioGateChange = -1;
+    private zero: number[];
+    private one: number[];
 
     private log: Log = Log.getLog();
 
@@ -64,9 +66,9 @@ export class Tape implements State {
     reset() {
         this.sampleRate = this.audioContext ? this.audioContext.sampleRate : 0;
         this.samplesPerBit = Math.floor(Tape.LEVEL_CHANGE_DURATION * this.sampleRate);
-        if (this.sampleRate !== 0 && this.sampleRate !== 48000) {
-            // TODO: Resample ZERO and ONE
-            this.log.warn("Sample rate is " + this.sampleRate + ", not 48000.");
+        if (this.sampleRate !== 0) {
+            this.zero = this.resample(Tape.ZERO, 48000, this.sampleRate);
+            this.one = this.resample(Tape.ONE, 48000, this.sampleRate);
         }
         this.recordPressed = false;
         this.playPressed = false;
@@ -308,16 +310,16 @@ export class Tape implements State {
         const interval = this.lastWriteTime === -1 ? 1 : time - this.lastWriteTime;
         if (interval === 1) {
             if (this.lastWriteValue !== null) {
-                for (let i = 0; i < Tape.ONE.length; i++) {
-                    this.sampleBuffer[this.sampleBufferOffset++] = this.lastWriteValue ? Tape.ONE[i] : -Tape.ONE[i];
+                for (let i = 0; i < this.one.length; i++) {
+                    this.sampleBuffer[this.sampleBufferOffset++] = this.lastWriteValue ? this.one[i] : -this.one[i];
                 }
                 this.lastWriteValue = null;
             } else {
                this.lastWriteValue = value;
             }
         } else if (interval === 2) {
-            for (let i = 0; i < Tape.ZERO.length; i++) {
-                this.sampleBuffer[this.sampleBufferOffset++] = this.lastWriteValue ? Tape.ZERO[i] : -Tape.ZERO[i];
+            for (let i = 0; i < this.zero.length; i++) {
+                this.sampleBuffer[this.sampleBufferOffset++] = this.lastWriteValue ? this.zero[i] : -this.zero[i];
             }
             this.lastWriteValue = value;
         } else {
@@ -328,8 +330,8 @@ export class Tape implements State {
 
     getRecording(): ArrayBuffer {
         if (this.lastWriteValue !== null) {
-            for (let i = 0; i < Tape.ZERO.length; i++) {
-                this.sampleBuffer[this.sampleBufferOffset++] = this.lastWriteValue ? Tape.ZERO[i] : -Tape.ZERO[i];
+            for (let i = 0; i < this.zero.length; i++) {
+                this.sampleBuffer[this.sampleBufferOffset++] = this.lastWriteValue ? this.zero[i] : -this.zero[i];
             }
             this.lastWriteValue = null;
         }
@@ -340,6 +342,20 @@ export class Tape implements State {
         const audioBuffer = this.audioContext.createBuffer(1, array.length, this.sampleRate);
         audioBuffer.copyToChannel(array, 0);
         return AudioBufferToWav.convert(audioBuffer, { float32: false });
+    }
+
+    resample(signal: number[], oldSampleRate: number, newSampleRate: number): number[] {
+        const oldLength = signal.length;
+        const ratio = oldSampleRate / newSampleRate;
+        const newLength = Math.round(oldLength / ratio);
+        const newSignal: number[] = [];
+        for (let i = 0; i < newLength; i++) {
+            const t = i * ratio;
+            const i1 = Math.floor(t);
+            const i2 = Math.min(Math.ceil(t), oldLength - 1);
+            newSignal[i] = signal[i1] + (signal[i2] - signal[i1]) * (t - i1);
+        }
+        return newSignal;
     }
 
     getState() {
