@@ -8,7 +8,7 @@ import {CPUCommon} from "./cpuCommon";
 export class F18AGPU extends CPUCommon implements CPU {
 
     static readonly CYCLES_PER_FRAME = 1250000; // Speed is approximately 25 times that of the normal CPU
-    static readonly CYCLES_PER_SCANLINE = 4500;
+    static readonly CYCLES_PER_SCANLINE = 6300; // Empiric value
 
     static readonly PRELOAD = [
         "020F47FE100D4036405A409440B440FAFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0CA0411C034004C1D0603F000971C0214006069010F7C0203F02C0603F04C0A0",

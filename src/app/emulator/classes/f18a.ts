@@ -727,7 +727,7 @@ export class F18A implements VDP {
             // Bitmap base address
             case 32:
                 this.bitmapBaseAddr = this.registers[32] << 6;
-                this.log.info("Bitmap layer base set to " + Util.toHexWord(this.bitmapBaseAddr));
+                this.log.debug("Bitmap layer base set to " + Util.toHexWord(this.bitmapBaseAddr));
                 break;
             // Bitmap x
             case 33:
