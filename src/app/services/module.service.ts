@@ -117,13 +117,11 @@ export class ModuleService {
     }
 
     loadRPKOrZipModule(reader: Reader): Observable<Software> {
-        const
-            subject = new Subject<Software>(),
-            self = this;
+        const subject = new Subject<Software>();
         this.zipService.createReader(reader, (zipReader) => {
-            zipReader.getEntries(function (entries) {
+            zipReader.getEntries((entries) => {
                 let layoutEntry = null;
-                entries.forEach(function (entry) {
+                entries.forEach((entry) => {
                     // log.info(entry.filename);
                     if (entry.filename === 'layout.xml') {
                         // log.info("Layout file found");
@@ -131,9 +129,9 @@ export class ModuleService {
                     }
                 });
                 if (layoutEntry != null) {
-                    self.loadRPKModule(layoutEntry, entries, subject);
+                    this.loadRPKModule(layoutEntry, entries, subject);
                 } else {
-                    self.loadZipModule(entries, subject);
+                    this.loadZipModule(entries, subject);
                 }
             });
         }, (error) => {
@@ -144,10 +142,9 @@ export class ModuleService {
 
     loadRPKModule(layoutEntry: Entry, entries: Entry[], subject: Subject<Software>) {
         const
-            self = this,
             zipService = this.zipService,
             writer = zipService.createTextWriter('ISO-8859-1');
-        layoutEntry.getData(writer, function (txt) {
+        layoutEntry.getData(writer, (txt) => {
             const
                 parser = new DOMParser(),
                 xmlDoc = parser.parseFromString(txt, 'text/xml'),
@@ -175,7 +172,7 @@ export class ModuleService {
                         entry = entries[j];
                     }
                 }
-                observables.push(self.loadRPKEntry(entry, filename, romId, socketId));
+                observables.push(this.loadRPKEntry(entry, filename, romId, socketId));
             }
             forkJoin(observables).subscribe(
                 (softwares: Software[]) => {
@@ -196,9 +193,9 @@ export class ModuleService {
                 },
                 subject.error
             );
-        }, function (progress, total) {
+        }, (progress, total) => {
             // On progress
-        }, function (error) {
+        }, (error) => {
             subject.error(error);
         });
     }
@@ -209,9 +206,9 @@ export class ModuleService {
             zipService = this.zipService,
             blobWriter = zipService.createBlobWriter(),
             log = Log.getLog();
-        entry.getData(blobWriter, function (blob) {
+        entry.getData(blobWriter, (blob) => {
             const reader = new FileReader();
-            reader.onload = function () {
+            reader.onload = () => {
                 // reader.result contains the contents of blob as a typed array
                 const byteArray = new Uint8Array(reader.result as ArrayBuffer);
                 const software = new Software();
@@ -233,12 +230,13 @@ export class ModuleService {
 
     loadZipModule(entries: Entry[], subject: Subject<Software>) {
         const
-            self = this,
             log = Log.getLog(),
             observables: Observable<Software>[] = [];
-        entries.forEach(function (entry) {
+        entries.forEach((entry) => {
             log.info(entry.filename);
-            observables.push(self.loadZipEntry(entry));
+            if (this.getExtension(entry.filename) === 'bin') {
+                observables.push(this.loadZipEntry(entry));
+            }
         });
         this.combineSoftwareIntoModule(observables).subscribe(
             (module) => {
@@ -254,34 +252,32 @@ export class ModuleService {
             software = new Software(),
             baseFileName: string = this.getBaseFilename(entry.filename),
             zipService = this.zipService;
-        if (this.getExtension(entry.filename) === 'bin') {
-            const grom = baseFileName && (baseFileName.endsWith('g') || baseFileName.endsWith('G'));
-            software.inverted = baseFileName && (baseFileName.endsWith('3') || baseFileName.endsWith('9'));
-            const blobWriter = zipService.createBlobWriter();
-            entry.getData(blobWriter, function (blob) {
-                const reader = new FileReader();
-                reader.onload = function () {
-                    // reader.result contains the contents of blob as a typed array
-                    const result: ArrayBuffer = reader.result as ArrayBuffer;
-                    const byteArray = new Uint8Array(result);
-                    const ramFG99Paged = (byteArray[3] === 0x52);
-                    software.ramAt7000 = ramFG99Paged;
-                    software.ramFG99Paged = ramFG99Paged;
-                    if (grom) {
-                        software.grom = byteArray;
-                    } else {
-                        software.rom = byteArray;
-                    }
-                    subject.next(software);
-                    subject.complete();
-                };
-                reader.readAsArrayBuffer(blob);
-            }, function () {
-                // On progress
-            }, function (error) {
-                subject.error(error);
-            });
-        }
+        const grom = baseFileName && (baseFileName.endsWith('g') || baseFileName.endsWith('G'));
+        software.inverted = baseFileName && (baseFileName.endsWith('3') || baseFileName.endsWith('9'));
+        const blobWriter = zipService.createBlobWriter();
+        entry.getData(blobWriter, (blob) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                // reader.result contains the contents of blob as a typed array
+                const result: ArrayBuffer = reader.result as ArrayBuffer;
+                const byteArray = new Uint8Array(result);
+                const ramFG99Paged = (byteArray[3] === 0x52);
+                software.ramAt7000 = ramFG99Paged;
+                software.ramFG99Paged = ramFG99Paged;
+                if (grom) {
+                    software.grom = byteArray;
+                } else {
+                    software.rom = byteArray;
+                }
+                subject.next(software);
+                subject.complete();
+            };
+            reader.readAsArrayBuffer(blob);
+        }, () => {
+            // On progress
+        }, (error) => {
+            subject.error(error);
+        });
         return subject.asObservable();
     }
 
@@ -293,7 +289,7 @@ export class ModuleService {
             grom = baseFileName && (baseFileName.endsWith('g') || baseFileName.endsWith('G')),
             secondBank = considerExtensionForSecondBank && (baseFileName.endsWith('d') || baseFileName.endsWith('D')),
             reader = new FileReader();
-        reader.onload = function () {
+        reader.onload = () => {
             const byteArray = new Uint8Array(reader.result as ArrayBuffer);
             const module: Software = new Software();
             const ramFG99Paged = (byteArray[3] === 0x52);
@@ -309,7 +305,7 @@ export class ModuleService {
             subject.next(module);
             subject.complete();
         };
-        reader.onerror = function () {
+        reader.onerror = () => {
             subject.error(reader.error);
         };
         reader.readAsArrayBuffer(file);
