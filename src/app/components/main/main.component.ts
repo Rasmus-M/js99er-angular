@@ -21,6 +21,7 @@ import {Software} from "../../classes/software";
 import {Js99erComponent} from "../../js99er.component";
 import {map, mergeMap} from "rxjs/operators";
 import {ConfigService} from "../../services/config.service";
+import {ConsoleComponent} from "../../emulator/console/console.component";
 
 @Component({
   selector: 'app-main',
@@ -141,8 +142,20 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.audioService.init(this.settingsService.isSoundEnabled(), this.ti994A.getPSG(), this.ti994A.getSpeech(), this.ti994A.getTape());
                 if (this.cartURL) {
                     this.loadCartridgeFromURL(this.cartURL);
-                } else if (this.cartName) {
-                    this.loadCartridge(this.cartName);
+                } else  {
+                    this.databaseService.whenReady().subscribe((supported) => {
+                        this.databaseService.getSoftware(ConsoleComponent.LATEST_SOFTWARE).subscribe({
+                            next: (software: Software) => {
+                                this.commandDispatcherService.loadSoftware(software);
+                            },
+                            error: () => {
+                                console.log("Failed to load latest software from database");
+                                if (this.cartName) {
+                                    this.loadCartridge(this.cartName);
+                                }
+                            }
+                        });
+                    });
                 }
                 this.commandDispatcherService.start();
                 break;

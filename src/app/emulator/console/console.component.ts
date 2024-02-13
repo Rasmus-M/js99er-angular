@@ -17,6 +17,7 @@ import {Software} from '../../classes/software';
 import {ConsoleFactoryService} from "../services/console-factory.service";
 import {Console} from "../interfaces/console";
 import {AudioService} from "../../services/audio.service";
+import {DatabaseService} from "../../services/database.service";
 
 @Component({
     selector: 'app-console',
@@ -24,6 +25,8 @@ import {AudioService} from "../../services/audio.service";
     styleUrls: ['./console.component.css']
 })
 export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
+
+    public static LATEST_SOFTWARE = "latest_software";
 
     @Input() diskImages: DiskImage[];
 
@@ -44,6 +47,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         private settingsService: SettingsService,
         private consoleFactoryService: ConsoleFactoryService,
         private audioService: AudioService,
+        private databaseService: DatabaseService,
         private zone: NgZone
     ) {
     }
@@ -143,6 +147,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.softwareService.loadModuleFromFiles(command.data).subscribe(
                     (module) => {
                         this.ti994A.loadSoftware(module);
+                        this.saveLatestSoftware(module);
                     },
                     (error) => {
                         this.log.error(error);
@@ -175,11 +180,15 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         }
                     );
                     this.eventDispatcherService.started(false);
+                    this.saveLatestSoftware(software);
                 }
                 break;
-            case CommandType.UNLOAD_SOFTWARE:
-                this.ti994A.loadSoftware(new Software());
+            case CommandType.UNLOAD_SOFTWARE: {
+                const software = new Software();
+                this.ti994A.loadSoftware(software);
+                this.saveLatestSoftware(software);
                 break;
+            }
             case CommandType.CHANGE_SETTING:
                 const setting: Setting = command.data.setting;
                 const value: boolean = command.data.value;
@@ -338,6 +347,10 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.requestPointerLock();
                 break;
         }
+    }
+
+    saveLatestSoftware(software: Software) {
+        this.databaseService.putSoftware(ConsoleComponent.LATEST_SOFTWARE, software);
     }
 
     onMediaRecorderDataAvailable(event: BlobEvent) {

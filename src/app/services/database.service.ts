@@ -4,6 +4,7 @@ import {DiskImage} from '../emulator/classes/diskimage';
 import {DiskDrive} from '../emulator/classes/diskdrive';
 import {Subject} from "rxjs";
 import {Observable} from "rxjs";
+import {Software} from "../classes/software";
 
 @Injectable({
     providedIn: 'root'
@@ -12,16 +13,22 @@ export class DatabaseService {
 
     private database: Database;
     private supported: boolean;
+    private ready = new Subject<boolean>();
 
     constructor() {
         const service = this;
-        this.database = new Database(function (success) {
+        this.database = new Database((success) => {
             service.supported = success;
+            this.ready.next(success);
         });
     }
 
     isSupported(): boolean {
         return this.supported;
+    }
+
+    whenReady() {
+        return this.ready.asObservable();
     }
 
     getDiskImages() {
@@ -116,6 +123,34 @@ export class DatabaseService {
                     subject.next();
                 } else {
                     subject.error("Failed to put machine state");
+                }
+            }
+        );
+        return subject.asObservable();
+    }
+
+    getSoftware(name: string): Observable<Software> {
+        const subject = new Subject<Software>();
+        this.database.getSoftware(name,
+            (result: Software | false) => {
+                if (result !== false) {
+                    subject.next(result as Software);
+                } else {
+                    subject.error("Failed to get software");
+                }
+            }
+        );
+        return subject.asObservable();
+    }
+
+    putSoftware(name: string, software: Software): Observable<void> {
+        const subject = new Subject<void>();
+        this.database.putSoftware(name, software,
+            (success: boolean) => {
+                if (success) {
+                    subject.next();
+                } else {
+                    subject.error("Failed to put software");
                 }
             }
         );

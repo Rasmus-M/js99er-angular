@@ -1,27 +1,28 @@
 import {Log} from './log';
 import {DiskImage} from '../emulator/classes/diskimage';
 import {DiskDrive} from '../emulator/classes/diskdrive';
+import {MemoryBlock, Software} from "./software";
 
 export class Database {
 
     static NAME = "js99er";
-    static VERSION = 4;
+    static VERSION = 5;
     static DISK_DRIVES_STORE = "diskDrives";
     static DISK_IMAGES_STORE = "diskImages";
     static BINARY_FILE_STORE = "binaryFiles";
     static MACHINE_STATE_STORE = "machineStates";
+    static SOFTWARE_STORE = "software";
 
     private db: IDBDatabase;
     private supported: boolean;
     private log: Log = Log.getLog();
 
-    constructor(callback) {
+    constructor(callback: (supported: boolean) => void) {
         this.db = null;
         this.supported = this.open(callback);
     }
 
-    open(callback) {
-        const that = this;
+    open(callback: (result: boolean) => void) {
         if (window.indexedDB) {
 
             const request: IDBOpenDBRequest = indexedDB.open(Database.NAME, Database.VERSION);
@@ -41,23 +42,26 @@ export class Database {
                 if (!db.objectStoreNames.contains(Database.MACHINE_STATE_STORE)) {
                     db.createObjectStore(Database.MACHINE_STATE_STORE, {keyPath: "name"});
                 }
+                if (!db.objectStoreNames.contains(Database.SOFTWARE_STORE)) {
+                    db.createObjectStore(Database.SOFTWARE_STORE, {keyPath: "name"});
+                }
             };
 
-            request.onsuccess = function () {
-                that.log.info("Database opened OK.");
-                that.db = request.result as IDBDatabase;
+            request.onsuccess = () => {
+                this.log.info("Database opened OK.");
+                this.db = request.result as IDBDatabase;
                 if (callback) { callback(true); }
             };
 
-            request.onerror = function () {
-                that.log.warn("Database could not be opened: " + request.error.message);
-                that.db = null;
+            request.onerror = () => {
+                this.log.warn("Database could not be opened: " + request.error.message);
+                this.db = null;
                 if (callback) { callback(false); }
             };
 
             return true;
         } else {
-            that.log.warn("IndexedDB not supported by this browser.");
+            this.log.warn("IndexedDB not supported by this browser.");
             return false;
         }
     }
@@ -66,21 +70,19 @@ export class Database {
         return this.supported;
     }
 
-    getDiskDrive(name, callback: (result: DiskDrive | boolean) => void) {
+    getDiskDrive(name, callback: (result: DiskDrive | false) => void) {
         if (this.db != null && name != null) {
-            const that = this;
-
             const trans: IDBTransaction = this.db.transaction([Database.DISK_DRIVES_STORE], "readonly");
             const store: IDBObjectStore = trans.objectStore(Database.DISK_DRIVES_STORE);
 
             const request: IDBRequest = store.get(name);
 
-            request.onsuccess = function () {
+            request.onsuccess = () => {
                 if (callback) { callback(request.result); }
             };
 
-            request.onerror = function () {
-                that.log.error(request.error.message);
+            request.onerror = () => {
+                this.log.error(request.error.message);
                 if (callback) { callback(false); }
             };
         } else {
@@ -88,21 +90,19 @@ export class Database {
         }
     }
 
-    putDiskDrive(diskDrive: DiskDrive, callback: (boolean) => void) {
+    putDiskDrive(diskDrive: DiskDrive, callback: (result: boolean) => void) {
         if (this.db != null) {
-            const that = this;
-
             const trans: IDBTransaction = this.db.transaction([Database.DISK_DRIVES_STORE], "readwrite");
             const store: IDBObjectStore = trans.objectStore(Database.DISK_DRIVES_STORE);
 
             const request: IDBRequest = store.put(diskDrive.getState());
 
-            request.onsuccess = function () {
+            request.onsuccess = () => {
                 if (callback) { callback(true); }
             };
 
-            request.onerror = function () {
-                that.log.error(request.error.message);
+            request.onerror = () => {
+                this.log.error(request.error.message);
                 if (callback) { callback(false); }
             };
         } else {
@@ -112,8 +112,6 @@ export class Database {
 
     getDiskImages(callback: (diskImages: DiskImage[] | boolean) => void) {
         if (this.db != null) {
-            const that = this;
-
             const diskImages = [];
             const trans: IDBTransaction = this.db.transaction([Database.DISK_IMAGES_STORE], "readonly");
             const store: IDBObjectStore = trans.objectStore(Database.DISK_IMAGES_STORE);
@@ -121,7 +119,7 @@ export class Database {
             // Get everything in the store;
             const cursorRequest = store.openCursor();
 
-            cursorRequest.onsuccess = function () {
+            cursorRequest.onsuccess = () => {
                 const cursor = cursorRequest.result;
                 if (cursor) {
                     const state = cursor.value;
@@ -135,8 +133,8 @@ export class Database {
                 }
             };
 
-            cursorRequest.onerror = function () {
-                that.log.error(cursorRequest.error.message);
+            cursorRequest.onerror = () => {
+                this.log.error(cursorRequest.error.message);
                 if (callback) { callback(false); }
             };
         } else {
@@ -144,24 +142,22 @@ export class Database {
         }
     }
 
-    getDiskImage(name: string, callback: (boolean) => void) {
+    getDiskImage(name: string, callback: (result: false | DiskImage) => void) {
         if (this.db != null && name != null) {
-            const that = this;
-
             const trans: IDBTransaction = this.db.transaction([Database.DISK_IMAGES_STORE], "readonly");
             const store: IDBObjectStore = trans.objectStore(Database.DISK_IMAGES_STORE);
 
             const request: IDBRequest = store.get(name);
 
-            request.onsuccess = function () {
+            request.onsuccess = () => {
                 const state = request.result;
                 const diskImage = new DiskImage(state.name, null);
                 diskImage.restoreState(state);
                 if (callback) { callback(diskImage); }
             };
 
-            request.onerror = function () {
-                that.log.error(request.error.message);
+            request.onerror = () => {
+                this.log.error(request.error.message);
                 if (callback) { callback(false); }
             };
         } else {
@@ -169,21 +165,19 @@ export class Database {
         }
     }
 
-    putDiskImage(diskImage: DiskImage, callback: (boolean) => void) {
+    putDiskImage(diskImage: DiskImage, callback: (result: boolean) => void) {
         if (this.db != null) {
-            const that = this;
-
             const trans: IDBTransaction = this.db.transaction([Database.DISK_IMAGES_STORE], "readwrite");
             const store: IDBObjectStore = trans.objectStore(Database.DISK_IMAGES_STORE);
 
             const request: IDBRequest = store.put(diskImage.getState());
 
-            request.onsuccess = function () {
+            request.onsuccess = () => {
                 if (callback) { callback(true); }
             };
 
-            request.onerror = function () {
-                that.log.error(request.error.message);
+            request.onerror = () => {
+                this.log.error(request.error.message);
                 if (callback) { callback(false); }
             };
         } else {
@@ -191,21 +185,19 @@ export class Database {
         }
     }
 
-    deleteDiskImage(name: string, callback: (boolean) => void) {
+    deleteDiskImage(name: string, callback: (result: boolean) => void) {
         if (this.db != null && name != null) {
-            const that = this;
-
             const trans: IDBTransaction = this.db.transaction([Database.DISK_IMAGES_STORE], "readwrite");
             const store: IDBObjectStore = trans.objectStore(Database.DISK_IMAGES_STORE);
 
             const request: IDBRequest = store.delete(name);
 
-            request.onsuccess = function () {
+            request.onsuccess = () => {
                 if (callback) { callback(true); }
             };
 
-            request.onerror = function () {
-                that.log.error(request.error.message);
+            request.onerror = () => {
+                this.log.error(request.error.message);
                 if (callback) { callback(false); }
             };
         } else {
@@ -213,17 +205,15 @@ export class Database {
         }
     }
 
-    deleteAllDiskImages(callback: (boolean) => void) {
+    deleteAllDiskImages(callback: (result: boolean) => void) {
         if (this.db != null) {
-            const that = this;
-
             const trans: IDBTransaction = this.db.transaction([Database.DISK_IMAGES_STORE], "readwrite");
             const store: IDBObjectStore = trans.objectStore(Database.DISK_IMAGES_STORE);
 
             // Get everything in the store;
             const cursorRequest = store.openCursor();
 
-            cursorRequest.onsuccess = function () {
+            cursorRequest.onsuccess = () => {
                 const cursor = cursorRequest.result;
                 if (cursor) {
                     cursor.delete();
@@ -233,8 +223,8 @@ export class Database {
                 }
             };
 
-            cursorRequest.onerror = function () {
-                that.log.error(cursorRequest.error.message);
+            cursorRequest.onerror = () => {
+                this.log.error(cursorRequest.error.message);
                 if (callback) { callback(false); }
             };
         } else {
@@ -242,16 +232,14 @@ export class Database {
         }
     }
 
-    getBinaryFile(name: string, callback: (boolean) => void) {
+    getBinaryFile(name: string, callback: (result: false | Uint8Array) => void) {
         if (this.db != null && name != null) {
-            const that = this;
-
             const trans: IDBTransaction = this.db.transaction([Database.BINARY_FILE_STORE], "readonly");
             const store: IDBObjectStore = trans.objectStore(Database.BINARY_FILE_STORE);
 
             const request: IDBRequest = store.get(name);
 
-            request.onsuccess = function () {
+            request.onsuccess = () => {
                 const obj = request.result;
                 if (obj) {
                     if (callback) { callback(obj.binaryFile); }
@@ -260,8 +248,8 @@ export class Database {
                 }
             };
 
-            request.onerror = function () {
-                that.log.error(request.error.message);
+            request.onerror = () => {
+                this.log.error(request.error.message);
                 if (callback) { callback(false); }
             };
         } else {
@@ -269,21 +257,19 @@ export class Database {
         }
     }
 
-    putBinaryFile(name: string, binaryFile: Uint8Array, callback: (boolean) => void) {
+    putBinaryFile(name: string, binaryFile: Uint8Array, callback: (result: boolean) => void) {
         if (this.db != null) {
-            const that = this;
-
             const trans: IDBTransaction = this.db.transaction([Database.BINARY_FILE_STORE], "readwrite");
             const store: IDBObjectStore = trans.objectStore(Database.BINARY_FILE_STORE);
 
             const request: IDBRequest = store.put({name: name, binaryFile: binaryFile});
 
-            request.onsuccess = function () {
+            request.onsuccess = () => {
                 if (callback) { callback(true); }
             };
 
-            request.onerror = function () {
-                that.log.error(request.error.message);
+            request.onerror = () => {
+                this.log.error(request.error.message);
                 if (callback) { callback(false); }
             };
         } else {
@@ -291,16 +277,14 @@ export class Database {
         }
     }
 
-    getMachineState(name: string, callback: (boolean) => void) {
+    getMachineState(name: string, callback: (result: false | any) => void) {
         if (this.db != null && name != null) {
-            const that = this;
-
             const trans: IDBTransaction = this.db.transaction([Database.MACHINE_STATE_STORE], "readonly");
             const store: IDBObjectStore = trans.objectStore(Database.MACHINE_STATE_STORE);
 
             const request: IDBRequest = store.get(name);
 
-            request.onsuccess = function () {
+            request.onsuccess = () => {
                 const obj = request.result;
                 if (obj) {
                     if (callback) { callback(obj.state); }
@@ -309,8 +293,8 @@ export class Database {
                 }
             };
 
-            request.onerror = function () {
-                that.log.error(request.error.message);
+            request.onerror = () => {
+                this.log.error(request.error.message);
                 if (callback) { callback(false); }
             };
         } else {
@@ -318,21 +302,72 @@ export class Database {
         }
     }
 
-    putMachineState(name: string, state: any, callback: (boolean) => void) {
+    putMachineState(name: string, state: any, callback: (result: boolean) => void) {
         if (this.db != null) {
-            const that = this;
-
             const trans: IDBTransaction = this.db.transaction([Database.MACHINE_STATE_STORE], "readwrite");
             const store: IDBObjectStore = trans.objectStore(Database.MACHINE_STATE_STORE);
 
             const request: IDBRequest = store.put({name: name, state: state});
 
-            request.onsuccess = function () {
+            request.onsuccess = () => {
                 if (callback) { callback(true); }
             };
 
-            request.onerror = function () {
-                that.log.error(request.error.message);
+            request.onerror = () => {
+                this.log.error(request.error.message);
+                if (callback) { callback(false); }
+            };
+        } else {
+            if (callback) { callback(false); }
+        }
+    }
+
+    getSoftware(name: string, callback: (result: false | Software) => void) {
+        if (this.db != null && name != null) {
+            const trans: IDBTransaction = this.db.transaction([Database.SOFTWARE_STORE], "readonly");
+            const store: IDBObjectStore = trans.objectStore(Database.SOFTWARE_STORE);
+
+            const request: IDBRequest = store.get(name);
+
+            request.onsuccess = () => {
+                const obj = request.result;
+                if (obj) {
+                    const software = new Software();
+                    Object.assign(software, obj.software);
+                    if (obj.software._memoryBlocks) {
+                        software.memoryBlocks = [];
+                        for (const _memoryBlock of obj.software._memoryBlocks) {
+                            software.memoryBlocks.push(new MemoryBlock(_memoryBlock._address, _memoryBlock._data));
+                        }
+                    }
+                    if (callback) { callback(software); }
+                } else {
+                    if (callback) { callback(false); }
+                }
+            };
+
+            request.onerror = () => {
+                this.log.error(request.error.message);
+                if (callback) { callback(false); }
+            };
+        } else {
+            if (callback) { callback(false); }
+        }
+    }
+
+    putSoftware(name: string, software: Software, callback: (result: boolean) => void) {
+        if (this.db != null) {
+            const trans: IDBTransaction = this.db.transaction([Database.SOFTWARE_STORE], "readwrite");
+            const store: IDBObjectStore = trans.objectStore(Database.SOFTWARE_STORE);
+
+            const request: IDBRequest = store.put({name: name, software: software});
+
+            request.onsuccess = () => {
+                if (callback) { callback(true); }
+            };
+
+            request.onerror = () => {
+                this.log.error(request.error.message);
                 if (callback) { callback(false); }
             };
         } else {

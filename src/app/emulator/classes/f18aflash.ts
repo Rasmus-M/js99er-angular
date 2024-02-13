@@ -191,20 +191,20 @@ export class F18AFlash {
         }
     }
 
-    restore(callback) {
+    restore(callback: (result: boolean) => void) {
         if (this.database.isSupported()) {
-            const that = this;
-            this.database.getBinaryFile(F18AFlash.FILE_NAME, function (file) {
-                if (file) {
-                    that.flashRAM = new Uint8Array(0x100000);
+            this.database.getBinaryFile(F18AFlash.FILE_NAME, (result) => {
+                if (result !== false) {
+                    const file = result as Uint8Array;
+                    this.flashRAM = new Uint8Array(0x100000);
                     for (let i = 0; i < file.length; i++) {
-                        that.flashRAM[i] = file[i];
+                        this.flashRAM[i] = file[i];
                     }
-                    that.log.info("F18A flash RAM restored");
+                    this.log.info("F18A flash RAM restored");
                 } else {
-                    that.log.info("F18A flash RAM restore failed");
+                    this.log.info("F18A flash RAM restore failed");
                 }
-                if (callback) { callback(file && true); }
+                if (callback) { callback(result && true); }
             });
         }
     }
