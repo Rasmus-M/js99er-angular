@@ -817,7 +817,7 @@ export class F18A implements VDP {
             // Stop Sprite (zero based) to limit the total number of sprites to process.
             // Defaults to 32, i.e. no stop sprite
             case 51:
-                this.maxSprites = this.registers[51] & 0x3F;
+                this.maxSprites = Math.min(this.registers[51] & 0x3F, 32);
                 this.log.debug("Max processed sprites set to " + this.maxSprites);
                 break;
             // GPU address MSB
