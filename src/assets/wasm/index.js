@@ -33,7 +33,7 @@ async function instantiate(module, imports = {}) {
 export const {
   memory,
   drawScanline9918a,
-  drawScanlineF18a
+  drawScanlineF18a,
 } = await (async url => instantiate(
   await (async () => {
     try { return await globalThis.WebAssembly.compileStreaming(globalThis.fetch(url)); }

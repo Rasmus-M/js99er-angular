@@ -608,7 +608,7 @@ function prepareSprites(
                                     break;
                             }
                             if (sprColor > 0 || pixelOn) {
-                                let x2: i32 = spriteX + ((spriteFlipX ? spriteDimensionX - (dx + spriteBitShift1) - 1 : dx + spriteBitShift1) << spriteMag);
+                                let x2: i32 = spriteX + (spriteFlipX ? spriteDimensionX - ((dx + spriteBitShift1 + 1) << spriteMag) : ((dx + spriteBitShift1) << spriteMag));
                                 if (x2 >= 0 && x2 < drawWidth) {
                                     if (getSpriteColorBuffer(x2) === 0) {
                                         setSpriteColorBuffer(x2, sprColor + 1); // Add one here so 0 means uninitialized. Subtract one before drawing.

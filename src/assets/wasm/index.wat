@@ -1,11 +1,11 @@
 (module
- (type $i32_i32_=>_none (func (param i32 i32)))
- (type $none_=>_none (func))
- (type $i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_=>_i32 (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
- (type $i32_=>_none (func (param i32)))
- (type $i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_=>_i32 (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
- (type $i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_=>_none (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32)))
- (type $i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_i32_=>_i32 (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
+ (type $0 (func (param i32 i32)))
+ (type $1 (func))
+ (type $2 (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
+ (type $3 (func (param i32)))
+ (type $4 (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
+ (type $5 (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32)))
+ (type $6 (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
  (import "env" "memory" (memory $0 2))
  (global $assembly/tms9918a/MODE_GRAPHICS i32 (i32.const 0))
  (global $assembly/tms9918a/MODE_TEXT i32 (i32.const 1))
@@ -47,7 +47,7 @@
   i32.const 256
   i32.const 2
   i32.shl
-  memory.fill $0
+  memory.fill
  )
  (func $assembly/tms9918a/setSpriteBuffer (param $offset i32) (param $value i32)
   global.get $assembly/tms9918a/spriteBufferAddr
@@ -56,7 +56,7 @@
   i32.shl
   i32.add
   local.get $value
-  i32.store $0
+  i32.store
  )
  (func $assembly/tms9918a/drawScanline (param $y i32) (param $width i32) (param $height i32) (param $screenMode i32) (param $textMode i32) (param $bitmapMode i32) (param $fgColor i32) (param $bgColor i32) (param $nameTable i32) (param $colorTable i32) (param $charPatternTable i32) (param $colorTableMask i32) (param $patternTableMask i32) (param $spriteAttributeTable i32) (param $spritePatternTable i32) (param $vr1 i32) (param $vr4 i32) (param $displayOn i32) (param $statusRegister i32) (result i32)
   (local $drawWidth i32)
@@ -241,7 +241,7 @@
        global.get $assembly/tms9918a/vdpRAMAddr
        local.get $addr
        i32.add
-       i32.load8_u $0
+       i32.load8_u
        br $assembly/tms9918a/getRAMByte|inlined.0
       end
       i32.const 255
@@ -376,7 +376,7 @@
           global.get $assembly/tms9918a/vdpRAMAddr
           local.get $addr|46
           i32.add
-          i32.load8_u $0
+          i32.load8_u
           br $assembly/tms9918a/getRAMByte|inlined.1
          end
          i32.const 255
@@ -390,7 +390,7 @@
           global.get $assembly/tms9918a/vdpRAMAddr
           local.get $addr|48
           i32.add
-          i32.load8_u $0
+          i32.load8_u
           br $assembly/tms9918a/getRAMByte|inlined.2
          end
          local.get $spriteSize
@@ -409,7 +409,7 @@
           global.get $assembly/tms9918a/vdpRAMAddr
           local.get $addr|50
           i32.add
-          i32.load8_u $0
+          i32.load8_u
           br $assembly/tms9918a/getRAMByte|inlined.3
          end
          i32.const 15
@@ -423,7 +423,7 @@
           global.get $assembly/tms9918a/vdpRAMAddr
           local.get $addr|52
           i32.add
-          i32.load8_u $0
+          i32.load8_u
           br $assembly/tms9918a/getRAMByte|inlined.4
          end
          i32.const 128
@@ -491,7 +491,7 @@
              global.get $assembly/tms9918a/vdpRAMAddr
              local.get $addr|58
              i32.add
-             i32.load8_u $0
+             i32.load8_u
              br $assembly/tms9918a/getRAMByte|inlined.5
             end
             i32.const 255
@@ -515,7 +515,7 @@
               i32.const 2
               i32.shl
               i32.add
-              i32.load $0
+              i32.load
               br $assembly/tms9918a/getSpriteBuffer|inlined.0
              end
              i32.const -1
@@ -672,7 +672,7 @@
               global.get $assembly/tms9918a/vdpRAMAddr
               local.get $addr|65
               i32.add
-              i32.load8_u $0
+              i32.load8_u
               br $assembly/tms9918a/getRAMByte|inlined.6
              end
              i32.const 255
@@ -688,7 +688,7 @@
               global.get $assembly/tms9918a/vdpRAMAddr
               local.get $addr|66
               i32.add
-              i32.load8_u $0
+              i32.load8_u
               br $assembly/tms9918a/getRAMByte|inlined.7
              end
              i32.const 255
@@ -706,7 +706,7 @@
               global.get $assembly/tms9918a/vdpRAMAddr
               local.get $addr|67
               i32.add
-              i32.load8_u $0
+              i32.load8_u
               br $assembly/tms9918a/getRAMByte|inlined.8
              end
              i32.const 255
@@ -747,7 +747,7 @@
              global.get $assembly/tms9918a/vdpRAMAddr
              local.get $addr|68
              i32.add
-             i32.load8_u $0
+             i32.load8_u
              br $assembly/tms9918a/getRAMByte|inlined.9
             end
             i32.const 255
@@ -775,7 +775,7 @@
              global.get $assembly/tms9918a/vdpRAMAddr
              local.get $addr|69
              i32.add
-             i32.load8_u $0
+             i32.load8_u
              br $assembly/tms9918a/getRAMByte|inlined.10
             end
             i32.const 255
@@ -793,7 +793,7 @@
              global.get $assembly/tms9918a/vdpRAMAddr
              local.get $addr|70
              i32.add
-             i32.load8_u $0
+             i32.load8_u
              br $assembly/tms9918a/getRAMByte|inlined.11
             end
             i32.const 255
@@ -834,7 +834,7 @@
             global.get $assembly/tms9918a/vdpRAMAddr
             local.get $addr|71
             i32.add
-            i32.load8_u $0
+            i32.load8_u
             br $assembly/tms9918a/getRAMByte|inlined.12
            end
            i32.const 255
@@ -858,7 +858,7 @@
             global.get $assembly/tms9918a/vdpRAMAddr
             local.get $addr|72
             i32.add
-            i32.load8_u $0
+            i32.load8_u
             br $assembly/tms9918a/getRAMByte|inlined.13
            end
            i32.const 255
@@ -895,7 +895,7 @@
            global.get $assembly/tms9918a/vdpRAMAddr
            local.get $addr|73
            i32.add
-           i32.load8_u $0
+           i32.load8_u
            br $assembly/tms9918a/getRAMByte|inlined.14
           end
           i32.const 255
@@ -913,7 +913,7 @@
            global.get $assembly/tms9918a/vdpRAMAddr
            local.get $addr|74
            i32.add
-           i32.load8_u $0
+           i32.load8_u
            br $assembly/tms9918a/getRAMByte|inlined.15
           end
           i32.const 255
@@ -948,7 +948,7 @@
           global.get $assembly/tms9918a/vdpRAMAddr
           local.get $addr|75
           i32.add
-          i32.load8_u $0
+          i32.load8_u
           br $assembly/tms9918a/getRAMByte|inlined.16
          end
          i32.const 255
@@ -976,7 +976,7 @@
           global.get $assembly/tms9918a/vdpRAMAddr
           local.get $addr|76
           i32.add
-          i32.load8_u $0
+          i32.load8_u
           br $assembly/tms9918a/getRAMByte|inlined.17
          end
          i32.const 255
@@ -1011,7 +1011,7 @@
          global.get $assembly/tms9918a/vdpRAMAddr
          local.get $addr|77
          i32.add
-         i32.load8_u $0
+         i32.load8_u
          br $assembly/tms9918a/getRAMByte|inlined.18
         end
         i32.const 255
@@ -1045,7 +1045,7 @@
          global.get $assembly/tms9918a/vdpRAMAddr
          local.get $addr|78
          i32.add
-         i32.load8_u $0
+         i32.load8_u
          br $assembly/tms9918a/getRAMByte|inlined.19
         end
         i32.const 255
@@ -1101,7 +1101,7 @@
         i32.const 2
         i32.shl
         i32.add
-        i32.load $0
+        i32.load
         br $assembly/tms9918a/getSpriteBuffer|inlined.1
        end
        local.set $spriteColor
@@ -1125,7 +1125,7 @@
       i32.const 2
       i32.shl
       i32.add
-      i32.load $0
+      i32.load
       br $assembly/tms9918a/getColor|inlined.0
      end
      local.set $rgbColor
@@ -1144,7 +1144,7 @@
      i32.shl
      i32.add
      local.get $value
-     i32.store $0
+     i32.store
      local.get $x
      i32.const 1
      i32.add
@@ -1161,7 +1161,7 @@
     i32.const 2
     i32.shl
     i32.add
-    i32.load $0
+    i32.load
     br $assembly/tms9918a/getColor|inlined.1
    end
    local.set $rgbColor
@@ -1187,7 +1187,7 @@
      i32.shl
      i32.add
      local.get $value|88
-     i32.store $0
+     i32.store
      local.get $x
      i32.const 1
      i32.add
@@ -1245,13 +1245,13 @@
   local.get $drawWidth
   i32.const 2
   i32.shl
-  memory.fill $0
+  memory.fill
   global.get $assembly/f18a/spritePaletteBaseIndexBufferAddr
   i32.const 0
   local.get $drawWidth
   i32.const 2
   i32.shl
-  memory.fill $0
+  memory.fill
  )
  (func $assembly/f18a/setSpriteColorBuffer (param $offset i32) (param $value i32)
   global.get $assembly/f18a/spriteColorBufferAddr
@@ -1260,7 +1260,7 @@
   i32.shl
   i32.add
   local.get $value
-  i32.store $0
+  i32.store
  )
  (func $assembly/f18a/setSpritePaletteBaseIndexBuffer (param $offset i32) (param $value i32)
   global.get $assembly/f18a/spritePaletteBaseIndexBufferAddr
@@ -1269,7 +1269,7 @@
   i32.shl
   i32.add
   local.get $value
-  i32.store $0
+  i32.store
  )
  (func $assembly/f18a/prepareSprites (param $y i32) (param $drawWidth i32) (param $screenMode i32) (param $row30Enabled i32) (param $unlocked i32) (param $spriteLinkingEnabled i32) (param $realSpriteYCoord i32) (param $maxSprites i32) (param $maxScanlineSprites i32) (param $spriteColorMode i32) (param $spritePaletteSelect i32) (param $spritePlaneOffset i32) (param $defaultSpriteSize i32) (param $spriteMag i32) (param $spriteAttributeTable i32) (param $spritePatternTable i32) (param $statusRegister i32) (result i32)
   (local $spritesOnLine i32)
@@ -1366,7 +1366,7 @@
      global.get $assembly/f18a/vdpRAMAddr
      local.get $addr
      i32.add
-     i32.load8_u $0
+     i32.load8_u
      br $assembly/f18a/getRAMByte|inlined.0
     end
     i32.const 255
@@ -1407,7 +1407,7 @@
       global.get $assembly/f18a/vdpRAMAddr
       local.get $addr|25
       i32.add
-      i32.load8_u $0
+      i32.load8_u
       br $assembly/f18a/getRAMByte|inlined.1
      end
      i32.const 255
@@ -1435,7 +1435,7 @@
      global.get $assembly/f18a/vdpRAMAddr
      local.get $addr|27
      i32.add
-     i32.load8_u $0
+     i32.load8_u
      br $assembly/f18a/getRAMByte|inlined.2
     end
     i32.const 255
@@ -1452,7 +1452,7 @@
       global.get $assembly/f18a/vdpRAMAddr
       local.get $addr|29
       i32.add
-      i32.load8_u $0
+      i32.load8_u
       br $assembly/f18a/getRAMByte|inlined.3
      end
      i32.const 255
@@ -1498,7 +1498,7 @@
       global.get $assembly/f18a/vdpRAMAddr
       local.get $addr|30
       i32.add
-      i32.load8_u $0
+      i32.load8_u
       br $assembly/f18a/getRAMByte|inlined.4
      end
      i32.const 255
@@ -1558,7 +1558,7 @@
         global.get $assembly/f18a/vdpRAMAddr
         local.get $addr|37
         i32.add
-        i32.load8_u $0
+        i32.load8_u
         br $assembly/f18a/getRAMByte|inlined.5
        end
        i32.const 255
@@ -1589,7 +1589,7 @@
          global.get $assembly/f18a/vdpRAMAddr
          local.get $addr|39
          i32.add
-         i32.load8_u $0
+         i32.load8_u
          br $assembly/f18a/getRAMByte|inlined.6
         end
         i32.const 255
@@ -1606,7 +1606,7 @@
          global.get $assembly/f18a/vdpRAMAddr
          local.get $addr|40
          i32.add
-         i32.load8_u $0
+         i32.load8_u
          br $assembly/f18a/getRAMByte|inlined.7
         end
         i32.const 128
@@ -1628,7 +1628,7 @@
         global.get $assembly/f18a/vdpRAMAddr
         local.get $addr|41
         i32.add
-        i32.load8_u $0
+        i32.load8_u
         br $assembly/f18a/getRAMByte|inlined.8
        end
        local.get $spriteSize
@@ -1764,7 +1764,7 @@
           global.get $assembly/f18a/vdpRAMAddr
           local.get $addr|52
           i32.add
-          i32.load8_u $0
+          i32.load8_u
           br $assembly/f18a/getRAMByte|inlined.9
          end
          i32.const 255
@@ -1780,7 +1780,7 @@
           global.get $assembly/f18a/vdpRAMAddr
           local.get $addr|54
           i32.add
-          i32.load8_u $0
+          i32.load8_u
           br $assembly/f18a/getRAMByte|inlined.10
          end
          i32.const 255
@@ -1798,7 +1798,7 @@
           global.get $assembly/f18a/vdpRAMAddr
           local.get $addr|56
           i32.add
-          i32.load8_u $0
+          i32.load8_u
           br $assembly/f18a/getRAMByte|inlined.11
          end
          i32.const 255
@@ -1923,16 +1923,18 @@
              local.get $dx
              local.get $spriteBitShift1
              i32.add
-             i32.sub
              i32.const 1
+             i32.add
+             local.get $spriteMag
+             i32.shl
              i32.sub
             else
              local.get $dx
              local.get $spriteBitShift1
              i32.add
+             local.get $spriteMag
+             i32.shl
             end
-            local.get $spriteMag
-            i32.shl
             i32.add
             local.set $x2
             local.get $x2
@@ -1954,7 +1956,7 @@
               i32.const 2
               i32.shl
               i32.add
-              i32.load $0
+              i32.load
               br $assembly/f18a/getSpriteColorBuffer|inlined.0
              end
              i32.const 0
@@ -2000,7 +2002,7 @@
                i32.const 2
                i32.shl
                i32.add
-               i32.load $0
+               i32.load
                br $assembly/f18a/getSpriteColorBuffer|inlined.1
               end
               i32.const 0
@@ -2108,7 +2110,7 @@
       i32.const 2
       i32.shl
       i32.add
-      i32.load $0
+      i32.load
       br $assembly/f18a/getSpriteColorBuffer|inlined.2
      end
      local.set $spriteColorBufferValue
@@ -2120,7 +2122,7 @@
       i32.const 2
       i32.shl
       i32.add
-      i32.load $0
+      i32.load
       br $assembly/f18a/getSpritePaletteBaseIndexBuffer|inlined.0
      end
      local.set $spritePaletteBaseIndexBufferValue
@@ -2288,7 +2290,7 @@
         global.get $assembly/f18a/vdpRAMAddr
         local.get $addr
         i32.add
-        i32.load8_u $0
+        i32.load8_u
         br $assembly/f18a/getRAMByte|inlined.12
        end
        i32.const 255
@@ -2319,7 +2321,7 @@
          global.get $assembly/f18a/vdpRAMAddr
          local.get $addr|41
          i32.add
-         i32.load8_u $0
+         i32.load8_u
          br $assembly/f18a/getRAMByte|inlined.13
         end
         i32.const 255
@@ -2378,7 +2380,7 @@
         global.get $assembly/f18a/vdpRAMAddr
         local.get $addr|42
         i32.add
-        i32.load8_u $0
+        i32.load8_u
         br $assembly/f18a/getRAMByte|inlined.14
        end
        i32.const 255
@@ -2419,7 +2421,7 @@
             global.get $assembly/f18a/vdpRAMAddr
             local.get $addr|44
             i32.add
-            i32.load8_u $0
+            i32.load8_u
             br $assembly/f18a/getRAMByte|inlined.15
            end
            i32.const 255
@@ -2487,7 +2489,7 @@
           global.get $assembly/f18a/vdpRAMAddr
           local.get $addr|46
           i32.add
-          i32.load8_u $0
+          i32.load8_u
           br $assembly/f18a/getRAMByte|inlined.16
          end
          i32.const 255
@@ -2527,7 +2529,7 @@
          global.get $assembly/f18a/vdpRAMAddr
          local.get $addr|47
          i32.add
-         i32.load8_u $0
+         i32.load8_u
          br $assembly/f18a/getRAMByte|inlined.17
         end
         i32.const 255
@@ -2553,7 +2555,7 @@
          global.get $assembly/f18a/vdpRAMAddr
          local.get $addr|48
          i32.add
-         i32.load8_u $0
+         i32.load8_u
          br $assembly/f18a/getRAMByte|inlined.18
         end
         i32.const 255
@@ -2592,7 +2594,7 @@
        global.get $assembly/f18a/vdpRAMAddr
        local.get $addr|49
        i32.add
-       i32.load8_u $0
+       i32.load8_u
        br $assembly/f18a/getRAMByte|inlined.19
       end
       i32.const 255
@@ -2628,7 +2630,7 @@
        global.get $assembly/f18a/vdpRAMAddr
        local.get $addr|51
        i32.add
-       i32.load8_u $0
+       i32.load8_u
        br $assembly/f18a/getRAMByte|inlined.20
       end
       i32.const 255
@@ -2652,7 +2654,7 @@
        global.get $assembly/f18a/vdpRAMAddr
        local.get $addr|53
        i32.add
-       i32.load8_u $0
+       i32.load8_u
        br $assembly/f18a/getRAMByte|inlined.21
       end
       i32.const 255
@@ -2709,7 +2711,7 @@
       global.get $assembly/f18a/vdpRAMAddr
       local.get $addr|54
       i32.add
-      i32.load8_u $0
+      i32.load8_u
       br $assembly/f18a/getRAMByte|inlined.22
      end
      i32.const 255
@@ -2740,7 +2742,7 @@
        global.get $assembly/f18a/vdpRAMAddr
        local.get $addr|55
        i32.add
-       i32.load8_u $0
+       i32.load8_u
        br $assembly/f18a/getRAMByte|inlined.23
       end
       i32.const 255
@@ -2799,7 +2801,7 @@
       global.get $assembly/f18a/vdpRAMAddr
       local.get $addr|56
       i32.add
-      i32.load8_u $0
+      i32.load8_u
       br $assembly/f18a/getRAMByte|inlined.24
      end
      i32.const 255
@@ -2847,7 +2849,7 @@
            global.get $assembly/f18a/vdpRAMAddr
            local.get $addr|58
            i32.add
-           i32.load8_u $0
+           i32.load8_u
            br $assembly/f18a/getRAMByte|inlined.25
           end
           i32.const 255
@@ -2926,7 +2928,7 @@
         global.get $assembly/f18a/vdpRAMAddr
         local.get $addr|59
         i32.add
-        i32.load8_u $0
+        i32.load8_u
         br $assembly/f18a/getRAMByte|inlined.26
        end
        i32.const 255
@@ -2966,7 +2968,7 @@
        global.get $assembly/f18a/vdpRAMAddr
        local.get $addr|60
        i32.add
-       i32.load8_u $0
+       i32.load8_u
        br $assembly/f18a/getRAMByte|inlined.27
       end
       i32.const 255
@@ -2992,7 +2994,7 @@
        global.get $assembly/f18a/vdpRAMAddr
        local.get $addr|61
        i32.add
-       i32.load8_u $0
+       i32.load8_u
        br $assembly/f18a/getRAMByte|inlined.28
       end
       i32.const 255
@@ -3033,7 +3035,7 @@
     global.get $assembly/f18a/vdpRAMAddr
     local.get $addr|62
     i32.add
-    i32.load8_u $0
+    i32.load8_u
     br $assembly/f18a/getRAMByte|inlined.29
    end
    i32.const 255
@@ -3055,7 +3057,7 @@
     global.get $assembly/f18a/vdpRAMAddr
     local.get $addr|63
     i32.add
-    i32.load8_u $0
+    i32.load8_u
     br $assembly/f18a/getRAMByte|inlined.30
    end
    i32.const 255
@@ -3670,7 +3672,7 @@
          global.get $assembly/f18a/vdpRAMAddr
          local.get $addr
          i32.add
-         i32.load8_u $0
+         i32.load8_u
          br $assembly/f18a/getRAMByte|inlined.31
         end
         i32.const 255
@@ -3757,7 +3759,7 @@
         i32.const 2
         i32.shl
         i32.add
-        i32.load $0
+        i32.load
         br $assembly/f18a/getSpriteColorBuffer|inlined.3
        end
        i32.const 1
@@ -3777,7 +3779,7 @@
          i32.const 2
          i32.shl
          i32.add
-         i32.load $0
+         i32.load
          br $assembly/f18a/getSpritePaletteBaseIndexBuffer|inlined.1
         end
         local.set $paletteBaseIndex
@@ -3794,7 +3796,7 @@
       i32.const 2
       i32.shl
       i32.add
-      i32.load $0
+      i32.load
       br $assembly/f18a/getColor|inlined.0
      end
      local.set $rgbColor
@@ -3813,7 +3815,7 @@
      i32.shl
      i32.add
      local.get $value
-     i32.store $0
+     i32.store
      local.get $xc
      i32.const 1
      i32.add
@@ -3830,7 +3832,7 @@
     i32.const 2
     i32.shl
     i32.add
-    i32.load $0
+    i32.load
     br $assembly/f18a/getColor|inlined.1
    end
    local.set $rgbColor|101
@@ -3856,7 +3858,7 @@
      i32.shl
      i32.add
      local.get $value|105
-     i32.store $0
+     i32.store
      local.get $xc|102
      i32.const 1
      i32.add
@@ -3897,7 +3899,7 @@
       i32.const 2
       i32.shl
       i32.add
-      i32.load $0
+      i32.load
       br $assembly/f18a/getImageData|inlined.0
      end
      local.set $rgbColor|109
@@ -3916,7 +3918,7 @@
      i32.shl
      i32.add
      local.get $value|112
-     i32.store $0
+     i32.store
      local.get $xc|107
      i32.const 1
      i32.add
