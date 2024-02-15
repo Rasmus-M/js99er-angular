@@ -53,8 +53,8 @@
                 },
                 {
                     "type": "ITEM",
-                    "name": "RXB 2020",
-                    "url": "software/rxb2020.rpk"
+                    "name": "RXB 2024",
+                    "url": "software/rxb2024.rpk"
                 },
                 {
                     "type": "ITEM",
@@ -95,6 +95,11 @@
                     "type": "ITEM",
                     "name": "Stevie programming editor",
                     "url": "software/stevie8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Myarc XBII v2.12 (disk required)",
+                    "url": "software/mxbii.json"
                 }
             ]
         },
