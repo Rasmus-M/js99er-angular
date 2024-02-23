@@ -14,7 +14,7 @@ export interface VDP extends State, MemoryDevice {
     readData(): number;
     getRAM(): Uint8Array;
     getRegister(r: number): number;
-    getRegsString(): string;
+    getRegsString(detailed: boolean): string;
     getWord(addr: number): number;
     getCharAt(x: number, y: number): number;
     getGPU(): CPU;

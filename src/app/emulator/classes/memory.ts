@@ -666,7 +666,7 @@ export class Memory implements State, MemoryDevice {
         this.ram[addr] = w & 0xFF;
     }
 
-    getStatusString(): string {
+    getStatusString(detailed: boolean): string {
         return 'GROM:' + Util.toHexWord(this.gromAddress) + ' (bank:' + ((this.gromAddress & 0xE000) >> 13) +
             ', addr:' + Util.toHexWord(this.gromAddress & 0x1FFF) + ') ' +
             (this.cartImage ? 'CART: bank ' + this.currentCartBank + (this.cartRAMFG99Paged ? '/' + this.currentCartRAMBank : '') + ' of ' + this.cartBankCount : '') +

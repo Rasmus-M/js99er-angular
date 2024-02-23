@@ -1430,14 +1430,14 @@ export abstract class CPUCommon {
     }
 
     logRegs() {
-        this.log.info(this.getRegsString() + this.getInternalRegsString());
+        this.log.info(this.getRegsString() + this.getInternalRegsString(false));
     }
 
     getCycleLog() {
         return this.cycleLog;
     }
 
-    getInternalRegsString(): string {
+    getInternalRegsString(detailed: boolean): string {
         return "PC :" + Util.toHexWord(this.pc) + " WP :" + Util.toHexWord(this.wp) + " ST :" + Util.toHexWord(this.st);
     }
 
@@ -1449,14 +1449,14 @@ export abstract class CPUCommon {
         return s;
     }
 
-    getReg(i): number {
+    getReg(i: number): number {
         return this.getMemoryWord(this.wp + 2 * i);
     }
 
-    getRegsStringFormatted(): string {
+    getRegsStringFormatted(detailed: boolean): string {
         let s = "";
         for (let i = 0; i < 16; i++) {
-            s += "R" + i + (i < 10 ? " " : "") + ":" + Util.toHexWord(this.getMemoryWord(this.wp + 2 * i)) + (i % 4 === 3 ? "\n" : " ");
+            s += "R" + i + (i < 10 ? " " : "") + ":" + Util.toHexWord(this.getMemoryWord(this.wp + 2 * i)) + (i % 8 === 7 ? "\n" : " ");
         }
         return s;
     }

@@ -7,7 +7,7 @@ import {VDP} from "./vdp";
 import {Tape} from "../classes/tape";
 import {Keyboard} from "../classes/keyboard";
 import {CPU} from "./cpu";
-import {CRU} from "../classes/cru";
+import {TMS9901} from "../classes/tms9901";
 import {GoogleDrive} from "../classes/googledrive";
 import {TIPI} from "../classes/tipi";
 
@@ -24,7 +24,7 @@ export interface Console {
     getVDP(): VDP;
     getPSG(): PSG;
     getSpeech(): Speech;
-    getCRU(): CRU;
+    getCRU(): TMS9901;
     getMemory(): Memory;
     getKeyboard(): Keyboard;
     getTape(): Tape;

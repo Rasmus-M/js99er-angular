@@ -39,6 +39,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     memoryString: string;
     memoryString2: string;
     memoryView: MemoryView;
+    expandStatus = false;
 
     private ti994A: TI994A;
     private timerHandle: number;
@@ -114,7 +115,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     updateDebugger(force: boolean) {
         if (this.visible && this.ti994A) {
             // console.log("Update debugger");
-            this.statusString = this.ti994A.getStatusString();
+            this.statusString = this.ti994A.getStatusString(this.expandStatus);
             let memoryView: MemoryView;
             switch (this.memoryViewType) {
                 case MemoryViewType.DISASSEMBLY:
@@ -360,5 +361,10 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             reader.readAsText(file);
             fileInput.value = "";
         }
+    }
+
+    toggleExpandStatus() {
+        this.expandStatus = !this.expandStatus;
+        this.updateDebugger(false);
     }
 }

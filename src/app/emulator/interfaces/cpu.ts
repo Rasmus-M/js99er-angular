@@ -14,9 +14,9 @@ export interface CPU extends State {
     isStoppedAtBreakpoint(): boolean;
     setBreakpoint(addr: number): void;
     breakAfterNext(): void;
-    getInternalRegsString(): string;
-    getRegsStringFormatted(): string;
+    getInternalRegsString(detailed: boolean): string;
+    getRegsStringFormatted(detailed: boolean): string;
     dumpProfile(): void;
-    setTracing(tracing: boolean);
+    setTracing(tracing: boolean): void;
     getCycleLog(): Int32Array;
 }

@@ -1,17 +1,28 @@
 .status {
     width: 100%;
+    margin: 0;
+    padding: 0 0 4px 0;
     grid-area: status;
+}
+
+.status a {
+    color: #888888;
+    cursor: pointer;
 }
 
 .memory-view {
     width: 100%;
+    margin: 0;
+    padding: 0 0 4px 0;
     overflow-x: hidden;
     overflow-y: scroll;
-    grid-area: 2 / 1 / 3 / 3;
+    grid-area: 3 / 1 / 4 / 3;
 }
 
 .memory-view-1 {
     width: 100%;
+    margin: 0;
+    padding: 0 0 4px 0;
     overflow-x: hidden;
     overflow-y: scroll;
     grid-area: memory-view-1;
@@ -19,6 +30,8 @@
 
 .memory-view-2 {
     width: 100%;
+    margin: 0;
+    padding: 0 0 4px 0;
     overflow-x: hidden;
     overflow-y: scroll;
     grid-area: memory-view-2;
@@ -45,8 +58,8 @@
     grid-template-rows: auto 1fr auto;
     grid-template-areas:
         "status status"
-        "memory-view-1 memory-view-2"
-        "toolbar toolbar";
+        "toolbar toolbar"
+        "memory-view-1 memory-view-2";
     grid-row-gap: 8px;
     grid-column-gap: 16px;
 }

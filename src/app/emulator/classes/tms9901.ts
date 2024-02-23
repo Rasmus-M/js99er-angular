@@ -8,7 +8,7 @@ import {Util} from '../../classes/util';
 import {CPU} from '../interfaces/cpu';
 import {TI994A} from './ti994a';
 
-export class CRU implements State {
+export class TMS9901 implements State {
 
     static TIMER_DECREMENT_PER_FRAME = 781; // 50000 / 64;
     static TIMER_DECREMENT_PER_SCANLINE = 2.8503;
@@ -203,7 +203,7 @@ export class CRU implements State {
         return this.timerInterrupt && this.cru[3];
     }
 
-    getStatusString(): string {
+    getStatusString(detailed: boolean): string {
         return "CRU: " + (this.cru[0] ? "1" : "0") + (this.cru[1] ? "1" : "0") + (this.cru[2] ? "1" : "0") + (this.cru[3] ? "1" : "0") + " " +
             "Timer: " + Util.toHexWord(Math.floor(this.decrementer)) + " " +
             (this.isTimerInterrupt() ? "Tint " : "    ")  + (this.isVDPInterrupt() ? "Vint" : "   ");

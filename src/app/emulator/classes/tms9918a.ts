@@ -1,4 +1,4 @@
-import {CRU} from './cru';
+import {TMS9901} from './tms9901';
 import {Util} from '../../classes/util';
 import {VDP} from '../interfaces/vdp';
 import {CPU} from '../interfaces/cpu';
@@ -24,7 +24,7 @@ export class TMS9918A implements VDP {
 
     private canvas: HTMLCanvasElement;
     private console: TI994A;
-    private cru: CRU;
+    private cru: TMS9901;
     private wasmService: WasmService;
 
     private ram: Uint8Array = new Uint8Array(16384); // VDP RAM
@@ -369,17 +369,19 @@ export class TMS9918A implements VDP {
         }
     }
 
-    getRegsString(): string {
+    getRegsString(detailed: boolean): string {
         let s = '';
         for (let i = 0; i < this.registers.length; i++) {
-            s += 'VR' + i + ':' + Util.toHexByte(this.registers[i]) + ' ';
+            s += 'VR' + i + ':' + Util.toHexByte(this.registers[i]) + (i === this.registers.length - 1 ? '\n' : ' ');
         }
-        s += '\nSIT:' + Util.toHexWord(this.nameTable) +
-            ' PDT:' + Util.toHexWord(this.charPatternTable) + ' (' + Util.toHexWord(this.patternTableSize()) + ')' +
-            ' CT:' + Util.toHexWord(this.colorTable) + ' (' + Util.toHexWord(this.colorTableSize()) + ')' +
-            ' SDT:' + Util.toHexWord(this.spritePatternTable) +
-            ' SAL:' + Util.toHexWord(this.spriteAttributeTable) +
-            '\nVDP:' + Util.toHexWord(this.addressRegister) + ' ST:' + Util.toHexByte(this.statusRegister);
+        s +=
+            'NMT:' + Util.toHexWord(this.nameTable) + ' ' +
+            'PDT:' + Util.toHexWord(this.charPatternTable) + ' (' + Util.toHexWord(this.patternTableSize()) + ') ' +
+            'CLT:' + Util.toHexWord(this.colorTable) + ' (' + Util.toHexWord(this.colorTableSize()) + ') ' +
+            'SDT:' + Util.toHexWord(this.spritePatternTable) + ' ' +
+            'SAT:' + Util.toHexWord(this.spriteAttributeTable) + '\n' +
+            'VDP:' + Util.toHexWord(this.addressRegister) + ' ' +
+            'STA:' + Util.toHexByte(this.statusRegister);
         return s;
     }
 

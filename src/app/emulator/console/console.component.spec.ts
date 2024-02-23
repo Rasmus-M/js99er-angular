@@ -13,7 +13,7 @@ import {DiskImage} from "../classes/diskimage";
 import {Settings} from "../../classes/settings";
 import {Console} from "../interfaces/console";
 import {CPU} from "../interfaces/cpu";
-import {CRU} from "../classes/cru";
+import {TMS9901} from "../classes/cru";
 import {DiskDrive} from "../classes/diskdrive";
 import {GoogleDrive} from "../classes/googledrive";
 import {Keyboard} from "../classes/keyboard";
@@ -32,7 +32,7 @@ class ConsoleMock implements Console {
     getCPU(): CPU {
         return undefined;
     }
-    getCRU(): CRU {
+    getCRU(): TMS9901 {
         return undefined;
     }
     getDiskDrives(): DiskDrive[] {

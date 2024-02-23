@@ -70,7 +70,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         this.eventSubscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
         this.route.paramMap.subscribe(this.onParametersChanged.bind(this));
         this.log.info("Welcome to " + Js99erComponent.TITLE + " version " + Js99erComponent.VERSION);
-        this.log.info("--------------------------------");
+        this.log.info("---------------------------------");
     }
 
     ngAfterViewInit(): void {

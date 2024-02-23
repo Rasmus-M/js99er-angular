@@ -1,6 +1,6 @@
 import {State} from '../interfaces/state';
 import {TMS9919} from './tms9919';
-import {CRU} from './cru';
+import {TMS9901} from './tms9901';
 import {Tape} from './tape';
 import {Keyboard} from './keyboard';
 import {TMS5200} from './tms5200';
@@ -41,7 +41,7 @@ export class TI994A implements Console, State {
     private vdp: VDP;
     private psg: PSG;
     private speech: Speech;
-    private cru: CRU;
+    private tms9901: TMS9901;
     private keyboard: Keyboard;
     private tape: Tape;
     private diskDrives: DiskDrive[];
@@ -112,7 +112,7 @@ export class TI994A implements Console, State {
         this.tape = new Tape();
         this.psg = new TMS9919(this.cpu, this.tape);
         this.speech = new TMS5200(this, this.settings);
-        this.cru = new CRU(this);
+        this.tms9901 = new TMS9901(this);
         this.keyboard = new Keyboard(this.document, this.settings);
         this.diskDrives = [
             new DiskDrive("DSK1", diskImages[0], this),
@@ -177,8 +177,8 @@ export class TI994A implements Console, State {
         return this.speech;
     }
 
-    getCRU(): CRU {
-        return this.cru;
+    getCRU(): TMS9901 {
+        return this.tms9901;
     }
 
     getMemory(): Memory {
@@ -220,7 +220,7 @@ export class TI994A implements Console, State {
         this.vdp.reset();
         this.psg.reset();
         this.speech.reset();
-        this.cru.reset();
+        this.tms9901.reset();
         this.keyboard.reset();
         this.tape.reset();
         for (let i = 0; i < this.diskDrives.length; i++) {
@@ -290,8 +290,8 @@ export class TI994A implements Console, State {
         const cyclesPerScanline = TMS9900.CYCLES_PER_SCANLINE * cpuSpeed;
         const f18ACyclesPerScanline = F18AGPU.CYCLES_PER_SCANLINE;
         let extraCycles = 0;
-        let cruTimerDecrementFrame = CRU.TIMER_DECREMENT_PER_FRAME;
-        const cruTimerDecrementScanline = CRU.TIMER_DECREMENT_PER_SCANLINE;
+        let cruTimerDecrementFrame = TMS9901.TIMER_DECREMENT_PER_FRAME;
+        const cruTimerDecrementScanline = TMS9901.TIMER_DECREMENT_PER_SCANLINE;
         let y = 0;
         this.vdp.initFrame();
         while (cyclesToRun > 0) {
@@ -327,13 +327,13 @@ export class TI994A implements Console, State {
                     this.activeCPU = cpu;
                 }
             }
-            this.cru.decrementTimer(cruTimerDecrementScanline);
+            this.tms9901.decrementTimer(cruTimerDecrementScanline);
             cruTimerDecrementFrame -= cruTimerDecrementScanline;
             cyclesToRun -= cyclesPerScanline;
             skipBreakpoint = false;
         }
         if (cruTimerDecrementFrame >= 1) {
-            this.cru.decrementTimer(cruTimerDecrementFrame);
+            this.tms9901.decrementTimer(cruTimerDecrementFrame);
         }
         this.fpsFrameCount++;
         this.frameCount++;
@@ -390,9 +390,9 @@ export class TI994A implements Console, State {
         return this.activeCPU === this.vdp.getGPU();
     }
 
-    getStatusString() {
-        return this.activeCPU.getInternalRegsString() + " " + this.cru.getStatusString() + "\n" +
-        this.activeCPU.getRegsStringFormatted() + this.vdp.getRegsString() + " " + this.memory.getStatusString();
+    getStatusString(detailed: boolean) {
+        return this.activeCPU.getInternalRegsString(detailed) + " " + this.tms9901.getStatusString(detailed) + "\n" +
+        this.activeCPU.getRegsStringFormatted(detailed) + this.vdp.getRegsString(detailed) + " " + this.memory.getStatusString(detailed);
     }
 
     loadSoftware(sw: Software) {
@@ -436,7 +436,7 @@ export class TI994A implements Console, State {
         return {
             cpu: this.cpu.getState(),
             memory: this.memory.getState(),
-            cru: this.cru.getState(),
+            cru: this.tms9901.getState(),
             keyboard: this.keyboard.getState(),
             vdp: this.vdp.getState(),
             psg: this.psg.getState(),
@@ -452,8 +452,8 @@ export class TI994A implements Console, State {
         if (state.memory) {
             this.memory.restoreState(state.memory);
         }
-        if (state.cru) {
-            this.cru.restoreState(state.cru);
+        if (state.tms9901) {
+            this.tms9901.restoreState(state.tms9901);
         }
         if (state.keyboard) {
             this.keyboard.restoreState(state.keyboard);

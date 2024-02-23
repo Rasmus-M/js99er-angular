@@ -1,4 +1,4 @@
-import {CRU} from './cru';
+import {TMS9901} from './tms9901';
 import {Util} from '../../classes/util';
 import {Keyboard} from './keyboard';
 import {Memory} from './memory';
@@ -18,7 +18,7 @@ export class TMS9900 extends CPUCommon implements CPU {
 
     private console: TI994A;
     private memory: Memory;
-    private cru: CRU;
+    private cru: TMS9901;
     private keyboard: Keyboard;
     private diskDrives: DiskDrive[];
     private googleDrives: GoogleDrive[];

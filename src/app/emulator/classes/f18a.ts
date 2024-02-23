@@ -1,5 +1,5 @@
 import {VDP} from '../interfaces/vdp';
-import {CRU} from './cru';
+import {TMS9901} from './tms9901';
 import {PSG} from '../interfaces/psg';
 import {TI994A} from './ti994a';
 import {F18AGPU} from './f18agpu';
@@ -105,7 +105,7 @@ export class F18A implements VDP {
     private canvasContext: CanvasRenderingContext2D;
     private console: TI994A;
     private psg: PSG;
-    private cru: CRU;
+    private cru: TMS9901;
     private wasmService: WasmService;
 
     // Allocate full 64K, but actually only using 16K VDP RAM + 2K VDP GRAM
@@ -633,7 +633,7 @@ export class F18A implements VDP {
             // Status register select / counter control
             case 15:
                 this.statusRegisterNo = this.registers[15] & 0x0f;
-                this.log.info("F18A status register " + this.statusRegisterNo + " selected.");
+                this.log.debug("F18A status register " + this.statusRegisterNo + " selected.");
                 const wasRunning: boolean = (oldValue & 0x10) !== 0;
                 const running: boolean = (this.registers[15] & 0x10) !== 0;
                 if (wasRunning && !running) {
@@ -1037,6 +1037,8 @@ export class F18A implements VDP {
     colorTableSize() {
         if (this.screenMode === F18A.MODE_BITMAP) {
             return Math.min(this.colorTableMask + 1, 0x1800);
+        } else if (this.tileColorMode > 0) {
+            return 0x100;
         } else {
             return 0x20;
         }
@@ -1050,14 +1052,20 @@ export class F18A implements VDP {
         }
     }
 
-    getRegsString() {
+    getRegsString(detailed: boolean) {
         let s = "";
-        for (let i = 0; i < 8; i++) {
-            s += "VR" + i + ":" + Util.toHexByte(this.registers[i]) + " ";
+        const nRegs = detailed ? 58 : 8;
+        for (let i = 0; i < nRegs; i++) {
+            s += "VR" + i + ":" + Util.toHexByte(this.registers[i]) + (i === nRegs - 1 || i % 8  === 7 ? "\n" : " ");
         }
-        s += "\nSIT:" + Util.toHexWord(this.nameTable) + " PDT:" + Util.toHexWord(this.charPatternTable) + " (" + Util.toHexWord(this.patternTableSize()) + ")" +
-            " CT:" + Util.toHexWord(this.colorTable) + " (" + Util.toHexWord(this.colorTableSize()) + ") SDT:" + Util.toHexWord(this.spritePatternTable) +
-            " SAL:" + Util.toHexWord(this.spriteAttributeTable)  + "\nVDP:" + Util.toHexWord(this.addressRegister) + ' ST:' + Util.toHexByte(this.statusRegister);
+        s +=
+            'NMT:' + Util.toHexWord(this.nameTable) + ' ' +
+            'PDT:' + Util.toHexWord(this.charPatternTable) + ' (' + Util.toHexWord(this.patternTableSize()) + ') ' +
+            'CLT:' + Util.toHexWord(this.colorTable) + ' (' + Util.toHexWord(this.colorTableSize()) + ') ' +
+            'SDT:' + Util.toHexWord(this.spritePatternTable) + ' ' +
+            'SAT:' + Util.toHexWord(this.spriteAttributeTable) + '\n' +
+            'VDP:' + Util.toHexWord(this.addressRegister) + ' ' +
+            'ST:' + Util.toHexByte(this.statusRegister);
         return s;
     }
 
