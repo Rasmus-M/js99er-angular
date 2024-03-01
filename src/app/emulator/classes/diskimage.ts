@@ -1,5 +1,5 @@
 import {AccessType, DataType, FileType, OperationMode, RecordType} from './disk';
-import {State} from '../interfaces/state';
+import {Stateful} from '../interfaces/stateful';
 import {Log} from '../../classes/log';
 import {DiskFile, FixedRecord, VariableRecord} from './diskfile';
 
@@ -15,7 +15,7 @@ export class DiskImageEvent {
     }
 }
 
-export class DiskImage implements State {
+export class DiskImage implements Stateful {
 
     private name: string;
     private files: {[name: string]: DiskFile};

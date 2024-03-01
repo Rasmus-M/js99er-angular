@@ -6,7 +6,7 @@ import {GoogleDrive} from './googledrive';
 import {System} from './system';
 import {Util} from '../../classes/util';
 import {CPU} from '../interfaces/cpu';
-import {State} from '../interfaces/state';
+import {Stateful} from '../interfaces/stateful';
 import {TI994A} from './ti994a';
 import {Settings} from '../../classes/settings';
 import {PSG} from '../interfaces/psg';
@@ -15,7 +15,7 @@ import {MemoryDevice} from '../interfaces/memory-device';
 import {MemoryLine, MemoryView} from "../../classes/memoryview";
 import {TIPI} from "./tipi";
 
-export class Memory implements State, MemoryDevice {
+export class Memory implements Stateful, MemoryDevice {
 
     static SOUND = 0x8400;  // Sound write data
     static VDPRD = 0x8800;  // VDP read data

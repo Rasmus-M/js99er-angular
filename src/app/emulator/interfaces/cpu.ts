@@ -1,6 +1,6 @@
-import {State} from './state';
+import {Stateful} from './stateful';
 
-export interface CPU extends State {
+export interface CPU extends Stateful {
     reset(): void;
     run(cycles: number, skipBreakpoint?: boolean): number;
     getPc(): number;

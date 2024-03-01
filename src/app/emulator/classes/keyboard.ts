@@ -1,10 +1,10 @@
 import {Log} from '../../classes/log';
 import {Joystick} from './joystick';
-import {State} from '../interfaces/state';
+import {Stateful} from '../interfaces/stateful';
 import {Settings} from '../../classes/settings';
 import {Key, KeyMapper, TIKey} from "../../classes/keymapper";
 
-export class Keyboard implements State {
+export class Keyboard implements Stateful {
 
     static KEYPRESS_DURATION = 100;
     static EMULATE_JOYSTICK_2 = false;

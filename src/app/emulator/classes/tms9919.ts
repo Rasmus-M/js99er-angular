@@ -62,6 +62,16 @@ export class TMS9919 implements PSG {
         this.sn76489.update(buffer, 0, length);
     }
 
+    getRegsString(detailed: boolean) {
+        let s = '';
+        if (detailed) {
+            for (const r of this.sn76489.getRegs()) {
+                s += Util.toHexByte(r) + ' ';
+            }
+        }
+        return s;
+    }
+
     getState(): object {
         return {
             sn76489: this.sn76489.getState()

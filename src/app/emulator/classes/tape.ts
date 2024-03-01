@@ -1,9 +1,9 @@
 import {Log} from '../../classes/log';
 import {Util} from '../../classes/util';
-import {State} from '../interfaces/state';
+import {Stateful} from '../interfaces/stateful';
 import {AudioBufferToWav} from '../../classes/audio-buffer-to-wav';
 
-export class Tape implements State {
+export class Tape implements Stateful {
 
     static DEBUG = false;
     static LEVEL_CHANGE_FREQUENCY = 1379;

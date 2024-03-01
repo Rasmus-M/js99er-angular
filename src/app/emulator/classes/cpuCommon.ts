@@ -1438,7 +1438,9 @@ export abstract class CPUCommon {
     }
 
     getInternalRegsString(detailed: boolean): string {
-        return "PC :" + Util.toHexWord(this.pc) + " WP :" + Util.toHexWord(this.wp) + " ST :" + Util.toHexWord(this.st);
+        return "PC :" + Util.toHexWord(this.pc) + " WP :" + Util.toHexWord(this.wp) + " ST :" + Util.toHexWord(this.st) +
+            ((this.st & 0x8000) ? ' L>' : '   ') + ((this.st & 0x4000) ? ' A>' : '   ') + ((this.st & 0x2000) ? ' EQ' : '   ') + ((this.st & 0x1000) ? ' C' : '  ') +
+            ((this.st & 0x0800) ? ' OV' : '   ') + ((this.st & 0x0400) ? ' OP' : '   ') + ((this.st & 0x0200) ? ' X' : '  ');
     }
 
     getRegsString(): string {

@@ -1,5 +1,5 @@
 <div class="debugger">
-    <pre class="status mat-elevation-z1">{{statusString}}<a (click)="toggleExpandStatus()">{{expandStatus ? ' < See less' : ' See more >'}}</a></pre>
+    <pre class="status mat-elevation-z1">{{statusString}}<a (click)="toggleExpandStatus()">{{expandStatus ? ' < less' : ' more >'}}</a></pre>
     <pre [hidden]="memoryViewType===2" class="memory-view mat-elevation-z1" id="memory" (click)="onMemoryViewClicked($event)">{{memoryString}}</pre>
     <pre [hidden]="memoryViewType!==2" class="memory-view-1 mat-elevation-z1" id="memory1" (click)="onMemoryViewClicked($event)">{{memoryString}}</pre>
     <pre [hidden]="memoryViewType!==2" class="memory-view-2 mat-elevation-z1" id="memory2">{{memoryString2}}</pre>

@@ -1,8 +1,8 @@
 import {Log} from '../../classes/log';
-import {State} from '../interfaces/state';
+import {Stateful} from '../interfaces/stateful';
 import {Util} from '../../classes/util';
 
-export class SAMS implements State {
+export class SAMS implements Stateful {
 
     static MAPPING_MODE = 0;
     static TRANSPARENT_MODE = 1;

@@ -1,6 +1,6 @@
-import {State} from '../interfaces/state';
+import {Stateful} from '../interfaces/stateful';
 
-export class SN76489 implements State {
+export class SN76489 implements Stateful {
 
 /**
  * SN76489 PSG
@@ -393,6 +393,10 @@ export class SN76489 implements State {
 
     isSample(b: number) {
         return (b & 0x90) === 0x90 && (b & 0x60) !== 0x60 && this.reg[(b & 0x60) >> 4] <= 6;
+    }
+
+    getRegs(): number[] {
+        return this.reg;
     }
 
     getState(): object {

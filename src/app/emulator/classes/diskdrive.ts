@@ -1,13 +1,13 @@
 import {DiskFile, FixedRecord, VariableRecord} from './diskfile';
 import {AccessType, DataType, Disk, DiskError, FileType, OpCode, OperationMode, RecordType} from './disk';
-import {State} from '../interfaces/state';
+import {Stateful} from '../interfaces/stateful';
 import {DiskImage} from './diskimage';
 import {TI994A} from './ti994a';
 import {Log} from '../../classes/log';
 import {Util} from '../../classes/util';
 import {Memory} from './memory';
 
-export class DiskDrive implements State {
+export class DiskDrive implements Stateful {
 
     static DSR_ROM: number[] = [
         0xAA,                           // >4000 Standard header

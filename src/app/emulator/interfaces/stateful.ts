@@ -1,4 +1,4 @@
-export interface State {
+export interface Stateful {
     getState(): any;
     restoreState(state: any);
 }

@@ -1,7 +1,7 @@
-import {State} from '../interfaces/state';
+import {Stateful} from '../interfaces/stateful';
 import {Log} from '../../classes/log';
 
-export class Joystick implements State {
+export class Joystick implements Stateful {
 
     private static gamepadIndices: object;
     private static threshold = 0.25;

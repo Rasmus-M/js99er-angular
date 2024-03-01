@@ -1,8 +1,8 @@
 import {CPU} from './cpu';
-import {State} from './state';
+import {Stateful} from './stateful';
 import {MemoryDevice} from './memory-device';
 
-export interface VDP extends State, MemoryDevice {
+export interface VDP extends Stateful, MemoryDevice {
     reset(): void;
     initFrame(): void;
     drawScanline(y: number): void;

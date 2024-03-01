@@ -1,7 +1,7 @@
 import {CPU} from './cpu';
-import {State} from './state';
+import {Stateful} from './stateful';
 
-export interface Speech extends State {
+export interface Speech extends Stateful {
     setCPU(cpu: CPU): void;
     reset(): void;
     writeSpeechData(b: number): void;

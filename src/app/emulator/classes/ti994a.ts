@@ -1,4 +1,4 @@
-import {State} from '../interfaces/state';
+import {Stateful} from '../interfaces/stateful';
 import {TMS9919} from './tms9919';
 import {TMS9901} from './tms9901';
 import {Tape} from './tape';
@@ -25,7 +25,7 @@ import {TIPI} from "./tipi";
 import {WasmService} from "../../services/wasm.service";
 import * as $ from "jquery";
 
-export class TI994A implements Console, State {
+export class TI994A implements Console, Stateful {
 
     static FRAME_MS = 1000 / 60;
     static FPS_MS = 4000;
@@ -392,7 +392,8 @@ export class TI994A implements Console, State {
 
     getStatusString(detailed: boolean) {
         return this.activeCPU.getInternalRegsString(detailed) + " " + this.tms9901.getStatusString(detailed) + "\n" +
-        this.activeCPU.getRegsStringFormatted(detailed) + this.vdp.getRegsString(detailed) + " " + this.memory.getStatusString(detailed);
+        this.activeCPU.getRegsStringFormatted(detailed) + this.vdp.getRegsString(detailed) + " " + this.memory.getStatusString(detailed) +
+        (detailed ? "\nPSG: " + this.psg.getRegsString(detailed) : "");
     }
 
     loadSoftware(sw: Software) {

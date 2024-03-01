@@ -1,9 +1,9 @@
 import {AccessType, DataType, Disk, FileType, OperationMode, RecordType} from './disk';
-import {State} from '../interfaces/state';
+import {Stateful} from '../interfaces/stateful';
 import {Util} from '../../classes/util';
 import {Log} from "../../classes/log";
 
-export class DiskFile implements State {
+export class DiskFile implements Stateful {
 
     private name: string;
     private fileType: FileType;
@@ -278,7 +278,7 @@ export class DiskFile implements State {
     }
 }
 
-class Record implements State {
+class Record implements Stateful {
 
     protected data: number[];
 
