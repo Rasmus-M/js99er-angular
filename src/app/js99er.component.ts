@@ -1,7 +1,6 @@
-import {Component, ElementRef, Input, OnInit} from "@angular/core";
+import {Component, ElementRef, OnInit} from "@angular/core";
 import {MAT_TOOLTIP_DEFAULT_OPTIONS, MatTooltipDefaultOptions} from "@angular/material/tooltip";
-import {ConfigObject, ConfigService} from "./services/config.service";
-import {element} from "protractor";
+import {ConfigService} from "./services/config.service";
 
 export const customTooltipDefaults: MatTooltipDefaultOptions = {
     showDelay: 1000,
@@ -21,7 +20,7 @@ export class Js99erComponent implements OnInit {
 
     static readonly TITLE = "JS99'er";
     static readonly VERSION = "10.1.0";
-    static readonly DATE = "February 26, 2024";
+    static readonly DATE = "March 2, 2024";
 
     constructor(
         private elm: ElementRef,
