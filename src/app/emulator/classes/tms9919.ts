@@ -66,7 +66,7 @@ export class TMS9919 implements PSG {
         let s = '';
         if (detailed) {
             for (const r of this.sn76489.getRegs()) {
-                s += Util.toHexByte(r) + ' ';
+                s += (s.length > 0 ? ' ' : '') + Util.toHexByte(r);
             }
         }
         return s;
