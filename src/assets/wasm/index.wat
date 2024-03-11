@@ -3564,58 +3564,6 @@
         local.set $havePixel
        end
       end
-      local.get $tileLayer2Enabled
-      if
-       local.get $x
-       local.get $y
-       local.get $y1
-       local.get $rowOffset2
-       local.get $lineOffset2
-       local.get $nameTableCanonicalBase2
-       local.get $nameTableBaseAddr2
-       local.get $colorTable2
-       local.get $borderWidth
-       local.get $scrollWidth
-       local.get $hScroll2
-       local.get $hPageSize2
-       local.get $tilePaletteSelect2
-       local.get $screenMode
-       local.get $tileColorMode
-       local.get $unlocked
-       local.get $ecmPositionAttributes
-       local.get $charPatternTable
-       local.get $tilePlaneOffset
-       local.get $patternTableMask
-       local.get $colorTableMask
-       local.get $drawWidth
-       local.get $fgColor
-       local.get $bgColor
-       call $assembly/f18a/drawTileLayer
-       global.get $assembly/f18a/pixelColor
-       i32.const 0
-       i32.gt_s
-       if (result i32)
-        i32.const 1
-       else
-        global.get $assembly/f18a/pixelTransparentColor0
-        i32.eqz
-       end
-       if
-        global.get $assembly/f18a/pixelColor
-        local.set $color
-        global.get $assembly/f18a/pixelPaletteBaseIndex
-        local.set $paletteBaseIndex
-        global.get $assembly/f18a/pixelTilePriority
-        if (result i32)
-         i32.const 1
-        else
-         local.get $tileMap2AlwaysOnTop
-        end
-        local.set $tilePriority
-        i32.const 1
-        local.set $havePixel
-       end
-      end
       local.get $bitmapEnable
       if
        local.get $screenMode
@@ -3736,6 +3684,58 @@
          local.get $bitmapPaletteSelect
          local.set $paletteBaseIndex
         end
+       end
+      end
+      local.get $tileLayer2Enabled
+      if
+       local.get $x
+       local.get $y
+       local.get $y1
+       local.get $rowOffset2
+       local.get $lineOffset2
+       local.get $nameTableCanonicalBase2
+       local.get $nameTableBaseAddr2
+       local.get $colorTable2
+       local.get $borderWidth
+       local.get $scrollWidth
+       local.get $hScroll2
+       local.get $hPageSize2
+       local.get $tilePaletteSelect2
+       local.get $screenMode
+       local.get $tileColorMode
+       local.get $unlocked
+       local.get $ecmPositionAttributes
+       local.get $charPatternTable
+       local.get $tilePlaneOffset
+       local.get $patternTableMask
+       local.get $colorTableMask
+       local.get $drawWidth
+       local.get $fgColor
+       local.get $bgColor
+       call $assembly/f18a/drawTileLayer
+       global.get $assembly/f18a/pixelColor
+       i32.const 0
+       i32.gt_s
+       if (result i32)
+        i32.const 1
+       else
+        global.get $assembly/f18a/pixelTransparentColor0
+        i32.eqz
+       end
+       if
+        global.get $assembly/f18a/pixelColor
+        local.set $color
+        global.get $assembly/f18a/pixelPaletteBaseIndex
+        local.set $paletteBaseIndex
+        global.get $assembly/f18a/pixelTilePriority
+        if (result i32)
+         i32.const 1
+        else
+         local.get $tileMap2AlwaysOnTop
+        end
+        local.set $tilePriority
+        i32.const 1
+        local.set $havePixel
        end
       end
       local.get $spritesEnabled

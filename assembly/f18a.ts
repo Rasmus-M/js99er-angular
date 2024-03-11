@@ -219,6 +219,30 @@ export function drawScanline(
                         havePixel = true;
                     }
                 }
+                // Bitmap layer
+                if (bitmapEnable) {
+                    const bmpX: i32 = screenMode !== MODE_TEXT_80 ? x : x >> 1;
+                    if (bmpX >= bitmapX && bmpX < bitmapX2 && y >= bitmapY && y < bitmapY2) {
+                        const bitmapX1: i32 = x - bitmapX;
+                        const bitmapPixelOffset: i32 = bitmapX1 + bitmapYOffset;
+                        const bitmapByte: i32 = <i32> getRAMByte(bitmapBaseAddr + (bitmapPixelOffset >> 2));
+                        let bitmapBitShift: i32,
+                            bitmapColor: i32;
+                        if (bitmapFat) {
+                            // 16 color bitmap with fat pixels
+                            bitmapBitShift = (2 - (bitmapPixelOffset & 2)) << 1;
+                            bitmapColor = (bitmapByte >> bitmapBitShift) & 0x0F;
+                        } else {
+                            // 4 color bitmap
+                            bitmapBitShift = (3 - (bitmapPixelOffset & 3)) << 1;
+                            bitmapColor = (bitmapByte >> bitmapBitShift) & 0x03;
+                        }
+                        if ((bitmapColor > 0 || !bitmapTransparent) && (bitmapPriority || !havePixel)) {
+                            color = bitmapColor;
+                            paletteBaseIndex = bitmapPaletteSelect;
+                        }
+                    }
+                }
                 // Tile layer 2
                 if (tileLayer2Enabled) {
                     drawTileLayer(
@@ -252,30 +276,6 @@ export function drawScanline(
                         paletteBaseIndex = pixelPaletteBaseIndex;
                         tilePriority = pixelTilePriority || tileMap2AlwaysOnTop;
                         havePixel = true;
-                    }
-                }
-                // Bitmap layer
-                if (bitmapEnable) {
-                    const bmpX: i32 = screenMode !== MODE_TEXT_80 ? x : x >> 1;
-                    if (bmpX >= bitmapX && bmpX < bitmapX2 && y >= bitmapY && y < bitmapY2) {
-                        const bitmapX1: i32 = x - bitmapX;
-                        const bitmapPixelOffset: i32 = bitmapX1 + bitmapYOffset;
-                        const bitmapByte: i32 = <i32> getRAMByte(bitmapBaseAddr + (bitmapPixelOffset >> 2));
-                        let bitmapBitShift: i32,
-                            bitmapColor: i32;
-                        if (bitmapFat) {
-                            // 16 color bitmap with fat pixels
-                            bitmapBitShift = (2 - (bitmapPixelOffset & 2)) << 1;
-                            bitmapColor = (bitmapByte >> bitmapBitShift) & 0x0F;
-                        } else {
-                            // 4 color bitmap
-                            bitmapBitShift = (3 - (bitmapPixelOffset & 3)) << 1;
-                            bitmapColor = (bitmapByte >> bitmapBitShift) & 0x03;
-                        }
-                        if ((bitmapColor > 0 || !bitmapTransparent) && (bitmapPriority || !havePixel)) {
-                            color = bitmapColor;
-                            paletteBaseIndex = bitmapPaletteSelect;
-                        }
                     }
                 }
                 // Sprite layer

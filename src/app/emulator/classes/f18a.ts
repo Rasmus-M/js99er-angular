@@ -494,7 +494,7 @@ export class F18A implements VDP {
             this.statusRegister = (this.statusRegister & 0xe0) | this.registers[30];
         }
 
-        if (this.gpuHsyncTrigger) {
+        if (this.gpuHsyncTrigger && this.gpu.isIdle()) {
             this.gpu.setIdle(false);
         }
         if (y === this.topBorder + this.drawHeight - 1) {
@@ -502,7 +502,7 @@ export class F18A implements VDP {
             if (this.interruptsOn) {
                 this.cru.setVDPInterrupt(true);
             }
-            if (this.gpuVsyncTrigger) {
+            if (this.gpuVsyncTrigger && this.gpu.isIdle()) {
                 this.gpu.setIdle(false);
             }
             this.frameCounter++;
