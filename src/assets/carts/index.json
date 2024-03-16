@@ -416,6 +416,7 @@
     {"url": "rxb_v555.rpk"},
     {"url": "rxb2015.rpk", "name": "Rich Extended BASIC 2012"},
     {"url": "rxb2020.rpk", "name": "Rich Extended BASIC 2020"},
+    {"url": "rxb2024.rpk", "name": "Rich Extended BASIC 2024"},
     {"url": "saguaro_city.rpk"},
     {"url": "sargon_1.rpk"},
     {"url": "scholastic_spelling_3.rpk"},
@@ -610,7 +611,7 @@
     {"url": "trapdoor8.bin", "name": "Through the Trap Door"},
     {"url": "westbank.rpk", "name": "West Bank"},
     {"url": "westbank-v2.rpk", "name": "West Bank V2"},
-    {"url": "ghostbusters8.bin", "name": "Ghostbusters"},
+    {"url": "gbust.rpk", "name": "Ghostbusters"},
     {"url": "marioH8.bin", "name": "Mario Bros"}
 ]
 
