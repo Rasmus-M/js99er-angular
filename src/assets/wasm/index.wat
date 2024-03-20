@@ -3683,6 +3683,14 @@
          local.set $color
          local.get $bitmapPaletteSelect
          local.set $paletteBaseIndex
+         local.get $tilePriority
+         if (result i32)
+          local.get $bitmapPriority
+          i32.eqz
+         else
+          i32.const 0
+         end
+         local.set $tilePriority
         end
        end
       end

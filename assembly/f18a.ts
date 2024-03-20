@@ -240,6 +240,7 @@ export function drawScanline(
                         if ((bitmapColor > 0 || !bitmapTransparent) && (bitmapPriority || !havePixel)) {
                             color = bitmapColor;
                             paletteBaseIndex = bitmapPaletteSelect;
+                            tilePriority = tilePriority && !bitmapPriority;
                         }
                     }
                 }
