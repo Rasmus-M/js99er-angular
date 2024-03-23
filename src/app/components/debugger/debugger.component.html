@@ -1,8 +1,5 @@
 <div class="debugger">
     <pre class="status mat-elevation-z1">{{statusString}}<a (click)="toggleExpandStatus()">{{expandStatus ? ' < less' : ' more >'}}</a></pre>
-    <pre [hidden]="memoryViewType===2" class="memory-view mat-elevation-z1" id="memory" (click)="onMemoryViewClicked($event)">{{memoryString}}</pre>
-    <pre [hidden]="memoryViewType!==2" class="memory-view-1 mat-elevation-z1" id="memory1" (click)="onMemoryViewClicked($event)">{{memoryString}}</pre>
-    <pre [hidden]="memoryViewType!==2" class="memory-view-2 mat-elevation-z1" id="memory2">{{memoryString2}}</pre>
     <div class="debugger-toolbar">
         <mat-form-field class="memory-select">
             <mat-select placeholder="Memory View" [value]="memoryViewType" (selectionChange)="onMemoryViewChanged($event.value)">
@@ -22,17 +19,11 @@
                 <mat-option [value]="1">VDP Memory</mat-option>
             </mat-select>
         </mat-form-field>
-        <span class="margin-right"></span>
-        <mat-form-field class="address-entry">
-            <span matPrefix>&gt;</span>
-            <input matInput placeholder="View Address" maxlength="5" [ngModel]="viewAddress" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onViewAddressChanged($event)" (focus)="onTextFocus()" (blur)="onTextBlur()">
-            <mat-hint>Hexadecimal</mat-hint>
-        </mat-form-field>
-        <span class="margin-right"></span>
-        <mat-form-field class="address-entry">
-            <span matPrefix>&gt;</span>
-            <input matInput placeholder="Breakpoint" maxlength="5" [ngModel]="breakpointAddress" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onBreakpointAddressChanged($event)" (focus)="onTextFocus()" (blur)="onTextBlur()">
-            <mat-hint>Hexadecimal</mat-hint>
-        </mat-form-field>
+        <hex-input-field [(model)]="viewAddress" [placeholder]="'View Address'" (modelChange)="onViewAddressChanged()"></hex-input-field>
+        <hex-input-field [(model)]="breakpointAddress" [placeholder]="'Breakpoint'" (modelChange)="onBreakpointAddressChanged()"></hex-input-field>
+        <button mat-button (click)="openDialog()"><fa-icon [icon]="faCogs"></fa-icon></button>
     </div>
+    <pre [hidden]="memoryViewType===2" class="memory-view mat-elevation-z1" id="memory" (click)="onMemoryViewClicked($event)">{{memoryString}}</pre>
+    <pre [hidden]="memoryViewType!==2" class="memory-view-1 mat-elevation-z1" id="memory1" (click)="onMemoryViewClicked($event)">{{memoryString}}</pre>
+    <pre [hidden]="memoryViewType!==2" class="memory-view-2 mat-elevation-z1" id="memory2">{{memoryString2}}</pre>
 </div>

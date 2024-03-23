@@ -46,11 +46,6 @@
     padding-right: 8px;
 }
 
-.address-entry {
-    width: 20%;
-    padding-right: 8px;
-}
-
 .debugger {
     display: grid;
     height: 100%;
@@ -63,3 +58,10 @@
     grid-row-gap: 8px;
     grid-column-gap: 16px;
 }
+
+hex-input-field {
+    padding-right: 8px;
+    display: inline-block;
+    width: 20%;
+}
+

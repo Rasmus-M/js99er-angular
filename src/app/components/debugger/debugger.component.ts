@@ -9,6 +9,10 @@ import {Util} from '../../classes/util';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {Command, CommandType} from '../../classes/command';
 import {MemoryLine, MemoryView} from "../../classes/memoryview";
+import {faCogs} from "@fortawesome/free-solid-svg-icons";
+import {MatDialog, MatDialogRef} from "@angular/material/dialog";
+import {DebuggerDialogComponent, DebuggerDialogData} from "../debugger-dialog/debugger-dialog.component";
+import {DialogRef} from "@angular/cdk/dialog";
 
 enum MemoryViewType {
     DISASSEMBLY,
@@ -33,13 +37,15 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
 
     memoryViewType: MemoryViewType = MemoryViewType.SPLIT;
     memoryType: MemoryType = MemoryType.CPU;
-    viewAddress: string;
-    breakpointAddress: string;
+    viewAddress: number;
+    breakpointAddress: number;
     statusString: string;
     memoryString: string;
     memoryString2: string;
     memoryView: MemoryView;
     expandStatus = false;
+
+    protected readonly faCogs = faCogs;
 
     private ti994A: TI994A;
     private timerHandle: number;
@@ -55,13 +61,30 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         private element: ElementRef,
         private disassemblerService: DisassemblerService,
         private eventDispatcherService: EventDispatcherService,
-        private commandDispatcherService: CommandDispatcherService
+        private commandDispatcherService: CommandDispatcherService,
+        private matDialog: MatDialog
     ) {}
 
 
     ngOnInit() {
-        this.eventSubscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
-        this.commandSubscription = this.commandDispatcherService.subscribe(this.onCommand.bind(this));
+        this.eventSubscription = this.eventDispatcherService.subscribe((event) => {
+            this.onEvent(event);
+        });
+        this.commandSubscription = this.commandDispatcherService.subscribe((event) => {
+            this.onCommand(event);
+        });
+    }
+
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes.visible.currentValue) {
+            this.updateDebugger(false);
+        }
+    }
+
+    ngOnDestroy() {
+        this.stopUpdate();
+        this.eventSubscription.unsubscribe();
+        this.commandSubscription.unsubscribe();
     }
 
     startUpdate() {
@@ -74,12 +97,6 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         if (this.timerHandle) {
             window.clearInterval(this.timerHandle);
             this.timerHandle = null;
-        }
-    }
-
-    ngOnChanges(changes: SimpleChanges): void {
-        if (changes.visible.currentValue) {
-            this.updateDebugger(false);
         }
     }
 
@@ -105,16 +122,15 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         if (command.type === CommandType.SET_BREAKPOINT_ADDRESS) {
             const addr = command.data;
             if (addr === undefined || addr === null) {
-                this.breakpointAddress = "";
+                this.breakpointAddress = 0;
             } else {
-                this.breakpointAddress = Util.toHexWordShort(addr);
+                this.breakpointAddress = addr;
             }
         }
     }
 
-    updateDebugger(force: boolean) {
+    private updateDebugger(force: boolean) {
         if (this.visible && this.ti994A) {
-            // console.log("Update debugger");
             this.statusString = this.ti994A.getStatusString(this.expandStatus);
             let memoryView: MemoryView;
             switch (this.memoryViewType) {
@@ -142,7 +158,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         }
     }
 
-    scrollToAnchorLine(memoryView: MemoryView, id: string) {
+    private scrollToAnchorLine(memoryView: MemoryView, id: string) {
         const $memory = $(this.element.nativeElement).find("#" + id);
         if (memoryView.anchorLine != null && memoryView.lines.length > 0) {
             if (this.scrollTimeoutHandles[id]) {
@@ -157,7 +173,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         }
     }
 
-    getDisassemblyView(memoryType: MemoryType): MemoryView {
+    private getDisassemblyView(memoryType: MemoryType): MemoryView {
         let memoryView: MemoryView;
         const breakpointAddress = this.getBreakpointAddress(null);
         const pc = this.ti994A.getPC();
@@ -194,7 +210,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         return memoryView;
     }
 
-    getHexView(memoryType: MemoryType, narrow: boolean): MemoryView {
+    private getHexView(memoryType: MemoryType, narrow: boolean): MemoryView {
         const width = narrow ? 8 : 16;
         let memoryView: MemoryView;
         const pc = this.ti994A.getPC();
@@ -223,7 +239,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         return memoryView;
     }
 
-    getListView(memoryType: MemoryType): MemoryView {
+    private getListView(memoryType: MemoryType): MemoryView {
         if (this.listView && memoryType === MemoryType.CPU) {
             if (this.lastAnchorLine != null) {
                 this.lastAnchorLine.text = ' ' + this.lastAnchorLine.text.substring(1);
@@ -253,83 +269,48 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         }
     }
 
-    getViewAddress(defaultValue: number) {
-        const addr = Util.parseHexNumber(this.viewAddress);
-        return isNaN(addr) ? defaultValue : addr;
+    private getViewAddress(defaultValue: number) {
+        return isNaN(this.viewAddress) ? defaultValue : this.viewAddress;
     }
 
-    getBreakpointAddress(defaultValue: number) {
-        const addr = Util.parseHexNumber(this.breakpointAddress);
-        return isNaN(addr) ? defaultValue : addr;
+    private getBreakpointAddress(defaultValue: number) {
+        return isNaN(this.breakpointAddress) ? defaultValue : this.breakpointAddress;
     }
 
-    onViewAddressChanged(value: string) {
-        const addr = Util.parseHexNumber(value);
-        if (isNaN(addr)) {
-            this.viewAddress = "";
-        } else {
-            this.viewAddress = Util.toHexWordShort(addr);
-        }
+    protected onViewAddressChanged() {
         this.updateDebugger(true);
     }
 
-    onBreakpointAddressChanged(value: string) {
-        const addr = Util.parseHexNumber(value);
-        if (isNaN(addr)) {
-            this.commandDispatcherService.setBreakpoint(null);
-            this.breakpointAddress = "";
-        } else {
-            this.commandDispatcherService.setBreakpoint(addr);
-            this.breakpointAddress = Util.toHexWordShort(addr);
-        }
+    protected onBreakpointAddressChanged() {
         this.updateDebugger(true);
     }
 
-    onTextFocus() {
-        this.commandDispatcherService.stopKeyboard();
-    }
-
-    onTextBlur() {
-        this.commandDispatcherService.startKeyboard();
-    }
-
-    ngOnDestroy() {
-        this.stopUpdate();
-        this.eventSubscription.unsubscribe();
-        this.commandSubscription.unsubscribe();
-    }
-
-    onMemoryViewChanged(memoryViewType: MemoryViewType) {
+    protected onMemoryViewChanged(memoryViewType: MemoryViewType) {
         this.memoryViewType = memoryViewType;
         this.updateDebugger(true);
     }
 
-    onMemoryTypeChanged(memoryType: MemoryType) {
+    protected onMemoryTypeChanged(memoryType: MemoryType) {
         this.memoryType = memoryType;
         this.updateDebugger(true);
     }
 
-    onMemoryViewClicked(event: MouseEvent) {
+    protected onMemoryViewClicked(event: MouseEvent) {
         if (this.memoryViewType !== MemoryViewType.HEX && !this.ti994A.isRunning() && this.memoryView && event.offsetX < 64) {
             const $memory = $(this.element.nativeElement).find("#" + this.getAssemblyViewId());
             const lineHeight = $memory.prop('scrollHeight') / this.memoryView.lines.length;
             const lineNo = Math.floor(($memory.prop('scrollTop') + event.offsetY) / lineHeight);
             const line = this.memoryView.lines[lineNo];
-            const addressString = Util.toHexWord(line.addr).substring(1);
-            if (addressString !== this.breakpointAddress) {
-                this.onBreakpointAddressChanged(addressString);
-            } else {
-                this.onBreakpointAddressChanged("");
-            }
+            this.breakpointAddress = line.addr;
             this.updateDebugger(true);
         }
     }
 
-    getAssemblyViewId() {
+    private getAssemblyViewId() {
         return this.memoryViewType !== MemoryViewType.SPLIT ? "memory" : "memory1";
     }
 
-    openListFile(fileInput: HTMLInputElement) {
+    protected openListFile(fileInput: HTMLInputElement) {
         const files = fileInput.files;
         if (files.length) {
             const file: File = fileInput.files[0];
@@ -363,8 +344,24 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         }
     }
 
-    toggleExpandStatus() {
+    protected toggleExpandStatus() {
         this.expandStatus = !this.expandStatus;
         this.updateDebugger(false);
+    }
+
+    protected openDialog() {
+        const cycleCount = this.ti994A.getCPU().getCycleCount();
+        const data: DebuggerDialogData = {
+            cycleCountStart: cycleCount.start,
+            cycleCountEnd: cycleCount.end
+        };
+        const dialogRef = this.matDialog.open<DebuggerDialogComponent, DebuggerDialogData, DebuggerDialogData>(DebuggerDialogComponent, { data: data });
+        dialogRef.afterClosed().subscribe(
+            (value) => {
+                if (value) {
+                    this.ti994A.getCPU().setCycleCount(value.cycleCountStart, value.cycleCountEnd);
+                }
+            }
+        );
     }
 }

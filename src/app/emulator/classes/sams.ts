@@ -69,7 +69,7 @@ export class SAMS implements Stateful {
     writeRegister(regNo: number, page: number) {
         if (this.registerAccess) {
             this.log.debug("Write " + Util.toHexWord(page) + " to SAMS register " + Util.toHexByte(regNo));
-            this.registerMap[regNo & 0xF] = page;
+            this.registerMap[regNo & 0xF] = page & 0x0FFF; // Registers are 12 bits
         }
     }
 

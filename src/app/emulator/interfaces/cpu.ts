@@ -19,4 +19,6 @@ export interface CPU extends Stateful {
     dumpProfile(): void;
     setTracing(tracing: boolean): void;
     getCycleLog(): Int32Array;
+    getCycleCount(): { start: number, end: number };
+    setCycleCount(start: number, end: number): void;
 }

@@ -61,6 +61,8 @@ export class TMS9900 extends CPUCommon implements CPU {
         this.source = 0;
         this.byte = 0;
         this.cycles = 0;
+        this.countStart = 0;
+        this.maxCount = 0;
         this.illegalCount = 0;
         this.profile = new Uint32Array(0x10000);
 
@@ -79,8 +81,8 @@ export class TMS9900 extends CPUCommon implements CPU {
     run(cyclesToRun: number, skipBreakpoint?: boolean): number {
         this.stoppedAtBreakpoint = false;
         const startCycles = this.cycles;
-        const countStartPC = -1;
-        const countEndPC = -1;
+        const countStartPC = this.cycleCountStart;
+        const countEndPC = this.cycleCountEnd;
         while (this.cycles - startCycles < cyclesToRun && !this.suspended) {
             const atBreakpoint = this.atBreakpoint() && !skipBreakpoint;
             if (atBreakpoint) {

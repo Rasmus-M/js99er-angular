@@ -22,6 +22,8 @@ export abstract class CPUCommon {
     // Counters
     protected cycles: number;
     protected illegalCount: number;
+    protected cycleCountStart = NaN;
+    protected cycleCountEnd = NaN;
 
     // Constants
     protected readonly BIT_LGT       = 0x8000;
@@ -1437,6 +1439,18 @@ export abstract class CPUCommon {
         return this.cycleLog;
     }
 
+    getCycleCount() {
+        return {
+            start: this.cycleCountStart,
+            end: this.cycleCountEnd
+        };
+    }
+
+    setCycleCount(start: number, end: number): void {
+        this.cycleCountStart = start;
+        this.cycleCountEnd = end;
+    }
+
     getInternalRegsString(detailed: boolean): string {
         return "PC :" + Util.toHexWord(this.pc) + " WP :" + Util.toHexWord(this.wp) + " ST :" + Util.toHexWord(this.st) +
             ((this.st & 0x8000) ? ' L>' : '   ') + ((this.st & 0x4000) ? ' A>' : '   ') + ((this.st & 0x2000) ? ' EQ' : '   ') + ((this.st & 0x1000) ? ' C' : '  ') +
@@ -1473,6 +1487,8 @@ export abstract class CPUCommon {
             breakpoint: this.breakpoint,
             auxBreakpoint: this.auxBreakpoint,
             illegalCount: this.illegalCount,
+            cycleCountStart: this.cycleCountStart,
+            cycleCountEnd: this.cycleCountEnd
         };
     }
 
@@ -1486,5 +1502,7 @@ export abstract class CPUCommon {
         this.breakpoint = state.breakpoint;
         this.auxBreakpoint = state.auxBreakpoint;
         this.illegalCount = state.illegalCount;
+        this.cycleCountStart = state.cycleCountStart;
+        this.cycleCountEnd = state.cycleCountEnd;
     }
 }

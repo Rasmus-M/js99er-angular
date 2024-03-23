@@ -1,0 +1,5 @@
+<mat-form-field class="hex-input-field">
+    <span matPrefix>&gt;</span>
+    <input matInput [placeholder]="placeholder" maxlength="5" [ngModel]="value" [ngModelOptions]="{updateOn: 'blur'}" (ngModelChange)="onChange($event)" (focus)="onFocus()" (blur)="onBlur()">
+    <mat-hint>Hexadecimal</mat-hint>
+</mat-form-field>

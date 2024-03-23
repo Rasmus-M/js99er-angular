@@ -45,6 +45,9 @@ import {ObjectLoaderService} from './services/object-loader.service';
 import {SettingsService} from './services/settings.service';
 import {EventDispatcherService} from './services/event-dispatcher.service';
 import {ConfigService} from "./services/config.service";
+import {DebuggerDialogComponent} from "./components/debugger-dialog/debugger-dialog.component";
+import {MatGridListModule} from "@angular/material/grid-list";
+import {HexInputFieldComponent} from "./components/hex-input-field/hex-input-field.component";
 
 @NgModule({
     declarations: [
@@ -60,7 +63,9 @@ import {ConfigService} from "./services/config.service";
         MoreSoftwareComponent,
         AboutComponent,
         GraphicsComponent,
-        MainComponent
+        MainComponent,
+        DebuggerDialogComponent,
+        HexInputFieldComponent
     ],
     imports: [
         BrowserModule,
@@ -86,7 +91,8 @@ import {ConfigService} from "./services/config.service";
         HttpClientModule,
         EmulatorModule,
         AppRoutingModule,
-        MatTooltipModule
+        MatTooltipModule,
+        MatGridListModule
     ],
     providers: [
         ModuleService,
