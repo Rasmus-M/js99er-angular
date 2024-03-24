@@ -282,6 +282,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     protected onBreakpointAddressChanged() {
+        this.commandDispatcherService.setBreakpoint(this.breakpointAddress);
         this.updateDebugger(true);
     }
 
@@ -302,7 +303,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             const lineNo = Math.floor(($memory.prop('scrollTop') + event.offsetY) / lineHeight);
             const line = this.memoryView.lines[lineNo];
             this.breakpointAddress = line.addr;
-            this.updateDebugger(true);
+            this.onBreakpointAddressChanged();
         }
     }
 
