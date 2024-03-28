@@ -302,7 +302,11 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             const lineHeight = $memory.prop('scrollHeight') / this.memoryView.lines.length;
             const lineNo = Math.floor(($memory.prop('scrollTop') + event.offsetY) / lineHeight);
             const line = this.memoryView.lines[lineNo];
-            this.breakpointAddress = line.addr;
+            if (line.addr !== this.breakpointAddress) {
+                this.breakpointAddress = line.addr;
+            } else {
+                this.breakpointAddress = NaN;
+            }
             this.onBreakpointAddressChanged();
         }
     }
