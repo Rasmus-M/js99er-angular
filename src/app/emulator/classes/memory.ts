@@ -363,7 +363,7 @@ export class Memory implements Stateful, MemoryDevice {
         cpu.addCycles(4);
         if (this.enableSAMS && this.sams.hasRegisterAccess()) {
             const w = this.sams.readRegister((addr & 0x1F) >> 1);
-            return w & 0xFF; // ((w & 0xFF) << 8) | (w >> 8);
+            return ((w & 0xFF) << 8) | (w >> 8);
         } else if (this.peripheralROMEnabled) {
             const peripheralROM = this.peripheralROMs[this.peripheralROMNumber];
             if (peripheralROM) {
@@ -569,7 +569,7 @@ export class Memory implements Stateful, MemoryDevice {
         if (addr < 0x6000) {
             if (this.enableSAMS && this.sams.hasRegisterAccess()) {
                 const w = this.sams.readRegister((addr & 0x1F) >> 1);
-                return w & 0xFF; // (addr & 1) === 0 ? (w & 0xFF) : (w >> 8);
+                return (addr & 1) === 0 ? (w & 0xFF) : (w >> 8);
             } else if (this.peripheralROMEnabled) {
                 const peripheralROM = this.peripheralROMs[this.peripheralROMNumber];
                 return peripheralROM ? peripheralROM[addr - 0x4000] : 0;
