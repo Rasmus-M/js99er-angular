@@ -191,7 +191,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
             }
             case CommandType.CHANGE_SETTING:
                 const setting: Setting = command.data.setting;
-                const value: boolean = command.data.value;
+                const value: any = command.data.value;
                 let resetRequired = false;
                 switch (setting) {
                     case Setting.SOUND:
@@ -250,6 +250,10 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         break;
                     case Setting.DISK:
                         this.ti994A.getMemory().setDiskEnabled(value);
+                        resetRequired = true;
+                        break;
+                    case Setting.SAMS_SIZE:
+                        this.ti994A.getMemory().setSAMSSize(value);
                         resetRequired = true;
                         break;
                 }

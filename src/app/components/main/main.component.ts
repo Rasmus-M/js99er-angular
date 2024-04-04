@@ -22,6 +22,7 @@ import {Js99erComponent} from "../../js99er.component";
 import {map, mergeMap} from "rxjs/operators";
 import {ConfigService} from "../../services/config.service";
 import {ConsoleComponent} from "../../emulator/console/console.component";
+import {Util} from "../../classes/util";
 
 @Component({
   selector: 'app-main',
@@ -69,8 +70,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         this.commandSubscription = this.commandDispatcherService.subscribe(this.onCommand.bind(this));
         this.eventSubscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
         this.route.paramMap.subscribe(this.onParametersChanged.bind(this));
-        this.log.info("Welcome to " + Js99erComponent.TITLE + " version " + Js99erComponent.VERSION);
-        this.log.info("---------------------------------");
+        const logInfo = "Welcome to " + Js99erComponent.TITLE + " version " + Js99erComponent.VERSION + " (" + Js99erComponent.DATE + ")";
+        this.log.info(logInfo);
+        this.log.info(Util.repeat("-", logInfo.length));
     }
 
     ngAfterViewInit(): void {

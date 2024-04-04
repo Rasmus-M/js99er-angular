@@ -24,8 +24,8 @@ export class SettingsComponent implements OnInit {
     tipiWebsocketURI: string;
     enableDebugReset: boolean;
     enableH264Codec: boolean;
-    ramExpansion: string;
-    tipiEmulation: string;
+    ramExpansion: 'none' | '32K' | 'sams1M' | 'sams4M' | 'sams16M';
+    tipiEmulation: 'none' | 'mouse' | 'full';
     enableDisk: boolean;
 
     private subscription: Subscription;
@@ -59,7 +59,18 @@ export class SettingsComponent implements OnInit {
         if (this.settingsService.is32KRAMEnabled()) {
             this.ramExpansion = "32K";
         } else if (this.settingsService.isSAMSEnabled()) {
-            this.ramExpansion = "sams";
+            switch (this.settingsService.getSamsSize()) {
+                default:
+                case 1024:
+                    this.ramExpansion = "sams1M";
+                    break;
+                case 4096:
+                    this.ramExpansion = "sams4M";
+                    break;
+                case 16384:
+                    this.ramExpansion = "sams16M";
+                    break;
+            }
         }
         if (this.settingsService.isTIPIEnabled()) {
             this.tipiEmulation = "full";
@@ -139,8 +150,19 @@ export class SettingsComponent implements OnInit {
         if (value === "32K") {
             this.settingsService.set32KRAMEnabled(true);
             this.settingsService.setSAMSEnabled(false);
-        } else if (value === "sams") {
+        } else if (value.startsWith("sams")) {
             this.settingsService.set32KRAMEnabled(false);
+            switch (value) {
+                case "sams1M":
+                    this.settingsService.setSamsSize(1024);
+                    break;
+                case "sams4M":
+                    this.settingsService.setSamsSize(4096);
+                    break;
+                case "sams16M":
+                    this.settingsService.setSamsSize(16384);
+                    break;
+            }
             this.settingsService.setSAMSEnabled(true);
         } else {
             this.settingsService.set32KRAMEnabled(false);

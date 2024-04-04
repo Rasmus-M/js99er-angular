@@ -72,6 +72,9 @@ export class SettingsService {
             if (storage.getItem('enableDisk') != null) {
                 this.settings.setDiskEnabled(storage.getItem('enableDisk') === 'true');
             }
+            if (storage.getItem('samsSize') != null) {
+                this.settings.setSamsSize(Number(storage.getItem('samsSize')));
+            }
             this.storage = storage;
         }
     }
@@ -334,6 +337,20 @@ export class SettingsService {
             if (this.persistent && this.storage) {
                 this.storage.setItem('enableDisk', enabled ? 'true' : 'false');
                 this.commandDispatcherService.changeSetting(Setting.DISK, enabled);
+            }
+        }
+    }
+
+    getSamsSize() {
+        return this.settings.getSamsSize();
+    }
+
+    setSamsSize(value: number) {
+        if (value !== this.settings.getSamsSize()) {
+            this.settings.setSamsSize(value);
+            if (this.persistent && this.storage) {
+                this.storage.setItem('samsSize', String(value));
+                this.commandDispatcherService.changeSetting(Setting.SAMS_SIZE, value);
             }
         }
     }

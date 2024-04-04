@@ -59,17 +59,17 @@ export class SAMS implements Stateful {
     setMode(mode: number) {
         this.log.info("SAMS " + (mode === SAMS.MAPPING_MODE ? "mapping" : "transparent") + " mode set");
         this.map = mode === SAMS.TRANSPARENT_MODE ? this.transparentMap : this.registerMap;
-
     }
 
     readRegister(regNo: number): number {
-        return this.registerAccess ? this.registerMap[regNo & 0xF] : 0;
+        const regValue = this.registerMap[regNo & 0xF];
+        return this.registerAccess ? (this.size > 1024 ? regValue : ((regValue << 8) | regValue)) : 0;
     }
 
     writeRegister(regNo: number, page: number) {
         if (this.registerAccess) {
             this.log.debug("Write " + Util.toHexWord(page) + " to SAMS register " + Util.toHexByte(regNo));
-            this.registerMap[regNo & 0xF] = page & 0x0FFF; // Registers are 12 bits
+            this.registerMap[regNo & 0xF] = page & ((this.size >> 2) - 1);
         }
     }
 

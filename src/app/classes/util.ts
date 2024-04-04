@@ -94,4 +94,12 @@ export class Util {
         }
         return s;
     }
+
+    static repeat(s: string, n: number) {
+        let s1 = "";
+        for (let i = 0; i < n; i++) {
+            s1 += s;
+        }
+        return s1;
+    }
 }

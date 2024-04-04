@@ -67,7 +67,7 @@ export class CommandDispatcherService {
         this.commandSubject.next(new Command(CommandType.UNLOAD_SOFTWARE, null));
     }
 
-    changeSetting(setting: Setting, value: boolean | string) {
+    changeSetting(setting: Setting, value: boolean | string | number) {
         this.commandSubject.next(new Command(CommandType.CHANGE_SETTING, {setting: setting, value: value}));
     }
 

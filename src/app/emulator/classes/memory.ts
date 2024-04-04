@@ -37,6 +37,7 @@ export class Memory implements Stateful, MemoryDevice {
 
     private enable32KRAM: boolean;
     private enableSAMS: boolean;
+    private samsSize: number;
     private enableGRAM: boolean;
     private enableTIPI: boolean;
     private enableDisk: boolean;
@@ -90,6 +91,7 @@ export class Memory implements Stateful, MemoryDevice {
         // RAM
         this.enable32KRAM = this.settings.is32KRAMEnabled();
         this.enableSAMS = this.settings.isSAMSEnabled();
+        this.samsSize = this.settings.getSamsSize();
         this.enableGRAM = this.settings.isGRAMEnabled();
         this.enableTIPI = this.settings.isTIPIEnabled() || this.settings.isFastTIPIMouseEnabled();
         this.enableDisk = this.settings.isDiskEnabled();
@@ -101,11 +103,7 @@ export class Memory implements Stateful, MemoryDevice {
             }
         }
         if (this.enableSAMS) {
-            if (this.sams) {
-                this.sams.reset();
-            } else {
-                this.sams = new SAMS(1024, this.debugReset);
-            }
+            this.sams = new SAMS(this.samsSize, this.debugReset);
         } else {
             this.sams = null;
         }
@@ -715,6 +713,10 @@ export class Memory implements Stateful, MemoryDevice {
         this.enableSAMS = enabled;
     }
 
+    setSAMSSize(value: number) {
+        this.samsSize = value;
+    }
+
     setGRAMEnabled(enabled: boolean) {
         this.enableGRAM = enabled;
     }
@@ -782,6 +784,7 @@ export class Memory implements Stateful, MemoryDevice {
         return {
             enable32KRAM: this.enable32KRAM,
             enableSAMS: this.enableSAMS,
+            samsSize: this.samsSize,
             enableGRAM: this.enableGRAM,
             enableTIPI: this.enableTIPI,
             enableDisk: this.enableDisk,
@@ -812,6 +815,7 @@ export class Memory implements Stateful, MemoryDevice {
     restoreState(state: any) {
         this.enable32KRAM = state.enable32KRAM;
         this.enableSAMS = state.enableSAMS;
+        this.samsSize = state.samsSize;
         this.enableGRAM = state.enableGRAM;
         this.enableTIPI = state.enabled;
         this.enableDisk = state.enableDisk;

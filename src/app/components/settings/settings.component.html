@@ -4,7 +4,9 @@
         <mat-select [(ngModel)]="ramExpansion" (ngModelChange)="onRAMExpansionChanged($event)">
             <mat-option [value]="'none'">No RAM expansion</mat-option>
             <mat-option [value]="'32K'">32K RAM expansion</mat-option>
-            <mat-option [value]="'sams'">1M SAMS expansion</mat-option>
+            <mat-option [value]="'sams1M'">1M SAMS expansion</mat-option>
+            <mat-option [value]="'sams4M'">4M SAMS expansion</mat-option>
+            <mat-option [value]="'sams16M'">16M SAMS expansion</mat-option>
         </mat-select>
     </mat-form-field>
     <div class="checkbox-setting">

@@ -15,7 +15,8 @@ export enum Setting {
     DEBUG_RESET = 14,
     H264_CODEC = 15,
     FAST_TIPI_MOUSE = 16,
-    DISK = 17
+    DISK = 17,
+    SAMS_SIZE = 18
 }
 
 export class Settings {
@@ -37,6 +38,7 @@ export class Settings {
     private enableH264Codec: boolean;
     private enableFastTIPIMouse: boolean;
     private enableDisk: boolean;
+    private samsSize: number;
 
     constructor() {
         this.enableSound = true;
@@ -56,6 +58,7 @@ export class Settings {
         this.enableH264Codec = false;
         this.enableFastTIPIMouse = false;
         this.enableDisk = true;
+        this.samsSize = 1024;
     }
 
     isSoundEnabled(): boolean {
@@ -194,6 +197,14 @@ export class Settings {
         this.enableDisk = enabled;
     }
 
+    getSamsSize() {
+        return this.samsSize;
+    }
+
+    setSamsSize(value: number) {
+        this.samsSize = value;
+    }
+
     copyFrom(otherSettings: Settings) {
         this.enableSound = otherSettings.isSoundEnabled();
         this.enableSpeech = otherSettings.isSpeechEnabled();
@@ -212,5 +223,6 @@ export class Settings {
         this.enableH264Codec = otherSettings.isH264CodexEnabled();
         this.enableFastTIPIMouse = otherSettings.enableFastTIPIMouse;
         this.enableDisk = otherSettings.enableDisk;
+        this.samsSize = otherSettings.samsSize;
     }
 }
