@@ -605,6 +605,11 @@
                     "type": "ITEM",
                     "name": "Soft sprites",
                     "url": "software/softsprites-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "F18A Karts demo",
+                    "url": "software/karts8.bin"
                 }
             ]
         },
