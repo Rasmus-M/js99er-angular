@@ -273,8 +273,7 @@ export class Memory implements Stateful, MemoryDevice {
         this.cartInverted = inverted;
         this.cartCRUBankSwitched = cruBankSwitched;
         this.cartBankCount = this.cartImage.length / 0x2000;
-        this.currentCartBank = 0;
-        this.cartAddrOffset = -0x6000;
+        this.setCurrentCartBank(!inverted ? 0 : this.cartBankCount - 1);
         this.cartRAMFG99Paged = ramFG99Paged;
         if (ramFG99Paged) {
             this.log.info('Paged RAM cart found.');
