@@ -138,7 +138,7 @@ export class KeyMapper {
         "Comma": {code: "Comma", keyCode: 188, tiKeys: [TIKey.Comma]},
         "Quote": {code: "Quote", keyCode: 222, tiKeys: [TIKey.Fctn, TIKey.KeyP]},
         "Slash": {code: "Slash", keyCode: 189, tiKeys: [TIKey.Slash]},
-        "Semicolon": {code: "Semicolon", keyCode: 192, tiKeys: [TIKey.Semicolon]},
+        "Semicolon": {code: "Semicolon", keyCode: 186, tiKeys: [TIKey.Semicolon]},
         "BracketLeft": {code: "BracketLeft", keyCode: 219, tiKeys: [TIKey.Fctn, TIKey.KeyR]},
         "BracketRight": {code: "BracketRight", keyCode: 221, tiKeys: [TIKey.Fctn, TIKey.KeyT]},
         "Backslash": {code: "Backslash", keyCode: 191, tiKeys: [TIKey.Fctn, TIKey.KeyZ]},

@@ -363,7 +363,6 @@ export class Keyboard implements Stateful {
             window.setTimeout(() => {
                 this.simulateKeyUp(16);
             }, Keyboard.KEYPRESS_DURATION);
-
         }
         if (keyCode !== 17) {
             window.setTimeout(() => {
