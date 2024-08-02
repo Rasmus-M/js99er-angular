@@ -40,7 +40,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     date = Js99erComponent.DATE;
 
     private cartURL: string;
-    private cartName = 'extended_basic';
+    private cartName = 'software/extended_basic.rpk';
     private started = false;
     private autoRun = false;
     public sidePanelVisible = true;
@@ -177,14 +177,18 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
     loadCartridge(cartName: string) {
         this.log.info("Load cart: " + cartName);
-        this.moreSoftwareService.getByName(cartName.replace(/_/g, ' ')).subscribe(
-            (cart: Software) => {
-                this.loadCartridgeFromURL(cart.url);
-            },
-            (error) => {
-                this.log.error(error);
-            }
-        );
+        if (cartName.startsWith('software/')) {
+            this.loadCartridgeFromURL(cartName);
+        } else {
+            this.moreSoftwareService.getByName(cartName.replace(/_/g, ' ')).subscribe(
+                (cart: Software) => {
+                    this.loadCartridgeFromURL(cart.url);
+                },
+                (error) => {
+                    this.log.error(error);
+                }
+            );
+        }
     }
 
     loadCartridgeFromURL(url: string) {
