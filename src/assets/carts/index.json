@@ -613,6 +613,7 @@
     {"url": "westbank-v2.rpk", "name": "West Bank V2"},
     {"url": "gbust.rpk", "name": "Ghostbusters"},
     {"url": "marioH8.bin", "name": "Mario Bros"},
-    {"url": "karts8.bin", "name": "F18A Karts demo"}
+    {"url": "karts8.bin", "name": "F18A Karts demo"},
+    {"url": "fbforth300.rpk", "name": "fbForth"}
 ]
 
