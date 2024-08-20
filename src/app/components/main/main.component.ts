@@ -31,6 +31,8 @@ import {Util} from "../../classes/util";
 })
 export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
+    static DEFAULT_CART_NAME = 'software/extended_basic.rpk';
+
     diskImages: DiskImage[];
     ti994A: TI994A;
     tabIndex: number;
@@ -40,12 +42,11 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     date = Js99erComponent.DATE;
 
     private cartURL: string;
-    private cartName = 'software/extended_basic.rpk';
+    private cartName = MainComponent.DEFAULT_CART_NAME;
     private started = false;
     private autoRun = false;
     public sidePanelVisible = true;
     public toolbarVisible = true;
-    private routerSubscription: Subscription;
     private commandSubscription: Subscription;
     private eventSubscription: Subscription;
     private log: Log = Log.getLog();
@@ -144,6 +145,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.audioService.init(this.settingsService.isSoundEnabled(), this.ti994A.getPSG(), this.ti994A.getSpeech(), this.ti994A.getTape());
                 if (this.cartURL) {
                     this.loadCartridgeFromURL(this.cartURL);
+                } else if (this.cartName !== MainComponent.DEFAULT_CART_NAME) {
+                    this.loadCartridge(this.cartName);
                 } else  {
                     this.databaseService.whenReady().subscribe((supported) => {
                         this.databaseService.getSoftware(ConsoleComponent.LATEST_SOFTWARE).subscribe({
@@ -301,9 +304,6 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngOnDestroy() {
-        if (this.routerSubscription) {
-            this.routerSubscription.unsubscribe();
-        }
         if (this.commandSubscription) {
             this.commandSubscription.unsubscribe();
         }
