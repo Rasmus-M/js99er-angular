@@ -282,7 +282,7 @@ export class TMS5200 implements Speech {
     /* must be defined; if 1, normal speech (one A cycle, one B cycle per interpolation step); if 0; speak as if SPKSLOW was used (two A cycles, one B cycle per interpolation step) */
     static FORCE_SUBC_RELOAD = 1;
 
-    static FIFO_SIZE = 32; // RM: Changed from 16 to prevent running out of bits in the FIFO
+    static FIFO_SIZE = 16;
 
     static HAS_RATE_CONTROL = false;
 
@@ -429,6 +429,9 @@ export class TMS5200 implements Speech {
     private m_previous_energy: number;
     private m_current_energy: number;
     private m_ready_pin: boolean;
+
+    private tmp_fifo_head: number;
+    private tmp_fifo_bits_taken: number;
 
     private log: Log = Log.getLog();
 
@@ -588,7 +591,7 @@ export class TMS5200 implements Speech {
         /* BL is set if neither byte 9 nor 8 of the fifo are in use; this
          translates to having fifo_count (which ranges from 0 bytes in use to 16
          bytes used) being less than or equal to 8. Victory/Victorba depends on this. */
-        if (this.m_fifo_count <= 8) { // RM: Using TMS5220.FIFO_SIZE / 2 doesn't work with XB CALL SAY(,A$)
+        if (this.m_fifo_count <= 8) {
             // generate an interrupt if necessary; if /BL was inactive and is now active, set int.
             if (!this.m_buffer_low) {
                 this.set_interrupt_state(1);
@@ -651,6 +654,19 @@ export class TMS5200 implements Speech {
             val = this.rom_read(count);
         }
 
+        return val;
+    }
+
+    private peek_bits(count: number): number {
+        let val = 0;
+        while (count-- > 0) {
+            val = (val << 1) | ((this.m_fifo[this.tmp_fifo_head] >> this.tmp_fifo_bits_taken) & 1);
+            this.tmp_fifo_bits_taken++;
+            if (this.tmp_fifo_bits_taken >= 8) {
+                this.tmp_fifo_head = (this.tmp_fifo_head + 1) % TMS5200.FIFO_SIZE;
+                this.tmp_fifo_bits_taken = 0;
+            }
+        }
         return val;
     }
 
@@ -1205,6 +1221,17 @@ export class TMS5200 implements Speech {
      ******************************************************************************************/
 
     private parse_frame() {
+
+        // RM: Added
+        if (this.m_speak_external) {
+            const requiredBits = this.getRequiredBits();
+            const bitsLeft = this.m_fifo_count * 8 - this.m_fifo_bits_taken;
+            // console.log("Frame requires", requiredBits, ". Bits left=", bitsLeft);
+            if (requiredBits >= bitsLeft || requiredBits === 4 && bitsLeft === 4) {
+                return;
+            }
+        }
+
         let indx, i, rep_flag;
 
         // We actually don't care how many bits are left in the fifo here; the frame subpart will be processed normally,
@@ -1225,8 +1252,7 @@ export class TMS5200 implements Speech {
         this.update_status_and_ints();
         if (!this.m_talk_status) {
             // goto ranout;
-            this.log.warn("Ran out of bits on a parse (1)");
-            return;
+            return this.ranout(1);
         }
 
         // attempt to extract the energy index
@@ -1234,8 +1260,7 @@ export class TMS5200 implements Speech {
         this.update_status_and_ints();
         if (!this.m_talk_status) {
             // goto ranout;
-            this.log.warn("Ran out of bits on a parse (2)");
-            return;
+            return this.ranout(2);
         }
         // if the energy index is 0 or 15, we're done
         if ((this.m_new_frame_energy_idx === 0) || (this.m_new_frame_energy_idx === 15)) {
@@ -1250,8 +1275,7 @@ export class TMS5200 implements Speech {
         this.update_status_and_ints();
         if (!this.m_talk_status) {
             // goto ranout;
-            this.log.warn("Ran out of bits on a parse (3)");
-            return;
+            return this.ranout(3);
         }
 
         // if this is a repeat frame, just do nothing, it will reuse the old coefficients
@@ -1265,8 +1289,7 @@ export class TMS5200 implements Speech {
             this.update_status_and_ints();
             if (!this.m_talk_status) {
                 // goto ranout;
-                this.log.warn("Ran out of bits on a parse (4)");
-                return;
+                return this.ranout(4);
             }
         }
 
@@ -1282,8 +1305,7 @@ export class TMS5200 implements Speech {
             this.update_status_and_ints();
             if (!this.m_talk_status) {
                 // goto ranout;
-                this.log.warn("Ran out of bits on a parse (5)");
-                return;
+                return this.ranout(5);
             }
         }
 
@@ -1292,6 +1314,28 @@ export class TMS5200 implements Speech {
         } else {
             this.log.debug("Parsed a frame successfully in ROM\n");
         }
+    }
+
+    private getRequiredBits() {
+        // RM: A frame can take up to 50 bits
+        this.tmp_fifo_head = this.m_fifo_head;
+        this.tmp_fifo_bits_taken = this.m_fifo_bits_taken;
+        let requiredBits = this.m_coeff.energy_bits;
+        const energyIdx = this.peek_bits(this.m_coeff.energy_bits);
+        if (energyIdx !== 0 && energyIdx !== 15) {
+            requiredBits += 1 + this.m_coeff.pitch_bits;
+            const repFlag = this.peek_bits(1);
+            const pitchIdx = this.peek_bits(this.m_coeff.pitch_bits);
+            if (!repFlag) {
+                requiredBits += 18 + (pitchIdx !== 0 ? 21 : 0) ;
+            }
+        }
+        return requiredBits;
+    }
+
+    private ranout(pos: number) {
+        this.log.warn("Ran out of bits on a parse ('" + pos + "')");
+        return 0;
     }
 
     /**********************************************************************************************
