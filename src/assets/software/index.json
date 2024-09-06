@@ -481,6 +481,16 @@
                     "type": "ITEM",
                     "name": "Vertical copper bars",
                     "url": "software/vertical-copper-bars-8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Dragon's Lair demo",
+                    "url": "software/DragonsLairDemo.rpk"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Stealth Runner demo",
+                    "url": "software/StealthRunner.rpk"
                 }
             ]
         },
