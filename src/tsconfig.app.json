@@ -7,7 +7,6 @@
   },
   "files": [
     "main.ts",
-    "polyfills.ts",
     "../node_modules/@types/dom-mediacapture-record/index.d.ts"
   ],
   "include": [

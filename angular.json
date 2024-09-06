@@ -16,7 +16,7 @@
             "index": "src/index.html",
             "main": "src/main.ts",
             "tsConfig": "src/tsconfig.app.json",
-            "polyfills": "src/polyfills.ts",
+            "polyfills": "zone.js",
             "assets": [
               "src/assets",
               "src/favicon.ico"
@@ -66,21 +66,21 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "js99er:build"
+            "buildTarget": "js99er:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "js99er:build:production"
+              "buildTarget": "js99er:build:production"
             },
             "development": {
-              "browserTarget": "js99er:build:development"
+              "buildTarget": "js99er:build:development"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "js99er:build"
+            "buildTarget": "js99er:build"
           },
           "defaultConfiguration": "development"
         },
@@ -89,7 +89,7 @@
           "options": {
             "main": "src/test.ts",
             "karmaConfig": "./karma.conf.js",
-            "polyfills": "src/polyfills.ts",
+            "polyfills": "zone.js",
             "tsConfig": "src/tsconfig.spec.json",
             "scripts": [
               "node_modules/zip-js/WebContent/zip.js",
