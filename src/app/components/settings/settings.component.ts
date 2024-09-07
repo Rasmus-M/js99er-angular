@@ -14,7 +14,6 @@ export class SettingsComponent implements OnInit {
 
     enableSound: boolean;
     enableSpeech: boolean;
-    enableF18A: boolean;
     enablePCKeyboard: boolean;
     enableMapArrowKeys: boolean;
     enableGoogleDrive: boolean;
@@ -24,6 +23,7 @@ export class SettingsComponent implements OnInit {
     tipiWebsocketURI: string;
     enableDebugReset: boolean;
     enableH264Codec: boolean;
+    vdp: 'tms9918a' | 'f18a';
     ramExpansion: 'none' | '32K' | 'sams1M' | 'sams4M' | 'sams16M';
     tipiEmulation: 'none' | 'mouse' | 'full';
     enableDisk: boolean;
@@ -45,7 +45,6 @@ export class SettingsComponent implements OnInit {
     readSettings() {
         this.enableSound = this.settingsService.isSoundEnabled();
         this.enableSpeech = this.settingsService.isSpeechEnabled();
-        this.enableF18A = this.settingsService.isF18AEnabled();
         this.enablePCKeyboard = this.settingsService.isPCKeyboardEnabled();
         this.enableMapArrowKeys = this.settingsService.isMapArrowKeysToFctnSDEXEnabled();
         this.enableGoogleDrive = this.settingsService.isGoogleDriveEnabled();
@@ -55,6 +54,11 @@ export class SettingsComponent implements OnInit {
         this.tipiWebsocketURI = this.settingsService.getTIPIWebsocketURI();
         this.enableDebugReset = this.settingsService.isDebugResetEnabled();
         this.enableH264Codec = this.settingsService.isH264CodecEnabled();
+        if (this.settingsService.isF18AEnabled()) {
+            this.vdp = "f18a";
+        } else {
+            this.vdp = "tms9918a";
+        }
         this.ramExpansion = "none";
         if (this.settingsService.is32KRAMEnabled()) {
             this.ramExpansion = "32K";
@@ -96,10 +100,6 @@ export class SettingsComponent implements OnInit {
 
     onEnableSpeechChanged(value: boolean) {
         this.settingsService.setSpeechEnabled(value);
-    }
-
-    onEnableF18AChanged(value: boolean) {
-        this.settingsService.setF18AEnabled(value);
     }
 
     onEnablePCKeyboardChanged(value: boolean) {
@@ -144,6 +144,14 @@ export class SettingsComponent implements OnInit {
 
     onTextBlur() {
         this.commandDispatcherService.startKeyboard();
+    }
+
+    onVDPChanged(value: string) {
+        if (value === "f18a") {
+            this.settingsService.setF18AEnabled(true);
+        } else {
+            this.settingsService.setF18AEnabled(false);
+        }
     }
 
     onRAMExpansionChanged(value: string) {
