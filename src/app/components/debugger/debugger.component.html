@@ -2,6 +2,7 @@
     <pre class="status mat-elevation-z1">{{statusString}}<a (click)="toggleExpandStatus()">{{expandStatus ? ' < less' : ' more >'}}</a></pre>
     <div class="debugger-toolbar">
         <mat-form-field class="memory-select">
+            <mat-label>Memory view</mat-label>
             <mat-select placeholder="Memory View" [value]="memoryViewType" (selectionChange)="onMemoryViewChanged($event.value)">
                 <mat-option [value]="0">Disassembly</mat-option>
                 <mat-option [value]="1">Hex view</mat-option>
@@ -14,9 +15,10 @@
         </button>
         <span class="margin-right"></span>
         <mat-form-field class="memory-select">
+            <mat-label>Memory type</mat-label>
             <mat-select placeholder="Memory Type" [value]="memoryType" (selectionChange)="onMemoryTypeChanged($event.value)">
-                <mat-option [value]="0">CPU Memory</mat-option>
-                <mat-option [value]="1">VDP Memory</mat-option>
+                <mat-option [value]="0">CPU memory</mat-option>
+                <mat-option [value]="1">VDP memory</mat-option>
             </mat-select>
         </mat-form-field>
         <hex-input-field [(model)]="viewAddress" [placeholder]="'View Address'" (modelChange)="onViewAddressChanged()"></hex-input-field>

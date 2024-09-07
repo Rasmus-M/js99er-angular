@@ -1,10 +1,10 @@
 <div class="tape">
     <div class="tape-open-save">
             <button mat-raised-button color="primary" (click)="fileInputTape.click()">
-                <fa-icon [icon]="openTapeIcon"></fa-icon> Open Tape File<input #fileInputTape type="file" accept="audio/*" (change)="openTape(fileInputTape)" [hidden]="true"/>
+                <fa-icon [icon]="openTapeIcon"></fa-icon> Open tape file<input #fileInputTape type="file" accept="audio/*" (change)="openTape(fileInputTape)" [hidden]="true"/>
             </button>
             <span class="margin-right"></span>
-            <button mat-raised-button (click)="saveTape()"><fa-icon [icon]="saveTapeIcon"></fa-icon> Save Tape File</button>
+            <button mat-raised-button (click)="saveTape()"><fa-icon [icon]="saveTapeIcon"></fa-icon> Save tape file</button>
     </div>
     <mat-toolbar class="toolbar">
         <button mat-raised-button color="warn" (click)="record()" [disabled]="!canRecord"><fa-icon [icon]="recordIcon"></fa-icon> Rec</button>

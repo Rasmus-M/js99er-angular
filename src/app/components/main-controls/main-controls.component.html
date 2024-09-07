@@ -8,19 +8,19 @@
     <button mat-raised-button color="warn" class="toolbar-button" (click)="reset()" matTooltip="Reset TI-99/4A"><fa-icon [icon]="resetIcon"></fa-icon><span class="button-text"> Reset</span></button>
     <span class="margin-right"></span>
     <button mat-raised-button class="toolbar-button" (click)="fileInputModule.click()" matTooltip="Load cartridge file">
-        <fa-icon [icon]="openModuleIcon"></fa-icon><span class="button-text"> Load Cart</span><input #fileInputModule type="file" (change)="openModule(fileInputModule)" [hidden]="true" multiple="multiple"/>
+        <fa-icon [icon]="openModuleIcon"></fa-icon><span class="button-text"> Load cart</span><input #fileInputModule type="file" (change)="openModule(fileInputModule)" [hidden]="true" multiple="multiple"/>
     </button>
     <button mat-raised-button class="toolbar-button" (click)="fileInputDisk.click()" matTooltip="Load disk image of file">
-        <fa-icon [icon]="openDiskIcon"></fa-icon><span class="button-text"> Load Disk</span><input #fileInputDisk type="file" (change)="openDisk(fileInputDisk)" [hidden]="true" multiple="multiple"/>
+        <fa-icon [icon]="openDiskIcon"></fa-icon><span class="button-text"> Load disk</span><input #fileInputDisk type="file" (change)="openDisk(fileInputDisk)" [hidden]="true" multiple="multiple"/>
     </button>
     <app-software-menu class="toolbar-button"></app-software-menu>
     <span class="margin-right"></span>
     <button mat-raised-button class="toolbar-button" (click)="screenshot()" matTooltip="Take screenshot"><fa-icon [icon]="screenshotIcon"></fa-icon><span class="button-text"> Screenshot</span></button>
     <span class="margin-right"></span>
-    <button mat-raised-button class="toolbar-button" (click)="saveState()" matTooltip="Save TI-99/4A state"><fa-icon [icon]="saveStateIcon"></fa-icon><span class="button-text"> Save State</span></button>
-    <button mat-raised-button class="toolbar-button" (click)="restoreState()" matTooltip="Restore saved state"><fa-icon [icon]="restoreStateIcon"></fa-icon><span class="button-text"> Restore State</span></button>
+    <button mat-raised-button class="toolbar-button" (click)="saveState()" matTooltip="Save TI-99/4A state"><fa-icon [icon]="saveStateIcon"></fa-icon><span class="button-text"> Save state</span></button>
+    <button mat-raised-button class="toolbar-button" (click)="restoreState()" matTooltip="Restore saved state"><fa-icon [icon]="restoreStateIcon"></fa-icon><span class="button-text"> Restore state</span></button>
     <span class="margin-right"></span>
-    <button mat-raised-button class="toolbar-button" (click)="toggleSidePanel()" matTooltip="Toggle tabbed panel"><fa-icon [icon]="sidePanelVisible ? hideSidePanelIcon : showSidePanelIcon"></fa-icon><span class="button-text"> {{sidePanelVisible ? 'Hide Panel' : 'Show Panel'}}</span></button>
+    <button mat-raised-button class="toolbar-button" (click)="toggleSidePanel()" matTooltip="Toggle tabbed panel"><fa-icon [icon]="sidePanelVisible ? hideSidePanelIcon : showSidePanelIcon"></fa-icon><span class="button-text"> {{sidePanelVisible ? 'Hide panel' : 'Show panel'}}</span></button>
     <button mat-raised-button class="toolbar-button" (click)="togglePointerLock()" matTooltip="Toggle pointer lock"><fa-icon [icon]="pointerLocked ? pointerUnlockIcon : pointerLockIcon"></fa-icon>&nbsp;<fa-icon [icon]="mousePointerIcon"></fa-icon></button>
 </mat-toolbar>
 <a id="download-link" style="display: none"></a>

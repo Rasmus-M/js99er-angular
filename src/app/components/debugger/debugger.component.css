@@ -61,7 +61,9 @@
 
 hex-input-field {
     padding-right: 8px;
-    display: inline-block;
+    display: inline-flex;
+    vertical-align: top;
     width: 20%;
 }
+
 

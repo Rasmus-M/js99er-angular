@@ -1,11 +1,13 @@
 <div class="disk">
     <div class="disk-selects">
         <mat-form-field>
+            <mat-label>Disk drive</mat-label>
             <mat-select placeholder="Drive" [value]="driveIndex" (selectionChange)="onDriveIndexChanged($event.value)">
                 <mat-option *ngFor="let diskDrive of diskDrives; index as i" [value]="i"><fa-icon [icon]="driveIcon"></fa-icon> {{diskDrive.getName()}}</mat-option>
             </mat-select>
         </mat-form-field>
         <mat-form-field>
+            <mat-label>Disk image</mat-label>
             <mat-select placeholder="Image" [value]="diskImageIndex" (selectionChange)="insertDiskIndex($event.value)">
                 <mat-option [value]="-1"><fa-icon [icon]="emptyIcon"></fa-icon> None</mat-option>
                 <mat-option *ngFor="let diskImage of diskImages; index as i" [value]="i"><fa-icon [icon]="diskIcon"></fa-icon> {{diskImage.getName()}} {{diskImageDrives[i]}}</mat-option>
@@ -37,15 +39,15 @@
                 <td mat-cell *matCellDef="let file"> {{file.getFileTypeLabel()}} </td>
             </ng-container>
             <ng-container matColumnDef="dataType">
-                <th mat-header-cell *matHeaderCellDef> Data Type </th>
+                <th mat-header-cell *matHeaderCellDef> Data type </th>
                 <td mat-cell *matCellDef="let file"> {{file.getDataTypeLabel()}} </td>
             </ng-container>
             <ng-container matColumnDef="recordType">
-                <th mat-header-cell *matHeaderCellDef> Record Type </th>
+                <th mat-header-cell *matHeaderCellDef> Record type </th>
                 <td mat-cell *matCellDef="let file"> {{file.getRecordTypeLabel()}} </td>
             </ng-container>
             <ng-container matColumnDef="recordLength">
-                <th mat-header-cell *matHeaderCellDef> Record Length </th>
+                <th mat-header-cell *matHeaderCellDef> Record length </th>
                 <td mat-cell *matCellDef="let file"> {{file.getRecordLength()}} </td>
             </ng-container>
             <ng-container matColumnDef="fileSize">
@@ -58,10 +60,10 @@
         </table>
     </div>
     <mat-toolbar class="disk-toolbar">
-        <button mat-raised-button (click)="addDisk()"><fa-icon [icon]="addDiskIcon"></fa-icon> New Disk</button>
+        <button mat-raised-button (click)="addDisk()"><fa-icon [icon]="addDiskIcon"></fa-icon> New disk</button>
         <span class="margin-right"></span>
-        <button mat-raised-button color="warn" (click)="deleteDisk()"><fa-icon [icon]="deleteIcon"></fa-icon> Delete Disk</button>
-        <button mat-raised-button color="warn" (click)="deleteFiles()"><fa-icon [icon]="deleteIcon"></fa-icon> Delete Files</button>
+        <button mat-raised-button color="warn" (click)="deleteDisk()"><fa-icon [icon]="deleteIcon"></fa-icon> Delete disk</button>
+        <button mat-raised-button color="warn" (click)="deleteFiles()"><fa-icon [icon]="deleteIcon"></fa-icon> Delete files</button>
         <span class="margin-right"></span>
         <button mat-raised-button color="primary" (click)="saveDisk()"><fa-icon [icon]="saveDiskIcon"></fa-icon> Save DSK</button>
     </mat-toolbar>
