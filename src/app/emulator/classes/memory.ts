@@ -8,7 +8,7 @@ import {Util} from '../../classes/util';
 import {CPU} from '../interfaces/cpu';
 import {Stateful} from '../interfaces/stateful';
 import {TI994A} from './ti994a';
-import {Settings} from '../../classes/settings';
+import {RAMType, Settings, TIPIType} from '../../classes/settings';
 import {PSG} from '../interfaces/psg';
 import {Speech} from '../interfaces/speech';
 import {MemoryDevice} from '../interfaces/memory-device';
@@ -35,12 +35,12 @@ export class Memory implements Stateful, MemoryDevice {
     private speech: Speech;
     private settings: Settings;
 
-    private enable32KRAM: boolean;
-    private enableSAMS: boolean;
+    private ramType: RAMType;
+    private samsEnabled: boolean;
     private samsSize: number;
     private enableGRAM: boolean;
-    private enableTIPI: boolean;
-    private enableDisk: boolean;
+    private tipiType: TIPIType;
+    private diskEnabled: boolean;
     private ramAt6000: boolean;
     private ramAt7000: boolean;
     private debugReset: boolean;
@@ -89,12 +89,12 @@ export class Memory implements Stateful, MemoryDevice {
         this.speech = this.console.getSpeech();
 
         // RAM
-        this.enable32KRAM = this.settings.is32KRAMEnabled();
-        this.enableSAMS = this.settings.isSAMSEnabled();
-        this.samsSize = this.settings.getSamsSize();
+        this.ramType = this.settings.getRAM();
+        this.samsEnabled = this.settings.isSAMSEnabled();
+        this.samsSize = this.settings.getSAMSSize();
         this.enableGRAM = this.settings.isGRAMEnabled();
-        this.enableTIPI = this.settings.isTIPIEnabled() || this.settings.isFastTIPIMouseEnabled();
-        this.enableDisk = this.settings.isDiskEnabled();
+        this.tipiType = this.settings.getTIPI();
+        this.diskEnabled = this.settings.isDiskEnabled();
         this.debugReset = this.settings.isDebugResetEnabled();
         this.ram = new Uint8Array(0x10000);
         if (this.debugReset) {
@@ -102,7 +102,7 @@ export class Memory implements Stateful, MemoryDevice {
                 this.ram[i] = i & 0xff;
             }
         }
-        if (this.enableSAMS) {
+        if (this.settings.isSAMSEnabled()) {
             this.sams = new SAMS(this.samsSize, this.debugReset);
         } else {
             this.sams = null;
@@ -146,15 +146,15 @@ export class Memory implements Stateful, MemoryDevice {
         this.tipiROMNumber = -1;
         this.gdrROMNumber = -1;
         let romNumber = 1;
-        if (this.enableTIPI && this.settings.isTIPIEnabled()) {
+        if (this.tipiType === 'FULL') {
             this.tipiROMNumber = romNumber;
             this.loadPeripheralROM(new Uint8Array(TIPI.DSR_ROM), romNumber++);
         }
-        if (this.enableDisk) {
+        if (this.diskEnabled) {
             this.diskROMNumber = romNumber;
             this.loadPeripheralROM(new Uint8Array(DiskDrive.DSR_ROM), romNumber++);
         }
-        if (this.enableTIPI && this.settings.isFastTIPIMouseEnabled()) {
+        if (this.tipiType === 'MOUSE') {
             this.tipiROMNumber = romNumber;
             this.loadPeripheralROM(new Uint8Array(TIPI.DSR_ROM), romNumber++);
         }
@@ -241,11 +241,11 @@ export class Memory implements Stateful, MemoryDevice {
     loadRAM(addr: number, byteArray: Uint8Array) {
         for (let i = 0; i < byteArray.length; i++) {
             const a = addr + i;
-            if (this.enableSAMS && (a >= 0x2000 && a < 0x4000 || a >= 0xa000 && a < 0x10000)) {
+            if (this.samsEnabled && (a >= 0x2000 && a < 0x4000 || a >= 0xa000 && a < 0x10000)) {
                 this.sams.setByte(a, byteArray[i]);
             } else if (a >= 0x6000 && a < 0x8000) {
                 this.cartImage[a + this.cartAddrRAMOffset] = byteArray[i];
-            } else if (this.enable32KRAM) {
+            } else if (this.ramType === '32K') {
                 this.ram[a] = byteArray[i];
             }
         }
@@ -338,9 +338,9 @@ export class Memory implements Stateful, MemoryDevice {
 
     private readRAM(addr: number, cpu: CPU): number {
         cpu.addCycles(4);
-        if (this.enableSAMS) {
+        if (this.samsEnabled) {
             return this.sams.readWord(addr);
-        } else if (this.enable32KRAM) {
+        } else if (this.ramType === '32K') {
             return (this.ram[addr] << 8) | this.ram[addr + 1];
         }
         return 0;
@@ -348,9 +348,9 @@ export class Memory implements Stateful, MemoryDevice {
 
     private writeRAM(addr: number, w: number, cpu: CPU) {
         cpu.addCycles(4);
-        if (this.enableSAMS) {
+        if (this.samsEnabled) {
             this.sams.writeWord(addr, w);
-        } else if (this.enable32KRAM) {
+        } else if (this.ramType === '32K') {
             this.ram[addr] = w >> 8;
             this.ram[addr + 1] = w & 0xFF;
         }
@@ -358,7 +358,7 @@ export class Memory implements Stateful, MemoryDevice {
 
     private readPeripheralROM(addr: number, cpu: CPU): number {
         cpu.addCycles(4);
-        if (this.enableSAMS && this.sams.hasRegisterAccess()) {
+        if (this.samsEnabled && this.sams.hasRegisterAccess()) {
             const w = this.sams.readRegister((addr & 0x1F) >> 1);
             return ((w & 0xFF) << 8) | (w >> 8);
         } else if (this.peripheralROMEnabled) {
@@ -385,7 +385,7 @@ export class Memory implements Stateful, MemoryDevice {
     private writePeripheralROM(addr: number, w: number, cpu: CPU) {
         cpu.addCycles(4);
         const isTIPIROM = this.isTIPIROMEnabled();
-        if (this.enableSAMS && this.sams.hasRegisterAccess()) {
+        if (this.samsEnabled && this.sams.hasRegisterAccess()) {
             this.sams.writeRegister((addr & 0x1F) >> 1, ((w & 0xFF) << 8) | (w >> 8));
         } else if (isTIPIROM && addr === TIPI.TC_OUT) {
             this.console.getTIPI().setTC(w);
@@ -557,14 +557,14 @@ export class Memory implements Stateful, MemoryDevice {
             return this.rom[addr];
         }
         if (addr < 0x4000) {
-            if (this.enableSAMS) {
+            if (this.samsEnabled) {
                 return this.sams.getByte(addr);
             } else {
                 return this.ram[addr];
             }
         }
         if (addr < 0x6000) {
-            if (this.enableSAMS && this.sams.hasRegisterAccess()) {
+            if (this.samsEnabled && this.sams.hasRegisterAccess()) {
                 const w = this.sams.readRegister((addr & 0x1F) >> 1);
                 return (addr & 1) === 0 ? (w & 0xFF) : (w >> 8);
             } else if (this.peripheralROMEnabled) {
@@ -592,7 +592,7 @@ export class Memory implements Stateful, MemoryDevice {
             return 0;
         }
         if (addr < 0x10000) {
-            if (this.enableSAMS) {
+            if (this.samsEnabled) {
                 return this.sams.getByte(addr);
             } else {
                 return this.ram[addr];
@@ -606,7 +606,7 @@ export class Memory implements Stateful, MemoryDevice {
             return (this.rom[addr] << 8) | this.rom[addr + 1];
         }
         if (addr < 0x4000) {
-            if (this.enableSAMS) {
+            if (this.samsEnabled) {
                 return this.sams.readWord(addr);
             } else {
                 return this.ram[addr] << 8 | this.ram[addr + 1];
@@ -638,7 +638,7 @@ export class Memory implements Stateful, MemoryDevice {
             return 0;
         }
         if (addr < 0x10000) {
-            if (this.enableSAMS) {
+            if (this.samsEnabled) {
                 return this.sams.readWord(addr);
             } else {
                 return this.ram[addr] << 8 | this.ram[addr + 1];
@@ -670,7 +670,7 @@ export class Memory implements Stateful, MemoryDevice {
         return 'GROM:' + Util.toHexWord(this.gromAddress) + ' (bank:' + ((this.gromAddress & 0xE000) >> 13) +
             ', addr:' + Util.toHexWord(this.gromAddress & 0x1FFF) + ') ' +
             (this.cartImage ? 'CART: bank ' + this.currentCartBank + (this.cartRAMFG99Paged ? '/' + this.currentCartRAMBank : '') + ' of ' + this.cartBankCount : '') +
-            (this.enableSAMS ? '\nSAMS Regs: ' + this.sams.getStatusString() : '');
+            (this.samsEnabled ? '\nSAMS Regs: ' + this.sams.getStatusString() : '');
     }
 
      hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
@@ -704,12 +704,9 @@ export class Memory implements Stateful, MemoryDevice {
         return new MemoryView(lines, anchorLine, 0);
     }
 
-    set32KRAMEnabled(enabled: boolean) {
-        this.enable32KRAM = enabled;
-    }
-
-    setSAMSEnabled(enabled: boolean) {
-        this.enableSAMS = enabled;
+    setRAMType(ramType: RAMType) {
+        this.ramType = ramType;
+        this.samsEnabled = ramType.startsWith('SAMS');
     }
 
     setSAMSSize(value: number) {
@@ -720,8 +717,8 @@ export class Memory implements Stateful, MemoryDevice {
         this.enableGRAM = enabled;
     }
 
-    setTIPIEnabled(enabled: boolean) {
-        this.enableTIPI = enabled;
+    setTIPIType(tipiType: TIPIType) {
+        this.tipiType = tipiType;
     }
 
     setDebugResetEnabled(enabled: boolean) {
@@ -744,15 +741,15 @@ export class Memory implements Stateful, MemoryDevice {
     }
 
     isTIPIEnabled(): boolean {
-        return this.enableTIPI;
+        return this.tipiType === 'FULL';
     }
 
     isDiskEnabled(): boolean {
-        return this.enableDisk;
+        return this.diskEnabled;
     }
 
     isSAMSEnabled(): boolean {
-        return this.enableSAMS;
+        return this.samsEnabled;
     }
 
     getSAMS(): SAMS {
@@ -781,12 +778,12 @@ export class Memory implements Stateful, MemoryDevice {
 
     getState(): object {
         return {
-            enable32KRAM: this.enable32KRAM,
-            enableSAMS: this.enableSAMS,
+            ramType: this.ramType,
+            enableSAMS: this.samsEnabled,
             samsSize: this.samsSize,
             enableGRAM: this.enableGRAM,
-            enableTIPI: this.enableTIPI,
-            enableDisk: this.enableDisk,
+            tipiType: this.tipiType,
+            enableDisk: this.diskEnabled,
             ramAt6000: this.ramAt6000,
             ramAt7000: this.ramAt7000,
             ram: this.ram,
@@ -807,17 +804,17 @@ export class Memory implements Stateful, MemoryDevice {
             peripheralROMs: this.peripheralROMs,
             peripheralROMEnabled: this.peripheralROMEnabled,
             peripheralROMNumber: this.peripheralROMNumber,
-            sams: this.enableSAMS ? this.sams.getState() : null
+            sams: this.samsEnabled ? this.sams.getState() : null
         };
     }
 
     restoreState(state: any) {
-        this.enable32KRAM = state.enable32KRAM;
-        this.enableSAMS = state.enableSAMS;
+        this.ramType = state.ramType;
+        this.samsEnabled = state.enableSAMS;
         this.samsSize = state.samsSize;
         this.enableGRAM = state.enableGRAM;
-        this.enableTIPI = state.enabled;
-        this.enableDisk = state.enableDisk;
+        this.tipiType = state.tipiType;
+        this.diskEnabled = state.diskEnabled;
         this.ramAt6000 = state.ramAt6000;
         this.ramAt7000 = state.ramAt7000;
         this.ram = state.ram;
@@ -838,7 +835,7 @@ export class Memory implements Stateful, MemoryDevice {
         this.peripheralROMs = state.peripheralROMs;
         this.peripheralROMEnabled = state.peripheralROMEnabled;
         this.peripheralROMNumber = state.peripheralROMNumber;
-        if (this.enableSAMS) {
+        if (this.samsEnabled) {
             this.sams.restoreState(state.sams);
         }
         this.buildMemoryMap();

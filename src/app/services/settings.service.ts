@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {Setting, Settings} from '../classes/settings';
+import {RAMType, Setting, Settings, TIPIType, VDPType} from '../classes/settings';
 import {CommandDispatcherService} from './command-dispatcher.service';
 import {EventDispatcherService} from './event-dispatcher.service';
 
@@ -27,11 +27,11 @@ export class SettingsService {
             if (storage.getItem('enableSpeech') != null) {
                 this.settings.setSpeechEnabled(storage.getItem('enableSpeech') === 'true');
             }
-            if (storage.getItem('enable32KRAM') != null) {
-                this.settings.set32KRAMEnabled(storage.getItem('enable32KRAM') === 'true');
+            if (storage.getItem('ram') != null) {
+                this.settings.setRAM(storage.getItem('ram') as RAMType);
             }
-            if (storage.getItem('enableF18A') != null) {
-                this.settings.setF18AEnabled(storage.getItem('enableF18A') === 'true');
+            if (storage.getItem('vdp') != null) {
+                this.settings.setVDP(storage.getItem('vdp') as VDPType);
             }
             if (storage.getItem('enablePCKeyboard') != null) {
                 this.settings.setPCKeyboardEnabled(storage.getItem('enablePCKeyboard') === 'true');
@@ -42,9 +42,6 @@ export class SettingsService {
             if (storage.getItem('enableGoogleDrive') != null) {
                 this.settings.setGoogleDriveEnabled(storage.getItem('enableGoogleDrive') === 'true');
             }
-            if (storage.getItem('enableSAMS') != null) {
-                this.settings.setSAMSEnabled(storage.getItem('enableSAMS') === 'true');
-            }
             if (storage.getItem('enableGRAM') != null) {
                 this.settings.setGRAMEnabled(storage.getItem('enableGRAM') === 'true');
             }
@@ -54,8 +51,8 @@ export class SettingsService {
             if (storage.getItem('enablePauseOnFocusLost') != null) {
                 this.settings.setPauseOnFocusLostEnabled(storage.getItem('enablePauseOnFocusLost') === 'true');
             }
-            if (storage.getItem('enableTIPI') != null) {
-                this.settings.setTIPIEnabled(storage.getItem('enableTIPI') === 'true');
+            if (storage.getItem('tipi') != null) {
+                this.settings.setTIPI(storage.getItem('tipi') as TIPIType);
             }
             if (storage.getItem('TIPIWebsocketURI') != null) {
                 this.settings.setTIPIWebsocketURI(storage.getItem('TIPIWebsocketURI'));
@@ -66,14 +63,8 @@ export class SettingsService {
             if (storage.getItem('enableH264Codec') != null) {
                 this.settings.setH264CodecEnabled(storage.getItem('enableH264Codec') === 'true');
             }
-            if (storage.getItem('enableFastTIPIMouse') != null) {
-                this.settings.setFastTIPIMouseEnabled(storage.getItem('enableFastTIPIMouse') === 'true');
-            }
             if (storage.getItem('enableDisk') != null) {
                 this.settings.setDiskEnabled(storage.getItem('enableDisk') === 'true');
-            }
-            if (storage.getItem('samsSize') != null) {
-                this.settings.setSamsSize(Number(storage.getItem('samsSize')));
             }
             this.storage = storage;
         }
@@ -128,31 +119,31 @@ export class SettingsService {
         }
     }
 
-    is32KRAMEnabled() {
-        return this.settings.is32KRAMEnabled();
+    getRAM(): RAMType {
+        return this.settings.getRAM();
     }
 
-    set32KRAMEnabled(enabled: boolean) {
-        if (enabled !== this.settings.is32KRAMEnabled()) {
-            this.settings.set32KRAMEnabled(enabled);
+    setRAM(ram: RAMType) {
+        if (ram !== this.settings.getRAM()) {
+            this.settings.setRAM(ram);
             if (this.persistent && this.storage) {
-                this.storage.setItem('enable32KRAM', enabled ? 'true' : 'false');
+                this.storage.setItem('ram', ram);
             }
-            this.commandDispatcherService.changeSetting(Setting.RAM32K, enabled);
+            this.commandDispatcherService.changeSetting(Setting.RAM, ram);
         }
     }
 
-    isF18AEnabled() {
-        return this.settings.isF18AEnabled();
+    getVDP(): VDPType {
+        return this.settings.getVDP();
     }
 
-    setF18AEnabled(enabled: boolean) {
-        if (enabled !== this.settings.isF18AEnabled()) {
-            this.settings.setF18AEnabled(enabled);
+    setVDP(vdp: VDPType) {
+        if (vdp !== this.settings.getVDP()) {
+            this.settings.setVDP(vdp);
             if (this.persistent && this.storage) {
-                this.storage.setItem('enableF18A', enabled ? 'true' : 'false');
+                this.storage.setItem('vdp', vdp);
             }
-            this.commandDispatcherService.changeSetting(Setting.F18A, enabled);
+            this.commandDispatcherService.changeSetting(Setting.VDP, vdp);
         }
     }
 
@@ -198,20 +189,6 @@ export class SettingsService {
         }
     }
 
-    isSAMSEnabled() {
-        return this.settings.isSAMSEnabled();
-    }
-
-    setSAMSEnabled(enabled: boolean) {
-        if (enabled !== this.settings.isSAMSEnabled()) {
-            this.settings.setSAMSEnabled(enabled);
-            if (this.persistent && this.storage) {
-                this.storage.setItem('enableSAMS', enabled ? 'true' : 'false');
-            }
-            this.commandDispatcherService.changeSetting(Setting.SAMS, enabled);
-        }
-    }
-
     isGRAMEnabled() {
         return this.settings.isGRAMEnabled();
     }
@@ -254,17 +231,17 @@ export class SettingsService {
         }
     }
 
-    isTIPIEnabled() {
-        return this.settings.isTIPIEnabled();
+    getTIPI(): TIPIType {
+        return this.settings.getTIPI();
     }
 
-    setTIPIEnabled(enabled: boolean) {
-        if (enabled !== this.settings.isTIPIEnabled()) {
-            this.settings.setTIPIEnabled(enabled);
+    setTIPI(tipi: TIPIType) {
+        if (tipi !== this.settings.getTIPI()) {
+            this.settings.setTIPI(tipi);
             if (this.persistent && this.storage) {
-                this.storage.setItem('enableTIPI', enabled ? 'true' : 'false');
+                this.storage.setItem('tipi', tipi);
             }
-            this.commandDispatcherService.changeSetting(Setting.TIPI, enabled);
+            this.commandDispatcherService.changeSetting(Setting.TIPI, tipi);
         }
     }
 
@@ -313,20 +290,6 @@ export class SettingsService {
         }
     }
 
-    isFastTIPIMouseEnabled() {
-        return this.settings.isFastTIPIMouseEnabled();
-    }
-
-    setFastTIPIMouseEnabled(enabled: boolean) {
-        if (enabled !== this.settings.isFastTIPIMouseEnabled()) {
-            this.settings.setFastTIPIMouseEnabled(enabled);
-            if (this.persistent && this.storage) {
-                this.storage.setItem('enableFastTIPIMouse', enabled ? 'true' : 'false');
-            }
-            this.commandDispatcherService.changeSetting(Setting.FAST_TIPI_MOUSE, enabled);
-        }
-    }
-
     isDiskEnabled() {
         return this.settings.isDiskEnabled();
     }
@@ -337,20 +300,6 @@ export class SettingsService {
             if (this.persistent && this.storage) {
                 this.storage.setItem('enableDisk', enabled ? 'true' : 'false');
                 this.commandDispatcherService.changeSetting(Setting.DISK, enabled);
-            }
-        }
-    }
-
-    getSamsSize() {
-        return this.settings.getSamsSize();
-    }
-
-    setSamsSize(value: number) {
-        if (value !== this.settings.getSamsSize()) {
-            this.settings.setSamsSize(value);
-            if (this.persistent && this.storage) {
-                this.storage.setItem('samsSize', String(value));
-                this.commandDispatcherService.changeSetting(Setting.SAMS_SIZE, value);
             }
         }
     }

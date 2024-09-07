@@ -1,64 +1,61 @@
 export enum Setting {
     SOUND = 0,
     SPEECH = 1,
-    RAM32K = 2,
-    F18A = 3,
-    PC_KEYBOARD = 5,
-    MAP_ARROW_KEYS = 6,
-    GOOGLE_DRIVE = 7,
-    SAMS = 8,
-    GRAM = 9,
-    PIXELATED = 10,
-    PAUSE_ON_FOCUS_LOST = 11,
-    TIPI = 12,
-    TIPI_WEBSOCKET_URI = 13,
-    DEBUG_RESET = 14,
-    H264_CODEC = 15,
-    FAST_TIPI_MOUSE = 16,
-    DISK = 17,
-    SAMS_SIZE = 18
+    RAM = 2,
+    VDP = 3,
+    PC_KEYBOARD = 4,
+    MAP_ARROW_KEYS = 5,
+    GOOGLE_DRIVE = 6,
+    GRAM = 7,
+    PIXELATED = 8,
+    PAUSE_ON_FOCUS_LOST = 9,
+    TIPI = 10,
+    TIPI_WEBSOCKET_URI = 11,
+    DEBUG_RESET = 12,
+    H264_CODEC = 13,
+    DISK = 14,
 }
+
+export type RAMType = 'NONE' | '32K' | 'SAMS1M' | 'SAMS4M' | 'SAMS16M';
+
+export type VDPType = 'TMS9918A' | 'F18A' | 'V9938';
+
+export type TIPIType = 'NONE' | 'MOUSE' | 'FULL';
 
 export class Settings {
 
     private enableSound: boolean;
     private enableSpeech: boolean;
-    private enable32KRAM: boolean;
-    private enableF18A: boolean;
+    private ram: RAMType;
+    private vdp: VDPType;
     private enablePCKeyboard: boolean;
     private enableMapArrowKeys: boolean;
     private enableGoogleDrive: boolean;
-    private enableSAMS: boolean;
     private enableGRAM: boolean;
     private enablePixelated: boolean;
     private enablePauseOnFocusLost: boolean;
-    private enableTIPI: boolean;
+    private tipi: TIPIType;
     private tipiWebsocketURI: string;
     private enableDebugReset: boolean;
     private enableH264Codec: boolean;
-    private enableFastTIPIMouse: boolean;
     private enableDisk: boolean;
-    private samsSize: number;
 
     constructor() {
         this.enableSound = true;
         this.enableSpeech = true;
-        this.enable32KRAM = true;
-        this.enableF18A = false;
+        this.ram = '32K';
+        this.vdp = 'TMS9918A';
         this.enablePCKeyboard = false;
         this.enableMapArrowKeys = false;
         this.enableGoogleDrive = false;
-        this.enableSAMS = false;
         this.enableGRAM = false;
         this.enablePixelated = false;
         this.enablePauseOnFocusLost = false;
-        this.enableTIPI = false;
+        this.tipi = 'NONE';
         this.tipiWebsocketURI = "ws://localhost:9901/tipi";
         this.enableDebugReset = false;
         this.enableH264Codec = false;
-        this.enableFastTIPIMouse = false;
         this.enableDisk = true;
-        this.samsSize = 1024;
     }
 
     isSoundEnabled(): boolean {
@@ -77,20 +74,20 @@ export class Settings {
         this.enableSpeech = enabled;
     }
 
-    is32KRAMEnabled(): boolean {
-        return this.enable32KRAM;
+    getRAM(): RAMType {
+        return this.ram;
     }
 
-    set32KRAMEnabled(enabled: boolean) {
-        this.enable32KRAM = enabled;
+    setRAM(ram: RAMType) {
+        this.ram = ram;
     }
 
-    isF18AEnabled(): boolean {
-        return this.enableF18A;
+    getVDP(): VDPType {
+        return this.vdp;
     }
 
-    setF18AEnabled(enabled: boolean) {
-        this.enableF18A = enabled;
+    setVDP(vdp: VDPType) {
+        this.vdp = vdp;
     }
 
     isPCKeyboardEnabled(): boolean {
@@ -117,14 +114,6 @@ export class Settings {
         this.enableGoogleDrive = enabled;
     }
 
-    isSAMSEnabled(): boolean {
-        return this.enableSAMS;
-    }
-
-    setSAMSEnabled(enabled: boolean) {
-        this.enableSAMS = enabled;
-    }
-
     isGRAMEnabled(): boolean {
         return this.enableGRAM;
     }
@@ -149,12 +138,12 @@ export class Settings {
         this.enablePauseOnFocusLost = enabled;
     }
 
-    isTIPIEnabled(): boolean {
-        return this.enableTIPI;
+    getTIPI(): TIPIType {
+        return this.tipi;
     }
 
-    setTIPIEnabled(enabled: boolean) {
-        this.enableTIPI = enabled;
+    setTIPI(tipi: TIPIType) {
+        this.tipi = tipi;
     }
 
     getTIPIWebsocketURI() {
@@ -181,14 +170,6 @@ export class Settings {
         this.enableH264Codec = enabled;
     }
 
-    isFastTIPIMouseEnabled() {
-        return this.enableFastTIPIMouse;
-    }
-
-    setFastTIPIMouseEnabled(enabled: boolean) {
-        this.enableFastTIPIMouse = enabled;
-    }
-
     isDiskEnabled() {
         return this.enableDisk;
     }
@@ -197,32 +178,38 @@ export class Settings {
         this.enableDisk = enabled;
     }
 
-    getSamsSize() {
-        return this.samsSize;
+    isSAMSEnabled() {
+        return this.ram === 'SAMS1M' || this.ram === 'SAMS4M' || this.ram === 'SAMS16M';
     }
 
-    setSamsSize(value: number) {
-        this.samsSize = value;
+    getSAMSSize() {
+        switch (this.ram) {
+            case 'SAMS1M':
+                return 1024;
+            case 'SAMS4M':
+                return 4096;
+            case 'SAMS16M':
+                return 16384;
+            default:
+                return 0;
+        }
     }
 
     copyFrom(otherSettings: Settings) {
         this.enableSound = otherSettings.isSoundEnabled();
         this.enableSpeech = otherSettings.isSpeechEnabled();
-        this.enable32KRAM = otherSettings.is32KRAMEnabled();
-        this.enableF18A = otherSettings.isF18AEnabled();
+        this.ram = otherSettings.getRAM();
+        this.vdp = otherSettings.getVDP();
         this.enablePCKeyboard = otherSettings.isPCKeyboardEnabled();
         this.enableMapArrowKeys = otherSettings.isMapArrowKeysEnabled();
         this.enableGoogleDrive = otherSettings.isGoogleDriveEnabled();
-        this.enableSAMS = otherSettings.isSAMSEnabled();
         this.enableGRAM = otherSettings.isGRAMEnabled();
         this.enablePixelated = otherSettings.isPixelatedEnabled();
         this.enablePauseOnFocusLost = otherSettings.isPauseOnFocusLostEnabled();
-        this.enableTIPI = otherSettings.isTIPIEnabled();
+        this.tipi = otherSettings.getTIPI();
         this.tipiWebsocketURI = otherSettings.getTIPIWebsocketURI();
         this.enableDebugReset = otherSettings.isDebugResetEnabled();
         this.enableH264Codec = otherSettings.isH264CodexEnabled();
-        this.enableFastTIPIMouse = otherSettings.enableFastTIPIMouse;
         this.enableDisk = otherSettings.enableDisk;
-        this.samsSize = otherSettings.samsSize;
     }
 }

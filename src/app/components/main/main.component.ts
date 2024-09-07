@@ -254,10 +254,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         ).subscribe(
             (state: any) => {
                 const f18AEnabled = typeof(state.vdp.gpu) === "object";
-                if (f18AEnabled && !that.settingsService.isF18AEnabled()) {
+                if (f18AEnabled && that.settingsService.getVDP() !== 'F18A') {
                     that.log.error("Please enable F18A before restoring the state");
                     return;
-                } else if (!f18AEnabled && that.settingsService.isF18AEnabled()) {
+                } else if (!f18AEnabled && that.settingsService.getVDP() === 'F18A') {
                     that.log.error("Please disable F18A before restoring the state");
                     return;
                 }
@@ -268,12 +268,12 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                 const settings: Settings = new Settings();
                 settings.setSoundEnabled(that.settingsService.isSoundEnabled());
                 settings.setSpeechEnabled(state.speech.enabled);
-                settings.set32KRAMEnabled(state.memory.enable32KRAM);
-                settings.setF18AEnabled(that.settingsService.isF18AEnabled());
+                settings.setRAM(state.memory.ramType);
+                settings.setVDP(that.settingsService.getVDP());
+                settings.setTIPI(that.settingsService.getTIPI());
                 settings.setPCKeyboardEnabled(state.keyboard.pcKeyboardEnabled);
                 settings.setMapArrowKeysEnabled(state.keyboard.mapArrowKeysToFctnSDEX);
                 settings.setGoogleDriveEnabled(that.settingsService.isGoogleDriveEnabled());
-                settings.setSAMSEnabled(state.memory.enableSAMS);
                 settings.setGRAMEnabled(state.memory.enableGRAM);
                 settings.setPixelatedEnabled(that.settingsService.isPixelatedEnabled());
                 that.settingsService.restoreSettings(settings);

@@ -125,7 +125,7 @@ export class TI994A implements Console, Stateful {
     }
 
     setVDP() {
-        if (this.settings.isF18AEnabled()) {
+        if (this.settings.getVDP() === 'F18A') {
             this.vdp = new F18A(this.canvas, this, this.wasmService);
         } else {
             this.vdp = new TMS9918A(this.canvas, this, this.wasmService);
@@ -148,13 +148,13 @@ export class TI994A implements Console, Stateful {
         if (this.tipi) {
             this.tipi.close();
         }
-        if (this.settings.isTIPIEnabled() || this.settings.isFastTIPIMouseEnabled()) {
+        if (this.settings.getTIPI() !== 'NONE') {
             this.tipi = new TIPI(
                 this.cpu,
                 this.settings.getTIPIWebsocketURI(),
                 this.canvas,
-                this.settings.isTIPIEnabled(),
-                this.settings.isFastTIPIMouseEnabled()
+                this.settings.getTIPI() === 'FULL',
+                this.settings.getTIPI() === 'MOUSE'
             );
         } else {
             this.tipi = null;

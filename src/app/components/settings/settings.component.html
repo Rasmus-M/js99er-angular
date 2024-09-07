@@ -2,19 +2,20 @@
     <mat-form-field class="setting">
         <mat-label>Video (VDP)</mat-label>
         <mat-select [(ngModel)]="vdp" (ngModelChange)="onVDPChanged($event)">
-            <mat-option [value]="'tms9918a'">TMS9918A</mat-option>
-            <mat-option [value]="'f18a'">F18A</mat-option>
+            <mat-option [value]="'TMS9918A'">TMS9918A</mat-option>
+            <mat-option [value]="'F18A'">F18A</mat-option>
+            <!-- <mat-option [value]="'V9938'">V9938</mat-option> -->
         </mat-select>
     </mat-form-field>
     <br>
     <mat-form-field class="setting">
         <mat-label>RAM expansion</mat-label>
-        <mat-select [(ngModel)]="ramExpansion" (ngModelChange)="onRAMExpansionChanged($event)">
-            <mat-option [value]="'none'">No RAM expansion</mat-option>
+        <mat-select [(ngModel)]="ram" (ngModelChange)="onRAMExpansionChanged($event)">
+            <mat-option [value]="'NONE'">No RAM expansion</mat-option>
             <mat-option [value]="'32K'">32K RAM expansion</mat-option>
-            <mat-option [value]="'sams1M'">1M SAMS expansion</mat-option>
-            <mat-option [value]="'sams4M'">4M SAMS expansion</mat-option>
-            <mat-option [value]="'sams16M'">16M SAMS expansion</mat-option>
+            <mat-option [value]="'SAMS1M'">1M SAMS expansion</mat-option>
+            <mat-option [value]="'SAMS4M'">4M SAMS expansion</mat-option>
+            <mat-option [value]="'SAMS16M'">16M SAMS expansion</mat-option>
         </mat-select>
     </mat-form-field>
     <div class="checkbox-setting">
@@ -31,13 +32,13 @@
     </div>
     <mat-form-field class="setting">
         <mat-label>TIPI emulation</mat-label>
-        <mat-select [(ngModel)]="tipiEmulation" (ngModelChange)="onTIPIEmulationChanged($event)">
-            <mat-option [value]="'none'">No TIPI emulation</mat-option>
-            <mat-option [value]="'mouse'">Mouse only</mat-option>
-            <mat-option [value]="'full'">Full TIPI emulation</mat-option>
+        <mat-select [(ngModel)]="tipi" (ngModelChange)="onTIPIEmulationChanged($event)">
+            <mat-option [value]="'NONE'">No TIPI emulation</mat-option>
+            <mat-option [value]="'MOUSE'">Mouse only</mat-option>
+            <mat-option [value]="'FULL'">Full TIPI emulation</mat-option>
         </mat-select>
     </mat-form-field>
-    <mat-form-field class="setting" *ngIf="tipiEmulation == 'full'">
+    <mat-form-field class="setting" *ngIf="tipi === 'FULL'">
         <mat-label>RPi emulator, e.g. QEMU</mat-label>
         <input matInput placeholder="Websocket URI" [ngModel]="tipiWebsocketURI" (ngModelChange)="onTIPIWebsocketURIChanged($event)" [ngModelOptions]="{updateOn: 'blur'}" (focus)="onTextFocus()" (blur)="onTextBlur()">
     </mat-form-field>

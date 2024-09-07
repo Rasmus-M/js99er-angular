@@ -200,11 +200,11 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                     case Setting.SPEECH:
                         this.ti994A.getSpeech().setSpeechEnabled(value);
                         break;
-                    case Setting.RAM32K:
-                        this.ti994A.getMemory().set32KRAMEnabled(value);
+                    case Setting.RAM:
+                        this.ti994A.getMemory().setRAMType(value);
                         resetRequired = true;
                         break;
-                    case Setting.F18A:
+                    case Setting.VDP:
                         this.ti994A.setVDP();
                         resetRequired = true;
                         break;
@@ -218,10 +218,6 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         this.ti994A.setGoogleDrive();
                         resetRequired = true;
                         break;
-                    case Setting.SAMS:
-                        this.ti994A.getMemory().setSAMSEnabled(value);
-                        resetRequired = true;
-                        break;
                     case Setting.GRAM:
                         this.ti994A.getMemory().setGRAMEnabled(value);
                         break;
@@ -232,28 +228,19 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         // Handled by main component
                         break;
                     case Setting.TIPI:
-                        this.ti994A.getMemory().setTIPIEnabled(value || this.settingsService.isFastTIPIMouseEnabled());
+                        this.ti994A.getMemory().setTIPIType(value);
                         this.ti994A.setTIPI();
                         resetRequired = true;
                         break;
                     case Setting.TIPI_WEBSOCKET_URI:
                         this.ti994A.setTIPI();
-                        resetRequired = this.settingsService.isTIPIEnabled();
+                        resetRequired = this.settingsService.getTIPI() === 'FULL';
                         break;
                     case Setting.DEBUG_RESET:
                         this.ti994A.getMemory().setDebugResetEnabled(value);
                         break;
-                    case Setting.FAST_TIPI_MOUSE:
-                        this.ti994A.getMemory().setTIPIEnabled(value || this.settingsService.isTIPIEnabled());
-                        this.ti994A.setTIPI();
-                        resetRequired = true;
-                        break;
                     case Setting.DISK:
                         this.ti994A.getMemory().setDiskEnabled(value);
-                        resetRequired = true;
-                        break;
-                    case Setting.SAMS_SIZE:
-                        this.ti994A.getMemory().setSAMSSize(value);
                         resetRequired = true;
                         break;
                 }
@@ -381,7 +368,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     private getCharCode(evt: MouseEvent): number {
-        if (this.settingsService.isTIPIEnabled() || this.pointerLocked) {
+        if (this.settingsService.getTIPI() === 'FULL' || this.pointerLocked) {
             return -1;
         }
         const rect = this.canvas.getBoundingClientRect();

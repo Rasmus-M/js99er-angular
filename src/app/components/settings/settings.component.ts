@@ -4,6 +4,7 @@ import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {Subscription} from 'rxjs';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
 import {CommandDispatcherService} from "../../services/command-dispatcher.service";
+import {RAMType, TIPIType, VDPType} from "../../classes/settings";
 
 @Component({
     selector: 'app-settings',
@@ -12,6 +13,9 @@ import {CommandDispatcherService} from "../../services/command-dispatcher.servic
 })
 export class SettingsComponent implements OnInit {
 
+    vdp: VDPType;
+    ram: RAMType;
+    tipi: TIPIType;
     enableSound: boolean;
     enableSpeech: boolean;
     enablePCKeyboard: boolean;
@@ -23,26 +27,22 @@ export class SettingsComponent implements OnInit {
     tipiWebsocketURI: string;
     enableDebugReset: boolean;
     enableH264Codec: boolean;
-    vdp: 'tms9918a' | 'f18a';
-    ramExpansion: 'none' | '32K' | 'sams1M' | 'sams4M' | 'sams16M';
-    tipiEmulation: 'none' | 'mouse' | 'full';
     enableDisk: boolean;
-
-    private subscription: Subscription;
 
     constructor(
         private settingsService: SettingsService,
-        private eventDispatcherService: EventDispatcherService,
         private commandDispatcherService: CommandDispatcherService
     ) {
     }
 
     ngOnInit() {
-        this.subscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
         this.readSettings();
     }
 
     readSettings() {
+        this.vdp = this.settingsService.getVDP();
+        this.ram = this.settingsService.getRAM();
+        this.tipi = this.settingsService.getTIPI();
         this.enableSound = this.settingsService.isSoundEnabled();
         this.enableSpeech = this.settingsService.isSpeechEnabled();
         this.enablePCKeyboard = this.settingsService.isPCKeyboardEnabled();
@@ -54,35 +54,6 @@ export class SettingsComponent implements OnInit {
         this.tipiWebsocketURI = this.settingsService.getTIPIWebsocketURI();
         this.enableDebugReset = this.settingsService.isDebugResetEnabled();
         this.enableH264Codec = this.settingsService.isH264CodecEnabled();
-        if (this.settingsService.isF18AEnabled()) {
-            this.vdp = "f18a";
-        } else {
-            this.vdp = "tms9918a";
-        }
-        this.ramExpansion = "none";
-        if (this.settingsService.is32KRAMEnabled()) {
-            this.ramExpansion = "32K";
-        } else if (this.settingsService.isSAMSEnabled()) {
-            switch (this.settingsService.getSamsSize()) {
-                default:
-                case 1024:
-                    this.ramExpansion = "sams1M";
-                    break;
-                case 4096:
-                    this.ramExpansion = "sams4M";
-                    break;
-                case 16384:
-                    this.ramExpansion = "sams16M";
-                    break;
-            }
-        }
-        if (this.settingsService.isTIPIEnabled()) {
-            this.tipiEmulation = "full";
-        } else if (this.settingsService.isFastTIPIMouseEnabled()) {
-            this.tipiEmulation = "mouse";
-        } else {
-            this.tipiEmulation = "none";
-        }
         this.enableDisk = this.settingsService.isDiskEnabled();
     }
 
@@ -146,49 +117,16 @@ export class SettingsComponent implements OnInit {
         this.commandDispatcherService.startKeyboard();
     }
 
-    onVDPChanged(value: string) {
-        if (value === "f18a") {
-            this.settingsService.setF18AEnabled(true);
-        } else {
-            this.settingsService.setF18AEnabled(false);
-        }
+    onVDPChanged(value: VDPType) {
+        this.settingsService.setVDP(value);
     }
 
-    onRAMExpansionChanged(value: string) {
-        if (value === "32K") {
-            this.settingsService.set32KRAMEnabled(true);
-            this.settingsService.setSAMSEnabled(false);
-        } else if (value.startsWith("sams")) {
-            this.settingsService.set32KRAMEnabled(false);
-            switch (value) {
-                case "sams1M":
-                    this.settingsService.setSamsSize(1024);
-                    break;
-                case "sams4M":
-                    this.settingsService.setSamsSize(4096);
-                    break;
-                case "sams16M":
-                    this.settingsService.setSamsSize(16384);
-                    break;
-            }
-            this.settingsService.setSAMSEnabled(true);
-        } else {
-            this.settingsService.set32KRAMEnabled(false);
-            this.settingsService.setSAMSEnabled(false);
-        }
+    onRAMExpansionChanged(value: RAMType) {
+        this.settingsService.setRAM(value);
     }
 
-    onTIPIEmulationChanged(value: string) {
-        if (value === "full") {
-            this.settingsService.setTIPIEnabled(true);
-            this.settingsService.setFastTIPIMouseEnabled(false);
-        } else if (value === "mouse") {
-            this.settingsService.setTIPIEnabled(false);
-            this.settingsService.setFastTIPIMouseEnabled(true);
-        } else {
-            this.settingsService.setTIPIEnabled(false);
-            this.settingsService.setFastTIPIMouseEnabled(false);
-        }
+    onTIPIEmulationChanged(value: TIPIType) {
+        this.settingsService.setTIPI(value);
     }
 
     onEnableDiskChanged(value: boolean) {
