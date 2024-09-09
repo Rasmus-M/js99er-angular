@@ -19,9 +19,11 @@ export class Memory implements Stateful, MemoryDevice {
 
     static SOUND = 0x8400;  // Sound write data
     static VDPRD = 0x8800;  // VDP read data
-    static VDPSTA = 0x8802;  // VDP status
+    static VDPSTA = 0x8802; // VDP status
     static VDPWD = 0x8C00;  // VDP write data
     static VDPWA = 0x8C02;  // VDP set read/write address
+    static VDPWP = 0x8C04;  // VDP write palette
+    static VDPWC = 0x8C06;  // VDP write register indirect
     static GRMRD = 0x9800;  // GROM read data
     static GRMRA = 0x9802;  // GROM read address
     static GRMWD = 0x9C00;  // GROM write data
@@ -463,11 +465,19 @@ export class Memory implements Stateful, MemoryDevice {
 
     private writeVDP(addr: number, w: number, cpu: CPU) {
         cpu.addCycles(4);
-        addr = addr & 0x8C02;
-        if (addr === Memory.VDPWD) {
-            this.vdp.writeData(w >> 8);
-        } else if (addr === Memory.VDPWA) {
-            this.vdp.writeAddress(w >> 8);
+        switch (addr & 0x8C06) {
+            case Memory.VDPWD:
+                this.vdp.writeData(w >> 8);
+                break;
+            case Memory.VDPWA:
+                this.vdp.writeAddress(w >> 8);
+                break;
+            case Memory.VDPWP:
+                this.vdp.writePalette(w >> 8);
+                break;
+            case Memory.VDPWC:
+                this.vdp.writeRegisterIndirect(w >> 8);
+                break;
         }
     }
 

@@ -10,6 +10,8 @@ export interface VDP extends Stateful, MemoryDevice {
     updateCanvas(): void;
     writeAddress(i: number): void;
     writeData(i: number): void;
+    writePalette(i: number): void;
+    writeRegisterIndirect(i: number): void;
     readStatus(): number;
     readData(): number;
     getRAM(): Uint8Array;
@@ -18,7 +20,6 @@ export interface VDP extends Stateful, MemoryDevice {
     getWord(addr: number): number;
     getCharAt(x: number, y: number): number;
     getGPU(): CPU;
-    getState(): object;
     drawPaletteImage(canvas: HTMLCanvasElement): void;
     drawTilePatternImage(canvas: HTMLCanvasElement, section: number, gap: boolean): void;
     drawSpritePatternImage(canvas: HTMLCanvasElement, gap: boolean): void;

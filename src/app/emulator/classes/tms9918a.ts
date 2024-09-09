@@ -326,6 +326,14 @@ export class TMS9918A implements VDP {
         this.addressRegister &= this.ramMask;
     }
 
+    writePalette(i: number): void {
+        this.writeData(i);
+    }
+
+    writeRegisterIndirect(i: number): void {
+        this.writeAddress(i);
+    }
+
     readStatus(): number {
         const i = this.statusRegister;
         this.statusRegister = 0x1F;

@@ -962,6 +962,14 @@ export class F18A implements VDP {
         }
     }
 
+    writePalette(i: number): void {
+        this.writeData(i);
+    }
+
+    writeRegisterIndirect(i: number): void {
+        this.writeAddress(i);
+    }
+
     readStatus() {
         switch (this.statusRegisterNo) {
             case 0:

@@ -24,6 +24,7 @@ import {Console} from "../interfaces/console";
 import {TIPI} from "./tipi";
 import {WasmService} from "../../services/wasm.service";
 import * as $ from "jquery";
+import {V9938} from "./v9938";
 
 export class TI994A implements Console, Stateful {
 
@@ -125,10 +126,16 @@ export class TI994A implements Console, Stateful {
     }
 
     setVDP() {
-        if (this.settings.getVDP() === 'F18A') {
-            this.vdp = new F18A(this.canvas, this, this.wasmService);
-        } else {
-            this.vdp = new TMS9918A(this.canvas, this, this.wasmService);
+        switch (this.settings.getVDP()) {
+            case 'TMS9918A':
+                this.vdp = new TMS9918A(this.canvas, this, this.wasmService);
+                break;
+            case 'F18A':
+                this.vdp = new F18A(this.canvas, this, this.wasmService);
+                break;
+            case 'V9938':
+                this.vdp = new V9938(this.canvas, this);
+                break;
         }
     }
 
