@@ -5,7 +5,6 @@ import {VDP} from "../interfaces/vdp";
 import {CPU} from "../interfaces/cpu";
 import {MemoryLine, MemoryView} from "../../classes/memoryview";
 import {Util} from "../../classes/util";
-import {ScreenMode} from "./tms9918a";
 import {Log} from "../../classes/log";
 
 declare type int = number;
@@ -17,7 +16,7 @@ declare type uint32_t = number;
 declare type offs_t = number;
 declare type pen_t = number;
 
-interface v99x8_mode {
+interface V99x8Mode {
     m: uint8_t;
     visible_32: (ln: uint32_t[], line: int) => void;
     border_32: (ln: uint32_t[]) => void;
@@ -80,11 +79,11 @@ class Color {
     }
 
     get b() {
-        return  (this._rgba & 0x0000ff00) >>> 8;
+        return (this._rgba & 0x0000ff00) >>> 8;
     }
 }
 
-class rectangle {
+class Rectangle {
 
     left: number;
     right: number;
@@ -109,70 +108,71 @@ export class V9938 implements VDP {
 
      ***************************************************************************/
 
-    // #ifndef MAME_VIDEO_V9938_H
-    // #define MAME_VIDEO_V9938_H
-    //
-    // #pragma once
-    //
-    // #include "screen.h"
-    //
-    //
-    // //**************************************************************************
-    // //  GLOBAL VARIABLES
-    // //**************************************************************************
-    //
-    // // device type definition
-    // DECLARE_DEVICE_TYPE(V9938, v9938_device)
-    // DECLARE_DEVICE_TYPE(V9958, v9958_device)
-    //
-    //
-    //
-    // //**************************************************************************
-    // //  TYPE DEFINITIONS
-    // //**************************************************************************
-    //
-    // // ======================> v99x8_device
-    //
-    // class v99x8_device :    public device_t,
-    //     public device_memory_interface,
-    //     public device_palette_interface,
-    //     public device_video_interface
-    // {
-    // public:
-    //     auto int_cb() { return m_int_callback.bind(); }
-    //     template <class T> void set_screen_ntsc(T &&screen)
-    //     {
-    //         set_screen(std::forward<T>(screen));
-    //         m_pal_config = false;
-    //     }
-    //     template <class T> void set_screen_pal(T &&screen)
-    //     {
-    //         set_screen(std::forward<T>(screen));
-    //         m_pal_config = true;
-    //     }
-    //
-    //     bitmap_rgb32 &get_bitmap() { return m_bitmap; }
-    //     void colorbus_x_input(int mx_delta);
-    //     void colorbus_y_input(int my_delta);
-    //     void colorbus_button_input(bool button1, bool button2);
-    //
-    //     uint32_t screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
-    //
-    //     uint8_t read(offs_t offset);
-    //     void write(offs_t offset, uint8_t data);
-    //
-    //     uint8_t vram_r();
-    //     uint8_t status_r();
-    //     void palette_w(uint8_t data);
-    //     void vram_w(uint8_t data);
-    //     void command_w(uint8_t data);
-    //     void register_w(uint8_t data);
-    //
-    //     void set_vram_size(uint32_t vram_size) { m_vram_size = vram_size; }
-    //
-    //     /* RESET pin */
-    //     void reset_line(int state) { if (state==ASSERT_LINE) device_reset(); }
-    //
+        // #ifndef MAME_VIDEO_V9938_H
+        // #define MAME_VIDEO_V9938_H
+        //
+        // #pragma once
+        //
+        // #include "screen.h"
+        //
+        //
+        // //**************************************************************************
+        // //  GLOBAL VARIABLES
+        // //**************************************************************************
+        //
+        // // device type definition
+        // DECLARE_DEVICE_TYPE(V9938, v9938_device)
+        // DECLARE_DEVICE_TYPE(V9958, v9958_device)
+        //
+        //
+        //
+        // //**************************************************************************
+        // //  TYPE DEFINITIONS
+        // //**************************************************************************
+        //
+        // // ======================> v99x8_device
+        //
+        // class v99x8_device :    public device_t,
+        //     public device_memory_interface,
+        //     public device_palette_interface,
+        //     public device_video_interface
+        // {
+        // public:
+        //     auto int_cb() { return m_int_callback.bind(); }
+        //     template <class T> void set_screen_ntsc(T &&screen)
+        //     {
+        //         set_screen(std::forward<T>(screen));
+        //         m_pal_config = false;
+        //     }
+        //     template <class T> void set_screen_pal(T &&screen)
+        //     {
+        //         set_screen(std::forward<T>(screen));
+        //         m_pal_config = true;
+        //     }
+        //
+        //     bitmap_rgb32 &get_bitmap() { return m_bitmap; }
+        //     void colorbus_x_input(int mx_delta);
+        //     void colorbus_y_input(int my_delta);
+        //     void colorbus_button_input(bool button1, bool button2);
+        //
+        //     uint32_t screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
+        //
+        //     uint8_t read(offs_t offset);
+        //     void write(offs_t offset, uint8_t data);
+        //
+        //     uint8_t vram_r();
+        //     uint8_t status_r();
+        //     void palette_w(uint8_t data);
+        //     void vram_w(uint8_t data);
+        //     void command_w(uint8_t data);
+        //     void register_w(uint8_t data);
+        //
+        //     void set_vram_size(uint32_t vram_size) { m_vram_size = vram_size; }
+        //
+        //     /* RESET pin */
+        //     void reset_line(int state) { if (state==ASSERT_LINE) device_reset(); }
+        //
+
     static HTOTAL = 684;
     static HVISIBLE = 544;
     static VTOTAL_NTSC = 262;
@@ -415,41 +415,6 @@ export class V9938 implements VDP {
     - make vdp engine work in exp. ram
     */
 
-    static LOG_GENERAL = 0;
-
-    static LOG_WARN = 1 << 1;
-    static LOG_INT = 1 << 2;
-    static LOG_STATUS = 1 << 3;
-    static LOG_REGWRITE = 1 << 4;
-    static LOG_COMMAND = 1 << 5;
-    static LOG_MODE = 1 << 6;
-    static LOG_NOTIMP = 1 << 7;
-    static LOG_DETAIL = 1 << 8;
-
-    // Minimum log should be warnings+
-    static VERBOSE = V9938.LOG_GENERAL | V9938.LOG_WARN;
-
-    static LOGMASKED(logType: number, message: string, ...args) {
-        if (logType == V9938.LOG_WARN) {
-            Log.getLog().warn(V9938.format(message, args));
-        } else if (logType >= V9938.LOG_MODE) {
-            Log.getLog().info(V9938.format(message, args));
-        }
-    }
-
-    static format(s: string, ...args) {
-        if (s.indexOf('%s') !== -1 && args.length > 0) {
-            s = s.replace('%s', args[0]);
-        }
-        return s;
-    }
-
-    static BIT(value: int, bitNo: int) {
-        return (value >> bitNo) & 1;
-    }
-
-    // #include "logmacro.h"
-
     static MODE_TEXT1 = 0;
     static MODE_MULTI = 1;
     static MODE_GRAPHIC1 = 2;
@@ -474,6 +439,22 @@ export class V9938 implements VDP {
         "GRAPHIC 4", "GRAPHIC 5", "GRAPHIC 6", "GRAPHIC 7", "TEXT 2",
         "UNKNOWN"
     ];
+
+    static LOG_GENERAL = 0;
+
+    static LOG_WARN = 1 << 1;
+    static LOG_INT = 1 << 2;
+    static LOG_STATUS = 1 << 3;
+    static LOG_REGWRITE = 1 << 4;
+    static LOG_COMMAND = 1 << 5;
+    static LOG_MODE = 1 << 6;
+    static LOG_NOTIMP = 1 << 7;
+    static LOG_DETAIL = 1 << 8;
+
+    // Minimum log should be warnings+
+    static VERBOSE = V9938.LOG_GENERAL | V9938.LOG_WARN;
+
+    // #include "logmacro.h"
 
     // **************************************************************************
     //  GLOBAL VARIABLES
@@ -528,7 +509,7 @@ export class V9938 implements VDP {
     private vdp_ops_count: int = 0;
     private vdp_engine: () => void | undefined;
 
-    private s_modes: v99x8_mode[] = [
+    private s_modes: V99x8Mode[] = [
         {
             m: 0x02,
             visible_32: this.mode_text1.bind(this),
@@ -614,7 +595,7 @@ export class V9938 implements VDP {
     private vblank_start: int = 0;
     private scanline_max: int = 0;
     private height: int = 0;
-    private visible: rectangle;
+    private visible: Rectangle;
 
     private s_pal_indYJK = new Uint32Array(0x20000);
     private palette: Color[] = [];
@@ -716,6 +697,27 @@ export class V9938 implements VDP {
         this.mouseEmulation();
     }
 
+    static LOGMASKED(logType: number, message: string, ...args: any[]) {
+        if (logType === V9938.LOG_WARN) {
+            Log.getLog().warn(V9938.format(message, args));
+        } else if (logType >= V9938.LOG_MODE) {
+            Log.getLog().info(V9938.format(message, args));
+        }
+    }
+
+    static format(s: string, ...args) {
+        if (s.indexOf('%s') !== -1 && args.length > 0) {
+            s = s.replace('%s', args[0]);
+        } else if (s.indexOf('%d') !== -1 && args.length > 0) {
+            s = s.replace('%d', args[0]);
+        }
+        return s;
+    }
+
+    static BIT(value: int, bitNo: int) {
+        return (value >> bitNo) & 1;
+    }
+
     /***************************************************************************
 
      JS99'er interface
@@ -723,7 +725,7 @@ export class V9938 implements VDP {
      ***************************************************************************/
 
     reset(): void {
-        this.patch_groms(this.console.getMemory().getGROMs())
+        this.patch_groms(this.console.getMemory().getGROMs());
         this.device_reset();
         this.canvas.width = V9938.HVISIBLE;
         this.canvas.height = V9938.VVISIBLE_NTSC;
@@ -735,11 +737,11 @@ export class V9938 implements VDP {
     }
 
     drawScanline(y: number): void {
-        this.TIMER_CALLBACK_MEMBER(y);
+        this.timer_callback_member(y);
     }
 
     drawInvisibleScanline(y: number): void {
-        this.TIMER_CALLBACK_MEMBER(y);
+        this.timer_callback_member(y);
     }
 
     updateCanvas(): void {
@@ -782,7 +784,7 @@ export class V9938 implements VDP {
         let s = "";
         const nRegs = detailed ? 48 : 8;
         for (let i = 0; i < nRegs; i++) {
-            s += "VR" + i + ":" + Util.toHexByte(this.cont_reg[i]) + (i === nRegs - 1 || i % 8  === 7 ? "\n" : " ");
+            s += "VR" + i + ":" + Util.toHexByte(this.cont_reg[i]) + (i === nRegs - 1 || i % 8 === 7 ? "\n" : " ");
         }
         s +=
             'NMT:' + Util.toHexWord(this.nameTableAddress()) + ' ' +
@@ -817,7 +819,7 @@ export class V9938 implements VDP {
         canvasContext.fillRect(0, 0, width, height);
         let color = 0;
         for (let x = 0; x < width; x += size + 1) {
-            const rgbColor  = this.palette[color];
+            const rgbColor = this.palette[color];
             canvasContext.fillStyle = "rgba(" + rgbColor.r + "," + rgbColor.g + "," + rgbColor.b + ",1)";
             canvasContext.fillRect(x, 0, size, size);
             color++;
@@ -880,7 +882,7 @@ export class V9938 implements VDP {
                         name = rowNameOffset + (x >> 3);
                         patternByte = ram[charPatternTable + (name << 3) + lineOffset];
                         if (pixelOffset < 6) {
-                            color = (patternByte & (0x80 >> pixelOffset)) !== 0 ? fgColor : bgColor;
+                            color = (patternByte & (0x80 >> pixelOffset)) !==  0 ? fgColor : bgColor;
                         } else {
                             color = bgColor;
                         }
@@ -925,7 +927,7 @@ export class V9938 implements VDP {
             pixelOffset: number,
             rgbColor: Color,
             imageDataAddr = 0;
-        for (let i = 0; i < 128 && ram[spriteAttributeTable + i] !== 0xd0; i += 4) {
+        for (let i = 0; i < 128 && ram[spriteAttributeTable + i] !==  0xd0; i += 4) {
             if (ram[spriteAttributeTable] < 0xbf) {
                 pattern = ram[spriteAttributeTable + i + 2];
                 patternColorMap[pattern] = ram[spriteAttributeTable + i + 3] & 0x0f;
@@ -938,7 +940,7 @@ export class V9938 implements VDP {
                 pixelOffset = x & 7;
                 pattern = rowPatternOffset + ((x >> 3) << 1);
                 patternByte = ram[spritePatternTable + (pattern << 3) + lineOffset];
-                rgbColor = (patternByte & (0x80 >> pixelOffset)) !== 0 ? palette[(patternColorMap[pattern & 0xfc] || 0)] : backgroundColor;
+                rgbColor = (patternByte & (0x80 >> pixelOffset)) !==  0 ? palette[(patternColorMap[pattern & 0xfc] || 0)] : backgroundColor;
                 imageDataData[imageDataAddr++] = rgbColor.r;
                 imageDataData[imageDataAddr++] = rgbColor.g;
                 imageDataData[imageDataAddr++] = rgbColor.b;
@@ -1011,19 +1013,21 @@ export class V9938 implements VDP {
     }
 
     private colorTableAddress() {
-        if (this.mode === V9938.MODE_GRAPHIC2 || this.mode == V9938.MODE_GRAPHIC3) {
+        if (this.mode === V9938.MODE_GRAPHIC2 || this.mode === V9938.MODE_GRAPHIC3) {
             return (this.cont_reg[3] & 0x80) << 6;
+        } else if (this.mode === V9938.MODE_TEXT2) {
+            return ((this.cont_reg[10] << 8) | (this.cont_reg[3] & 0xf8)) << 6;
         } else {
             return ((this.cont_reg[10] << 8) | this.cont_reg[3]) << 6;
         }
     }
 
     private nameTableAddress() {
-        return this.cont_reg[2] << 10;
+        return (this.cont_reg[2] & (this.mode === V9938.MODE_TEXT2 ? 0x7c0 : 0x7f)) << 10;
     }
 
     private patternTableAddress() {
-        if (this.mode === V9938.MODE_GRAPHIC2 || this.mode == V9938.MODE_GRAPHIC3) {
+        if (this.mode === V9938.MODE_GRAPHIC2 || this.mode === V9938.MODE_GRAPHIC3) {
             return (this.cont_reg[4] & 0x04) << 11;
         } else {
             return (this.cont_reg[4] & 0x07) << 11;
@@ -1041,7 +1045,7 @@ export class V9938 implements VDP {
     private colorTableSize() {
         if (this.mode === V9938.MODE_GRAPHIC1) {
             return 0x20;
-        } else if (this.mode === V9938.MODE_GRAPHIC2 || this.mode == V9938.MODE_GRAPHIC3) {
+        } else if (this.mode === V9938.MODE_GRAPHIC2 || this.mode === V9938.MODE_GRAPHIC3) {
             return Math.min(this.colorTableMask() + 1, 0x1800);
         } else {
             return 0;
@@ -1049,7 +1053,7 @@ export class V9938 implements VDP {
     }
 
     private patternTableSize() {
-        if (this.mode === V9938.MODE_GRAPHIC2 || this.mode == V9938.MODE_GRAPHIC3) {
+        if (this.mode === V9938.MODE_GRAPHIC2 || this.mode === V9938.MODE_GRAPHIC3) {
             return Math.min(this.patternTableMask() + 1, 0x1800);
         } else {
             return 0x800;
@@ -1057,7 +1061,7 @@ export class V9938 implements VDP {
     }
 
     private colorTableMask() {
-        if (this.mode === V9938.MODE_GRAPHIC2 || this.mode == V9938.MODE_GRAPHIC3) {
+        if (this.mode === V9938.MODE_GRAPHIC2 || this.mode === V9938.MODE_GRAPHIC3) {
             return ((this.cont_reg[3] & 0x7F) << 6) | 0x3F; // 000CCCCCCC111111
         } else if (this.mode === V9938.MODE_TEXT1 || this.mode === V9938.MODE_MULTI) {
             return 0x3fff;
@@ -1067,7 +1071,7 @@ export class V9938 implements VDP {
     }
 
     private patternTableMask() {
-        if (this.mode === V9938.MODE_GRAPHIC2 || this.mode == V9938.MODE_GRAPHIC3) {
+        if (this.mode === V9938.MODE_GRAPHIC2 || this.mode === V9938.MODE_GRAPHIC3) {
             return ((this.cont_reg[4] & 0x03) << 11) | (this.colorTableMask() & 0x7FF); // 000PPCCCCC111111
         } else if (this.mode === V9938.MODE_TEXT1 || this.mode === V9938.MODE_MULTI) {
             return ((this.cont_reg[4] & 0x03) << 11) | 0x7FF; // 000PP11111111111
@@ -1083,10 +1087,10 @@ export class V9938 implements VDP {
             this.colorbus_y_input(Math.round(evt.movementY / scale));
         });
         this.canvas.addEventListener('mouseup', (evt: MouseEvent) => {
-            this.colorbus_button_input((evt.buttons & 1) !== 0, (evt.buttons & 4) !== 0);
+            this.colorbus_button_input((evt.buttons & 1) !==  0, (evt.buttons & 4) !==  0);
         });
         this.canvas.addEventListener('mousedown', (evt: MouseEvent) => {
-            this.colorbus_button_input((evt.buttons & 1) !== 0, (evt.buttons & 2) !== 0);
+            this.colorbus_button_input((evt.buttons & 1) !==  0, (evt.buttons & 2) !==  0);
         });
     }
 
@@ -1101,73 +1105,60 @@ export class V9938 implements VDP {
         return (value < 8) ? -value : 16 - value;
     }
 
-    TIMER_CALLBACK_MEMBER(update_line) {
-        let scanline: int = (this.scanline - (this.scanline_start + this.offset_y));
+    timer_callback_member(update_line) {
+        const scanline: int = (this.scanline - (this.scanline_start + this.offset_y));
 
         this.update_command();
 
         // set flags
-        if (this.scanline == (this.scanline_start + this.offset_y))
-        {
+        if (this.scanline === (this.scanline_start + this.offset_y)) {
             this.stat_reg[2] &= ~0x40;
-        }
-        else if (this.scanline == (this.scanline_start + this.offset_y + this.visible_y))
-        {
+        } else if (this.scanline === (this.scanline_start + this.offset_y + this.visible_y)) {
             this.stat_reg[2] |= 0x40;
             this.stat_reg[0] |= 0x80;
             this.console.getCRU().setVDPInterrupt(true);
         }
 
-        if ( (scanline >= 0) && (scanline <= this.scanline_max) &&
-            (((scanline + this.cont_reg[23]) & 255) == this.cont_reg[19]) )
-        {
+        if ((scanline >= 0) && (scanline <= this.scanline_max) &&
+            (((scanline + this.cont_reg[23]) & 255) === this.cont_reg[19])) {
             this.stat_reg[1] |= 1;
             V9938.LOGMASKED(V9938.LOG_INT, "Scanline interrupt (%d)\n", scanline);
-        }
-        else if (this.cont_reg[0] & 0x10)
-        {
+        } else if (this.cont_reg[0] & 0x10) {
             this.stat_reg[1] &= 0xfe;
         }
 
         this.check_int();
 
         // check for start of vblank
-        if (this.scanline == this.vblank_start)
-        {
+        if (this.scanline === this.vblank_start) {
             this.interrupt_start_vblank();
         }
 
         // render the current line
-        if (this.scanline < this.vblank_start)
-        {
+        if (this.scanline < this.vblank_start) {
             this.refresh_line(scanline);
         }
 
-        if (++this.scanline >= this.height)
-        {
+        if (++this.scanline >= this.height) {
             this.scanline = 0;
             // PAL/NTSC changed?
             const pal: int = this.cont_reg[9] & 2;
-            if (this.pal_ntsc != pal)
-            {
+            if (this.pal_ntsc !==  pal) {
                 this.pal_ntsc = pal;
                 this.configure_pal_ntsc();
             }
-            //screen().reset_origin();
+            // screen().reset_origin();
             this.offset_y = this.position_offset(this.cont_reg[18] >> 4);
             this.set_screen_parameters();
         }
     }
 
     set_screen_parameters() {
-        if (this.pal_ntsc)
-        {
+        if (this.pal_ntsc) {
             // PAL
             this.scanline_start = (this.cont_reg[9] & 0x80) ? 43 : 53;
             this.scanline_max = 255;
-        }
-        else
-        {
+        } else {
             // NTSC
             this.scanline_start = (this.cont_reg[9] & 0x80) ? 16 : 26;
             this.scanline_max = (this.cont_reg[9] & 0x80) ? 234 : 244;
@@ -1177,19 +1168,16 @@ export class V9938 implements VDP {
 
     // FIXME: this doesn't really allow for external clock configuration
     configure_pal_ntsc() {
-        if (this.pal_ntsc)
-        {
+        if (this.pal_ntsc) {
             // PAL
             this.height = V9938.VTOTAL_PAL;
-            this.visible = new rectangle();
+            this.visible = new Rectangle();
             this.visible.set(0, V9938.HVISIBLE - 1, V9938.VERTICAL_ADJUST * 2, V9938.VVISIBLE_PAL * 2 - 1 - V9938.VERTICAL_ADJUST * 2);
             // screen().configure(V9938.HTOTAL, V9938.VTOTAL_PAL * 2, visible, HZ_TO_ATTOSECONDS(50.158974));
-        }
-        else
-        {
+        } else {
             // NTSC
             this.height = V9938.VTOTAL_NTSC;
-            this.visible = new rectangle();
+            this.visible = new Rectangle();
             this.visible.set(0, V9938.HVISIBLE - 1, V9938.VERTICAL_ADJUST * 2, V9938.VVISIBLE_NTSC * 2 - 1 - V9938.VERTICAL_ADJUST * 2);
             // screen().configure(V9938.HTOTAL, V9938.VTOTAL_NTSC * 2, visible, HZ_TO_ATTOSECONDS(59.922743));
         }
@@ -1202,26 +1190,32 @@ export class V9938 implements VDP {
         Reg 8: MS LP x x x x x x
     */
     colorbus_x_input(mx_delta: int) {
-        if ((this.cont_reg[8] & 0xc0) == 0x80)
-        {
+        if ((this.cont_reg[8] & 0xc0) === 0x80) {
             this.mx_delta += mx_delta;
-            if (this.mx_delta < -127) this.mx_delta = -127;
-            if (this.mx_delta > 127) this.mx_delta = 127;
+            if (this.mx_delta < -127) {
+                this.mx_delta = -127;
+            }
+            if (this.mx_delta > 127) {
+                this.mx_delta = 127;
+            }
         }
     }
 
     colorbus_y_input(my_delta: int) {
-        if ((this.cont_reg[8] & 0xc0) == 0x80)
-        {
+        if ((this.cont_reg[8] & 0xc0) === 0x80) {
             this.my_delta += my_delta;
-            if (this.my_delta < -127) this.my_delta = -127;
-            if (this.my_delta > 127) this.my_delta = 127;
+            if (this.my_delta < -127) {
+                this.my_delta = -127;
+            }
+            if (this.my_delta > 127) {
+                this.my_delta = 127;
+            }
         }
     }
 
     colorbus_button_input(switch1_pressed: boolean, switch2_pressed: boolean) {
         // save button state
-        this.button_state = (switch2_pressed? 0x80 : 0x00) | (switch1_pressed? 0x40 : 0x00);
+        this.button_state = (switch2_pressed ? 0x80 : 0x00) | (switch1_pressed ? 0x40 : 0x00);
     }
 
 
@@ -1243,7 +1237,7 @@ export class V9938 implements VDP {
     Erik de Boer.
 
     --
-    Right now they're not emulated. For completeness sake they should -- with
+    Right now they're not emulated. For completeness sake, they should -- with
     a dip-switch to turn them off. I really don't know how they work though. :(
     */
 
@@ -1283,7 +1277,7 @@ export class V9938 implements VDP {
         this.palette[index] = color;
     }
 
-    private pen16(index: int):pen_t {
+    private pen16(index: int): pen_t {
         return this.uint32_t(this.pen_color(index));
     }
 
@@ -1296,7 +1290,7 @@ export class V9938 implements VDP {
     }
 
     private set_pen256(index: int, pen: pen_t) {
-        this.set_pen_color(index + 16, new Color().set_rgb(pen).set_a(index != 0 ? 0xff : 0x00));
+        this.set_pen_color(index + 16, new Color().set_rgb(pen).set_a(index !==  0 ? 0xff : 0x00));
     }
 
     reset_palette() {
@@ -1322,8 +1316,7 @@ export class V9938 implements VDP {
         let i: int;
         let red: int;
 
-        for (i = 0; i < 16; i++)
-        {
+        for (i = 0; i < 16; i++) {
             // set the palette registers
             this.pal_reg[i * 2] = pal16[i * 3 + 1] << 4 | pal16[i * 3 + 2];
             this.pal_reg[i * 2 + 1] = pal16[i * 3];
@@ -1332,9 +1325,11 @@ export class V9938 implements VDP {
         }
 
         // set internal palette GRAPHIC 7
-        for (i = 0; i < 256; i++)
-        {
-            red = (i << 1) & 6; if (red == 6) red++;
+        for (i = 0; i < 256; i++) {
+            red = (i << 1) & 6;
+            if (red === 6) {
+                red++;
+            }
             this.set_pen256(i, this.uint32_t(new Color(this.pal3bit((i & 0x1c) >> 2), this.pal3bit((i & 0xe0) >> 5), this.pal3bit(red))));
         }
     }
@@ -1346,13 +1341,13 @@ export class V9938 implements VDP {
     The colours are encoded in 17 bits; however there are just 19268 different colours.
     Here we calculate the palette and a 2^17 reference table to the palette,
     which is: s_pal_indYJK. It's 256K in size, but I can't think of a faster way
-    to emulate this. Also it keeps the palette a reasonable size. :)
+    to emulate this. Also, it keeps the palette a reasonable size. :)
 
     */
 
     palette_init() {
 
-        let r: int,g: int, b: int, y: int, j: int, k: int, k0: int, j0: int;
+        let r: int, g: int, b: int, y: int, j: int, k: int, k0: int, j0: int;
 
         // set up YJK table
         V9938.LOGMASKED(V9938.LOG_DETAIL, "Building YJK table for V9958 screens, may take a while ... \n");
@@ -1361,14 +1356,34 @@ export class V9938 implements VDP {
             for (k = 0; k < 64; k++) {
                 for (j = 0; j < 64; j++) {
                     // calculate the color
-                    if (k >= 32) k0 = (k - 64); else k0 = k;
-                    if (j >= 32) j0 = (j - 64); else j0 = j;
+                    if (k >= 32) {
+                        k0 = (k - 64);
+                    } else {
+                        k0 = k;
+                    }
+                    if (j >= 32) {
+                        j0 = (j - 64);
+                    } else {
+                        j0 = j;
+                    }
                     r = y + j0;
                     b = (y * 5 - 2 * j0 - k0) / 4;
                     g = y + k0;
-                    if (r < 0) r = 0; else if (r > 31) r = 31;
-                    if (g < 0) g = 0; else if (g > 31) g = 31;
-                    if (b < 0) b = 0; else if (b > 31) b = 31;
+                    if (r < 0) {
+                        r = 0;
+                    } else if (r > 31) {
+                        r = 31;
+                    }
+                    if (g < 0) {
+                        g = 0;
+                    } else if (g > 31) {
+                        g = 31;
+                    }
+                    if (b < 0) {
+                        b = 0;
+                    } else if (b > 31) {
+                        b = 31;
+                    }
 
                     this.s_pal_indYJK[y | j << 5 | k << (5 + 6)] = this.uint32_t(new Color(this.pal5bit(r), this.pal5bit(g), this.pal5bit(b)));
                 }
@@ -1382,21 +1397,29 @@ export class V9938 implements VDP {
     }
 
     read(offset: offs_t): uint8_t {
-        switch (offset & 3)
-        {
-            case 0: return this.vram_r();
-            case 1: return this.status_r();
+        switch (offset & 3) {
+            case 0:
+                return this.vram_r();
+            case 1:
+                return this.status_r();
         }
         return 0xff;
     }
 
     write(offset: offs_t, data: uint8_t) {
-        switch (offset & 3)
-        {
-            case 0: this.vram_w(data);       break;
-            case 1: this.command_w(data);    break;
-            case 2: this.palette_w(data);    break;
-            case 3: this.register_w(data);   break;
+        switch (offset & 3) {
+            case 0:
+                this.vram_w(data);
+                break;
+            case 1:
+                this.command_w(data);
+                break;
+            case 2:
+                this.palette_w(data);
+                break;
+            case 3:
+                this.register_w(data);
+                break;
         }
     }
 
@@ -1410,24 +1433,22 @@ export class V9938 implements VDP {
 
         ret = this.read_ahead;
 
-        if (this.cont_reg[45] & 0x40)  // Expansion memory
-        {
-            if ( (this.mode == V9938.MODE_GRAPHIC6) || (this.mode == V9938.MODE_GRAPHIC7) )
-                address >>= 1;  // correct?
+        if (this.cont_reg[45] & 0x40) { // Expansion memory
+            if ((this.mode === V9938.MODE_GRAPHIC6) || (this.mode === V9938.MODE_GRAPHIC7)) {
+                address >>= 1; // correct?
+            }
             // Expansion memory only offers 64 K
-            if (this.vram_size > 0x20000 && ((address & 0x10000)==0))
+            if (this.vram_size > 0x20000 && ((address & 0x10000) === 0)) {
                 this.read_ahead = this.vram_space[address + V9938.EXPMEM_OFFSET];
-            else
+            } else {
                 this.read_ahead = 0xff;
-        }
-        else
-        {
+            }
+        } else {
             this.read_ahead = this.vram_read(address);
         }
 
         this.address_latch = (this.address_latch + 1) & 0x3fff;
-        if ((!this.address_latch) && (this.cont_reg[0] & 0x0c) ) // correct ???
-        {
+        if ((!this.address_latch) && (this.cont_reg[0] & 0x0c)) { // correct ???
             this.cont_reg[14] = (this.cont_reg[14] + 1) & 7;
         }
 
@@ -1441,11 +1462,11 @@ export class V9938 implements VDP {
         this.cmd_write_first = 0;
 
         reg = this.cont_reg[15] & 0x0f;
-        if (reg > 9)
+        if (reg > 9) {
             return 0xff;
+        }
 
-        switch (reg)
-        {
+        switch (reg) {
             case 0:
                 ret = this.stat_reg[0];
                 this.stat_reg[0] &= 0x1f;
@@ -1455,8 +1476,9 @@ export class V9938 implements VDP {
                 ret = this.stat_reg[1];
                 this.stat_reg[1] &= 0xfe;
                 // mouse mode: add button state
-                if ((this.cont_reg[8] & 0xc0) == 0x80)
+                if ((this.cont_reg[8] & 0xc0) === 0x80) {
                     ret |= this.button_state & 0xc0;
+                }
                 break;
             case 2:
                 /*update_command ();*/
@@ -1468,27 +1490,28 @@ export class V9938 implements VDP {
                 if ( (n < 28) || (n > 199) ) vdp.statReg[2] |= 0x20;
                 else vdp.statReg[2] &= ~0x20;
                 */
-                if (Math.random() * 2 & 1) this.stat_reg[2] |= 0x20; // TODO
-                else this.stat_reg[2] &= ~0x20;
+                if (Math.random() * 2 & 1) {
+                    this.stat_reg[2] |= 0x20;
+                } else {
+                    this.stat_reg[2] &= ~0x20;
+                }
                 ret = this.stat_reg[2];
                 break;
             case 3:
-                if ((this.cont_reg[8] & 0xc0) == 0x80)
-                {   // mouse mode: return x mouse delta
+                if ((this.cont_reg[8] & 0xc0) === 0x80) {   // mouse mode: return x mouse delta
                     ret = this.mx_delta;
                     this.mx_delta = 0;
-                }
-                else
+                } else {
                     ret = this.stat_reg[3];
+                }
                 break;
             case 5:
-                if ((this.cont_reg[8] & 0xc0) == 0x80)
-                {   // mouse mode: return y mouse delta
+                if ((this.cont_reg[8] & 0xc0) === 0x80) {   // mouse mode: return y mouse delta
                     ret = this.my_delta;
                     this.my_delta = 0;
-                }
-                else
+                } else {
                     ret = this.stat_reg[5];
+                }
                 break;
             case 7:
                 ret = this.stat_reg[7];
@@ -1500,7 +1523,7 @@ export class V9938 implements VDP {
         }
 
         V9938.LOGMASKED(V9938.LOG_STATUS, "Read %02x from S#%d\n", ret, reg);
-        this.check_int ();
+        this.check_int();
 
         return ret;
     }
@@ -1508,21 +1531,18 @@ export class V9938 implements VDP {
     palette_w(data: uint8_t) {
         let indexp: int;
 
-        if (this.pal_write_first)
-        {
+        if (this.pal_write_first) {
             // store in register
             indexp = this.cont_reg[0x10] & 15;
-            this.pal_reg[indexp*2] = this.pal_write & 0x77;
-            this.pal_reg[indexp*2+1] = data & 0x07;
+            this.pal_reg[indexp * 2] = this.pal_write & 0x77;
+            this.pal_reg[indexp * 2 + 1] = data & 0x07;
 
             // update palette
             this.set_pen16(indexp, this.uint32_t(new Color(this.pal3bit((this.pal_write & 0x70) >> 4), this.pal3bit(data & 0x07), this.pal3bit(this.pal_write & 0x07))));
 
             this.cont_reg[0x10] = (this.cont_reg[0x10] + 1) & 15;
             this.pal_write_first = 0;
-        }
-        else
-        {
+        } else {
             this.pal_write = data;
             this.pal_write_first = 1;
         }
@@ -1537,45 +1557,39 @@ export class V9938 implements VDP {
 
         address = (this.cont_reg[14] << 14) | this.address_latch;
 
-        if (this.cont_reg[45] & 0x40)
-        {
-            if ( (this.mode == V9938.MODE_GRAPHIC6) || (this.mode == V9938.MODE_GRAPHIC7) )
-                address >>= 1;  // correct?
-            if (this.vram_size > 0x20000 && ((address & 0x10000)==0))
+        if (this.cont_reg[45] & 0x40) {
+            if ((this.mode === V9938.MODE_GRAPHIC6) || (this.mode === V9938.MODE_GRAPHIC7)) {
+                address >>= 1;
+            }  // correct?
+            if (this.vram_size > 0x20000 && ((address & 0x10000) === 0)) {
                 this.vram_space[V9938.EXPMEM_OFFSET + address] = data;
-        }
-        else
-        {
+            }
+        } else {
             this.vram_write(address, data);
         }
 
         this.address_latch = (this.address_latch + 1) & 0x3fff;
-        if ((!this.address_latch) && (this.cont_reg[0] & 0x0c) ) // correct ???
-        {
+        if ((!this.address_latch) && (this.cont_reg[0] & 0x0c)) { // correct ???
             this.cont_reg[14] = (this.cont_reg[14] + 1) & 7;
         }
     }
 
     command_w(data: uint8_t) {
-        if (this.cmd_write_first)
-        {
-            if (data & 0x80)
-            {
+        if (this.cmd_write_first) {
+            if (data & 0x80) {
                 if (!(data & 0x40)) {
                     this.register_write(data & 0x3f, this.cmd_write);
                 }
-            }
-            else
-            {
+            } else {
                 this.address_latch =
                     ((data << 8) | this.cmd_write) & 0x3fff;
-                if ( !(data & 0x40) ) this.vram_r(); // read ahead!
+                if (!(data & 0x40)) {
+                    this.vram_r();
+                } // read ahead!
             }
 
             this.cmd_write_first = 0;
-        }
-        else
-        {
+        } else {
             this.cmd_write = data;
             this.cmd_write_first = 1;
         }
@@ -1586,11 +1600,13 @@ export class V9938 implements VDP {
 
         reg = this.cont_reg[17] & 0x3f;
 
-        if (reg != 17)
-            this.register_write(reg, data); // true ?
+        if (reg !== 17) {
+            this.register_write(reg, data);
+        } // true ?
 
-        if (!(this.cont_reg[17] & 0x80))
+        if (!(this.cont_reg[17] & 0x80)) {
             this.cont_reg[17] = (this.cont_reg[17] + 1) & 0x3f;
+        }
     }
 
     /***************************************************************************
@@ -1613,10 +1629,11 @@ export class V9938 implements VDP {
         // allocate VRAM
         // assert(this.vram_size > 0);
 
-        if (this.vram_size < 0x20000)
-        {
+        if (this.vram_size < 0x20000) {
             // set unavailable RAM to 0xff
-            for (let addr = this.vram_size; addr < 0x30000; addr++) this.vram_space[addr] = 0xff;
+            for (let addr = this.vram_size; addr < 0x30000; addr++) {
+                this.vram_space[addr] = 0xff;
+            }
         }
 
         // this.line_timer = timer_alloc(FUNC(update_line), this);
@@ -1670,7 +1687,7 @@ export class V9938 implements VDP {
     }
 
     device_reset() {
-        var i: int;
+        let i: int;
 
         // offset reset
         this.offset_x = 8;
@@ -1682,13 +1699,16 @@ export class V9938 implements VDP {
             this.stat_reg[i] = 0;
         }
         this.stat_reg[2] = 0x0c;
-        if (this.model == V9938.MODEL_V9958) {
+        if (this.model === V9938.MODEL_V9958) {
             this.stat_reg[1] |= 4;
         }
-        for (i = 0; i < 48; i++) this.cont_reg[i] = 0;
+        for (i = 0; i < 48; i++) {
+            this.cont_reg[i] = 0;
+        }
         this.cmd_write_first = this.pal_write_first = 0;
         this.int_state = 0;
-        this.read_ahead = 0; this.address_latch = 0; // ???
+        this.read_ahead = 0;
+        this.address_latch = 0; // ???
         // FIXME: this drifts the scanline number wrt screen h/vpos
         this.scanline = 0;
         // MZ: The status registers 4 and 6 hold the high bits of the sprite
@@ -1720,31 +1740,31 @@ export class V9938 implements VDP {
     vram_write(offset: int, data: int) {
         let newoffset: int;
 
-        if ( (this.mode == V9938.MODE_GRAPHIC6) || (this.mode == V9938.MODE_GRAPHIC7) )
-        {
+        if ((this.mode === V9938.MODE_GRAPHIC6) || (this.mode === V9938.MODE_GRAPHIC7)) {
             newoffset = ((offset & 1) << 16) | (offset >> 1);
-            if (newoffset < this.vram_size)
+            if (newoffset < this.vram_size) {
                 this.vram_space[newoffset] = data;
-        }
-        else
-        {
-            if (offset < this.vram_size)
+            }
+        } else {
+            if (offset < this.vram_size) {
                 this.vram_space[offset] = data;
+            }
         }
     }
 
     vram_read(offset: int): int {
-        if ( (this.mode == V9938.MODE_GRAPHIC6) || (this.mode == V9938.MODE_GRAPHIC7) )
+        if ((this.mode === V9938.MODE_GRAPHIC6) || (this.mode === V9938.MODE_GRAPHIC7)) {
             return this.vram_space[((offset & 1) << 16) | (offset >> 1)];
-        else
+        } else {
             return this.vram_space[offset];
+        }
     }
 
     check_int() {
         let n: uint8_t;
 
-        n = ( (this.cont_reg[1] & 0x20) && (this.stat_reg[0] & 0x80) /*&& this.vblank_int*/) ||
-            ( (this.stat_reg[1] & 0x01) && (this.cont_reg[0] & 0x10) );
+        n = ((this.cont_reg[1] & 0x20) && (this.stat_reg[0] & 0x80) /*&& this.vblank_int*/) ||
+            ((this.stat_reg[1] & 0x01) && (this.cont_reg[0] & 0x10));
 
         // #if 0
         // if(n && this.vblank_int)
@@ -1753,8 +1773,7 @@ export class V9938 implements VDP {
         // }
         // #endif
 
-        if (n != this.int_state)
-        {
+        if (n !== this.int_state) {
             this.int_state = n;
             V9938.LOGMASKED(V9938.LOG_INT, "IRQ line %s\n", n ? "up" : "down");
         }
@@ -1783,15 +1802,14 @@ export class V9938 implements VDP {
             0x00, 0x7f, 0x3f, 0x07
         ];
 
-        if (reg <= 27)
-        {
+        if (reg <= 27) {
             data &= reg_mask[reg];
-            if (this.cont_reg[reg] == data)
+            if (this.cont_reg[reg] === data) {
                 return;
+            }
         }
 
-        if (reg > 46)
-        {
+        if (reg > 46) {
             V9938.LOGMASKED(V9938.LOG_WARN, "Attempted to write to non-existent R#%d\n", reg);
             return;
         }
@@ -1829,15 +1847,13 @@ export class V9938 implements VDP {
             case 25:
             case 26:
             case 27:
-                if (this.model != V9938.MODEL_V9958)
-                {
+                if (this.model !== V9938.MODEL_V9958) {
                     V9938.LOGMASKED(V9938.LOG_WARN, "Attempting to write %02xh to R#%d (invalid on v9938)\n", data, reg);
                     data = 0;
-                }
-                else
-                {
-                    if(reg == 25)
+                } else {
+                    if (reg === 25) {
                         this.v9958_sp_mode = data & 0x18;
+                    }
                 }
                 break;
 
@@ -1850,8 +1866,9 @@ export class V9938 implements VDP {
                 break;
         }
 
-        if (reg != 15)
+        if (reg !== 15) {
             V9938.LOGMASKED(V9938.LOG_REGWRITE, "Write %02x to R#%d\n", data, reg);
+        }
 
         this.cont_reg[reg] = data;
     }
@@ -1873,7 +1890,9 @@ export class V9938 implements VDP {
 
         pen = this.pen16(this.cont_reg[7] & 0x0f);
         i = V9938.V9938_LONG_WIDTH;
-        while (i--) ln[idx++] = pen;
+        while (i--) {
+            ln[idx++] = pen;
+        }
     }
 
     graphic7_border(ln: uint32_t[]) {
@@ -1883,7 +1902,9 @@ export class V9938 implements VDP {
 
         pen = this.pen256(this.cont_reg[7]);
         i = V9938.V9938_LONG_WIDTH;
-        while (i--) ln[idx++] = pen;
+        while (i--) {
+            ln[idx++] = pen;
+        }
     }
 
     graphic5_border(ln: uint32_t[]) {
@@ -1895,7 +1916,10 @@ export class V9938 implements VDP {
         pen1 = this.pen16(this.cont_reg[7] & 0x03);
         pen0 = this.pen16((this.cont_reg[7] >> 2) & 0x03);
         i = V9938.V9938_LONG_WIDTH / 2;
-        while (i--) { ln[idx++] = pen0; ln[idx++] = pen1; }
+        while (i--) {
+            ln[idx++] = pen0;
+            ln[idx++] = pen1;
+        }
     }
 
     mode_text1(ln: uint32_t[], line: int) {
@@ -1922,13 +1946,14 @@ export class V9938 implements VDP {
         pen = this.pen16(this.cont_reg[7] & 0x0f);
 
         xxx = (this.offset_x + 8) << 1;
-        while (xxx--) ln[idx++] = pen;
+        while (xxx--) {
+            ln[idx++] = pen;
+        }
 
-        for (x=0; x < 40; x++)
-        {
+        for (x = 0; x < 40; x++) {
             pattern = this.vram_space[patterntbl_addr + (this.vram_space[nametbl_addr + name] << 3) +
-                ((line + this.cont_reg[23]) & 7)];
-            for (xx=0; xx < 6 ; xx++) {
+            ((line + this.cont_reg[23]) & 7)];
+            for (xx = 0; xx < 6; xx++) {
                 ln[idx++] = (pattern & 0x80) ? fg : bg;
                 ln[idx++] = (pattern & 0x80) ? fg : bg;
                 pattern <<= 1;
@@ -1938,7 +1963,9 @@ export class V9938 implements VDP {
         }
 
         xxx = ((16 - this.offset_x) + 8) << 1;
-        while (xxx--) ln[idx++] = pen;
+        while (xxx--) {
+            ln[idx++] = pen;
+        }
     }
 
     mode_text2(ln: uint32_t[], line: int) {
@@ -1960,12 +1987,9 @@ export class V9938 implements VDP {
         let colourtbl_addr: int;
 
         patterntbl_addr = this.cont_reg[4] << 11;
-        colourtbl_addr =  ((this.cont_reg[3] & 0xf8) << 6) + (this.cont_reg[10] << 14);
-        // if (false) {
-        //     colourmask = ((this.cont_reg[3] & 7) << 5) | 0x1f; /* cause a bug in Forth+ v1.0 on Geneve */
-        // } else {
-            colourmask = ((this.cont_reg[3] & 7) << 6) | 0x3f; /* verify! */
-        // }
+        colourtbl_addr = ((this.cont_reg[3] & 0xf8) << 6) + (this.cont_reg[10] << 14);
+        // colourmask = ((this.cont_reg[3] & 7) << 5) | 0x1f; /* cause a bug in Forth+ v1.0 on Geneve */
+        colourmask = ((this.cont_reg[3] & 7) << 6) | 0x3f; /* verify! */
         nametbl_addr = ((this.cont_reg[2] & 0xfc) << 10);
         patternmask = ((this.cont_reg[2] & 3) << 10) | 0x3ff; /* seems correct */
 
@@ -1974,20 +1998,19 @@ export class V9938 implements VDP {
         fg0 = this.pen16(this.cont_reg[12] >> 4);
         bg0 = this.pen16(this.cont_reg[12] & 15);
 
-        name = (line >> 3)*80;
+        name = (line >> 3) * 80;
 
         xxx = (this.offset_x + 8) * 2;
         pen = this.pen16(this.cont_reg[7] & 0x0f);
-        while (xxx--) ln[idx++] = pen;
+        while (xxx--) {
+            ln[idx++] = pen;
+        }
 
-        for (x=0;x<80;x++)
-        {
-            charcode = this.vram_space[nametbl_addr + (name&patternmask)];
-            if (this.blink)
-            {
+        for (x = 0; x < 80; x++) {
+            charcode = this.vram_space[nametbl_addr + (name & patternmask)];
+            if (this.blink) {
                 pattern = this.vram_space[colourtbl_addr + ((name >> 3) & colourmask)];
-                if (pattern & (0x80 >> (name & 7) ) )
-                {
+                if (pattern & (0x80 >> (name & 7))) {
                     pattern = this.vram_space[patterntbl_addr + ((charcode << 3) +
                         ((line + this.cont_reg[23]) & 7))];
 
@@ -2017,7 +2040,9 @@ export class V9938 implements VDP {
         }
 
         xxx = (16 - this.offset_x + 8) * 2;
-        while (xxx--) ln[idx++] = pen;
+        while (xxx--) {
+            ln[idx++] = pen;
+        }
     }
 
     mode_multi(ln: uint32_t[], line: int) {
@@ -2040,11 +2065,12 @@ export class V9938 implements VDP {
 
         pen_bg = this.pen16(this.cont_reg[7] & 0x0f);
         xx = this.offset_x << 1;
-        while (xx--) ln[idx++] = pen_bg;
+        while (xx--) {
+            ln[idx++] = pen_bg;
+        }
 
-        for (x=0;x<32;x++)
-        {
-            colour = this.vram_space[patterntbl_addr + (this.vram_space[nametbl_addr + name] << 3) + ((line2/4)&7)];
+        for (x = 0; x < 32; x++) {
+            colour = this.vram_space[patterntbl_addr + (this.vram_space[nametbl_addr + name] << 3) + ((line2 / 4) & 7)];
             pen = this.pen16(colour >> 4);
             /* eight pixels */
             ln[idx++] = pen;
@@ -2069,13 +2095,15 @@ export class V9938 implements VDP {
         }
 
         xx = (16 - this.offset_x) << 1;
-        while (xx--) ln[idx++] = pen_bg;
+        while (xx--) {
+            ln[idx++] = pen_bg;
+        }
     }
 
     mode_graphic1(ln: uint32_t[], line: int) {
         let idx = 0;
         let fg: pen_t;
-        let bg: pen_t
+        let bg: pen_t;
         let pen: pen_t;
         let nametbl_addr: int;
         let patterntbl_addr: int;
@@ -2099,10 +2127,11 @@ export class V9938 implements VDP {
 
         pen = this.pen16(this.cont_reg[7] & 0x0f);
         xxx = this.offset_x << 1;
-        while (xxx--) ln[idx++] = pen;
+        while (xxx--) {
+            ln[idx++] = pen;
+        }
 
-        for (x = 0; x < 32; x++)
-        {
+        for (x = 0; x < 32; x++) {
             charcode = this.vram_space[nametbl_addr + name];
             colour = this.vram_space[colourtbl_addr + (charcode >> 3)];
             fg = this.pen16(colour >> 4);
@@ -2118,7 +2147,9 @@ export class V9938 implements VDP {
         }
 
         xx = (16 - this.offset_x) << 1;
-        while (xx--) ln[idx++] = pen;
+        while (xx--) {
+            ln[idx++] = pen;
+        }
     }
 
     mode_graphic23(ln: uint32_t[], line: int) {
@@ -2133,89 +2164,86 @@ export class V9938 implements VDP {
         let nametbl_base: int = (this.cont_reg[2] << 10) + ((scrolled_y >> 3) << 5);
         let nametbl_offset: int = (this.cont_reg[26] & 0x1f);
 
-        if (V9938.BIT(this.cont_reg[25], 0) && V9938.BIT(this.cont_reg[26], 5))
+        if (V9938.BIT(this.cont_reg[25], 0) && V9938.BIT(this.cont_reg[26], 5)) {
             nametbl_base ^= 0x8000;
+        }
 
-        for (let x = this.offset_x << 1; x > 0; x--)
+        for (let x = this.offset_x << 1; x > 0; x--) {
             ln[idx++] = border_pen;
+        }
 
         let dot_scroll: int = this.cont_reg[27] & 0x07;
         let pixels_to_mask: int = V9938.BIT(this.cont_reg[25], 1) ? 8 - dot_scroll : 0;
         let pixels_to_draw: int = 256 - dot_scroll;
-        while (dot_scroll--)
-        {
+        while (dot_scroll--) {
             ln[idx++] = border_pen;
             ln[idx++] = border_pen;
         }
 
-        do
-        {
+        do {
             const charcode = this.vram_space[nametbl_base + nametbl_offset] + ((scrolled_y & 0xc0) << 2);
-            const colour: u8  = this.vram_space[colourtbl_addr + ((charcode & colourmask) << 3) + (scrolled_y & 7)];
+            const colour: u8 = this.vram_space[colourtbl_addr + ((charcode & colourmask) << 3) + (scrolled_y & 7)];
             let pattern: u8 = this.vram_space[patterntbl_addr + ((charcode & patternmask) << 3) + (scrolled_y & 7)];
             const fg: pen_t = this.pen16(colour >> 4);
             const bg: pen_t = this.pen16(colour & 0x0f);
-            for (let x = 0; x < 8 && pixels_to_draw > 0; x++)
-            {
-                if (!pixels_to_mask)
-                {
-                ln[idx++] = (pattern & 0x80) ? fg : bg;
-                ln[idx++] = (pattern & 0x80) ? fg : bg;
-                }
-                else
-                {
+            for (let x = 0; x < 8 && pixels_to_draw > 0; x++) {
+                if (!pixels_to_mask) {
+                    ln[idx++] = (pattern & 0x80) ? fg : bg;
+                    ln[idx++] = (pattern & 0x80) ? fg : bg;
+                } else {
                     pixels_to_mask--;
-                ln[idx++] = border_pen;
-                ln[idx++] = border_pen;
+                    ln[idx++] = border_pen;
+                    ln[idx++] = border_pen;
                 }
                 pixels_to_draw--;
                 pattern <<= 1;
             }
             nametbl_offset = (nametbl_offset + 1) & 0x1f;
-            if (V9938.BIT(this.cont_reg[25], 0) && !nametbl_offset)
+            if (V9938.BIT(this.cont_reg[25], 0) && !nametbl_offset) {
                 nametbl_base ^= 0x8000;
+            }
         }
         while (pixels_to_draw > 0);
 
-        for (let x = (16 - this.offset_x) << 1; x > 0; x--)
+        for (let x = (16 - this.offset_x) << 1; x > 0; x--) {
             ln[idx++] = border_pen;
+        }
     }
 
     mode_graphic4(ln: uint32_t[], line: int) {
         let idx = 0;
-        let linemask: int = ((this.cont_reg[2] & 0x1f) << 3) | 7;
+        const linemask: int = ((this.cont_reg[2] & 0x1f) << 3) | 7;
         const scrolled_y = ((line + this.cont_reg[23]) & linemask) & 0xff;
         const border_pen: pen_t = this.pen16(this.cont_reg[7] & 0x0f);
 
         let nametbl_base: int = ((this.cont_reg[2] & 0x40) << 10) + (scrolled_y << 7);
         let nametbl_offset: int = (this.cont_reg[26] & 0x1f) << 2;
-        if (!V9938.BIT(this.cont_reg[25], 0) && V9938.BIT(this.cont_reg[2], 5) && this.v9938_second_field())
+        if (!V9938.BIT(this.cont_reg[25], 0) && V9938.BIT(this.cont_reg[2], 5) && this.v9938_second_field()) {
             nametbl_base += 0x8000;
-        if (V9938.BIT(this.cont_reg[25], 0) && V9938.BIT(this.cont_reg[26], 5))
+        }
+        if (V9938.BIT(this.cont_reg[25], 0) && V9938.BIT(this.cont_reg[26], 5)) {
             nametbl_base ^= 0x8000;
+        }
 
-        for (let x = this.offset_x << 1; x > 0; x--)
-    ln[idx++] = border_pen;
+        for (let x = this.offset_x << 1; x > 0; x--) {
+            ln[idx++] = border_pen;
+        }
 
         let dot_scroll: int = this.cont_reg[27] & 0x07;
         let pixels_to_mask: int = V9938.BIT(this.cont_reg[25], 1) ? 8 - dot_scroll : 0;
         let pixels_to_draw: int = 256 - dot_scroll;
-        while (dot_scroll--)
-        {
+        while (dot_scroll--) {
             ln[idx++] = border_pen;
             ln[idx++] = border_pen;
         }
 
-        do
-        {
+        do {
             let mask_pixel_1 = false;
             let mask_pixel_2 = false;
-            if (pixels_to_mask)
-            {
+            if (pixels_to_mask) {
                 mask_pixel_1 = true;
                 pixels_to_mask--;
-                if (pixels_to_mask)
-                {
+                if (pixels_to_mask) {
                     mask_pixel_2 = true;
                     pixels_to_mask--;
                 }
@@ -2226,69 +2254,75 @@ export class V9938 implements VDP {
             ln[idx++] = pen1;
             ln[idx++] = pen1;
             pixels_to_draw--;
-            if (pixels_to_draw)
-            {
-            ln[idx++] = pen2;
-            ln[idx++] = pen2;
+            if (pixels_to_draw) {
+                ln[idx++] = pen2;
+                ln[idx++] = pen2;
                 pixels_to_draw--;
             }
             nametbl_offset = (nametbl_offset + 1) & 0x7f;
-            if (V9938.BIT(this.cont_reg[25], 0) && !nametbl_offset)
+            if (V9938.BIT(this.cont_reg[25], 0) && !nametbl_offset) {
                 nametbl_base ^= 0x8000;
+            }
         }
         while (pixels_to_draw > 0);
 
-        for (let x = (16 - this.offset_x) << 1; x > 0; x--)
+        for (let x = (16 - this.offset_x) << 1; x > 0; x--) {
             ln[idx++] = border_pen;
+        }
     }
 
     mode_graphic5(ln: uint32_t[], line: int) {
         let idx = 0;
         let nametbl_addr: int;
         let colour: int;
-        let line2: int
+        let line2: int;
         let linemask: int;
         let x: int;
         let xx: int;
-        let pen_bg0: pen_t[] = [];
-        let pen_bg1: pen_t[] = [];
+        const pen_bg0: pen_t[] = [];
+        const pen_bg1: pen_t[] = [];
 
         linemask = ((this.cont_reg[2] & 0x1f) << 3) | 7;
 
         line2 = ((line + this.cont_reg[23]) & linemask) & 255;
 
         nametbl_addr = ((this.cont_reg[2] & 0x40) << 10) + (line2 << 7);
-        if ( (this.cont_reg[2] & 0x20) && this.v9938_second_field() )
+        if ((this.cont_reg[2] & 0x20) && this.v9938_second_field()) {
             nametbl_addr += 0x8000;
+        }
 
         pen_bg1[0] = this.pen16(this.cont_reg[7] & 0x03);
         pen_bg0[0] = this.pen16((this.cont_reg[7] >> 2) & 0x03);
 
         xx = this.offset_x;
-        while (xx--) { ln[idx++] = pen_bg0[0]; ln[idx++] = pen_bg1[0]; }
+        while (xx--) {
+            ln[idx++] = pen_bg0[0];
+            ln[idx++] = pen_bg1[0];
+        }
 
         x = (this.cont_reg[8] & 0x20) ? 0 : 1;
 
-        for (;x<4;x++)
-        {
+        for (; x < 4; x++) {
             pen_bg0[x] = this.pen16(x);
             pen_bg1[x] = this.pen16(x);
         }
 
-        for (x=0;x<128;x++)
-        {
+        for (x = 0; x < 128; x++) {
             colour = this.vram_space[nametbl_addr++];
 
-            ln[idx++] = pen_bg0[colour>>6];
-            ln[idx++] = pen_bg1[(colour>>4)&3];
-            ln[idx++] = pen_bg0[(colour>>2)&3];
-            ln[idx++] = pen_bg1[(colour&3)];
+            ln[idx++] = pen_bg0[colour >> 6];
+            ln[idx++] = pen_bg1[(colour >> 4) & 3];
+            ln[idx++] = pen_bg0[(colour >> 2) & 3];
+            ln[idx++] = pen_bg1[(colour & 3)];
         }
 
         pen_bg1[0] = this.pen16(this.cont_reg[7] & 0x03);
         pen_bg0[0] = this.pen16((this.cont_reg[7] >> 2) & 0x03);
         xx = 16 - this.offset_x;
-        while (xx--) { ln[idx++] = pen_bg0[0]; ln[idx++] = pen_bg1[0]; }
+        while (xx--) {
+            ln[idx++] = pen_bg0[0];
+            ln[idx++] = pen_bg1[0];
+        }
     }
 
     mode_graphic6(ln: uint32_t[], line: int) {
@@ -2307,33 +2341,43 @@ export class V9938 implements VDP {
 
         line2 = ((line + this.cont_reg[23]) & linemask) & 255;
 
-        nametbl_addr = line2 << 8 ;
-        if ( (this.cont_reg[2] & 0x20) && this.v9938_second_field() )
+        nametbl_addr = line2 << 8;
+        if ((this.cont_reg[2] & 0x20) && this.v9938_second_field()) {
             nametbl_addr += 0x10000;
+        }
 
         pen_bg = this.pen16(this.cont_reg[7] & 0x0f);
         xx = this.offset_x << 1;
-        while (xx--) ln[idx++] = pen_bg;
+        while (xx--) {
+            ln[idx++] = pen_bg;
+        }
 
-        if (this.cont_reg[2] & 0x40)
-        {
-            for (x = 0; x < 32; x++)
-            {
+        if (this.cont_reg[2] & 0x40) {
+            for (x = 0; x < 32; x++) {
                 nametbl_addr++;
                 colour = this.vram_space[((nametbl_addr & 1) << 16) | (nametbl_addr >> 1)];
                 fg0 = this.pen16(colour >> 4);
                 fg1 = this.pen16(colour & 15);
-                ln[idx++] = fg0; ln[idx++] = fg1; ln[idx++] = fg0; ln[idx++] = fg1;
-                ln[idx++] = fg0; ln[idx++] = fg1; ln[idx++] = fg0; ln[idx++] = fg1;
-                ln[idx++] = fg0; ln[idx++] = fg1; ln[idx++] = fg0; ln[idx++] = fg1;
-                ln[idx++] = fg0; ln[idx++] = fg1; ln[idx++] = fg0; ln[idx++] = fg1;
+                ln[idx++] = fg0;
+                ln[idx++] = fg1;
+                ln[idx++] = fg0;
+                ln[idx++] = fg1;
+                ln[idx++] = fg0;
+                ln[idx++] = fg1;
+                ln[idx++] = fg0;
+                ln[idx++] = fg1;
+                ln[idx++] = fg0;
+                ln[idx++] = fg1;
+                ln[idx++] = fg0;
+                ln[idx++] = fg1;
+                ln[idx++] = fg0;
+                ln[idx++] = fg1;
+                ln[idx++] = fg0;
+                ln[idx++] = fg1;
                 nametbl_addr += 7;
             }
-        }
-        else
-        {
-            for (x = 0; x < 256; x++)
-            {
+        } else {
+            for (x = 0; x < 256; x++) {
                 colour = this.vram_space[((nametbl_addr & 1) << 16) | (nametbl_addr >> 1)];
                 ln[idx++] = this.pen16(colour >> 4);
                 ln[idx++] = this.pen16(colour & 15);
@@ -2342,7 +2386,9 @@ export class V9938 implements VDP {
         }
 
         xx = (16 - this.offset_x) << 1;
-        while (xx--) ln[idx++] = pen_bg;
+        while (xx--) {
+            ln[idx++] = pen_bg;
+        }
     }
 
     mode_graphic7(ln: uint32_t[], line: int) {
@@ -2361,27 +2407,29 @@ export class V9938 implements VDP {
         line2 = ((line + this.cont_reg[23]) & linemask) & 255;
 
         nametbl_addr = line2 << 8;
-        if ( (this.cont_reg[2] & 0x20) && this.v9938_second_field() )
+        if ((this.cont_reg[2] & 0x20) && this.v9938_second_field()) {
             nametbl_addr += 0x10000;
+        }
 
         pen_bg = this.pen256(this.cont_reg[7]);
         xx = this.offset_x << 1;
-        while (xx--) ln[idx++] = pen_bg;
+        while (xx--) {
+            ln[idx++] = pen_bg;
+        }
 
-        if ((this.v9958_sp_mode & 0x18) == 0x08) // v9958 screen 12, puzzle star title screen
-        {
-            for (x=0;x<64;x++)
-            {
-                let colour: int[] = [];
+        if ((this.v9958_sp_mode & 0x18) === 0x08) {
+            // v9958 screen 12, puzzle star title screen
+            for (x = 0; x < 64; x++) {
+                const colour: int[] = [];
                 let ind: int;
 
-                colour[0] = this.vram_space[((nametbl_addr&1) << 16) | (nametbl_addr>>1)];
+                colour[0] = this.vram_space[((nametbl_addr & 1) << 16) | (nametbl_addr >> 1)];
                 nametbl_addr++;
-                colour[1] = this.vram_space[((nametbl_addr&1) << 16) | (nametbl_addr>>1)];
+                colour[1] = this.vram_space[((nametbl_addr & 1) << 16) | (nametbl_addr >> 1)];
                 nametbl_addr++;
-                colour[2] = this.vram_space[((nametbl_addr&1) << 16) | (nametbl_addr>>1)];
+                colour[2] = this.vram_space[((nametbl_addr & 1) << 16) | (nametbl_addr >> 1)];
                 nametbl_addr++;
-                colour[3] = this.vram_space[((nametbl_addr&1) << 16) | (nametbl_addr>>1)];
+                colour[3] = this.vram_space[((nametbl_addr & 1) << 16) | (nametbl_addr >> 1)];
 
                 ind = (colour[0] & 7) << 11 | (colour[1] & 7) << 14 |
                     (colour[2] & 7) << 5 | (colour[3] & 7) << 8;
@@ -2400,21 +2448,19 @@ export class V9938 implements VDP {
 
                 nametbl_addr++;
             }
-        }
-        else if ((this.v9958_sp_mode & 0x18) == 0x18) // v9958 screen 10/11, puzzle star & sexy boom gameplay
-        {
-            for (x=0;x<64;x++)
-            {
-                let colour: int[] = [];
+        } else if ((this.v9958_sp_mode & 0x18) === 0x18) {
+            // v9958 screen 10/11, puzzle star & sexy boom gameplay
+            for (x = 0; x < 64; x++) {
+                const colour: int[] = [];
                 let ind: int;
 
-                colour[0] = this.vram_space[((nametbl_addr&1) << 16) | (nametbl_addr>>1)];
+                colour[0] = this.vram_space[((nametbl_addr & 1) << 16) | (nametbl_addr >> 1)];
                 nametbl_addr++;
-                colour[1] = this.vram_space[((nametbl_addr&1) << 16) | (nametbl_addr>>1)];
+                colour[1] = this.vram_space[((nametbl_addr & 1) << 16) | (nametbl_addr >> 1)];
                 nametbl_addr++;
-                colour[2] = this.vram_space[((nametbl_addr&1) << 16) | (nametbl_addr>>1)];
+                colour[2] = this.vram_space[((nametbl_addr & 1) << 16) | (nametbl_addr >> 1)];
                 nametbl_addr++;
-                colour[3] = this.vram_space[((nametbl_addr&1) << 16) | (nametbl_addr>>1)];
+                colour[3] = this.vram_space[((nametbl_addr & 1) << 16) | (nametbl_addr >> 1)];
 
                 ind = (colour[0] & 7) << 11 | (colour[1] & 7) << 14 |
                     (colour[2] & 7) << 5 | (colour[3] & 7) << 8;
@@ -2433,54 +2479,61 @@ export class V9938 implements VDP {
 
                 nametbl_addr++;
             }
-        }
-        else if (this.cont_reg[2] & 0x40)
-        {
-            for (x=0;x<32;x++)
-            {
+        } else if (this.cont_reg[2] & 0x40) {
+            for (x = 0; x < 32; x++) {
                 nametbl_addr++;
-                colour = this.vram_space[((nametbl_addr&1) << 16) | (nametbl_addr>>1)];
+                colour = this.vram_space[((nametbl_addr & 1) << 16) | (nametbl_addr >> 1)];
                 pen = this.pen256(colour);
-                ln[idx++] = pen; ln[idx++] = pen;
-                ln[idx++] = pen; ln[idx++] = pen;
-                ln[idx++] = pen; ln[idx++] = pen;
-                ln[idx++] = pen; ln[idx++] = pen;
-                ln[idx++] = pen; ln[idx++] = pen;
-                ln[idx++] = pen; ln[idx++] = pen;
-                ln[idx++] = pen; ln[idx++] = pen;
-                ln[idx++] = pen; ln[idx++] = pen;
+                ln[idx++] = pen;
+                ln[idx++] = pen;
+                ln[idx++] = pen;
+                ln[idx++] = pen;
+                ln[idx++] = pen;
+                ln[idx++] = pen;
+                ln[idx++] = pen;
+                ln[idx++] = pen;
+                ln[idx++] = pen;
+                ln[idx++] = pen;
+                ln[idx++] = pen;
+                ln[idx++] = pen;
+                ln[idx++] = pen;
+                ln[idx++] = pen;
+                ln[idx++] = pen;
+                ln[idx++] = pen;
                 nametbl_addr++;
             }
-        }
-        else
-        {
-            for (x=0;x<256;x++)
-            {
-                colour = this.vram_space[((nametbl_addr&1) << 16) | (nametbl_addr>>1)];
+        } else {
+            for (x = 0; x < 256; x++) {
+                colour = this.vram_space[((nametbl_addr & 1) << 16) | (nametbl_addr >> 1)];
                 pen = this.pen256(colour);
-            ln[idx++] = pen;
-            ln[idx++] = pen;
+                ln[idx++] = pen;
+                ln[idx++] = pen;
                 nametbl_addr++;
             }
         }
 
         xx = (16 - this.offset_x) << 1;
-        while (xx--) ln[idx++] = pen_bg;
+        while (xx--) {
+            ln[idx++] = pen_bg;
+        }
     }
 
     mode_unknown(ln: uint32_t[], line: int) {
         let idx = 0;
         const fg: pen_t = this.pen16(this.cont_reg[7] >> 4);
-        const bg: pen_t  = this.pen16(this.cont_reg[7] & 0x0f);
+        const bg: pen_t = this.pen16(this.cont_reg[7] & 0x0f);
 
-        for (let x = this.offset_x << 1; x > 0; x--)
+        for (let x = this.offset_x << 1; x > 0; x--) {
             ln[idx++] = bg;
+        }
 
-        for (let x = 512; x > 0; x--)
+        for (let x = 512; x > 0; x--) {
             ln[idx++] = fg;
+        }
 
-        for (let x = (16 - this.offset_x) << 1; x > 0; x--)
+        for (let x = (16 - this.offset_x) << 1; x > 0; x--) {
             ln[idx++] = bg;
+        }
     }
 
     default_draw_sprite(ln: uint32_t[], col: uint32_t[]) {
@@ -2488,15 +2541,11 @@ export class V9938 implements VDP {
         let i: int;
         idx += this.offset_x << 1;
 
-        for (i=0;i<256;i++)
-        {
-            if (col[i] & 0x80)
-            {
+        for (i = 0; i < 256; i++) {
+            if (col[i] & 0x80) {
                 ln[idx++] = this.pen16(col[i] & 0x0f);
                 ln[idx++] = this.pen16(col[i] & 0x0f);
-            }
-            else
-            {
+            } else {
                 idx += 2;
             }
         }
@@ -2507,15 +2556,11 @@ export class V9938 implements VDP {
         let i: int;
         idx += this.offset_x << 1;
 
-        for (i=0;i<256;i++)
-        {
-            if (col[i] & 0x80)
-            {
+        for (i = 0; i < 256; i++) {
+            if (col[i] & 0x80) {
                 ln[idx++] = this.pen16((col[i] >> 2) & 0x03);
                 ln[idx++] = this.pen16(col[i] & 0x03);
-            }
-            else
-            {
+            } else {
                 idx += 2;
             }
         }
@@ -2532,16 +2577,12 @@ export class V9938 implements VDP {
 
         idx += this.offset_x << 1;
 
-        for (i=0;i<256;i++)
-        {
-            if (col[i] & 0x80)
-            {
-                let color= new Color(this.pal3bit(g7_ind16[col[i] & 0x0f] >> 6), this.pal3bit(g7_ind16[col[i] & 0x0f] >> 3), this.pal3bit(g7_ind16[col[i] & 0x0f]));
+        for (i = 0; i < 256; i++) {
+            if (col[i] & 0x80) {
+                const color = new Color(this.pal3bit(g7_ind16[col[i] & 0x0f] >> 6), this.pal3bit(g7_ind16[col[i] & 0x0f] >> 3), this.pal3bit(g7_ind16[col[i] & 0x0f]));
                 ln[idx++] = this.uint32_t(color);
                 ln[idx++] = this.uint32_t(color);
-            }
-            else
-            {
+            } else {
                 idx += 2;
             }
         }
@@ -2567,7 +2608,9 @@ export class V9938 implements VDP {
         }
 
         // are sprites disabled?
-        if (this.cont_reg[8] & 0x02) return;
+        if (this.cont_reg[8] & 0x02) {
+            return;
+        }
 
         attrtbl_addr = (this.cont_reg[5] << 7) + (this.cont_reg[11] << 15);
         patterntbl_addr = (this.cont_reg[6] << 11);
@@ -2580,37 +2623,41 @@ export class V9938 implements VDP {
         }
 
         p2 = p = 0;
-        while (1)
-        {
+        while (1) {
             y = this.vram_space[attrtbl_addr];
-            if (y == 208) break;
+            if (y === 208) {
+                break;
+            }
             y = (y - this.cont_reg[23]) & 255;
-            if (y > 208)
-                y = -(~y&255);
-            else
+            if (y > 208) {
+                y = -(~y & 255);
+            } else {
                 y++;
+            }
 
             // if sprite in range, has to be drawn
-            if ( (line >= y) && (line  < (y + height) ) )
-            {
-                if (p2 == 4)
-                {
+            if ((line >= y) && (line < (y + height))) {
+                if (p2 === 4) {
                     // max maximum sprites per line!
-                    if ( !(this.stat_reg[0] & 0x40) )
+                    if (!(this.stat_reg[0] & 0x40)) {
                         this.stat_reg[0] = (this.stat_reg[0] & 0xa0) | 0x40 | p;
+                    }
 
                     break;
                 }
                 // get x
                 x = this.vram_space[attrtbl_addr + 1];
-                if (this.vram_space[attrtbl_addr + 3] & 0x80) x -= 32;
+                if (this.vram_space[attrtbl_addr + 3] & 0x80) {
+                    x -= 32;
+                }
 
                 // get pattern
                 pattern = this.vram_space[attrtbl_addr + 2];
-                if (this.cont_reg[1] & 2)
+                if (this.cont_reg[1] & 2) {
                     pattern &= 0xfc;
+                }
                 n = line - y;
-                pattern_addr = patterntbl_addr + (pattern << 3) + ((this.cont_reg[1] & 1) ? (n >> 1)  : n);
+                pattern_addr = patterntbl_addr + (pattern << 3) + ((this.cont_reg[1] & 1) ? (n >> 1) : n);
                 pattern = (this.vram_space[pattern_addr] << 8) | this.vram_space[pattern_addr + 16];
 
                 // get colour
@@ -2618,54 +2665,57 @@ export class V9938 implements VDP {
 
                 // draw left part
                 n = 0;
-                while (1)
-                {
-                    if (n == 0) pattern = this.vram_space[pattern_addr];
-                    else if ( (n == 1) && (this.cont_reg[1] & 2) ) pattern = this.vram_space[pattern_addr + 16];
-                    else break;
+                while (1) {
+                    if (n === 0) {
+                        pattern = this.vram_space[pattern_addr];
+                    } else if ((n === 1) && (this.cont_reg[1] & 2)) {
+                        pattern = this.vram_space[pattern_addr + 16];
+                    } else {
+                        break;
+                    }
 
                     n++;
 
-                    for (i=0;i<8;i++)
-                    {
-                        if (pattern & 0x80)
-                        {
-                            if ( (x >= 0) && (x < 256) )
-                            {
-                                if (col[x] & 0x40)
-                                {
+                    for (i = 0; i < 8; i++) {
+                        if (pattern & 0x80) {
+                            if ((x >= 0) && (x < 256)) {
+                                if (col[x] & 0x40) {
                                     // we have a collision!
-                                    if (p2 < 4)
+                                    if (p2 < 4) {
                                         this.stat_reg[0] |= 0x20;
+                                    }
                                 }
-                                if ( !(col[x] & 0x80) )
-                                {
-                                    if (c || (this.cont_reg[8] & 0x20) )
+                                if (!(col[x] & 0x80)) {
+                                    if (c || (this.cont_reg[8] & 0x20)) {
                                         col[x] |= 0xc0 | c;
-                                    else
+                                    } else {
                                         col[x] |= 0x40;
+                                    }
                                 }
 
                                 // if zoomed, draw another pixel
-                                if (this.cont_reg[1] & 1)
-                                {
-                                    if (col[x+1] & 0x40)
-                                    {
+                                if (this.cont_reg[1] & 1) {
+                                    if (col[x + 1] & 0x40) {
                                         // we have a collision!
-                                        if (p2 < 4)
+                                        if (p2 < 4) {
                                             this.stat_reg[0] |= 0x20;
+                                        }
                                     }
-                                    if ( !(col[x+1] & 0x80) )
-                                    {
-                                        if (c || (this.cont_reg[8] & 0x20) )
-                                            col[x+1] |= 0xc0 | c;
-                                        else
-                                            col[x+1] |= 0x80;
+                                    if (!(col[x + 1] & 0x80)) {
+                                        if (c || (this.cont_reg[8] & 0x20)) {
+                                            col[x + 1] |= 0xc0 | c;
+                                        } else {
+                                            col[x + 1] |= 0x80;
+                                        }
                                     }
                                 }
                             }
                         }
-                        if (this.cont_reg[1] & 1) x += 2; else x++;
+                        if (this.cont_reg[1] & 1) {
+                            x += 2;
+                        } else {
+                            x++;
+                        }
                         pattern <<= 1;
                     }
                 }
@@ -2673,16 +2723,19 @@ export class V9938 implements VDP {
                 p2++;
             }
 
-            if (p >= 31) break;
+            if (p >= 31) {
+                break;
+            }
             p++;
             attrtbl_addr += 4;
         }
 
-        if ( !(this.stat_reg[0] & 0x40) )
+        if (!(this.stat_reg[0] & 0x40)) {
             this.stat_reg[0] = (this.stat_reg[0] & 0xa0) | p;
+        }
     }
 
-    sprite_mode2 (line: int, col: uint32_t[]) {
+    sprite_mode2(line: int, col: uint32_t[]) {
         let attrtbl_addr: int;
         let patterntbl_addr: int;
         let pattern_addr: int;
@@ -2705,64 +2758,78 @@ export class V9938 implements VDP {
         }
 
         // are sprites disabled?
-        if (this.cont_reg[8] & 0x02) return;
+        if (this.cont_reg[8] & 0x02) {
+            return;
+        }
 
-        attrtbl_addr = ( (this.cont_reg[5] & 0xfc) << 7) + (this.cont_reg[11] << 15);
-        colourtbl_addr =  ( (this.cont_reg[5] & 0xf8) << 7) + (this.cont_reg[11] << 15);
+        attrtbl_addr = ((this.cont_reg[5] & 0xfc) << 7) + (this.cont_reg[11] << 15);
+        colourtbl_addr = ((this.cont_reg[5] & 0xf8) << 7) + (this.cont_reg[11] << 15);
         patterntbl_addr = (this.cont_reg[6] << 11);
-        colourmask = ( (this.cont_reg[5] & 3) << 3) | 0x7; // check this!
+        colourmask = ((this.cont_reg[5] & 3) << 3) | 0x7; // check this!
 
         // 16x16 or 8x8 sprites
         height = (this.cont_reg[1] & 2) ? 16 : 8;
         // magnified sprites (zoomed)
-        if (this.cont_reg[1] & 1) height *= 2;
+        if (this.cont_reg[1] & 1) {
+            height *= 2;
+        }
 
         p2 = p = first_cc_seen = 0;
-        while (1)
-        {
+        while (1) {
             y = this.vram_read(attrtbl_addr);
-            if (y == 216) break;
+            if (y === 216) {
+                break;
+            }
             y = (y - this.cont_reg[23]) & 255;
-            if (y > 216)
-                y = -(~y&255);
-            else
+            if (y > 216) {
+                y = -(~y & 255);
+            } else {
                 y++;
+            }
 
             // if sprite in range, has to be drawn
-            if ( (line >= y) && (line  < (y + height) ) )
-            {
-                if (p2 == 8)
-                {
+            if ((line >= y) && (line < (y + height))) {
+                if (p2 === 8) {
                     // max maximum sprites per line!
-                    if ( !(this.stat_reg[0] & 0x40) )
+                    if (!(this.stat_reg[0] & 0x40)) {
                         this.stat_reg[0] = (this.stat_reg[0] & 0xa0) | 0x40 | p;
+                    }
 
                     break;
                 }
 
-                n = line - y; if (this.cont_reg[1] & 1) n /= 2;
+                n = line - y;
+                if (this.cont_reg[1] & 1) {
+                    n /= 2;
+                }
                 // get colour
-                c = this.vram_read(colourtbl_addr + (((p&colourmask)*16) + n));
+                c = this.vram_read(colourtbl_addr + (((p & colourmask) * 16) + n));
 
+                // tslint:disable-next-line:label-position
                 skip_first_cc_set: {
                     // don't draw all sprite with CC set before any sprites
                     // with CC = 0 are seen on this line
                     if (c & 0x40) {
-                        if (!first_cc_seen)
+                        if (!first_cc_seen) {
                             break skip_first_cc_set;
-                    } else
+                        }
+                    } else {
                         first_cc_seen = 1;
+                    }
 
                     // get pattern
                     pattern = this.vram_read(attrtbl_addr + 2);
-                    if (this.cont_reg[1] & 2)
+                    if (this.cont_reg[1] & 2) {
                         pattern &= 0xfc;
+                    }
                     pattern_addr = patterntbl_addr + pattern * 8 + n;
                     pattern = (this.vram_read(pattern_addr) << 8) | this.vram_read(pattern_addr + 16);
 
                     // get x
                     x = this.vram_read(attrtbl_addr + 1);
-                    if (c & 0x80) x -= 32;
+                    if (c & 0x80) {
+                        x -= 32;
+                    }
 
                     n = (this.cont_reg[1] & 2) ? 16 : 8;
                     while (n--) {
@@ -2771,26 +2838,32 @@ export class V9938 implements VDP {
                                 if ((pattern & 0x8000) && !(col[x] & 0x10)) {
                                     if ((c & 15) || (this.cont_reg[8] & 0x20)) {
                                         if (!(c & 0x40)) {
-                                            if (col[x] & 0x20) col[x] |= 0x10;
-                                            else
+                                            if (col[x] & 0x20) {
+                                                col[x] |= 0x10;
+                                            } else {
                                                 col[x] |= 0x20 | (c & 15);
-                                        } else
+                                            }
+                                        } else {
                                             col[x] |= c & 15;
+                                        }
 
                                         col[x] |= 0x80;
                                     }
                                 } else {
-                                    if (!(c & 0x40) && (col[x] & 0x20))
+                                    if (!(c & 0x40) && (col[x] & 0x20)) {
                                         col[x] |= 0x10;
+                                    }
                                 }
 
                                 if (!(c & 0x60) && (pattern & 0x8000)) {
                                     if (col[x] & 0x40) {
                                         // sprite collision!
-                                        if (p2 < 8)
+                                        if (p2 < 8) {
                                             this.stat_reg[0] |= 0x20;
-                                    } else
+                                        }
+                                    } else {
                                         col[x] |= 0x40;
+                                    }
                                 }
 
                                 x++;
@@ -2804,23 +2877,27 @@ export class V9938 implements VDP {
                 p2++;
             }
 
-            if (p >= 31) break;
+            if (p >= 31) {
+                break;
+            }
             p++;
             attrtbl_addr += 4;
         }
 
-        if ( !(this.stat_reg[0] & 0x40) )
+        if (!(this.stat_reg[0] & 0x40)) {
             this.stat_reg[0] = (this.stat_reg[0] & 0xa0) | p;
+        }
     }
 
     set_mode() {
-        let n: int
+        let n: int;
         let i: int;
 
         n = (((this.cont_reg[0] & 0x0e) << 1) | ((this.cont_reg[1] & 0x18) >> 3));
-        for (i=0;;i++)
-        {
-            if ( (this.s_modes[i].m == n) || (this.s_modes[i].m == 0xff) ) break;
+        for (i = 0; ; i++) {
+            if ((this.s_modes[i].m === n) || (this.s_modes[i].m === 0xff)) {
+                break;
+            }
         }
 
         // MZ: What happens when the mode is changed during command execution?
@@ -2834,8 +2911,7 @@ export class V9938 implements VDP {
         // to another mode, e.g. also from Graphics7 to Graphics6.
         // Due to the lack of more information, we simply abort the command.
 
-        if (this.vdp_engine && this.mode != i)
-        {
+        if (this.vdp_engine && this.mode !== i) {
             V9938.LOGMASKED(V9938.LOG_WARN, "Command aborted due to mode change\n");
             this.vdp_engine = undefined;
             this.stat_reg[2] &= 0xFE;
@@ -2850,26 +2926,19 @@ export class V9938 implements VDP {
         const ln: uint32_t[] = [];
 
         let canvasLine: number;
-        if (this.cont_reg[9] & 0x08)
-        {
+        if (this.cont_reg[9] & 0x08) {
             canvasLine = this.scanline * 2 + ((this.stat_reg[2] >> 1) & 1);
-            this.imageData.data.slice()
-        }
-        else
-        {
+            this.imageData.data.slice();
+        } else {
             canvasLine = this.scanline * 2;
             double_lines = true;
         }
 
-        if ( !(this.cont_reg[1] & 0x40) || (this.stat_reg[2] & 0x40) )
-        {
+        if (!(this.cont_reg[1] & 0x40) || (this.stat_reg[2] & 0x40)) {
             this.s_modes[this.mode].border_32(ln);
-        }
-        else
-        {
+        } else {
             this.s_modes[this.mode].visible_32(ln, line);
-            if (this.s_modes[this.mode].sprites)
-            {
+            if (this.s_modes[this.mode].sprites) {
                 this.s_modes[this.mode].sprites(line, col);
                 this.s_modes[this.mode].draw_sprite_32(ln, col);
             }
@@ -2902,16 +2971,14 @@ export class V9938 implements VDP {
         ind16 = this.pen16(0);
         ind256 = this.pen256(0);
 
-        if ( !(this.cont_reg[8] & 0x20) && (this.mode != V9938.MODE_GRAPHIC5) )
-        {
+        if (!(this.cont_reg[8] & 0x20) && (this.mode !== V9938.MODE_GRAPHIC5)) {
             this.set_pen16(0, this.pen16(this.cont_reg[7] & 0x0f));
             this.set_pen256(0, this.pen256(this.cont_reg[7]));
         }
 
         this.refresh_32(line);
 
-        if ( !(this.cont_reg[8] & 0x20) && (this.mode != V9938.MODE_GRAPHIC5) )
-        {
+        if (!(this.cont_reg[8] & 0x20) && (this.mode !== V9938.MODE_GRAPHIC5)) {
             this.set_pen16(0, ind16);
             this.set_pen256(0, ind256);
         }
@@ -3034,22 +3101,22 @@ export class V9938 implements VDP {
         this.stat_reg[2] = (this.stat_reg[2] & 0xfd) | (~this.stat_reg[2] & 2);
 
         // color blinking
-        if (!(this.cont_reg[13] & 0xf0))
+        if (!(this.cont_reg[13] & 0xf0)) {
             this.blink = 0;
-        else if (!(this.cont_reg[13] & 0x0f))
+        } else if (!(this.cont_reg[13] & 0x0f)) {
             this.blink = 1;
-        else
-        {
+        } else {
             // both on and off counter are non-zero: timed blinking
-            if (this.blink_count)
+            if (this.blink_count) {
                 this.blink_count--;
-            if (!this.blink_count)
-            {
+            }
+            if (!this.blink_count) {
                 this.blink = this.blink === 0 ? 1 : 0;
-                if (this.blink)
+                if (this.blink) {
                     this.blink_count = (this.cont_reg[13] >> 4) * 10;
-                else
+                } else {
                     this.blink_count = (this.cont_reg[13] & 0x0f) * 10;
+                }
             }
         }
     }
@@ -3076,45 +3143,52 @@ export class V9938 implements VDP {
     /**  - Corrected behaviour of VRM <-> Z80 transfer          **/
     /**  - Improved performance of the code                     **/
     /** Public release 1.0: 20-04-2000                          **/
+
     /*************************************************************/
 
     VDP_VRMP5(MX: int, X: int, Y: int) {
-        return ((!MX) ? (((Y&1023)<<7) + ((X&255)>>1)) : (V9938.EXPMEM_OFFSET + ((Y&511)<<7) + ((X&255)>>1)))
-    }
-    VDP_VRMP6(MX: int, X: int, Y: int) {
-        return ((!MX) ? (((Y&1023)<<7) + ((X&511)>>2)) : (V9938.EXPMEM_OFFSET + ((Y&511)<<7) + ((X&511)>>2)))
-    }
-    //#define VDP_VRMP7(MX, X, Y) ((!MX) ? (((Y&511)<<8) + ((X&511)>>1)) : (EXPMEM_OFFSET + ((Y&255)<<8) + ((X&511)>>1)))
-    VDP_VRMP7(MX: int, X: int, Y: int) {
-        return ((!MX) ? (((X&2)<<15) + ((Y&511)<<7) + ((X&511)>>2)) : (V9938.EXPMEM_OFFSET + ((Y&511)<<7) + ((X&511)>>2))/*(EXPMEM_OFFSET + ((Y&255)<<8) + ((X&511)>>1))*/)
-    }
-    //#define VDP_VRMP8(MX, X, Y) ((!MX) ? (((Y&511)<<8) + (X&255)) : (EXPMEM_OFFSET + ((Y&255)<<8) + (X&255)))
-    VDP_VRMP8(MX: int, X: int, Y: int) {
-        return ((!MX) ? (((X&1)<<16) + ((Y&511)<<7) + ((X>>1)&127)) : (V9938.EXPMEM_OFFSET + ((Y&511)<<7) + ((X>>1)&127))/*(EXPMEM_OFFSET + ((Y&255)<<8) + (X&255))*/)
-    }
-    VDP_VRMP(M: int, MX: int, X: int, Y: int) {
-        return this.VDPVRMP(M, MX, X, Y)
-    }
-    VDP_POINT(M: int, MX: int, X: int, Y: int) {
-        return this.VDPpoint(M, MX, X, Y)
-    }
-    VDP_PSET(M: int, MX: int, X: int, Y: int, C: int, O: int) {
-        return this.VDPpset(M, MX, X, Y, C, O)
+        return ((!MX) ? (((Y & 1023) << 7) + ((X & 255) >> 1)) : (V9938.EXPMEM_OFFSET + ((Y & 511) << 7) + ((X & 255) >> 1)));
     }
 
-    static CM_ABRT  = 0x0;
+    VDP_VRMP6(MX: int, X: int, Y: int) {
+        return ((!MX) ? (((Y & 1023) << 7) + ((X & 511) >> 2)) : (V9938.EXPMEM_OFFSET + ((Y & 511) << 7) + ((X & 511) >> 2)));
+    }
+
+    // #define VDP_VRMP7(MX, X, Y) ((!MX) ? (((Y&511)<<8) + ((X&511)>>1)) : (EXPMEM_OFFSET + ((Y&255)<<8) + ((X&511)>>1)))
+    VDP_VRMP7(MX: int, X: int, Y: int) {
+        return ((!MX) ? (((X & 2) << 15) + ((Y & 511) << 7) + ((X & 511) >> 2)) : (V9938.EXPMEM_OFFSET + ((Y & 511) << 7) + ((X & 511) >> 2))/*(EXPMEM_OFFSET + ((Y&255)<<8) + ((X&511)>>1))*/);
+    }
+
+    // #define VDP_VRMP8(MX, X, Y) ((!MX) ? (((Y&511)<<8) + (X&255)) : (EXPMEM_OFFSET + ((Y&255)<<8) + (X&255)))
+    VDP_VRMP8(MX: int, X: int, Y: int) {
+        return ((!MX) ? (((X & 1) << 16) + ((Y & 511) << 7) + ((X >> 1) & 127)) : (V9938.EXPMEM_OFFSET + ((Y & 511) << 7) + ((X >> 1) & 127))/*(EXPMEM_OFFSET + ((Y&255)<<8) + (X&255))*/);
+    }
+
+    VDP_VRMP(M: int, MX: int, X: int, Y: int) {
+        return this.VDPVRMP(M, MX, X, Y);
+    }
+
+    VDP_POINT(M: int, MX: int, X: int, Y: int) {
+        return this.VDPpoint(M, MX, X, Y);
+    }
+
+    VDP_PSET(M: int, MX: int, X: int, Y: int, C: int, O: int) {
+        return this.VDPpset(M, MX, X, Y, C, O);
+    }
+
+    static CM_ABRT = 0x0;
     static CM_POINT = 0x4;
-    static CM_PSET  = 0x5;
-    static CM_SRCH  = 0x6;
-    static CM_LINE  = 0x7;
-    static CM_LMMV  = 0x8;
-    static CM_LMMM  = 0x9;
-    static CM_LMCM  = 0xA;
-    static CM_LMMC  = 0xB;
-    static CM_HMMV  = 0xC;
-    static CM_HMMM  = 0xD;
-    static CM_YMMM  = 0xE;
-    static CM_HMMC  = 0xF;
+    static CM_PSET = 0x5;
+    static CM_SRCH = 0x6;
+    static CM_LINE = 0x7;
+    static CM_LMMV = 0x8;
+    static CM_LMMM = 0x9;
+    static CM_LMCM = 0xA;
+    static CM_LMMC = 0xB;
+    static CM_HMMV = 0xC;
+    static CM_HMMM = 0xD;
+    static CM_YMMM = 0xE;
+    static CM_HMMC = 0xF;
 
     /*************************************************************
      Many VDP commands are executed in some kind of loop but
@@ -3168,51 +3242,55 @@ export class V9938 implements VDP {
     /*************************************************************/
     /** Variables visible only in this module                   **/
     /*************************************************************/
-    static Mask: uint8_t[] = [ 0x0F,0x03,0x0F,0xFF ];
-    static PPB: int[] = [ 2,4,2,1 ];
-    static PPL: int[] = [ 256,512,512,256 ];
+    static Mask: uint8_t[] = [0x0F, 0x03, 0x0F, 0xFF];
+    static PPB: int[] = [2, 4, 2, 1];
+    static PPL: int[] = [256, 512, 512, 256];
 
     //  SprOn SprOn SprOf SprOf
     //  ScrOf ScrOn ScrOf ScrOn
     static srch_timing = [
-        818, 1025,  818,  830, // ntsc
-        696,  854,  696,  684  // pal
+        818, 1025, 818, 830, // ntsc
+        696, 854, 696, 684  // pal
     ];
     static line_timing = [
         1063, 1259, 1063, 1161,
-        904,  1026, 904,  953
+        904, 1026, 904, 953
     ];
     static hmmv_timing = [
-        439,  549,  439,  531,
-        366,  439,  366,  427
+        439, 549, 439, 531,
+        366, 439, 366, 427
     ];
     static lmmv_timing = [
-        873,  1135, 873, 1056,
-        732,  909,  732,  854
+        873, 1135, 873, 1056,
+        732, 909, 732, 854
     ];
     static ymmm_timing = [
-        586,  952,  586,  610,
-        488,  720,  488,  500
+        586, 952, 586, 610,
+        488, 720, 488, 500
     ];
     static hmmm_timing = [
-        818,  1111, 818,  854,
-        684,  879,  684,  708
+        818, 1111, 818, 854,
+        684, 879, 684, 708
     ];
     static lmmm_timing = [
         1160, 1599, 1160, 1172,
-        964,  1257, 964,  977
+        964, 1257, 964, 977
     ];
 
     /** VDPVRMP() **********************************************/
     /** Calculate addr of a pixel in vram                       **/
+
     /*************************************************************/
-    VDPVRMP(M: uint8_t, MX: int, X :int, Y: int): int {
-        switch(M)
-        {
-            case 0: return this.VDP_VRMP5(MX,X,Y);
-            case 1: return this.VDP_VRMP6(MX,X,Y);
-            case 2: return this.VDP_VRMP7(MX,X,Y);
-            case 3: return this.VDP_VRMP8(MX,X,Y);
+    VDPVRMP(M: uint8_t, MX: int, X: int, Y: int): int {
+        switch (M) {
+            case 0:
+                return this.VDP_VRMP5(MX, X, Y);
+            case 1:
+                return this.VDP_VRMP6(MX, X, Y);
+            case 2:
+                return this.VDP_VRMP7(MX, X, Y);
+            case 3:
+                return this.VDP_VRMP8(MX, X, Y);
         }
 
         return 0;
@@ -3220,6 +3298,7 @@ export class V9938 implements VDP {
 
     /** VDPpoint5() ***********************************************/
     /** Get a pixel on screen 5                                 **/
+
     /*************************************************************/
     VDPpoint5(MXS: int, SX: int, SY: int): int {
         return (this.vram_space[this.VDP_VRMP5(MXS, SX, SY)] >> (((~SX) & 1) << 2)) & 15;
@@ -3227,6 +3306,7 @@ export class V9938 implements VDP {
 
     /** VDPpoint6() ***********************************************/
     /** Get a pixel on screen 6                                 **/
+
     /*************************************************************/
     VDPpoint6(MXS: int, SX: int, SY: int): int {
         return (this.vram_space[this.VDP_VRMP6(MXS, SX, SY)] >> (((~SX) & 3) << 1)) & 3;
@@ -3234,6 +3314,7 @@ export class V9938 implements VDP {
 
     /** VDPpoint7() ***********************************************/
     /** Get a pixel on screen 7                                 **/
+
     /*************************************************************/
     VDPpoint7(MXS: int, SX: int, SY: int): int {
         return (this.vram_space[this.VDP_VRMP7(MXS, SX, SY)] >> (((~SX) & 1) << 2)) & 15;
@@ -3241,6 +3322,7 @@ export class V9938 implements VDP {
 
     /** VDPpoint8() ***********************************************/
     /** Get a pixel on screen 8                                 **/
+
     /*************************************************************/
     VDPpoint8(MXS: int, SX: int, SY: int): int {
         return this.vram_space[this.VDP_VRMP8(MXS, SX, SY)];
@@ -3248,39 +3330,73 @@ export class V9938 implements VDP {
 
     /** VDPpoint() ************************************************/
     /** Get a pixel on a screen                                 **/
+
     /*************************************************************/
     VDPpoint(SM: uint8_t, MXS: int, SX: int, SY: int): int {
-        switch(SM)
-        {
-            case 0: return this.VDPpoint5(MXS,SX,SY);
-            case 1: return this.VDPpoint6(MXS,SX,SY);
-            case 2: return this.VDPpoint7(MXS,SX,SY);
-            case 3: return this.VDPpoint8(MXS,SX,SY);
+        switch (SM) {
+            case 0:
+                return this.VDPpoint5(MXS, SX, SY);
+            case 1:
+                return this.VDPpoint6(MXS, SX, SY);
+            case 2:
+                return this.VDPpoint7(MXS, SX, SY);
+            case 3:
+                return this.VDPpoint8(MXS, SX, SY);
         }
 
-        return(0);
+        return (0);
     }
 
     /** VDPpsetlowlevel() ****************************************/
     /** Low level function to set a pixel on a screen           **/
     /** Make it to make it fast                          **/
+
     /*************************************************************/
     VDPpsetlowlevel(addr: int, CL: uint8_t, M: uint8_t, OP: uint8_t) {
         // If this turns out to be too slow, get a pointer to the address space
         // and work directly on it.
         let val: uint8_t = this.vram_space[addr];
-        switch (OP)
-        {
-            case 0: val = (val & M) | CL; break;
-            case 1: val = val & (CL | M); break;
-            case 2: val |= CL; break;
-            case 3: val ^= CL; break;
-            case 4: val = (val & M) | ~(CL | M); break;
-            case 8: if (CL) val = (val & M) | CL; break;
-            case 9: if (CL) val = val & (CL | M); break;
-            case 10: if (CL) val |= CL; break;
-            case 11:  if (CL) val ^= CL; break;
-            case 12:  if (CL) val = (val & M) | ~(CL|M); break;
+        switch (OP) {
+            case 0:
+                val = (val & M) | CL;
+                break;
+            case 1:
+                val = val & (CL | M);
+                break;
+            case 2:
+                val |= CL;
+                break;
+            case 3:
+                val ^= CL;
+                break;
+            case 4:
+                val = (val & M) | ~(CL | M);
+                break;
+            case 8:
+                if (CL) {
+                    val = (val & M) | CL;
+                }
+                break;
+            case 9:
+                if (CL) {
+                    val = val & (CL | M);
+                }
+                break;
+            case 10:
+                if (CL) {
+                    val |= CL;
+                }
+                break;
+            case 11:
+                if (CL) {
+                    val ^= CL;
+                }
+                break;
+            case 12:
+                if (CL) {
+                    val = (val & M) | ~(CL | M);
+                }
+                break;
             default:
                 V9938.LOGMASKED(V9938.LOG_WARN, "Invalid operation %d in pset\n", OP);
         }
@@ -3290,30 +3406,34 @@ export class V9938 implements VDP {
 
     /** VDPpset5() ***********************************************/
     /** Set a pixel on screen 5                                 **/
+
     /*************************************************************/
     VDPpset5(MXD: int, DX: int, DY: int, CL: uint8_t, OP: uint8_t) {
-        let SH: uint8_t = ((~DX)&1)<<2;
-        this.VDPpsetlowlevel(this.VDP_VRMP5(MXD, DX, DY), (CL << SH), ~(15<<SH), OP);
+        const SH: uint8_t = ((~DX) & 1) << 2;
+        this.VDPpsetlowlevel(this.VDP_VRMP5(MXD, DX, DY), (CL << SH), ~(15 << SH), OP);
     }
 
     /** VDPpset6() ***********************************************/
     /** Set a pixel on screen 6                                 **/
+
     /*************************************************************/
     VDPpset6(MXD: int, DX: int, DY: int, CL: uint8_t, OP: uint8_t) {
-        let SH: uint8_t = ((~DX)&3)<<1;
-        this.VDPpsetlowlevel(this.VDP_VRMP6(MXD, DX, DY), (CL << SH), ~(3<<SH), OP);
+        const SH: uint8_t = ((~DX) & 3) << 1;
+        this.VDPpsetlowlevel(this.VDP_VRMP6(MXD, DX, DY), (CL << SH), ~(3 << SH), OP);
     }
 
     /** VDPpset7() ***********************************************/
     /** Set a pixel on screen 7                                 **/
+
     /*************************************************************/
     VDPpset7(MXD: int, DX: int, DY: int, CL: uint8_t, OP: uint8_t) {
-        let SH: uint8_t = ((~DX)&1)<<2;
-        this.VDPpsetlowlevel(this.VDP_VRMP7(MXD, DX, DY), (CL << SH), ~(15<<SH), OP);
+        const SH: uint8_t = ((~DX) & 1) << 2;
+        this.VDPpsetlowlevel(this.VDP_VRMP7(MXD, DX, DY), (CL << SH), ~(15 << SH), OP);
     }
 
     /** VDPpset8() ***********************************************/
     /** Set a pixel on screen 8                                 **/
+
     /*************************************************************/
     VDPpset8(MXD: int, DX: int, DY: int, CL: uint8_t, OP: uint8_t) {
         this.VDPpsetlowlevel(this.VDP_VRMP8(MXD, DX, DY), CL, 0, OP);
@@ -3321,33 +3441,44 @@ export class V9938 implements VDP {
 
     /** VDPpset() ************************************************/
     /** Set a pixel on a screen                                 **/
+
     /*************************************************************/
     VDPpset(SM: uint8_t, MXD: int, DX: int, DY: int, CL: uint8_t, OP: uint8_t) {
         switch (SM) {
-            case 0: this.VDPpset5(MXD, DX, DY, CL, OP); break;
-            case 1: this.VDPpset6(MXD, DX, DY, CL, OP); break;
-            case 2: this.VDPpset7(MXD, DX, DY, CL, OP); break;
-            case 3: this.VDPpset8(MXD, DX, DY, CL, OP); break;
+            case 0:
+                this.VDPpset5(MXD, DX, DY, CL, OP);
+                break;
+            case 1:
+                this.VDPpset6(MXD, DX, DY, CL, OP);
+                break;
+            case 2:
+                this.VDPpset7(MXD, DX, DY, CL, OP);
+                break;
+            case 3:
+                this.VDPpset8(MXD, DX, DY, CL, OP);
+                break;
         }
     }
 
     /** get_vdp_timing_value() **************************************/
     /** Get timing value for a certain VDP command              **/
+
     /*************************************************************/
     get_vdp_timing_value(timing_values: int[]): int {
-        return(timing_values[((this.cont_reg[1]>>6)&1)|(this.cont_reg[8]&2)|((this.cont_reg[9]<<1)&4)]);
+        return (timing_values[((this.cont_reg[1] >> 6) & 1) | (this.cont_reg[8] & 2) | ((this.cont_reg[9] << 1) & 4)]);
     }
 
     /** SrchEgine()** ********************************************/
     /** Search a dot                                            **/
+
     /*************************************************************/
     srch_engine() {
-        let SX=this.mmc.SX;
-        let SY=this.mmc.SY;
-        let TX=this.mmc.TX;
-        let ANX=this.mmc.ANX;
-        let CL=this.mmc.CL;
-        let MXD = this.mmc.MXD;
+        let SX = this.mmc.SX;
+        const SY = this.mmc.SY;
+        const TX = this.mmc.TX;
+        const ANX = this.mmc.ANX;
+        const CL = this.mmc.CL;
+        const MXD = this.mmc.MXD;
         let cnt: int;
         let delta: int;
 
@@ -3360,16 +3491,16 @@ export class V9938 implements VDP {
 
         const srch_loop = (vdpPoint: (MXS: int, SX: int, SY: int) => int, MX: int) => {
             while ((cnt -= delta) > 0) {
-                if ((vdpPoint(MXD, SX, SY) == CL ? 1 : 0) ^ ANX) {
+                if ((vdpPoint(MXD, SX, SY) === CL ? 1 : 0) ^ ANX) {
                     this.stat_reg[2] |= 0x10; /* Border detected */
                     break;
                 }
-                if ((SX+=TX) & MX) {
+                if ((SX += TX) & MX) {
                     this.stat_reg[2] &= 0xEF; /* Border not detected */
                     break;
                 }
             }
-        }
+        };
 
         switch (this.mode) {
             default:
@@ -3387,34 +3518,34 @@ export class V9938 implements VDP {
                 break;
         }
 
-        if ((this.vdp_ops_count=cnt)>0) {
+        if ((this.vdp_ops_count = cnt) > 0) {
             // Command execution done
             this.stat_reg[2] &= 0xFE;
             this.vdp_engine = undefined;
             // Update SX in VDP registers
             this.stat_reg[8] = SX & 0xFF;
-            this.stat_reg[9] = (SX>>8) | 0xFE;
-        }
-        else {
-            this.mmc.SX=SX;
+            this.stat_reg[9] = (SX >> 8) | 0xFE;
+        } else {
+            this.mmc.SX = SX;
         }
     }
 
     /** LineEgine()** ********************************************/
     /** Draw a line                                             **/
+
     /*************************************************************/
     line_engine() {
-        let DX=this.mmc.DX;
-        let DY=this.mmc.DY;
-        let TX=this.mmc.TX;
-        let TY=this.mmc.TY;
-        let NX=this.mmc.NX;
-        let NY=this.mmc.NY;
-        let ASX=this.mmc.ASX;
-        let ADX=this.mmc.ADX;
-        let CL=this.mmc.CL;
-        let LO=this.mmc.LO;
-        let MXD = this.mmc.MXD;
+        let DX = this.mmc.DX;
+        let DY = this.mmc.DY;
+        const TX = this.mmc.TX;
+        const TY = this.mmc.TY;
+        const NX = this.mmc.NX;
+        const NY = this.mmc.NY;
+        let ASX = this.mmc.ASX;
+        let ADX = this.mmc.ADX;
+        const CL = this.mmc.CL;
+        const LO = this.mmc.LO;
+        const MXD = this.mmc.MXD;
         let cnt: int;
         let delta: int;
 
@@ -3441,11 +3572,11 @@ export class V9938 implements VDP {
                     DY += TY;
                 }
                 ASX &= 1023; // Mask to 10 bits range
-                if (ADX++ == NX || (DX & MX)) {
+                if (ADX++ === NX || (DX & MX)) {
                     break;
                 }
             }
-        }
+        };
 
         // #define post_lineymaj(MX) \
         // DY+=TY; \
@@ -3467,13 +3598,13 @@ export class V9938 implements VDP {
                     DX += TX;
                 }
                 ASX &= 1023; // Mask to 10 bits range
-                if (ADX++ == NX || (DX & MX)) {
+                if (ADX++ === NX || (DX & MX)) {
                     break;
                 }
             }
-        }
+        };
 
-        if ((this.cont_reg[45]&0x01)==0)
+        if ((this.cont_reg[45] & 0x01) === 0) {
             // X-Axis is major direction
             switch (this.mode) {
                 default:
@@ -3490,7 +3621,7 @@ export class V9938 implements VDP {
                     line_xmaj_loop(this.VDPpset8.bind(this), 256);
                     break;
             }
-        else
+        } else {
             // Y-Axis is major direction
             switch (this.mode) {
                 default:
@@ -3507,37 +3638,38 @@ export class V9938 implements VDP {
                     line_ymaj_loop(this.VDPpset8.bind(this), 256);
                     break;
             }
-
-        if ((this.vdp_ops_count=cnt)>0) {
-            // Command execution done
-            this.stat_reg[2]&=0xFE;
-            this.vdp_engine = undefined;
-            this.cont_reg[38]=DY & 0xFF;
-            this.cont_reg[39]=(DY>>8) & 0x03;
         }
-        else {
-            this.mmc.DX=DX;
-            this.mmc.DY=DY;
-            this.mmc.ASX=ASX;
-            this.mmc.ADX=ADX;
+
+        if ((this.vdp_ops_count = cnt) > 0) {
+            // Command execution done
+            this.stat_reg[2] &= 0xFE;
+            this.vdp_engine = undefined;
+            this.cont_reg[38] = DY & 0xFF;
+            this.cont_reg[39] = (DY >> 8) & 0x03;
+        } else {
+            this.mmc.DX = DX;
+            this.mmc.DY = DY;
+            this.mmc.ASX = ASX;
+            this.mmc.ADX = ADX;
         }
     }
 
     /** lmmv_engine() *********************************************/
     /** VDP -> Vram                                             **/
+
     /*************************************************************/
     lmmv_engine() {
-        let DX=this.mmc.DX;
-        let DY=this.mmc.DY;
-        let TX=this.mmc.TX;
-        let TY=this.mmc.TY;
-        let NX=this.mmc.NX;
-        let NY=this.mmc.NY;
-        let ADX=this.mmc.ADX;
-        let ANX=this.mmc.ANX;
-        let CL=this.mmc.CL;
-        let LO=this.mmc.LO;
-        let MXD = this.mmc.MXD;
+        const DX = this.mmc.DX;
+        let DY = this.mmc.DY;
+        const TX = this.mmc.TX;
+        const TY = this.mmc.TY;
+        const NX = this.mmc.NX;
+        let NY = this.mmc.NY;
+        let ADX = this.mmc.ADX;
+        let ANX = this.mmc.ANX;
+        const CL = this.mmc.CL;
+        const LO = this.mmc.LO;
+        const MXD = this.mmc.MXD;
         let cnt: int;
         let delta: int;
 
@@ -3548,16 +3680,15 @@ export class V9938 implements VDP {
             while ((cnt -= delta) > 0) {
                 vdpPset(MXD, ADX, DY, CL, LO);
                 if (!--ANX || ((ADX += TX) & MX)) {
-                    if (!(--NY & 1023) || (DY += TY) == -1)
-                    break;
-                else
-                    {
+                    if (!(--NY & 1023) || (DY += TY) === -1) {
+                        break;
+                    } else {
                         ADX = DX;
                         ANX = NX;
                     }
                 }
             }
-        }
+        };
 
         switch (this.mode) {
             default:
@@ -3575,43 +3706,44 @@ export class V9938 implements VDP {
                 break;
         }
 
-        if ((this.vdp_ops_count=cnt)>0) {
+        if ((this.vdp_ops_count = cnt) > 0) {
             // Command execution done
-            this.stat_reg[2]&=0xFE;
+            this.stat_reg[2] &= 0xFE;
             this.vdp_engine = undefined;
-            if (!NY)
-                DY+=TY;
-            this.cont_reg[38]=DY & 0xFF;
-            this.cont_reg[39]=(DY>>8) & 0x03;
-            this.cont_reg[42]=NY & 0xFF;
-            this.cont_reg[43]=(NY>>8) & 0x03;
-        }
-        else {
-            this.mmc.DY=DY;
-            this.mmc.NY=NY;
-            this.mmc.ANX=ANX;
-            this.mmc.ADX=ADX;
+            if (!NY) {
+                DY += TY;
+            }
+            this.cont_reg[38] = DY & 0xFF;
+            this.cont_reg[39] = (DY >> 8) & 0x03;
+            this.cont_reg[42] = NY & 0xFF;
+            this.cont_reg[43] = (NY >> 8) & 0x03;
+        } else {
+            this.mmc.DY = DY;
+            this.mmc.NY = NY;
+            this.mmc.ANX = ANX;
+            this.mmc.ADX = ADX;
         }
     }
 
     /** lmmm_engine() *********************************************/
     /** Vram -> Vram                                            **/
+
     /*************************************************************/
     lmmm_engine() {
-        let SX=this.mmc.SX;
-        let SY=this.mmc.SY;
-        let DX=this.mmc.DX;
-        let DY=this.mmc.DY;
-        let TX=this.mmc.TX;
-        let TY=this.mmc.TY;
-        let NX=this.mmc.NX;
-        let NY=this.mmc.NY;
-        let ASX=this.mmc.ASX;
-        let ADX=this.mmc.ADX;
-        let ANX=this.mmc.ANX;
-        let LO=this.mmc.LO;
-        let MXS = this.mmc.MXS;
-        let MXD = this.mmc.MXD;
+        const SX = this.mmc.SX;
+        let SY = this.mmc.SY;
+        const DX = this.mmc.DX;
+        let DY = this.mmc.DY;
+        const TX = this.mmc.TX;
+        const TY = this.mmc.TY;
+        const NX = this.mmc.NX;
+        let NY = this.mmc.NY;
+        let ASX = this.mmc.ASX;
+        let ADX = this.mmc.ADX;
+        let ANX = this.mmc.ANX;
+        const LO = this.mmc.LO;
+        const MXS = this.mmc.MXS;
+        const MXD = this.mmc.MXD;
         let cnt: int;
         let delta: int;
 
@@ -3621,17 +3753,17 @@ export class V9938 implements VDP {
         const lmmm_loop = (vdpPset: (MXD: int, ADX: int, DY: int, CL: int, LO: int) => void, vdpPoint: (MXS: int, ASX: int, SY: int) => int, MX: int) => {
             while ((cnt -= delta) > 0) {
                 vdpPset(MXD, ADX, DY, vdpPoint(MXS, ASX, SY), LO);
-                if (!--ANX || ((ASX+=TX)&MX) || ((ADX+=TX)&MX)) {
-                    if (!(--NY&1023) || (SY+=TY)==-1 || (DY+=TY)==-1)
-                    break;
-                else {
-                        ASX=SX;
-                        ADX=DX;
-                        ANX=NX;
+                if (!--ANX || ((ASX += TX) & MX) || ((ADX += TX) & MX)) {
+                    if (!(--NY & 1023) || (SY += TY) === -1 || (DY += TY) === -1) {
+                        break;
+                    } else {
+                        ASX = SX;
+                        ADX = DX;
+                        ANX = NX;
                     }
                 }
             }
-        }
+        };
 
         switch (this.mode) {
             default:
@@ -3649,57 +3781,56 @@ export class V9938 implements VDP {
                 break;
         }
 
-        if ((this.vdp_ops_count=cnt)>0) {
+        if ((this.vdp_ops_count = cnt) > 0) {
             // Command execution done
-            this.stat_reg[2]&=0xFE;
+            this.stat_reg[2] &= 0xFE;
             this.vdp_engine = undefined;
             if (!NY) {
-                SY+=TY;
-                DY+=TY;
+                SY += TY;
+                DY += TY;
+            } else if (SY === -1) {
+                DY += TY;
             }
-            else
-            if (SY==-1)
-                DY+=TY;
-            this.cont_reg[42]=NY & 0xFF;
-            this.cont_reg[43]=(NY>>8) & 0x03;
-            this.cont_reg[34]=SY & 0xFF;
-            this.cont_reg[35]=(SY>>8) & 0x03;
-            this.cont_reg[38]=DY & 0xFF;
-            this.cont_reg[39]=(DY>>8) & 0x03;
-        }
-        else {
-            this.mmc.SY=SY;
-            this.mmc.DY=DY;
-            this.mmc.NY=NY;
-            this.mmc.ANX=ANX;
-            this.mmc.ASX=ASX;
-            this.mmc.ADX=ADX;
+            this.cont_reg[42] = NY & 0xFF;
+            this.cont_reg[43] = (NY >> 8) & 0x03;
+            this.cont_reg[34] = SY & 0xFF;
+            this.cont_reg[35] = (SY >> 8) & 0x03;
+            this.cont_reg[38] = DY & 0xFF;
+            this.cont_reg[39] = (DY >> 8) & 0x03;
+        } else {
+            this.mmc.SY = SY;
+            this.mmc.DY = DY;
+            this.mmc.NY = NY;
+            this.mmc.ANX = ANX;
+            this.mmc.ASX = ASX;
+            this.mmc.ADX = ADX;
         }
     }
 
     /** lmcm_engine() *********************************************/
     /** Vram -> CPU                                             **/
+
     /*************************************************************/
     lmcm_engine() {
-        if ((this.stat_reg[2]&0x80)!=0x80) {
-            this.stat_reg[7] = this.cont_reg[44] = this.VDP_POINT(((this.mode >= 5) && (this.mode <= 8)) ? (this.mode-5) : 0, this.mmc.MXS, this.mmc.ASX, this.mmc.SY);
-            this.vdp_ops_count-= this.get_vdp_timing_value(V9938.lmmv_timing);
-            this.stat_reg[2]|=0x80;
+        if ((this.stat_reg[2] & 0x80) !== 0x80) {
+            this.stat_reg[7] = this.cont_reg[44] = this.VDP_POINT(((this.mode >= 5) && (this.mode <= 8)) ? (this.mode - 5) : 0, this.mmc.MXS, this.mmc.ASX, this.mmc.SY);
+            this.vdp_ops_count -= this.get_vdp_timing_value(V9938.lmmv_timing);
+            this.stat_reg[2] |= 0x80;
 
-            if (!--this.mmc.ANX || ((this.mmc.ASX+=this.mmc.TX)&this.mmc.MX)) {
-                if (!(--this.mmc.NY & 1023) || (this.mmc.SY+=this.mmc.TY)==-1) {
-                    this.stat_reg[2]&=0xFE;
+            if (!--this.mmc.ANX || ((this.mmc.ASX += this.mmc.TX) & this.mmc.MX)) {
+                if (!(--this.mmc.NY & 1023) || (this.mmc.SY += this.mmc.TY) === -1) {
+                    this.stat_reg[2] &= 0xFE;
                     this.vdp_engine = undefined;
-                    if (!this.mmc.NY)
-                        this.mmc.DY+=this.mmc.TY;
-                    this.cont_reg[42]=this.mmc.NY & 0xFF;
-                    this.cont_reg[43]=(this.mmc.NY>>8) & 0x03;
-                    this.cont_reg[34]=this.mmc.SY & 0xFF;
-                    this.cont_reg[35]=(this.mmc.SY>>8) & 0x03;
-                }
-                else {
-                    this.mmc.ASX=this.mmc.SX;
-                    this.mmc.ANX=this.mmc.NX;
+                    if (!this.mmc.NY) {
+                        this.mmc.DY += this.mmc.TY;
+                    }
+                    this.cont_reg[42] = this.mmc.NY & 0xFF;
+                    this.cont_reg[43] = (this.mmc.NY >> 8) & 0x03;
+                    this.cont_reg[34] = this.mmc.SY & 0xFF;
+                    this.cont_reg[35] = (this.mmc.SY >> 8) & 0x03;
+                } else {
+                    this.mmc.ASX = this.mmc.SX;
+                    this.mmc.ANX = this.mmc.NX;
                 }
             }
         }
@@ -3707,30 +3838,31 @@ export class V9938 implements VDP {
 
     /** lmmc_engine() *********************************************/
     /** CPU -> Vram                                             **/
+
     /*************************************************************/
     lmmc_engine() {
-        if ((this.stat_reg[2]&0x80)!=0x80) {
-            let SM: uint8_t = ((this.mode >= 5) && (this.mode <= 8)) ? (this.mode-5) : 0;
+        if ((this.stat_reg[2] & 0x80) !== 0x80) {
+            const SM: uint8_t = ((this.mode >= 5) && (this.mode <= 8)) ? (this.mode - 5) : 0;
 
-            this.stat_reg[7]=this.cont_reg[44]&=V9938.Mask[SM];
+            this.stat_reg[7] = this.cont_reg[44] &= V9938.Mask[SM];
             this.VDP_PSET(SM, this.mmc.MXD, this.mmc.ADX, this.mmc.DY, this.cont_reg[44], this.mmc.LO);
-            this.vdp_ops_count-= this.get_vdp_timing_value(V9938.lmmv_timing);
-            this.stat_reg[2]|=0x80;
+            this.vdp_ops_count -= this.get_vdp_timing_value(V9938.lmmv_timing);
+            this.stat_reg[2] |= 0x80;
 
-            if (!--this.mmc.ANX || ((this.mmc.ADX+=this.mmc.TX)&this.mmc.MX)) {
-                if (!(--this.mmc.NY&1023) || (this.mmc.DY+=this.mmc.TY)==-1) {
-                    this.stat_reg[2]&=0xFE;
+            if (!--this.mmc.ANX || ((this.mmc.ADX += this.mmc.TX) & this.mmc.MX)) {
+                if (!(--this.mmc.NY & 1023) || (this.mmc.DY += this.mmc.TY) === -1) {
+                    this.stat_reg[2] &= 0xFE;
                     this.vdp_engine = undefined;
-                    if (!this.mmc.NY)
-                        this.mmc.DY+=this.mmc.TY;
-                    this.cont_reg[42]=this.mmc.NY & 0xFF;
-                    this.cont_reg[43]=(this.mmc.NY>>8) & 0x03;
-                    this.cont_reg[38]=this.mmc.DY & 0xFF;
-                    this.cont_reg[39]=(this.mmc.DY>>8) & 0x03;
-                }
-                else {
-                    this.mmc.ADX=this.mmc.DX;
-                    this.mmc.ANX=this.mmc.NX;
+                    if (!this.mmc.NY) {
+                        this.mmc.DY += this.mmc.TY;
+                    }
+                    this.cont_reg[42] = this.mmc.NY & 0xFF;
+                    this.cont_reg[43] = (this.mmc.NY >> 8) & 0x03;
+                    this.cont_reg[38] = this.mmc.DY & 0xFF;
+                    this.cont_reg[39] = (this.mmc.DY >> 8) & 0x03;
+                } else {
+                    this.mmc.ADX = this.mmc.DX;
+                    this.mmc.ANX = this.mmc.NX;
                 }
             }
         }
@@ -3738,18 +3870,19 @@ export class V9938 implements VDP {
 
     /** hmmv_engine() *********************************************/
     /** VDP --> Vram                                            **/
+
     /*************************************************************/
     hmmv_engine() {
-        let DX=this.mmc.DX;
-        let DY=this.mmc.DY;
-        let TX=this.mmc.TX;
-        let TY=this.mmc.TY;
-        let NX=this.mmc.NX;
-        let NY=this.mmc.NY;
-        let ADX=this.mmc.ADX;
-        let ANX=this.mmc.ANX;
-        let CL=this.mmc.CL;
-        let MXD = this.mmc.MXD;
+        const DX = this.mmc.DX;
+        let DY = this.mmc.DY;
+        const TX = this.mmc.TX;
+        const TY = this.mmc.TY;
+        const NX = this.mmc.NX;
+        let NY = this.mmc.NY;
+        let ADX = this.mmc.ADX;
+        let ANX = this.mmc.ANX;
+        const CL = this.mmc.CL;
+        const MXD = this.mmc.MXD;
         let cnt: int;
         let delta: int;
 
@@ -3760,16 +3893,15 @@ export class V9938 implements VDP {
             while ((cnt -= delta) > 0) {
                 this.vram_space[vdpVrmb(MXD, ADX, DY)] = CL;
                 if (!--ANX || ((ADX += TX) & MX)) {
-                    if (!(--NY & 1023) || (DY += TY) == -1)
-                    break;
-                else
-                    {
+                    if (!(--NY & 1023) || (DY += TY) === -1) {
+                        break;
+                    } else {
                         ADX = DX;
                         ANX = NX;
                     }
                 }
             }
-        }
+        };
 
         switch (this.mode) {
             default:
@@ -3787,42 +3919,43 @@ export class V9938 implements VDP {
                 break;
         }
 
-        if ((this.vdp_ops_count=cnt)>0) {
+        if ((this.vdp_ops_count = cnt) > 0) {
             // Command execution done
-            this.stat_reg[2]&=0xFE;
+            this.stat_reg[2] &= 0xFE;
             this.vdp_engine = undefined;
-            if (!NY)
-                DY+=TY;
-            this.cont_reg[42]=NY & 0xFF;
-            this.cont_reg[43]=(NY>>8) & 0x03;
-            this.cont_reg[38]=DY & 0xFF;
-            this.cont_reg[39]=(DY>>8) & 0x03;
-        }
-        else {
-            this.mmc.DY=DY;
-            this.mmc.NY=NY;
-            this.mmc.ANX=ANX;
-            this.mmc.ADX=ADX;
+            if (!NY) {
+                DY += TY;
+            }
+            this.cont_reg[42] = NY & 0xFF;
+            this.cont_reg[43] = (NY >> 8) & 0x03;
+            this.cont_reg[38] = DY & 0xFF;
+            this.cont_reg[39] = (DY >> 8) & 0x03;
+        } else {
+            this.mmc.DY = DY;
+            this.mmc.NY = NY;
+            this.mmc.ANX = ANX;
+            this.mmc.ADX = ADX;
         }
     }
 
     /** hmmm_engine() *********************************************/
     /** Vram -> Vram                                            **/
+
     /*************************************************************/
     hmmm_engine() {
-        let SX=this.mmc.SX;
-        let SY=this.mmc.SY;
-        let DX=this.mmc.DX;
-        let DY=this.mmc.DY;
-        let TX=this.mmc.TX;
-        let TY=this.mmc.TY;
-        let NX=this.mmc.NX;
-        let NY=this.mmc.NY;
-        let ASX=this.mmc.ASX;
-        let ADX=this.mmc.ADX;
-        let ANX=this.mmc.ANX;
-        let MXS = this.mmc.MXS;
-        let MXD = this.mmc.MXD;
+        const SX = this.mmc.SX;
+        let SY = this.mmc.SY;
+        const DX = this.mmc.DX;
+        let DY = this.mmc.DY;
+        const TX = this.mmc.TX;
+        const TY = this.mmc.TY;
+        const NX = this.mmc.NX;
+        let NY = this.mmc.NY;
+        let ASX = this.mmc.ASX;
+        let ADX = this.mmc.ADX;
+        let ANX = this.mmc.ANX;
+        const MXS = this.mmc.MXS;
+        const MXD = this.mmc.MXD;
         let cnt: int;
         let delta: int;
 
@@ -3832,17 +3965,17 @@ export class V9938 implements VDP {
         const hmmm_loop = (vdpVrmp: (MXD: int, ADX: int, DY: int) => int, MX: int) => {
             while ((cnt -= delta) > 0) {
                 this.vram_space[vdpVrmp(MXD, ADX, DY)] = this.vram_space[vdpVrmp(MXS, ASX, SY)];
-                if (!--ANX || ((ASX+=TX)&MX) || ((ADX+=TX)&MX)) {
-                    if (!(--NY&1023) || (SY+=TY)==-1 || (DY+=TY)==-1)
+                if (!--ANX || ((ASX += TX) & MX) || ((ADX += TX) & MX)) {
+                    if (!(--NY & 1023) || (SY += TY) === -1 || (DY += TY) === -1) {
                         break;
-                    else {
-                        ASX=SX;
-                        ADX=DX;
-                        ANX=NX;
+                    } else {
+                        ASX = SX;
+                        ADX = DX;
+                        ANX = NX;
                     }
                 }
             }
-        }
+        };
 
         switch (this.mode) {
             default:
@@ -3860,47 +3993,46 @@ export class V9938 implements VDP {
                 break;
         }
 
-        if ((this.vdp_ops_count=cnt)>0) {
+        if ((this.vdp_ops_count = cnt) > 0) {
             // Command execution done
-            this.stat_reg[2]&=0xFE;
+            this.stat_reg[2] &= 0xFE;
             this.vdp_engine = undefined;
             if (!NY) {
-                SY+=TY;
-                DY+=TY;
+                SY += TY;
+                DY += TY;
+            } else if (SY === -1) {
+                DY += TY;
             }
-            else
-            if (SY==-1)
-                DY+=TY;
-            this.cont_reg[42]=NY & 0xFF;
-            this.cont_reg[43]=(NY>>8) & 0x03;
-            this.cont_reg[34]=SY & 0xFF;
-            this.cont_reg[35]=(SY>>8) & 0x03;
-            this.cont_reg[38]=DY & 0xFF;
-            this.cont_reg[39]=(DY>>8) & 0x03;
-        }
-        else {
-            this.mmc.SY=SY;
-            this.mmc.DY=DY;
-            this.mmc.NY=NY;
-            this.mmc.ANX=ANX;
-            this.mmc.ASX=ASX;
-            this.mmc.ADX=ADX;
+            this.cont_reg[42] = NY & 0xFF;
+            this.cont_reg[43] = (NY >> 8) & 0x03;
+            this.cont_reg[34] = SY & 0xFF;
+            this.cont_reg[35] = (SY >> 8) & 0x03;
+            this.cont_reg[38] = DY & 0xFF;
+            this.cont_reg[39] = (DY >> 8) & 0x03;
+        } else {
+            this.mmc.SY = SY;
+            this.mmc.DY = DY;
+            this.mmc.NY = NY;
+            this.mmc.ANX = ANX;
+            this.mmc.ASX = ASX;
+            this.mmc.ADX = ADX;
         }
     }
 
     /** ymmm_engine() *********************************************/
     /** Vram -> Vram                                            **/
+
     /*************************************************************/
 
     ymmm_engine() {
-        let SY=this.mmc.SY;
-        let DX=this.mmc.DX;
-        let DY=this.mmc.DY;
-        let TX=this.mmc.TX;
-        let TY=this.mmc.TY;
-        let NY=this.mmc.NY;
-        let ADX=this.mmc.ADX;
-        let MXD = this.mmc.MXD;
+        let SY = this.mmc.SY;
+        const DX = this.mmc.DX;
+        let DY = this.mmc.DY;
+        const TX = this.mmc.TX;
+        const TY = this.mmc.TY;
+        let NY = this.mmc.NY;
+        let ADX = this.mmc.ADX;
+        const MXD = this.mmc.MXD;
         let cnt: int;
         let delta: int;
 
@@ -3910,14 +4042,15 @@ export class V9938 implements VDP {
         const ymmm_loop = (vdpVrmp: (MXD: int, ADX: int, DY: int) => int, MX: int) => {
             while ((cnt -= delta) > 0) {
                 this.vram_space[vdpVrmp(MXD, ADX, DY)] = this.vram_space[vdpVrmp(MXD, ADX, SY)];
-                if ((ADX+=TX)&MX) {
-                    if (!(--NY&1023) || (SY+=TY)==-1 || (DY+=TY)==-1)
-                    break;
-                else
-                        ADX=DX;
+                if ((ADX += TX) & MX) {
+                    if (!(--NY & 1023) || (SY += TY) === -1 || (DY += TY) === -1) {
+                        break;
+                    } else {
+                        ADX = DX;
+                    }
                 }
             }
-        }
+        };
 
         switch (this.mode) {
             default:
@@ -3935,55 +4068,54 @@ export class V9938 implements VDP {
                 break;
         }
 
-        if ((this.vdp_ops_count=cnt)>0) {
+        if ((this.vdp_ops_count = cnt) > 0) {
             // Command execution done
-            this.stat_reg[2]&=0xFE;
+            this.stat_reg[2] &= 0xFE;
             this.vdp_engine = undefined;
             if (!NY) {
-                SY+=TY;
-                DY+=TY;
+                SY += TY;
+                DY += TY;
+            } else if (SY === -1) {
+                DY += TY;
             }
-            else
-            if (SY==-1)
-                DY+=TY;
-            this.cont_reg[42]=NY & 0xFF;
-            this.cont_reg[43]=(NY>>8) & 0x03;
-            this.cont_reg[34]=SY & 0xFF;
-            this.cont_reg[35]=(SY>>8) & 0x03;
-            this.cont_reg[38]=DY & 0xFF;
-            this.cont_reg[39]=(DY>>8) & 0x03;
-        }
-        else {
-            this.mmc.SY=SY;
-            this.mmc.DY=DY;
-            this.mmc.NY=NY;
-            this.mmc.ADX=ADX;
+            this.cont_reg[42] = NY & 0xFF;
+            this.cont_reg[43] = (NY >> 8) & 0x03;
+            this.cont_reg[34] = SY & 0xFF;
+            this.cont_reg[35] = (SY >> 8) & 0x03;
+            this.cont_reg[38] = DY & 0xFF;
+            this.cont_reg[39] = (DY >> 8) & 0x03;
+        } else {
+            this.mmc.SY = SY;
+            this.mmc.DY = DY;
+            this.mmc.NY = NY;
+            this.mmc.ADX = ADX;
         }
     }
 
     /** hmmc_engine() *********************************************/
     /** CPU -> Vram                                             **/
+
     /*************************************************************/
     hmmc_engine() {
-        if ((this.stat_reg[2]&0x80)!=0x80) {
-            this.vram_space[this.VDP_VRMP(((this.mode >= 5) && (this.mode <= 8)) ? (this.mode-5) : 0, this.mmc.MXD, this.mmc.ADX, this.mmc.DY)] = this.cont_reg[44];
+        if ((this.stat_reg[2] & 0x80) !== 0x80) {
+            this.vram_space[this.VDP_VRMP(((this.mode >= 5) && (this.mode <= 8)) ? (this.mode - 5) : 0, this.mmc.MXD, this.mmc.ADX, this.mmc.DY)] = this.cont_reg[44];
             this.vdp_ops_count -= this.get_vdp_timing_value(V9938.hmmv_timing);
-            this.stat_reg[2]|=0x80;
+            this.stat_reg[2] |= 0x80;
 
-            if (!--this.mmc.ANX || ((this.mmc.ADX+=this.mmc.TX)&this.mmc.MX)) {
-                if (!(--this.mmc.NY&1023) || (this.mmc.DY+=this.mmc.TY)==-1) {
-                    this.stat_reg[2]&=0xFE;
+            if (!--this.mmc.ANX || ((this.mmc.ADX += this.mmc.TX) & this.mmc.MX)) {
+                if (!(--this.mmc.NY & 1023) || (this.mmc.DY += this.mmc.TY) === -1) {
+                    this.stat_reg[2] &= 0xFE;
                     this.vdp_engine = undefined;
-                    if (!this.mmc.NY)
-                        this.mmc.DY+=this.mmc.TY;
-                    this.cont_reg[42]=this.mmc.NY & 0xFF;
-                    this.cont_reg[43]=(this.mmc.NY>>8) & 0x03;
-                    this.cont_reg[38]=this.mmc.DY & 0xFF;
-                    this.cont_reg[39]=(this.mmc.DY>>8) & 0x03;
-                }
-                else {
-                    this.mmc.ADX=this.mmc.DX;
-                    this.mmc.ANX=this.mmc.NX;
+                    if (!this.mmc.NY) {
+                        this.mmc.DY += this.mmc.TY;
+                    }
+                    this.cont_reg[42] = this.mmc.NY & 0xFF;
+                    this.cont_reg[43] = (this.mmc.NY >> 8) & 0x03;
+                    this.cont_reg[38] = this.mmc.DY & 0xFF;
+                    this.cont_reg[39] = (this.mmc.DY >> 8) & 0x03;
+                } else {
+                    this.mmc.ADX = this.mmc.DX;
+                    this.mmc.ANX = this.mmc.NX;
                 }
             }
         }
@@ -3991,34 +4123,41 @@ export class V9938 implements VDP {
 
     /** VDPWrite() ***********************************************/
     /** Use this function to transfer pixel(s) from CPU to m_ **/
+
     /*************************************************************/
     cpu_to_vdp(V: uint8_t) {
-        this.stat_reg[2]&=0x7F;
-        this.stat_reg[7]=this.cont_reg[44]=V;
-        if (this.vdp_engine && this.vdp_ops_count>0) this.vdp_engine();
+        this.stat_reg[2] &= 0x7F;
+        this.stat_reg[7] = this.cont_reg[44] = V;
+        if (this.vdp_engine && this.vdp_ops_count > 0) {
+            this.vdp_engine();
+        }
     }
 
     /** VDPRead() ************************************************/
     /** Use this function to transfer pixel(s) from VDP to CPU. **/
+
     /*************************************************************/
     vdp_to_cpu(): uint8_t {
-        this.stat_reg[2]&=0x7F;
-        if (this.vdp_engine && (this.vdp_ops_count>0)) this.vdp_engine();
-        return(this.cont_reg[44]);
+        this.stat_reg[2] &= 0x7F;
+        if (this.vdp_engine && (this.vdp_ops_count > 0)) {
+            this.vdp_engine();
+        }
+        return (this.cont_reg[44]);
     }
 
     /** report_vdp_command() ***************************************/
     /** Report VDP Command to be executed                       **/
+
     /*************************************************************/
     report_vdp_command(Op: uint8_t) {
 
         const Ops = [
-            "SET ","AND ","OR  ","XOR ","NOT ","NOP ","NOP ","NOP ",
-            "TSET","TAND","TOR ","TXOR","TNOT","NOP ","NOP ","NOP "
+            "SET ", "AND ", "OR  ", "XOR ", "NOT ", "NOP ", "NOP ", "NOP ",
+            "TSET", "TAND", "TOR ", "TXOR", "TNOT", "NOP ", "NOP ", "NOP "
         ];
         const Commands = [
-            " ABRT"," ????"," ????"," ????","POINT"," PSET"," SRCH"," LINE",
-            " LMMV"," LMMM"," LMCM"," LMMC"," HMMV"," HMMM"," YMMM"," HMMC"
+            " ABRT", " ????", " ????", " ????", "POINT", " PSET", " SRCH", " LINE",
+            " LMMV", " LMMM", " LMCM", " LMMC", " HMMV", " HMMM", " YMMM", " HMMC"
         ];
 
         let CL: uint8_t;
@@ -4033,65 +4172,69 @@ export class V9938 implements VDP {
 
         // Fetch arguments
         CL = this.cont_reg[44];
-        SX = (this.cont_reg[32]+(this.cont_reg[33]<<8)) & 511;
-        SY = (this.cont_reg[34]+(this.cont_reg[35]<<8)) & 1023;
-        DX = (this.cont_reg[36]+(this.cont_reg[37]<<8)) & 511;
-        DY = (this.cont_reg[38]+(this.cont_reg[39]<<8)) & 1023;
-        NX = (this.cont_reg[40]+(this.cont_reg[41]<<8)) & 1023;
-        NY = (this.cont_reg[42]+(this.cont_reg[43]<<8)) & 1023;
+        SX = (this.cont_reg[32] + (this.cont_reg[33] << 8)) & 511;
+        SY = (this.cont_reg[34] + (this.cont_reg[35] << 8)) & 1023;
+        DX = (this.cont_reg[36] + (this.cont_reg[37] << 8)) & 511;
+        DY = (this.cont_reg[38] + (this.cont_reg[39] << 8)) & 1023;
+        NX = (this.cont_reg[40] + (this.cont_reg[41] << 8)) & 1023;
+        NY = (this.cont_reg[42] + (this.cont_reg[43] << 8)) & 1023;
         CM = Op >> 4;
         LO = Op & 0x0F;
 
         V9938.LOGMASKED(V9938.LOG_COMMAND, "Opcode %02x %s-%s s=(%d,%d), d=(%d,%d), c=%02x, wh=[%d,%d]%s\n",
             Op, Commands[CM], Ops[LO],
-            SX,SY, DX,DY, CL&0xff, this.cont_reg[45]&0x04? -NX:NX,
-            this.cont_reg[45]&0x08? -NY:NY,
-            this.cont_reg[45]&0x70? " on ExtVRAM":""
+            SX, SY, DX, DY, CL & 0xff, this.cont_reg[45] & 0x04 ? -NX : NX,
+            this.cont_reg[45] & 0x08 ? -NY : NY,
+            this.cont_reg[45] & 0x70 ? " on ExtVRAM" : ""
         );
     }
 
     /** VDPDraw() ************************************************/
     /** Perform a given V9938 operation Op.                     **/
+
     /*************************************************************/
     command_unit_w(Op: uint8_t): uint8_t {
         // V9938 ops only work in SCREENs 5-8
-        if (this.mode<5 || this.mode>8)
-            return(0);
+        if (this.mode < 5 || this.mode > 8) {
+            return (0);
+        }
 
-        let SM: int = this.mode-5;         // Screen mode index 0..3
+        const SM: int = this.mode - 5;         // Screen mode index 0..3
 
-        this.mmc.CM = Op>>4;
-        if ((this.mmc.CM & 0x0C) != 0x0C && this.mmc.CM != 0)
+        this.mmc.CM = Op >> 4;
+        if ((this.mmc.CM & 0x0C) !== 0x0C && this.mmc.CM !== 0) {
             // Dot operation: use only relevant bits of color
-            this.stat_reg[7]=(this.cont_reg[44]&=V9938.Mask[SM]);
+            this.stat_reg[7] = (this.cont_reg[44] &= V9938.Mask[SM]);
+        }
 
         //  if(Verbose&0x02)
         this.report_vdp_command(Op);
 
-        if ((this.vdp_engine != undefined) && (this.mmc.CM != V9938.CM_ABRT))
+        if ((this.vdp_engine !== undefined) && (this.mmc.CM !== V9938.CM_ABRT)) {
             V9938.LOGMASKED(V9938.LOG_WARN, "Command overrun; previous command not completed\n");
+        }
 
-        switch(Op>>4) {
+        switch (Op >> 4) {
             case V9938.CM_ABRT:
-                this.stat_reg[2]&=0xFE;
+                this.stat_reg[2] &= 0xFE;
                 this.vdp_engine = undefined;
                 return 1;
             case V9938.CM_POINT:
-                this.stat_reg[2]&=0xFE;
+                this.stat_reg[2] &= 0xFE;
                 this.vdp_engine = undefined;
-                this.stat_reg[7]=this.cont_reg[44]=
-                    this.VDP_POINT(SM, (this.cont_reg[45] & 0x10) != 0 ? 1 : 0,
-                        this.cont_reg[32]+(this.cont_reg[33]<<8),
-                        this.cont_reg[34]+(this.cont_reg[35]<<8));
+                this.stat_reg[7] = this.cont_reg[44] =
+                    this.VDP_POINT(SM, (this.cont_reg[45] & 0x10) !== 0 ? 1 : 0,
+                        this.cont_reg[32] + (this.cont_reg[33] << 8),
+                        this.cont_reg[34] + (this.cont_reg[35] << 8));
                 return 1;
             case V9938.CM_PSET:
-                this.stat_reg[2]&=0xFE;
-                 this.vdp_engine = undefined;
-                this.VDP_PSET(SM, (this.cont_reg[45] & 0x20) != 0 ? 1 : 0,
-                    this.cont_reg[36]+(this.cont_reg[37]<<8),
-                this.cont_reg[38]+(this.cont_reg[39]<<8),
-                this.cont_reg[44],
-                Op&0x0F);
+                this.stat_reg[2] &= 0xFE;
+                this.vdp_engine = undefined;
+                this.VDP_PSET(SM, (this.cont_reg[45] & 0x20) !== 0 ? 1 : 0,
+                    this.cont_reg[36] + (this.cont_reg[37] << 8),
+                    this.cont_reg[38] + (this.cont_reg[39] << 8),
+                    this.cont_reg[44],
+                    Op & 0x0F);
                 return 1;
             case V9938.CM_SRCH:
                 this.vdp_engine = this.srch_engine;
@@ -4124,51 +4267,50 @@ export class V9938 implements VDP {
                 this.vdp_engine = this.hmmc_engine;
                 break;
             default:
-                V9938.LOGMASKED(V9938.LOG_WARN, "Unrecognized opcode %02Xh\n",Op);
-                return(0);
+                V9938.LOGMASKED(V9938.LOG_WARN, "Unrecognized opcode %02Xh\n", Op);
+                return (0);
         }
 
         // Fetch unconditional arguments
-        this.mmc.SX = (this.cont_reg[32]+(this.cont_reg[33]<<8)) & 511;
-        this.mmc.SY = (this.cont_reg[34]+(this.cont_reg[35]<<8)) & 1023;
-        this.mmc.DX = (this.cont_reg[36]+(this.cont_reg[37]<<8)) & 511;
-        this.mmc.DY = (this.cont_reg[38]+(this.cont_reg[39]<<8)) & 1023;
-        this.mmc.NY = (this.cont_reg[42]+(this.cont_reg[43]<<8)) & 1023;
-        this.mmc.TY = this.cont_reg[45]&0x08? -1:1;
+        this.mmc.SX = (this.cont_reg[32] + (this.cont_reg[33] << 8)) & 511;
+        this.mmc.SY = (this.cont_reg[34] + (this.cont_reg[35] << 8)) & 1023;
+        this.mmc.DX = (this.cont_reg[36] + (this.cont_reg[37] << 8)) & 511;
+        this.mmc.DY = (this.cont_reg[38] + (this.cont_reg[39] << 8)) & 1023;
+        this.mmc.NY = (this.cont_reg[42] + (this.cont_reg[43] << 8)) & 1023;
+        this.mmc.TY = this.cont_reg[45] & 0x08 ? -1 : 1;
         this.mmc.MX = V9938.PPL[SM];
         this.mmc.CL = this.cont_reg[44];
         this.mmc.LO = Op & 0x0F;
-        this.mmc.MXS = (this.cont_reg[45] & 0x10) != 0 ? 1 : 0;
-        this.mmc.MXD = (this.cont_reg[45] & 0x20) != 0 ? 1 : 0;
+        this.mmc.MXS = (this.cont_reg[45] & 0x10) !== 0 ? 1 : 0;
+        this.mmc.MXD = (this.cont_reg[45] & 0x20) !== 0 ? 1 : 0;
 
         // Argument depends on uint8_t or dot operation
-        if ((this.mmc.CM & 0x0C) == 0x0C) {
-            this.mmc.TX = this.cont_reg[45]&0x04? -V9938.PPB[SM] : V9938.PPB[SM];
-            this.mmc.NX = ((this.cont_reg[40]+(this.cont_reg[41]<<8)) & 1023) / V9938.PPB[SM];
-        }
-        else {
-            this.mmc.TX = this.cont_reg[45]&0x04? -1:1;
-            this.mmc.NX = (this.cont_reg[40]+(this.cont_reg[41]<<8)) & 1023;
+        if ((this.mmc.CM & 0x0C) === 0x0C) {
+            this.mmc.TX = this.cont_reg[45] & 0x04 ? -V9938.PPB[SM] : V9938.PPB[SM];
+            this.mmc.NX = ((this.cont_reg[40] + (this.cont_reg[41] << 8)) & 1023) / V9938.PPB[SM];
+        } else {
+            this.mmc.TX = this.cont_reg[45] & 0x04 ? -1 : 1;
+            this.mmc.NX = (this.cont_reg[40] + (this.cont_reg[41] << 8)) & 1023;
         }
 
         // X loop variables are treated specially for LINE command
-        if (this.mmc.CM == V9938.CM_LINE) {
-            this.mmc.ASX=((this.mmc.NX-1)>>1);
-            this.mmc.ADX=0;
-        }
-        else {
+        if (this.mmc.CM === V9938.CM_LINE) {
+            this.mmc.ASX = ((this.mmc.NX - 1) >> 1);
+            this.mmc.ADX = 0;
+        } else {
             this.mmc.ASX = this.mmc.SX;
             this.mmc.ADX = this.mmc.DX;
         }
 
         // NX loop variable is treated specially for SRCH command
-        if (this.mmc.CM == V9938.CM_SRCH)
-            this.mmc.ANX = (this.cont_reg[45] & 0x02) != 0 ? 1 : 0; // Do we look for "==" or "!="?
-        else
+        if (this.mmc.CM === V9938.CM_SRCH) {
+            this.mmc.ANX = (this.cont_reg[45] & 0x02) !==  0 ? 1 : 0; // Do we look for "===" or "!="?
+        } else {
             this.mmc.ANX = this.mmc.NX;
+        }
 
         // Command execution started
-        this.stat_reg[2]|=0x01;
+        this.stat_reg[2] |= 0x01;
 
         // Start execution if we still have time slices
         if (this.vdp_engine && this.vdp_ops_count > 0) {
@@ -4176,7 +4318,7 @@ export class V9938 implements VDP {
         }
 
         // Operation successfully initiated
-        return(1);
+        return (1);
     }
 
     /** LoopVDP() ************************************************
@@ -4185,7 +4327,7 @@ export class V9938 implements VDP {
     update_command() {
         if (this.vdp_ops_count <= 0) {
             this.vdp_ops_count += 13662;
-            if (this.vdp_engine && this.vdp_ops_count>0) {
+            if (this.vdp_engine && this.vdp_ops_count > 0) {
                 this.vdp_engine();
             }
         } else {
@@ -4197,8 +4339,7 @@ export class V9938 implements VDP {
     }
 
     device_post_load() { // TODO: is there a better way to restore this?
-        switch(this.mmc.CM)
-        {
+        switch (this.mmc.CM) {
             case V9938.CM_ABRT:
             case V9938.CM_POINT:
             case V9938.CM_PSET:
