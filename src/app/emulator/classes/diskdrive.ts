@@ -156,7 +156,6 @@ export class DiskDrive implements Stateful {
     private name: string;
     private diskImage: DiskImage;
     private console: TI994A;
-    private ram: Uint8Array;
     private catalogFile: DiskFile;
 
     private log: Log = Log.getLog();
@@ -240,11 +239,11 @@ export class DiskDrive implements Stateful {
             // Get parameter from BASIC (code from Classic99)
             let x = memory.getPADWord(0x832c);		// Get next basic token
             x += 7;						                // Skip "FILES"
-            const vdpRAM = memory.getVDP().getRAM();    // Get the VDP RAM
-            let y = (vdpRAM[x] << 8) | vdpRAM[x + 1];	// Get two bytes (size of string)
+            const vdp = memory.getVDP();    // Get the VDP RAM
+            let y = (vdp.getByte(x) << 8) | vdp.getByte(x + 1);	// Get two bytes (size of string)
             if (y === 0xc801) {                         // c8 means unquoted string, 1 is the length
                 x += 2;						            // Increment pointer
-                y = vdpRAM[x] - 0x30;				    // this is the number of files in ASCII
+                y = vdp.getByte(x) - 0x30;				    // this is the number of files in ASCII
                 if ((y <= 9) && (y >= 0)) {
                     // valid count
                     nFiles = y;
@@ -264,7 +263,6 @@ export class DiskDrive implements Stateful {
     }
 
     reset() {
-        this.ram = this.console.getVDP().getRAM();
         this.catalogFile = null;
     }
 
@@ -275,17 +273,18 @@ export class DiskDrive implements Stateful {
     dsrRoutine(pabAddr: number, checkDiskName: boolean): number {
         this.log.info("Executing DSR routine for " + this.name + ", PAB in " + Util.toHexWord(pabAddr) + ".");
         let i;
-        const opCode = this.ram[pabAddr];
-        const flagStatus = this.ram[pabAddr + 1];
-        const dataBufferAddress = this.ram[pabAddr + 2] << 8 | this.ram[pabAddr + 3];
-        let recordLength = this.ram[pabAddr + 4];
-        const characterCount = this.ram[pabAddr + 5];
-        const recordNumber = this.ram[pabAddr + 6] << 8 | this.ram[pabAddr + 7];
-        // let screenOffset = this.ram[pabAddr + 8];
-        const fileNameLength = this.ram[pabAddr + 9];
+        const vdp = this.console.getVDP();
+        const opCode = vdp.getByte(pabAddr);
+        const flagStatus = vdp.getByte(pabAddr + 1);
+        const dataBufferAddress = vdp.getByte(pabAddr + 2) << 8 | vdp.getByte(pabAddr + 3);
+        let recordLength = vdp.getByte(pabAddr + 4);
+        const characterCount = vdp.getByte(pabAddr + 5);
+        const recordNumber = vdp.getByte(pabAddr + 6) << 8 | vdp.getByte(pabAddr + 7);
+        // let screenOffset = vdp.getByte(pabAddr + 8];
+        const fileNameLength = vdp.getByte(pabAddr + 9);
         let fileName = "";
         for (i = 0; i < fileNameLength; i++) {
-            fileName += String.fromCharCode(this.ram[pabAddr + 10 + i]);
+            fileName += String.fromCharCode(vdp.getByte(pabAddr + 10 + i));
         }
         fileName = fileName.trim();
         const recordType = (flagStatus & 0x10) >> 4;
@@ -334,7 +333,7 @@ export class DiskDrive implements Stateful {
                             if (recordLength === 0) {
                                 recordLength = 80;
                                 // Write default record length to PAB
-                                this.ram[pabAddr + 4] = recordLength;
+                                vdp.setByte(pabAddr + 4, recordLength);
                             }
                             file = this.diskImage.getFile(fileName);
                             if (file == null || operationMode === OperationMode.OUTPUT) {
@@ -358,7 +357,7 @@ export class DiskDrive implements Stateful {
                                 }
                                 if (recordLength === 0) {
                                     recordLength = file.getRecordLength();
-                                    this.ram[pabAddr + 4] = recordLength;
+                                    vdp.setByte(pabAddr + 4, recordLength);
                                 }
                             } else if (operationMode === OperationMode.INPUT) {
                                 // Catalog
@@ -366,7 +365,7 @@ export class DiskDrive implements Stateful {
                                 this.catalogFile = file;
                                 if (recordLength === 0) {
                                     recordLength = 38;
-                                    this.ram[pabAddr + 4] = recordLength;
+                                    vdp.setByte(pabAddr + 4, recordLength);
                                 }
                             } else {
                                 errorCode = DiskError.ILLEGAL_OPERATION;
@@ -418,11 +417,11 @@ export class DiskDrive implements Stateful {
                                                 const recordData = record.getData();
                                                 const bytesToRead = Math.min(recordData.length, recordLength);
                                                 for (i = 0; i < bytesToRead; i++) {
-                                                    this.ram[dataBufferAddress + i] = recordData[i];
+                                                    vdp.setByte(dataBufferAddress + i, recordData[i]);
                                                 }
-                                                this.ram[pabAddr + 5] = bytesToRead;
-                                                this.ram[pabAddr + 6] = (file.getRecordPointer() & 0xFF00) >> 8;
-                                                this.ram[pabAddr + 7] = file.getRecordPointer() & 0x00FF;
+                                                vdp.setByte(pabAddr + 5, bytesToRead);
+                                                vdp.setByte(pabAddr + 6, (file.getRecordPointer() & 0xFF00) >> 8);
+                                                vdp.setByte(pabAddr + 7, file.getRecordPointer() & 0x00FF);
                                                 break;
                                             case OperationMode.OUTPUT:
                                             case OperationMode.APPEND:
@@ -456,7 +455,7 @@ export class DiskDrive implements Stateful {
                                     const bytesToWrite = recordType === RecordType.FIXED ? recordLength : characterCount;
                                     const writeBuffer = [];
                                     for (i = 0; i < bytesToWrite; i++) {
-                                        writeBuffer[i] = this.ram[dataBufferAddress + i];
+                                        writeBuffer[i] = vdp.getByte(dataBufferAddress + i);
                                     }
                                     if (recordType === RecordType.FIXED) {
                                         record = new FixedRecord(writeBuffer, recordLength);
@@ -479,8 +478,8 @@ export class DiskDrive implements Stateful {
                                             errorCode = DiskError.ILLEGAL_OPERATION;
                                             break;
                                     }
-                                    this.ram[pabAddr + 6] = (file.getRecordPointer() & 0xFF00) >> 8;
-                                    this.ram[pabAddr + 7] = file.getRecordPointer() & 0x00FF;
+                                    vdp.setByte(pabAddr + 6, (file.getRecordPointer() & 0xFF00) >> 8);
+                                    vdp.setByte(pabAddr + 7, file.getRecordPointer() & 0x00FF);
                                     this.diskImage.setBinaryImage(null); // Invalidate binary image on write
                                 } else {
                                     errorCode = DiskError.ILLEGAL_OPERATION;
@@ -516,7 +515,7 @@ export class DiskDrive implements Stateful {
                             if (file.getFileType() === FileType.PROGRAM) {
                                 const loadBuffer = file.getProgram();
                                 for (i = 0; i < Math.min(recordNumber, loadBuffer.length); i++) {
-                                    this.ram[dataBufferAddress + i] = loadBuffer[i];
+                                    vdp.setByte(dataBufferAddress + i, loadBuffer[i]);
                                 }
                             } else {
                                 errorCode = DiskError.FILE_ERROR;
@@ -529,7 +528,7 @@ export class DiskDrive implements Stateful {
                         this.log.info("Op-code " + opCode + ": SAVE");
                         const saveBuffer = [];
                         for (i = 0; i < recordNumber; i++) {
-                            saveBuffer[i] = this.ram[dataBufferAddress + i];
+                            saveBuffer[i] = vdp.getByte(dataBufferAddress + i);
                         }
                         file = this.diskImage.getFile(fileName);
                         if (file == null) {
@@ -602,7 +601,7 @@ export class DiskDrive implements Stateful {
                         } else {
                             fileStatus |= DiskDrive.STATUS_NO_SUCH_FILE;
                         }
-                        this.ram[pabAddr + 8] = fileStatus;
+                        vdp.setByte(pabAddr + 8, fileStatus);
                         break;
                     default:
                         this.log.warn("Unknown DSR op-code: " + opCode);
@@ -615,7 +614,7 @@ export class DiskDrive implements Stateful {
             errorCode = DiskError.DEVICE_ERROR;
         }
         this.log.info("Returned error code: " + errorCode + "\n");
-        this.ram[pabAddr + 1] = (this.ram[pabAddr + 1] | (errorCode << 5)) & 0xFF;
+        vdp.setByte(pabAddr + 1, (vdp.getByte(pabAddr + 1) | (errorCode << 5)) & 0xFF);
         return status;
     }
 
@@ -627,8 +626,9 @@ export class DiskDrive implements Stateful {
         if (this.diskImage != null) {
             if (read) {
                 const sector = this.diskImage.readSector(sectorNo);
+                const vdp = this.console.getVDP();
                 for (let i = 0; i < 256; i++) {
-                    this.ram[bufferAddr + i] = sector[i];
+                    vdp.setByte(bufferAddr + i, sector[i]);
                 }
                 memory.setPADWord(0x834A, sectorNo);
                 memory.setPADWord(0x8350, 0);
@@ -643,8 +643,9 @@ export class DiskDrive implements Stateful {
         const sectors = memory.getPADWord(0x834C) & 0xFF;
         const fileNameAddr = memory.getPADWord(0x834E);
         let fileName = "";
+        const vdp = memory.getVDP();
         for (let i = 0; i < 10; i++) {
-            fileName += String.fromCharCode(this.ram[fileNameAddr + i]);
+            fileName += String.fromCharCode(vdp.getByte(fileNameAddr + i));
         }
         fileName = fileName.trim();
         const infoAddr = 0x8300 | memory.getPADByte(0x8350);
@@ -657,7 +658,7 @@ export class DiskDrive implements Stateful {
                 if (file.getFileType() === FileType.PROGRAM) {
                     const program = file.getProgram();
                     for (let i = 0; i < sectors * 256; i++) {
-                        this.ram[bufferAddr + i] = program[firstSector * 256 + i];
+                        vdp.setByte(bufferAddr + i, program[firstSector * 256 + i]);
                     }
                 } else {
                     this.log.warn("File input only implemented for program files.");

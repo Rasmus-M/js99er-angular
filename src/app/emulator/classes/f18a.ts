@@ -1108,6 +1108,14 @@ export class F18A implements VDP {
         return new MemoryView(lines, anchorLine, 0);
     }
 
+    getByte(addr: number): number {
+        return this.ram[addr];
+    }
+
+    setByte(addr: number, i: number) {
+        this.ram[addr] = i;
+    }
+
     getWord(addr) {
         return addr < 0x4800 ? this.ram[addr] << 8 | this.ram[addr + 1] : 0;
     }

@@ -796,9 +796,16 @@ export class V9938 implements VDP {
             'ST:' + Util.toHexByte(this.stat_reg[0]);
         return s;
     }
+    getByte(addr: number): number {
+        return this.vram_read(addr);
+    }
+
+    setByte(addr: number, i: number) {
+        this.vram_write(addr, i);
+    }
 
     getWord(addr: number): number {
-        return (this.vram_space[addr] << 8) | this.vram_space[addr + 1];
+        return (this.vram_read(addr) << 8) | this.vram_read(addr + 1);
     }
 
     getCharAt(x: number, y: number): number {
@@ -957,6 +964,7 @@ export class V9938 implements VDP {
     }
 
     hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
+        start += (this.cont_reg[14] << 14) + (this.cont_reg[45] & 0x40 ? V9938.EXPMEM_OFFSET : 0);
         const mask = width - 1;
         const lines: MemoryLine[] = [];
         let anchorLine: number = null;
@@ -1559,8 +1567,8 @@ export class V9938 implements VDP {
 
         if (this.cont_reg[45] & 0x40) {
             if ((this.mode === V9938.MODE_GRAPHIC6) || (this.mode === V9938.MODE_GRAPHIC7)) {
-                address >>= 1;
-            }  // correct?
+                address >>= 1; // correct?
+            }
             if (this.vram_size > 0x20000 && ((address & 0x10000) === 0)) {
                 this.vram_space[V9938.EXPMEM_OFFSET + address] = data;
             }

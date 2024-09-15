@@ -17,6 +17,8 @@ export interface VDP extends Stateful, MemoryDevice {
     getRAM(): Uint8Array;
     getRegister(r: number): number;
     getRegsString(detailed: boolean): string;
+    getByte(addr: number): number;
+    setByte(addr: number, i: number): void;
     getWord(addr: number): number;
     getCharAt(x: number, y: number): number;
     getGPU(): CPU;

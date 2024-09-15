@@ -424,7 +424,15 @@ export class TMS9918A implements VDP {
         return new MemoryView(lines, anchorLine, 0);
     }
 
-    public getWord(addr: number) {
+    getByte(addr: number): number {
+        return this.ram[addr];
+    }
+
+    setByte(addr: number, i: number) {
+        this.ram[addr] = i;
+    }
+
+    getWord(addr: number) {
         return addr < 0x4000 ? this.ram[addr] << 8 | this.ram[addr + 1] : 0;
     }
 
