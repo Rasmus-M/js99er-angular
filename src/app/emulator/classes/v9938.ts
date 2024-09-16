@@ -797,15 +797,18 @@ export class V9938 implements VDP {
         return s;
     }
     getByte(addr: number): number {
-        return this.vram_read(addr);
+        const pageOffset = (this.cont_reg[14] << 14) + (this.cont_reg[45] & 0x40 ? V9938.EXPMEM_OFFSET : 0);
+        return this.vram_read(pageOffset + addr);
     }
 
     setByte(addr: number, i: number) {
-        this.vram_write(addr, i);
+        const pageOffset = (this.cont_reg[14] << 14) + (this.cont_reg[45] & 0x40 ? V9938.EXPMEM_OFFSET : 0);
+        this.vram_write(pageOffset + addr, i);
     }
 
     getWord(addr: number): number {
-        return (this.vram_read(addr) << 8) | this.vram_read(addr + 1);
+        const pageOffset = (this.cont_reg[14] << 14) + (this.cont_reg[45] & 0x40 ? V9938.EXPMEM_OFFSET : 0);
+        return (this.vram_read(pageOffset + addr) << 8) | this.vram_read(pageOffset + addr + 1);
     }
 
     getCharAt(x: number, y: number): number {
@@ -964,7 +967,7 @@ export class V9938 implements VDP {
     }
 
     hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
-        start += (this.cont_reg[14] << 14) + (this.cont_reg[45] & 0x40 ? V9938.EXPMEM_OFFSET : 0);
+        const pageOffset = (this.cont_reg[14] << 14) + (this.cont_reg[45] & 0x40 ? V9938.EXPMEM_OFFSET : 0);
         const mask = width - 1;
         const lines: MemoryLine[] = [];
         let anchorLine: number = null;
@@ -979,7 +982,7 @@ export class V9938 implements VDP {
             if ((i & mask) === 0) {
                 line += Util.toHexWord(addr) + ': ';
             }
-            const byte = this.vram_space[addr];
+            const byte = this.getByte(pageOffset + addr);
             line += Util.toHexByteShort(byte);
             ascii += byte >= 32 && byte < 127 ? String.fromCharCode(byte) : "\u25a1";
             if ((i & mask) === mask) {
