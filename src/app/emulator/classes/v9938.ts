@@ -999,10 +999,108 @@ export class V9938 implements VDP {
     }
 
     getState(): any {
-        return {};
+        return {
+            model: this.model,
+            vram_space: this.vram_space,
+            offset_x: this.offset_x,
+            offset_y: this.offset_y,
+            visible_y: this.visible_y,
+            mode: this.mode,
+            pal_write_first: this.pal_write_first,
+            cmd_write_first: this.cmd_write_first,
+            pal_write: this.pal_write,
+            cmd_write: this.cmd_write,
+            pal_reg: this.pal_reg,
+            stat_reg: this.stat_reg,
+            cont_reg: this.cont_reg,
+            read_ahead: this.read_ahead,
+            v9958_sp_mode: this.v9958_sp_mode,
+            address_latch: this.address_latch,
+            vram_size: this.vram_size,
+            int_state: this.int_state,
+            scanline: this.scanline,
+            blink: this.blink,
+            blink_count: this.blink_count,
+            mx_delta: this.mx_delta,
+            my_delta: this.my_delta,
+            button_state: this.button_state,
+            vdp_ops_count: this.vdp_ops_count,
+            pal_ntsc: this.pal_ntsc,
+            scanline_start: this.scanline_start,
+            vblank_start: this.vblank_start,
+            scanline_max: this.scanline_max,
+            height: this.height,
+            mmc: {
+                SX: this.mmc.SX,
+                SY: this.mmc.SY,
+                DX: this.mmc.DX,
+                DY: this.mmc.DY,
+                TX: this.mmc.TX,
+                TY: this.mmc.TY,
+                NX: this.mmc.NX,
+                NY: this.mmc.NY,
+                MX: this.mmc.MX,
+                ASX: this.mmc.ASX,
+                ADX: this.mmc.ADX,
+                ANX: this.mmc.ANX,
+                CL: this.mmc.CL,
+                LO: this.mmc.LO,
+                CM: this.mmc.CM,
+                MXS: this.mmc.MXS,
+                MXD: this.mmc.MXD
+            }
+        };
     }
 
     restoreState(state: any) {
+        this.model = state.model;
+        this.vram_space = state.vram_space;
+        this.offset_x = state.offset_x;
+        this.offset_y = state.offset_y;
+        this.visible_y = state.visible_y;
+        this.mode = state.mode;
+        this.pal_write_first = state.pal_write_first;
+        this.cmd_write_first = state.cmd_write_first;
+        this.pal_write = state.pal_write;
+        this.cmd_write = state.cmd_write;
+        this.pal_reg = state.pal_reg;
+        this.stat_reg = state.stat_reg;
+        this.cont_reg = state.cont_reg;
+        this.read_ahead = state.read_ahead;
+        this.v9958_sp_mode = state.v9958_sp_mode;
+        this.address_latch = state.address_latch;
+        this.vram_size = state.vram_size;
+        this.int_state = state.int_state;
+        this.scanline = state.scanline;
+        this.blink = state.blink;
+        this.blink_count = state.blink_count;
+        this.mx_delta = state.mx_delta;
+        this.my_delta = state.my_delta;
+        this.button_state = state.button_state;
+        this.vdp_ops_count = state.vdp_ops_count;
+        this.pal_ntsc = state.pal_ntsc;
+        this.scanline_start = state.scanline_start;
+        this.vblank_start = state.vblank_start;
+        this.scanline_max = state.scanline_max;
+        this.height = state.height;
+        this.mmc.SX = state.mmc.SX;
+        this.mmc.SY = state.mmc.SY;
+        this.mmc.DX = state.mmc.DX;
+        this.mmc.DY = state.mmc.DY;
+        this.mmc.TX = state.mmc.TX;
+        this.mmc.TY = state.mmc.TY;
+        this.mmc.NX = state.mmc.NX;
+        this.mmc.NY = state.mmc.NY;
+        this.mmc.MX = state.mmc.MX;
+        this.mmc.ASX = state.mmc.ASX;
+        this.mmc.ADX = state.mmc.ADX;
+        this.mmc.ANX = state.mmc.ANX;
+        this.mmc.CL = state.mmc.CL;
+        this.mmc.LO = state.mmc.LO;
+        this.mmc.CM = state.mmc.CM;
+        this.mmc.MXS = state.mmc.MXS;
+        this.mmc.MXD = state.mmc.MXD;
+        this.device_post_load();
     }
 
     /***************************************************************************

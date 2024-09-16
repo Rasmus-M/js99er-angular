@@ -254,14 +254,17 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         ).subscribe(
             (state: any) => {
                 const f18AEnabled = typeof(state.vdp.gpu) === "object";
+                const v9938Enabled = typeof(state.vdp.mmc) === "object";
                 if (f18AEnabled && that.settingsService.getVDP() !== 'F18A') {
-                    that.log.error("Please enable F18A before restoring the state");
+                    that.log.error("Please enable F18A VDP before restoring the state");
                     return;
-                } else if (!f18AEnabled && that.settingsService.getVDP() === 'F18A') {
-                    that.log.error("Please disable F18A before restoring the state");
+                } else if (v9938Enabled && that.settingsService.getVDP() !== 'V9938') {
+                    that.log.error("Please enable V9938 VDP before restoring the state");
+                    return;
+                } else if (!f18AEnabled && !v9938Enabled && that.settingsService.getVDP() === 'TMS9918A') {
+                    that.log.error("Please enable TMS9918A VDP before restoring the state");
                     return;
                 }
-
                 that.ti994A.restoreState(state);
                 that.log.info("Console state restored");
 
