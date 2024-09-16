@@ -846,7 +846,7 @@ export class DiskDrive implements Stateful {
                 const program = [];
                 let sectorsLeft = sectorsAllocated;
                 let nLast = -1;
-                for (let dataChainPointerIndex = 0; dataChainPointerIndex < 0x4C; dataChainPointerIndex++) {
+                for (let dataChainPointerIndex = 0; dataChainPointerIndex < 0x4C && sectorsLeft > 0; dataChainPointerIndex++) {
                     const dataChainPointer = fileDescriptorRecord + 0x1C + 3 * dataChainPointerIndex;
                     const m = ((fileBuffer[dataChainPointer + 1] & 0x0F) << 8) | fileBuffer[dataChainPointer];
                     const n = (fileBuffer[dataChainPointer + 2] << 4) | ((fileBuffer[dataChainPointer + 1] & 0xF0) >> 4);
