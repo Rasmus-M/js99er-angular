@@ -452,7 +452,7 @@ export class V9938 implements VDP {
     static LOG_DETAIL = 1 << 8;
 
     // Minimum log should be warnings+
-    static VERBOSE = V9938.LOG_GENERAL | V9938.LOG_WARN;
+    static LOG_LEVEL = V9938.LOG_WARN | V9938.LOG_MODE;
 
     // #include "logmacro.h"
 
@@ -698,10 +698,12 @@ export class V9938 implements VDP {
     }
 
     static LOGMASKED(logType: number, message: string, ...args: any[]) {
-        if (logType === V9938.LOG_WARN) {
-            Log.getLog().warn(V9938.format(message, args));
-        } else if (logType >= V9938.LOG_MODE) {
-            Log.getLog().info(V9938.format(message, args));
+        if (logType & V9938.LOG_LEVEL) {
+            if (logType === V9938.LOG_WARN) {
+                Log.getLog().warn(V9938.format(message, args));
+            } else {
+                Log.getLog().info(V9938.format(message, args));
+            }
         }
     }
 
@@ -1371,11 +1373,11 @@ export class V9938 implements VDP {
     }
 
     private pal5bit(c: number) {
-        return c << 3;
+        return (c << 3) | 0x07;
     }
 
     private pal3bit(c: number) {
-        return c << 5;
+        return (c << 5) | 0x1f;
     }
 
     private pen_color(index: number) {
