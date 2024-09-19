@@ -103,12 +103,16 @@ export class CommandDispatcherService {
         this.commandSubject.next(new Command(CommandType.DELETE_DISK, diskImage));
     }
 
-    deleteDiskFiles(diskImage: DiskImage, diskfiles: DiskFile[]) {
-        this.commandSubject.next(new Command(CommandType.DELETE_DISK_FILES, {diskImage: diskImage, diskFiles: diskfiles}));
+    deleteDiskFiles(diskImage: DiskImage, diskFiles: DiskFile[]) {
+        this.commandSubject.next(new Command(CommandType.DELETE_DISK_FILES, {diskImage: diskImage, diskFiles: diskFiles}));
     }
 
     saveDisk(diskImage: DiskImage) {
         this.commandSubject.next(new Command(CommandType.SAVE_DISK, diskImage));
+    }
+
+    saveDiskFiles(diskImage: DiskImage, diskFiles: DiskFile[]) {
+        this.commandSubject.next(new Command(CommandType.SAVE_DISK_FILES, {diskImage: diskImage, diskFiles: diskFiles}));
     }
 
     openTape(file: ArrayBuffer) {

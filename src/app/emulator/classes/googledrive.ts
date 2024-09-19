@@ -284,7 +284,7 @@ export class GoogleDrive {
                                             if (file.getOperationMode() !== OperationMode.INPUT) {
                                                 file.close();
                                                 that.log.info("Saving to Google Drive");
-                                                const fileData = that.diskImage.saveTIFile(fileName);
+                                                const fileData = that.diskImage.createTIFile(fileName);
                                                 if (fileData !== null) {
                                                     that.insertOrUpdateFile(fileName, parent, fileData, (file2) => {
                                                         callback(0, 0);
@@ -456,7 +456,7 @@ export class GoogleDrive {
                             file = new DiskFile(fileName, FileType.PROGRAM, 0, 0, 0);
                             file.setProgram(programBuffer);
                             that.diskImage.putFile(file);
-                            const saveBuffer = that.diskImage.saveTIFile(fileName);
+                            const saveBuffer = that.diskImage.createTIFile(fileName);
                             if (saveBuffer !== null) {
                                 that.insertOrUpdateFile(fileName, parent, saveBuffer, (file2) => {
                                     callback(0, 0);

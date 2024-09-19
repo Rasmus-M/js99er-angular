@@ -9,6 +9,7 @@ import {CommandDispatcherService} from '../../services/command-dispatcher.servic
 import {DiskDrive} from '../../emulator/classes/diskdrive';
 import {SelectionModel} from '@angular/cdk/collections';
 import { faHdd, faBan, faSave, faPlus, faDownload, faCaretUp } from '@fortawesome/free-solid-svg-icons';
+import {FileType} from "../../emulator/classes/disk";
 
 @Component({
     selector: 'app-disk',
@@ -18,6 +19,8 @@ import { faHdd, faBan, faSave, faPlus, faDownload, faCaretUp } from '@fortawesom
 export class DiskComponent implements OnInit, OnDestroy {
 
     @Input() diskImages: DiskImage[];
+
+    protected readonly FileType = FileType;
 
     diskDrives: DiskDrive[];
     diskImageDrives: string[] = [];
@@ -144,6 +147,10 @@ export class DiskComponent implements OnInit, OnDestroy {
 
     deleteFiles() {
         this.commandDispatcherService.deleteDiskFiles(this.diskImages[this.diskImageIndex], this.selection.selected);
+    }
+
+    saveDiskFiles() {
+        this.commandDispatcherService.saveDiskFiles(this.diskImages[this.diskImageIndex], this.selection.selected);
     }
 
     saveDisk() {

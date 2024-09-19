@@ -6,6 +6,7 @@ import {TI994A} from './ti994a';
 import {Log} from '../../classes/log';
 import {Util} from '../../classes/util';
 import {Memory} from './memory';
+import {Record} from './diskfile';
 
 export class DiskDrive implements Stateful {
 
@@ -272,7 +273,7 @@ export class DiskDrive implements Stateful {
 
     dsrRoutine(pabAddr: number, checkDiskName: boolean): number {
         this.log.info("Executing DSR routine for " + this.name + ", PAB in " + Util.toHexWord(pabAddr) + ".");
-        let i;
+        let i: number;
         const vdp = this.console.getVDP();
         const opCode = vdp.getByte(pabAddr);
         const flagStatus = vdp.getByte(pabAddr + 1);
@@ -322,7 +323,7 @@ export class DiskDrive implements Stateful {
         if (this.diskImage != null) {
             if (fileName.substring(0, this.name.length + 1) === this.name + ".") {
                 fileName = fileName.substring(this.name.length + 1);
-                let file, record;
+                let file: DiskFile, record: Record;
                 switch (opCode) {
                     case OpCode.OPEN:
                         this.log.info("Op-code " + opCode + ": OPEN");
@@ -480,7 +481,7 @@ export class DiskDrive implements Stateful {
                                     }
                                     vdp.setByte(pabAddr + 6, (file.getRecordPointer() & 0xFF00) >> 8);
                                     vdp.setByte(pabAddr + 7, file.getRecordPointer() & 0x00FF);
-                                    this.diskImage.setBinaryImage(null); // Invalidate binary image on write
+                                    this.diskImage.invalidateBinaryImage();
                                 } else {
                                     errorCode = DiskError.ILLEGAL_OPERATION;
                                 }
@@ -538,7 +539,7 @@ export class DiskDrive implements Stateful {
                         } else {
                             file.setProgram(new Uint8Array(saveBuffer));
                         }
-                        this.diskImage.setBinaryImage(null); // Invalidate binary image on write
+                        this.diskImage.invalidateBinaryImage();
                         break;
                     case OpCode.DELETE:
                         this.log.info("Op-code " + opCode + ": DELETE");
@@ -560,7 +561,7 @@ export class DiskDrive implements Stateful {
                                         case OperationMode.UPDATE:
                                             if (file.getRecord() != null) {
                                                 file.deleteRecord();
-                                                this.diskImage.setBinaryImage(null); // Invalidate binary image on write
+                                                this.diskImage.invalidateBinaryImage();
                                             } else {
                                                 errorCode = DiskError.ILLEGAL_OPERATION;
                                             }
@@ -787,133 +788,10 @@ export class DiskDrive implements Stateful {
         xhr.send();
     }
 
-    loadDSKFile(dskFileName: string, fileBuffer: Uint8Array, eventHandler: (DiskImageEvent) => void) {
-        let volumeName = "";
-        for (let i = 0; i < 10; i++) {
-            const ch = fileBuffer[i];
-            if (ch >= 32 && ch < 128) {
-                volumeName += String.fromCharCode(ch);
-            }
-        }
-        volumeName = volumeName.trim();
-        this.log.info("Volume name: " + volumeName);
-        const diskImage = new DiskImage(volumeName, eventHandler);
-        const totalSectors = (fileBuffer[0x0A] << 8) + fileBuffer[0x0B];
-        this.log.info("Total sectors: " + totalSectors);
-        for (let fileDescriptorIndex = 0; fileDescriptorIndex < 128; fileDescriptorIndex++) {
-            const fileDescriptorSectorNo = (fileBuffer[0x100 + fileDescriptorIndex * 2] << 8) + fileBuffer[0x100 + fileDescriptorIndex * 2 + 1];
-            if (fileDescriptorSectorNo !== 0) {
-                const fileDescriptorRecord = fileDescriptorSectorNo * 256;
-                let fileName = "";
-                for (let i = 0; i < 10; i++) {
-                    const ch = fileBuffer[fileDescriptorRecord + i];
-                    if (ch >= 32 && ch < 128) {
-                        fileName += String.fromCharCode(ch);
-                    }
-                }
-                fileName = fileName.trim();
-                this.log.info("File name: " + fileName);
-                const statusFlags = fileBuffer[fileDescriptorRecord + 0x0C];
-                const recordType = (statusFlags & 0x80) >> 7;
-                const datatype = (statusFlags & 0x02) >> 1;
-                const fileType = (statusFlags & 0x01);
-                // this.log.info("Status flags: " + statusFlags.toString(2).padl("0", 8));
-                const recordsPerSector = fileBuffer[fileDescriptorRecord + 0x0D];
-                // this.log.info("Records per sector: " + recordsPerSector);
-                const sectorsAllocated = (fileBuffer[fileDescriptorRecord + 0x0E] << 8) + fileBuffer[fileDescriptorRecord + 0x0F];
-                // this.log.info("Sectors allocated: " + sectorsAllocated);
-                const endOfFileOffset = fileBuffer[fileDescriptorRecord + 0x10];
-                // this.log.info("EOF offset: " + endOfFileOffset);
-                let recordLength = fileBuffer[fileDescriptorRecord + 0x11];
-                // this.log.info("Logical record length: " + recordLength);
-                const fileLength = fileType === FileType.PROGRAM ? (sectorsAllocated - 1) * 256 + (endOfFileOffset === 0 ? 256 : endOfFileOffset) : recordLength * sectorsAllocated * recordsPerSector;
-                this.log.info(
-                    Disk.FILE_TYPE_LABELS[fileType] + ": " +
-                    (fileType === FileType.DATA ?
-                        Disk.DATA_TYPE_LABELS[datatype] + ", " +
-                        Disk.RECORD_TYPE_LABELS[recordType] + ", " +
-                        recordLength + ", "
-                        : ""
-                    ) + "file length = " + fileLength
-                );
-                let diskFile;
-                if (fileType === FileType.DATA) {
-                    diskFile = new DiskFile(fileName, fileType, recordType, recordLength, datatype);
-                } else {
-                    diskFile = new DiskFile(fileName, fileType, 0, 0, 0);
-                }
-                diskFile.open(OperationMode.OUTPUT, AccessType.SEQUENTIAL);
-                const program = [];
-                let sectorsLeft = sectorsAllocated;
-                let nLast = -1;
-                for (let dataChainPointerIndex = 0; dataChainPointerIndex < 0x4C && sectorsLeft > 0; dataChainPointerIndex++) {
-                    const dataChainPointer = fileDescriptorRecord + 0x1C + 3 * dataChainPointerIndex;
-                    const m = ((fileBuffer[dataChainPointer + 1] & 0x0F) << 8) | fileBuffer[dataChainPointer];
-                    const n = (fileBuffer[dataChainPointer + 2] << 4) | ((fileBuffer[dataChainPointer + 1] & 0xF0) >> 4);
-                    if (m !== 0) {
-                        // this.log.info("Data chain pointer index " + dataChainPointerIndex);
-                        if (totalSectors > 1600) {
-                            // For high capacity disks (> 1600 sectors) multiply by sectors/AU
-                            // But apparently this is wrong
-                            // m *= 2;
-                        }
-                        const startSector = m;
-                        const endSector = m + n - (nLast + 1);
-                        // this.log.info("Sectors " + startSector + " to " + endSector);
-                        if (endSector > totalSectors) {
-                            this.log.warn("End sector: " + endSector + " > total sectors: " + totalSectors);
-                        }
-                        nLast = n;
-                        for (let sector = startSector; sector <= endSector; sector++) {
-                            sectorsLeft--;
-                            if (fileType === FileType.DATA) {
-                                // Data
-                                if (recordType === RecordType.FIXED) {
-                                    for (let record = 0; record < recordsPerSector; record++) {
-                                        const data = [];
-                                        for (let i = 0; i < recordLength; i++) {
-                                            data.push(fileBuffer[sector * 256 + record * recordLength + i]);
-                                        }
-                                        diskFile.putRecord(new FixedRecord(data, recordLength));
-                                    }
-                                } else {
-                                    let i = sector * 256;
-                                    if (i < fileBuffer.length) {
-                                        recordLength = fileBuffer[i++];
-                                        // TODO: Correct to stop loading if recordLength is zero?
-                                        while (recordLength !== undefined && recordLength !== 0xFF && recordLength !== 0) {
-                                            const data = [];
-                                            for (let j = 0; j < recordLength; j++) {
-                                                data[j] = fileBuffer[i++];
-                                            }
-                                            diskFile.putRecord(new VariableRecord(data));
-                                            recordLength = fileBuffer[i++];
-                                        }
-                                        if (recordLength === undefined || recordLength === 0) {
-                                            this.log.info("Missing EOF marker.");
-                                        }
-                                    } else {
-                                        this.log.warn("Sector out of range: " + sector);
-                                    }
-                                }
-                            } else {
-                                // Program
-                                for (let i = 0; i < ((sectorsLeft > 0 || endOfFileOffset === 0) ? 256 : endOfFileOffset); i++) {
-                                    program.push(fileBuffer[sector * 256 + i]);
-                                }
-                            }
-                        }
-                    }
-                }
-                diskFile.close();
-                if (fileType === FileType.PROGRAM) {
-                    diskFile.setProgram(new Uint8Array(program));
-                }
-                diskImage.putFile(diskFile);
-            }
-        }
+    loadDSKFile(dskFileName: string, fileBuffer: Uint8Array, eventHandler: (DiskImageEvent) => void): DiskImage {
+        const diskImage = new DiskImage(dskFileName, eventHandler);
+        diskImage.loadBinaryImage(fileBuffer);
         this.setDiskImage(diskImage);
-        diskImage.setBinaryImage(fileBuffer);
         return diskImage;
     }
 

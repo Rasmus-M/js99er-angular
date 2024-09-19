@@ -1,4 +1,4 @@
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
 
 import {ConsoleComponent} from './console.component';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
@@ -13,7 +13,7 @@ import {DiskImage} from "../classes/diskimage";
 import {Settings} from "../../classes/settings";
 import {Console} from "../interfaces/console";
 import {CPU} from "../interfaces/cpu";
-import {TMS9901} from "../classes/cru";
+import {TMS9901} from "../classes/tms9901";
 import {DiskDrive} from "../classes/diskdrive";
 import {GoogleDrive} from "../classes/googledrive";
 import {Keyboard} from "../classes/keyboard";
@@ -94,7 +94,7 @@ describe('ConsoleComponent', () => {
     let component: ConsoleComponent;
     let fixture: ComponentFixture<ConsoleComponent>;
 
-    beforeEach(async(() => {
+    beforeEach(waitForAsync(() => {
         TestBed.configureTestingModule({
             declarations: [ConsoleComponent],
             providers: [

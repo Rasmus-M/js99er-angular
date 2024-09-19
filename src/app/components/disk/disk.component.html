@@ -52,7 +52,7 @@
             </ng-container>
             <ng-container matColumnDef="fileSize">
                 <th mat-header-cell *matHeaderCellDef> Size </th>
-                <td mat-cell *matCellDef="let file"> {{file.getSectorCount()}} </td>
+                <td mat-cell *matCellDef="let file"> {{file.getSectorCount() + (file.getFileType() === FileType.PROGRAM ? "&nbsp;(" + file.getProgram().length + ")" : "")}} </td>
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
@@ -62,9 +62,10 @@
     <mat-toolbar class="disk-toolbar">
         <button mat-raised-button (click)="addDisk()"><fa-icon [icon]="addDiskIcon"></fa-icon> New disk</button>
         <span class="margin-right"></span>
-        <button mat-raised-button color="warn" (click)="deleteDisk()"><fa-icon [icon]="deleteIcon"></fa-icon> Delete disk</button>
-        <button mat-raised-button color="warn" (click)="deleteFiles()"><fa-icon [icon]="deleteIcon"></fa-icon> Delete files</button>
+        <button mat-raised-button color="warn" (click)="deleteDisk()" [disabled]="!this.diskImages[this.diskImageIndex]"><fa-icon [icon]="deleteIcon"></fa-icon> Delete disk</button>
+        <button mat-raised-button color="warn" (click)="deleteFiles()" [disabled]="!selection.selected.length"><fa-icon [icon]="deleteIcon"></fa-icon> Delete files</button>
         <span class="margin-right"></span>
-        <button mat-raised-button color="primary" (click)="saveDisk()"><fa-icon [icon]="saveDiskIcon"></fa-icon> Save DSK</button>
+        <button mat-raised-button color="primary" (click)="saveDisk()" [disabled]="!this.diskImages[this.diskImageIndex]"><fa-icon [icon]="saveDiskIcon"></fa-icon> Save DSK</button>
+        <button mat-raised-button color="primary" (click)="saveDiskFiles()" [disabled]="!selection.selected.length"><fa-icon [icon]="saveDiskIcon"></fa-icon> Save TI file(s)</button>
     </mat-toolbar>
 </div>

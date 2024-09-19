@@ -278,7 +278,7 @@ export class DiskFile implements Stateful {
     }
 }
 
-class Record implements Stateful {
+export class Record implements Stateful {
 
     protected data: number[];
 

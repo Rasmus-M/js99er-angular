@@ -15,6 +15,7 @@ import {ConsoleEvent, ConsoleEventType} from '../classes/consoleevent';
 import {DiskFile} from '../emulator/classes/diskfile';
 import {DatabaseService} from "./database.service";
 import {forkJoin} from "rxjs";
+import {Disk} from "../emulator/classes/disk";
 
 @Injectable()
 export class DiskService {
@@ -119,14 +120,14 @@ export class DiskService {
         return subject.asObservable();
     }
 
-    loadDiskFile(filename, file: File, diskDrive: DiskDrive, acceptDiskImage: boolean): Observable<DiskImage> {
+    loadDiskFile(filename: string, file: File, diskDrive: DiskDrive, acceptDiskImage: boolean): Observable<DiskImage> {
         const subject = new Subject<DiskImage>();
         const reader = new FileReader();
         const service = this;
         reader.onload = function () {
             // reader.result contains the contents of blob as a typed array
             const fileBuffer = new Uint8Array(this.result as ArrayBuffer);
-            let diskImage;
+            let diskImage: DiskImage;
             if (acceptDiskImage && fileBuffer.length >= 16 && fileBuffer[0x0D] === 0x44 && fileBuffer[0x0E] === 0x53 && fileBuffer[0x0F] === 0x4B) {
                 diskImage = diskDrive.loadDSKFile(filename, fileBuffer, service.onDiskImageChanged.bind(service));
             } else {
@@ -168,6 +169,14 @@ export class DiskService {
         this.eventDispatcherService.diskChanged(diskImage);
     }
 
+    saveFiles(diskImage: DiskImage, diskFiles: DiskFile[]) {
+        for (const diskFile of diskFiles) {
+            const tiFile = diskImage.createTIFile(diskFile.getName());
+            const blob = new Blob([tiFile], { type: "application/octet-stream" });
+            saveAs(blob, diskFile.getName() + ".tifiles");
+        }
+    }
+
     saveDiskImageAs(diskImage: DiskImage) {
         const imageFile = diskImage.createBinaryImage();
         const blob = new Blob([imageFile], { type: "application/octet-stream" });
@@ -178,6 +187,9 @@ export class DiskService {
         switch (command.type) {
             case CommandType.ADD_DISK:
                 this.addDisk();
+                break;
+            case CommandType.SAVE_DISK_FILES:
+                this.saveFiles(command.data.diskImage, command.data.diskFiles);
                 break;
             case CommandType.SAVE_DISK:
                 this.saveDiskImageAs(command.data);

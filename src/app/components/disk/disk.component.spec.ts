@@ -21,6 +21,7 @@ describe('DiskComponent', () => {
     beforeEach(() => {
         fixture = TestBed.createComponent(DiskComponent);
         component = fixture.componentInstance;
+        component.diskImages = [];
         fixture.detectChanges();
     });
 
