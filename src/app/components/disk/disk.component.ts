@@ -49,7 +49,7 @@ export class DiskComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.subscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
-        this.selection = new SelectionModel<DiskFile>(true, []);
+        this.resetSelection();
     }
 
     onEvent(event: ConsoleEvent) {
@@ -65,6 +65,7 @@ export class DiskComponent implements OnInit, OnDestroy {
                     if (index !== -1) {
                         this.onDiskImageChanged(index);
                     }
+                    this.resetSelection();
                 }
                 break;
             case ConsoleEventType.DISK_INSERTED: {
@@ -120,6 +121,10 @@ export class DiskComponent implements OnInit, OnDestroy {
         }
         this.diskFiles = files;
         this.updateAllDiskImageDrives();
+    }
+
+    resetSelection() {
+        this.selection = new SelectionModel<DiskFile>(true, []);
     }
 
     addDisk() {
