@@ -378,7 +378,12 @@ export class DiskImage implements Stateful {
                             : ""
                     ) + "file length = " + fileLength
                 );
-                const diskFile = this.readFileFromImage(fileBuffer, fileDescriptorRecord + 0x1C, sectorsAllocated, totalSectors, fileName, fileType, recordType, recordLength, recordsPerSector, datatype, endOfFileOffset);
+                const fileSectors = this.getSectorsAllocatedToFile( fileDescriptorRecord + 0x1C, fileBuffer, sectorsAllocated);
+                const outOfRangeSector = fileSectors.find(s => s > totalSectors);
+                if (outOfRangeSector) {
+                    this.log.warn("Sector out of range: " + outOfRangeSector);
+                }
+                const diskFile = this.readFileFromImage(fileBuffer, fileSectors, fileName, fileType, recordType, recordLength, recordsPerSector, datatype, endOfFileOffset);
                 this.putFile(diskFile);
             }
         }
@@ -389,8 +394,8 @@ export class DiskImage implements Stateful {
         const totalSectors = this.geometry.totalSectors;
         const sectorsPerAU = this.getSectorsPerAllocationUnit();
         this.log.info("Sectors per AU: " + sectorsPerAU);
-        const sectorsPerAUForDataChainPointers = this.getSectorsPerAllocationUnitForDataChainPointers();
-        // this.log.info("Sectors per AU for DCPs: " + sectorsPerAUForDataChainPointers);
+        const sectorsPerCluster = this.getSectorsPerCluster();
+        // this.log.info("Sectors per AU for DCPs: " + sectorsPerCluster);
         const dskImg = new Uint8Array(totalSectors * 256);
         // Volume Information Block
         let n = 0;
@@ -437,18 +442,21 @@ export class DiskImage implements Stateful {
             n = this.writeLEWord(dskImg, n, file.getFileType() === FileType.DATA ? (file.getRecordType() === RecordType.FIXED ? file.getRecordCount() : file.getSectorCount()) : 0);
             // Data sectors
             const startSectorNo = nextDataSectorNo;
-            const sectorNo = this.writeFileToImage(file, dskImg, startSectorNo);
-            nextDataSectorNo = this.ceilN(sectorNo + 1, sectorsPerAU);
+            const endSectorNo = this.writeFileToImage(file, dskImg, startSectorNo);
+            if (endSectorNo >= totalSectors) {
+                this.log.warn("Disk is full");
+            }
+            nextDataSectorNo = this.ceilN(endSectorNo + 1, sectorsPerAU);
             // Data chain pointer block
-            const au = this.sectorsToAllocationUnits(startSectorNo, sectorsPerAUForDataChainPointers);
-            const sectorCount = sectorNo - startSectorNo;
+            const au = this.sectorsToAllocationUnits(startSectorNo, sectorsPerCluster);
+            const sectorCount = endSectorNo - startSectorNo;
             n = fileDescriptorAddr + 0x1C;
             n = this.writeByte(dskImg, n, au & 0x00FF);
             n = this.writeByte(dskImg, n, ((sectorCount & 0x000F) << 4) | ((au & 0x0F00) >> 8));
             n = this.writeByte(dskImg, n, (sectorCount & 0x0FF0) >> 4);
             // Allocation bit map
             const startAU = this.sectorsToAllocationUnits(startSectorNo, sectorsPerAU);
-            const endAU = this.sectorsToAllocationUnits(sectorNo, sectorsPerAU);
+            const endAU = this.sectorsToAllocationUnits(endSectorNo, sectorsPerAU);
             // this.log.info("Start AU: " + startAU + " end AU: " + endAU);
             for (let i = startAU; i <= endAU; i++) {
                 dskImg[0x38 + (i >> 3)] |= (1 << (i & 7));
@@ -462,9 +470,7 @@ export class DiskImage implements Stateful {
 
     private readFileFromImage(
         fileBuffer: Uint8Array,
-        dataChainPointers: number,
-        sectorsAllocated: number,
-        totalSectors: number,
+        sectors: number[],
         fileName: string,
         fileType: FileType,
         recordType: RecordType,
@@ -481,67 +487,50 @@ export class DiskImage implements Stateful {
         }
         diskFile.open(OperationMode.OUTPUT, AccessType.SEQUENTIAL);
         const program: number[] = [];
-        let sectorsLeft = sectorsAllocated;
-        let nLast = -1;
-        for (let dataChainPointerIndex = 0; dataChainPointerIndex < 0x4C && sectorsLeft > 0; dataChainPointerIndex++) {
-            const dataChainPointer = dataChainPointers + 3 * dataChainPointerIndex;
-            const m = (((fileBuffer[dataChainPointer + 1] & 0x0F) << 8) | fileBuffer[dataChainPointer]) * this.getSectorsPerAllocationUnitForDataChainPointers();
-            const n = (fileBuffer[dataChainPointer + 2] << 4) | ((fileBuffer[dataChainPointer + 1] & 0xF0) >> 4);
-            if (m !== 0) {
-                // this.log.info("Data chain pointer index " + dataChainPointerIndex);
-                const startSector = m;
-                const endSector = m + n - (nLast + 1);
-                this.log.info("Sectors " + startSector + " to " + endSector);
-                if (endSector > totalSectors) {
-                    this.log.warn("End sector: " + endSector + " > total sectors: " + totalSectors);
-                }
-                nLast = n;
-                for (let sector = startSector; sector <= endSector; sector++) {
-                    if (fileType === FileType.DATA) {
-                        // Data
-                        if (recordType === RecordType.FIXED) {
-                            for (let recordIndex = 0; recordIndex < recordsPerSector; recordIndex++) {
-                                const data = [];
-                                for (let i = 0; i < recordLength; i++) {
-                                    data.push(fileBuffer[sector * 256 + recordIndex * recordLength + i]);
-                                }
-                                diskFile.putRecord(new FixedRecord(data, recordLength));
+        sectors.forEach((sector, idx) => {
+            if (fileType === FileType.DATA) {
+                // Data
+                if (recordType === RecordType.FIXED) {
+                    for (let recordIndex = 0; recordIndex < recordsPerSector; recordIndex++) {
+                        const data = [];
+                        for (let i = 0; i < recordLength; i++) {
+                            data.push(fileBuffer[sector * 256 + recordIndex * recordLength + i]);
+                        }
+                        diskFile.putRecord(new FixedRecord(data, recordLength));
+                    }
+                } else {
+                    let sectorAddr = sector * 256;
+                    if (sectorAddr < fileBuffer.length) {
+                        let sectorBytesLeft = 256;
+                        recordLength = fileBuffer[sectorAddr++];
+                        sectorBytesLeft--;
+                        while (recordLength !== 0xFF && sectorBytesLeft > 0) {
+                            const data = [];
+                            for (let j = 0; j < recordLength && sectorBytesLeft > 0; j++) {
+                                data[j] = fileBuffer[sectorAddr++];
+                                sectorBytesLeft--;
                             }
-                        } else {
-                            let sectorAddr = sector * 256;
-                            if (sectorAddr < fileBuffer.length) {
-                                let sectorBytesLeft = 256;
+                            diskFile.putRecord(new VariableRecord(data));
+                            if (sectorBytesLeft > 0) {
                                 recordLength = fileBuffer[sectorAddr++];
                                 sectorBytesLeft--;
-                                while (recordLength !== 0xFF && sectorBytesLeft > 0) {
-                                    const data = [];
-                                    for (let j = 0; j < recordLength && sectorBytesLeft > 0; j++) {
-                                        data[j] = fileBuffer[sectorAddr++];
-                                        sectorBytesLeft--;
-                                    }
-                                    diskFile.putRecord(new VariableRecord(data));
-                                    if (sectorBytesLeft > 0) {
-                                        recordLength = fileBuffer[sectorAddr++];
-                                        sectorBytesLeft--;
-                                    }
-                                }
-                            } else {
-                                this.log.warn("Sector out of range: " + sector);
-                                break;
                             }
                         }
-                    } else if (sectorsLeft > 0) {
-                        // Program
-                        const bytesInSector = sectorsLeft > 1 || sectorsLeft === 1 && endOfFileOffset === 0 ? 256 : endOfFileOffset;
-                        const sectorStartAddr = sector * 256;
-                        for (let i = 0; i < bytesInSector; i++) {
-                            program.push(fileBuffer[sectorStartAddr + i]);
-                        }
+                    } else {
+                        this.log.warn("Sector out of range: " + sector);
+                        return;
                     }
-                    sectorsLeft--;
+                }
+            } else {
+                // Program
+                const last = idx === sectors.length - 1;
+                const bytesInSector = !last || endOfFileOffset === 0 ? 256 : endOfFileOffset;
+                const sectorStartAddr = sector * 256;
+                for (let i = 0; i < bytesInSector; i++) {
+                    program.push(fileBuffer[sectorStartAddr + i]);
                 }
             }
-        }
+        });
         diskFile.close();
         if (fileType === FileType.PROGRAM) {
             diskFile.setProgram(new Uint8Array(program));
@@ -631,8 +620,40 @@ export class DiskImage implements Stateful {
         return Math.ceil(sectors / sectorsPerAllocationUnit);
     }
 
-    getSectorsPerAllocationUnitForDataChainPointers() {
-        return this.geometry.totalSectors < 4096 ? 1 : this.getSectorsPerAllocationUnit();
+    getSectorsAllocatedToFile(dataChainPointers: number, fileBuffer: Uint8Array, numberOfSectorsAllocated: number): number[] {
+        const sectors = [];
+        let sectorsLeft = numberOfSectorsAllocated;
+        let nLast = -1;
+        for (let dataChainPointerIndex = 0; dataChainPointerIndex < 0x4C && sectorsLeft > 0; dataChainPointerIndex++) {
+            const dataChainPointer = dataChainPointers + 3 * dataChainPointerIndex;
+            const m = (((fileBuffer[dataChainPointer + 1] & 0x0F) << 8) | fileBuffer[dataChainPointer]) * this.getSectorsPerCluster();
+            const n = (fileBuffer[dataChainPointer + 2] << 4) | ((fileBuffer[dataChainPointer + 1] & 0xF0) >> 4);
+            if (m !== 0) {
+                // this.log.info("Data chain pointer index " + dataChainPointerIndex);
+                const startSector = m;
+                const endSector = m + n - (nLast + 1);
+                for (let s = startSector; s <= endSector && sectorsLeft > 0; s++) {
+                    sectors.push(s);
+                    sectorsLeft--;
+                }
+                nLast = n;
+            }
+        }
+        if (sectors.length !== numberOfSectorsAllocated) {
+           this.log.warn("Wrong number of sectors returned: " + sectors.length + ". Expected: " + numberOfSectorsAllocated + ".");
+        }
+        return sectors;
+    }
+
+    getSectorsPerCluster() {
+        const totalSectors = this.geometry.totalSectors;
+        if (totalSectors <= 3200) {
+            return 1;
+        }
+        if (totalSectors <= 6400) {
+            return 4;
+        }
+        return 8;
     }
 
     getSectorsPerAllocationUnit() {
