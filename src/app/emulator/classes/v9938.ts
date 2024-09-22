@@ -794,7 +794,7 @@ export class V9938 implements VDP {
             'CLT:' + Util.toHexWord(this.colorTableAddress()) + ' (' + Util.toHexWord(this.colorTableSize()) + ') ' +
             'SDT:' + Util.toHexWord(this.spritePatternTableAddress()) + ' ' +
             'SAT:' + Util.toHexWord(this.spriteAttributeTableAddress()) + '\n' +
-            'VDP:' + Util.toHexWord(this.address_latch) + ' ' +
+            'VDP:' + Util.toHexWord((this.cont_reg[14] << 8) | this.address_latch) + ' ' +
             'ST:' + Util.toHexByte(this.stat_reg[0]);
         return s;
     }
@@ -1134,7 +1134,15 @@ export class V9938 implements VDP {
     }
 
     private nameTableAddress() {
-        return (this.cont_reg[2] & (this.mode === V9938.MODE_TEXT2 ? 0x7c0 : 0x7f)) << 10;
+        if (this.mode === V9938.MODE_TEXT2) {
+            return (this.cont_reg[2] & 0x7c0) << 10;
+        } else if (this.mode === V9938.MODE_GRAPHIC6) {
+            return (this.cont_reg[2] & 0x40) << 10;
+        } else if (this.mode === V9938.MODE_GRAPHIC7) {
+            return (this.cont_reg[2] & 0x20) << 11;
+        } else {
+            return (this.cont_reg[2] & 0x7f) << 10;
+        }
     }
 
     private patternTableAddress() {
@@ -1373,11 +1381,11 @@ export class V9938 implements VDP {
     }
 
     private pal5bit(c: number) {
-        return (c << 3) | 0x07;
+        return Math.round(c * 255 / 31);
     }
 
     private pal3bit(c: number) {
-        return (c << 5) | 0x1f;
+        return Math.round(c * 255 / 7);
     }
 
     private pen_color(index: number) {
@@ -1397,11 +1405,11 @@ export class V9938 implements VDP {
     }
 
     private set_pen16(index: int, pen: pen_t) {
-        this.set_pen_color(index, new Color().set_rgb(pen)); // .set_a(index != 0 ? 0xff : 0x00)
+        this.set_pen_color(index, new Color().set_rgb(pen));
     }
 
     private set_pen256(index: int, pen: pen_t) {
-        this.set_pen_color(index + 16, new Color().set_rgb(pen).set_a(index !==  0 ? 0xff : 0x00));
+        this.set_pen_color(index + 16, new Color().set_rgb(pen));
     }
 
     reset_palette() {
