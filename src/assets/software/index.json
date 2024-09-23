@@ -173,9 +173,6 @@
             ]
         },
         {
-            "type": "DIVIDER"
-        },
-        {
             "type": "SUBMENU",
             "name": "My games",
             "items": [
@@ -620,6 +617,22 @@
                     "type": "ITEM",
                     "name": "F18A Karts demo",
                     "url": "software/karts8.bin"
+                }
+            ]
+        },
+        {
+            "type": "SUBMENU",
+            "name": "V9938 specific",
+            "items": [
+                {
+                    "type": "ITEM",
+                    "name": "Monkey Island demo",
+                    "url": "software/monkey-v9938.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Graphics demo",
+                    "url": "software/gdemo8.bin"
                 }
             ]
         },
