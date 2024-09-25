@@ -1,10 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import {SettingsService} from '../../services/settings.service';
-import {EventDispatcherService} from '../../services/event-dispatcher.service';
-import {Subscription} from 'rxjs';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
 import {CommandDispatcherService} from "../../services/command-dispatcher.service";
-import {RAMType, TIPIType, VDPType} from "../../classes/settings";
+import {RAMType, PSGType, TIPIType, VDPType} from "../../classes/settings";
 
 @Component({
     selector: 'app-settings',
@@ -16,6 +14,7 @@ export class SettingsComponent implements OnInit {
     vdp: VDPType;
     ram: RAMType;
     tipi: TIPIType;
+    psg: PSGType;
     enableSound: boolean;
     enableSpeech: boolean;
     enablePCKeyboard: boolean;
@@ -43,6 +42,7 @@ export class SettingsComponent implements OnInit {
         this.vdp = this.settingsService.getVDP();
         this.ram = this.settingsService.getRAM();
         this.tipi = this.settingsService.getTIPI();
+        this.psg = this.settingsService.getPSG();
         this.enableSound = this.settingsService.isSoundEnabled();
         this.enableSpeech = this.settingsService.isSpeechEnabled();
         this.enablePCKeyboard = this.settingsService.isPCKeyboardEnabled();
@@ -67,6 +67,10 @@ export class SettingsComponent implements OnInit {
 
     onEnableSoundChanged(value: boolean) {
         this.settingsService.setSoundEnabled(value);
+    }
+
+    onPSGChanged(value: PSGType) {
+        this.settingsService.setPSG(value);
     }
 
     onEnableSpeechChanged(value: boolean) {

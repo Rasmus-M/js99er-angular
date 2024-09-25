@@ -205,17 +205,11 @@ export class Memory implements Stateful, MemoryDevice {
         for (i = 0x7000; i < 0x8000; i++) {
             this.memoryMap[i] = this.ramAt7000 ? cartridgeRAMAccessors : cartridgeROMAccessors;
         }
-        for (i = 0x8000; i < 0x8100; i++) {
-            this.memoryMap[i] = nullAccessors;
-        }
-        for (i = 0x8100; i < 0x8400; i++) {
+        for (i = 0x8000; i < 0x8400; i++) {
             this.memoryMap[i] = padAccessors;
         }
-        for (i = 0x8400; i < 0x8600; i++) {
+        for (i = 0x8400; i < 0x8800; i++) {
             this.memoryMap[i] = soundAccessors;
-        }
-        for (i = 0x8600; i < 0x8800; i++) {
-            this.memoryMap[i] = nullAccessors;
         }
         for (i = 0x8800; i < 0x8C00; i++) {
             this.memoryMap[i] = vdpReadAccessors;
@@ -449,7 +443,7 @@ export class Memory implements Stateful, MemoryDevice {
 
     private writeSound(addr: number, w: number, cpu: CPU) {
         cpu.addCycles(32);
-        this.psg.writeData(w >> 8);
+        this.psg.writeData(addr, w >> 8);
     }
 
     private readVDP(addr: number, cpu: CPU): number {
@@ -673,7 +667,7 @@ export class Memory implements Stateful, MemoryDevice {
 
     setPADWord(addr: number, w: number) {
         this.ram[addr] = w >> 8;
-        this.ram[addr] = w & 0xFF;
+        this.ram[addr + 1] = w & 0xFF;
     }
 
     getStatusString(detailed: boolean): string {

@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {RAMType, Setting, Settings, TIPIType, VDPType} from '../classes/settings';
+import {RAMType, Setting, Settings, PSGType, TIPIType, VDPType} from '../classes/settings';
 import {CommandDispatcherService} from './command-dispatcher.service';
 import {EventDispatcherService} from './event-dispatcher.service';
 
@@ -21,17 +21,20 @@ export class SettingsService {
     loadState() {
         if (this.persistent && window.localStorage) {
             const storage = window.localStorage;
-            if (storage.getItem('enableSound') != null) {
-                this.settings.setSoundEnabled(storage.getItem('enableSound') === 'true');
-            }
-            if (storage.getItem('enableSpeech') != null) {
-                this.settings.setSpeechEnabled(storage.getItem('enableSpeech') === 'true');
+            if (storage.getItem('psg') != null) {
+                this.settings.setPSG(storage.getItem('psg') as PSGType);
             }
             if (storage.getItem('ram') != null) {
                 this.settings.setRAM(storage.getItem('ram') as RAMType);
             }
             if (storage.getItem('vdp') != null) {
                 this.settings.setVDP(storage.getItem('vdp') as VDPType);
+            }
+            if (storage.getItem('enableSound') != null) {
+                this.settings.setSoundEnabled(storage.getItem('enableSound') === 'true');
+            }
+            if (storage.getItem('enableSpeech') != null) {
+                this.settings.setSpeechEnabled(storage.getItem('enableSpeech') === 'true');
             }
             if (storage.getItem('enablePCKeyboard') != null) {
                 this.settings.setPCKeyboardEnabled(storage.getItem('enablePCKeyboard') === 'true');
@@ -89,6 +92,20 @@ export class SettingsService {
 
     setPersistent(value: boolean) {
         this.persistent = value;
+    }
+
+    getPSG(): PSGType {
+        return this.settings.getPSG();
+    }
+
+    setPSG(psg: PSGType) {
+        if (psg !== this.settings.getPSG()) {
+            this.settings.setPSG(psg);
+            if (this.persistent && this.storage) {
+                this.storage.setItem('psg', psg);
+            }
+            this.commandDispatcherService.changeSetting(Setting.PSG, psg);
+        }
     }
 
     isSoundEnabled() {

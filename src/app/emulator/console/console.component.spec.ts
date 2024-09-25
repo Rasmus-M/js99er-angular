@@ -69,6 +69,8 @@ class ConsoleMock implements Console {
     }
     setVDP() {
     }
+    setPSG() {
+    }
     start(fast: boolean, skipBreakpoint?: boolean) {
     }
     step() {

@@ -195,7 +195,11 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                 let resetRequired = false;
                 switch (setting) {
                     case Setting.SOUND:
-                        // Handled by parent
+                        // Handled by main component
+                        break;
+                    case Setting.PSG:
+                        // Handled by main component
+                        resetRequired = true;
                         break;
                     case Setting.SPEECH:
                         this.ti994A.getSpeech().setSpeechEnabled(value);

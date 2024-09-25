@@ -1,20 +1,23 @@
 export enum Setting {
-    SOUND = 0,
-    SPEECH = 1,
-    RAM = 2,
-    VDP = 3,
-    PC_KEYBOARD = 4,
-    MAP_ARROW_KEYS = 5,
-    GOOGLE_DRIVE = 6,
-    GRAM = 7,
-    PIXELATED = 8,
-    PAUSE_ON_FOCUS_LOST = 9,
-    TIPI = 10,
-    TIPI_WEBSOCKET_URI = 11,
-    DEBUG_RESET = 12,
-    H264_CODEC = 13,
-    DISK = 14,
+    SOUND,
+    PSG,
+    SPEECH,
+    RAM,
+    VDP,
+    PC_KEYBOARD,
+    MAP_ARROW_KEYS,
+    GOOGLE_DRIVE,
+    GRAM,
+    PIXELATED,
+    PAUSE_ON_FOCUS_LOST,
+    TIPI,
+    TIPI_WEBSOCKET_URI,
+    DEBUG_RESET,
+    H264_CODEC,
+    DISK,
 }
+
+export type PSGType = 'STANDARD' | 'FORTI';
 
 export type RAMType = 'NONE' | '32K' | 'SAMS1M' | 'SAMS4M' | 'SAMS16M';
 
@@ -25,6 +28,7 @@ export type TIPIType = 'NONE' | 'MOUSE' | 'FULL';
 export class Settings {
 
     private enableSound: boolean;
+    private psg: PSGType;
     private enableSpeech: boolean;
     private ram: RAMType;
     private vdp: VDPType;
@@ -42,6 +46,7 @@ export class Settings {
 
     constructor() {
         this.enableSound = true;
+        this.psg = 'STANDARD';
         this.enableSpeech = true;
         this.ram = '32K';
         this.vdp = 'TMS9918A';
@@ -64,6 +69,14 @@ export class Settings {
 
     setSoundEnabled(enabled: boolean) {
         this.enableSound = enabled;
+    }
+
+    getPSG(): PSGType {
+        return this.psg;
+    }
+
+    setPSG(psg: PSGType) {
+        this.psg = psg;
     }
 
     isSpeechEnabled(): boolean {
@@ -197,6 +210,7 @@ export class Settings {
 
     copyFrom(otherSettings: Settings) {
         this.enableSound = otherSettings.isSoundEnabled();
+        this.psg = otherSettings.getPSG();
         this.enableSpeech = otherSettings.isSpeechEnabled();
         this.ram = otherSettings.getRAM();
         this.vdp = otherSettings.getVDP();

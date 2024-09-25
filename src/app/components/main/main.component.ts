@@ -123,7 +123,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                 if (setting === Setting.SOUND) {
                     const value: boolean = command.data.value;
                     this.audioService.setSoundEnabled(value);
-                }
+                } else if (setting === Setting.PSG) {
+                    this.ti994A.setPSG();
+                    this.audioService.init(this.settingsService.isSoundEnabled(), this.ti994A.getPSG(), this.ti994A.getSpeech(), this.ti994A.getTape());                }
                 break;
             case CommandType.SAVE_STATE:
                 this.saveState();
@@ -148,7 +150,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                 } else if (this.cartName !== MainComponent.DEFAULT_CART_NAME) {
                     this.loadCartridge(this.cartName);
                 } else  {
-                    this.databaseService.whenReady().subscribe((supported) => {
+                    this.databaseService.whenReady().subscribe((
+                        supported) => {
                         this.databaseService.getSoftware(ConsoleComponent.LATEST_SOFTWARE).subscribe({
                             next: (software: Software) => {
                                 this.commandDispatcherService.loadSoftware(software);
@@ -270,6 +273,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
                 const settings: Settings = new Settings();
                 settings.setSoundEnabled(that.settingsService.isSoundEnabled());
+                settings.setPSG(that.settingsService.getPSG());
                 settings.setSpeechEnabled(state.speech.enabled);
                 settings.setRAM(state.memory.ramType);
                 settings.setVDP(that.settingsService.getVDP());

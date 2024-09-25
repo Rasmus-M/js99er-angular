@@ -22,8 +22,15 @@
         <mat-checkbox [ngModel]="enableGRAM" (ngModelChange)="onEnableGRAMChanged($event)">GRAM enabled</mat-checkbox>
     </div>
     <div class="checkbox-setting">
-        <mat-checkbox [ngModel]="enableSound" (ngModelChange)="onEnableSoundChanged($event)">Sound enabled</mat-checkbox>
+        <mat-checkbox [ngModel]="enableSound" (ngModelChange)="onEnableSoundChanged($event)">Sound enabled (general)</mat-checkbox>
     </div>
+    <mat-form-field class="setting">
+        <mat-label>PSG</mat-label>
+        <mat-select [(ngModel)]="psg" (ngModelChange)="onPSGChanged($event)">
+            <mat-option [value]="'STANDARD'">Standard (TMS9919)</mat-option>
+            <mat-option [value]="'FORTI'">FORTi sound card</mat-option>
+        </mat-select>
+    </mat-form-field>
     <div class="checkbox-setting">
         <mat-checkbox [ngModel]="enableSpeech" (ngModelChange)="onEnableSpeechChanged($event)">Speech enabled</mat-checkbox>
     </div>

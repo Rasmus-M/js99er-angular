@@ -25,6 +25,7 @@ import {TIPI} from "./tipi";
 import {WasmService} from "../../services/wasm.service";
 import * as $ from "jquery";
 import {V9938} from "./v9938";
+import {Forti} from "./forti";
 
 export class TI994A implements Console, Stateful {
 
@@ -111,7 +112,7 @@ export class TI994A implements Console, Stateful {
         this.cpu = new TMS9900(this);
         this.setVDP();
         this.tape = new Tape();
-        this.psg = new TMS9919(this.cpu, this.tape);
+        this.setPSG();
         this.speech = new TMS5200(this, this.settings);
         this.tms9901 = new TMS9901(this);
         this.keyboard = new Keyboard(this.document, this.settings);
@@ -135,6 +136,17 @@ export class TI994A implements Console, Stateful {
                 break;
             case 'V9938':
                 this.vdp = new V9938(this.canvas, this);
+                break;
+        }
+    }
+
+    setPSG() {
+        switch (this.settings.getPSG()) {
+            case 'STANDARD':
+                this.psg = new TMS9919(this.cpu, this.tape);
+                break;
+            case 'FORTI':
+                this.psg = new Forti(this.cpu, this.tape);
                 break;
         }
     }

@@ -34,5 +34,6 @@ export interface Console {
     getTIPI(): TIPI;
     setTIPI();
     setVDP();
+    setPSG();
     isRunning();
 }

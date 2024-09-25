@@ -129,7 +129,7 @@ export class AudioService {
         this.tape.updateSoundBuffer(out);
     }
 
-    setSoundEnabled(enabled) {
+    setSoundEnabled(enabled: boolean) {
         AudioService.resumeSound();
         const oldEnabled = this.enabled;
         if (AudioService.audioContext) {
