@@ -17,7 +17,7 @@ export class DiskFile implements Stateful {
     private accessType: AccessType;
     private log: Log = Log.getLog();
 
-    constructor(name, fileType: FileType, recordType: RecordType, recordLength, dataType: DataType) {
+    constructor(name: string, fileType: FileType, recordType: RecordType, recordLength: number, dataType: DataType) {
         this.name = name;
         this.fileType = fileType;
         this.recordType = recordType;
@@ -250,7 +250,7 @@ export class DiskFile implements Stateful {
 
     toString(): string {
         let s = "";
-        let i;
+        let i: number;
         if (this.fileType === FileType.DATA) {
             for (i = 0; i < this.records.length; i++) {
                 s += "Record " + i + ": ";
@@ -263,7 +263,7 @@ export class DiskFile implements Stateful {
         } else {
             for (i = 0; i < this.program.length; i++) {
                 if (i % 32 === 0) {
-                    s += i.toHexWord() + " ";
+                    s += Util.toHexWord(i) + " ";
                 }
                 s += Util.toHexByteShort(this.program[i]);
                 if (i % 8 === 7) {

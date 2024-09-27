@@ -12,7 +12,7 @@ export class Joystick implements Stateful {
     private interval: number;
     private log: Log;
 
-    constructor(column, number) {
+    constructor(column: boolean[], number: number) {
         this.column = column;
         this.number = number;
         this.index = null;

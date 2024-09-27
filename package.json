@@ -44,6 +44,7 @@
     "@angular/language-service": "18.2.3",
     "@types/dom-mediacapture-record": "^1.0.19",
     "@types/gapi": "0.0.47",
+    "@types/gapi.auth2": "0.0.61",
     "@types/jasmine": "^5.1.4",
     "@types/jasminewd2": "^2.0.13",
     "@types/jquery": "^3.5.30",

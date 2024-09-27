@@ -91,7 +91,7 @@ export class F18AFlash {
         this.intReset();
     }
 
-    writeByte(b) {
+    writeByte(b: number) {
         this.log.debug("Write byte to SPI: " + Util.toHexByte(b));
         if (this.enabled) {
             if (this.addressByte === -1) {
@@ -209,7 +209,7 @@ export class F18AFlash {
         }
     }
 
-    getState() {
+    getState(): any {
         return {
             updated: this.updated,
             writeEnabled: this.writeEnabled,
@@ -223,7 +223,7 @@ export class F18AFlash {
         };
     }
 
-    restoreState(state) {
+    restoreState(state: any) {
         this.updated = state.updated;
         this.writeEnabled = state.writeEnabled;
         this.enabled = state.enabled;

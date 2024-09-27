@@ -389,7 +389,7 @@ export class F18A implements VDP {
         this.log.setMinLevel(LogLevel.INFO);
     }
 
-    setDimensions(force) {
+    setDimensions(force: boolean) {
         const newCanvasWidth = this.screenMode === F18A.MODE_TEXT_80 ? 640 : 320;
         const newCanvasHeight = this.screenMode === F18A.MODE_TEXT_80 ? 480 : 240;
         const newDimensions = force || newCanvasWidth !== this.canvas.width || newCanvasHeight !== this.canvas.height;
@@ -408,7 +408,7 @@ export class F18A implements VDP {
         }
     }
 
-    fillCanvas(color) {
+    fillCanvas(color: number) {
         this.canvasContext.fillStyle = 'rgba(' + this.palette[color].join(',') + ',1.0)';
         this.canvasContext.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
     }
@@ -416,7 +416,7 @@ export class F18A implements VDP {
     initFrame() {
     }
 
-    drawScanline(y) {
+    drawScanline(y: number) {
         this.currentScanline = y >= this.topBorder ? y - this.topBorder : 255;
         this.blanking = (y < this.topBorder || y >= this.topBorder + this.drawHeight) ? 1 : 0;
 
@@ -533,7 +533,7 @@ export class F18A implements VDP {
         }
     }
 
-    writeAddress(i) {
+    writeAddress(i: number) {
         if (!this.latch) {
             this.addressRegister = (this.addressRegister & 0xFF00) | i;
         } else {
@@ -572,7 +572,7 @@ export class F18A implements VDP {
         this.latch = !this.latch;
     }
 
-    writeRegister(reg, value) {
+    writeRegister(reg: number, value: number) {
         const oldValue = this.registers[reg];
         this.registers[reg] = value;
         switch (reg) {
@@ -867,11 +867,11 @@ export class F18A implements VDP {
         }
     }
 
-    readRegister(reg) {
+    readRegister(reg: number) {
         return this.registers[reg];
     }
 
-    updateMode(reg0, reg1) {
+    updateMode(reg0: number, reg1: number) {
         const oldMode = this.screenMode;
         // Check bitmap mode bit, not text or multicolor
         if ((reg0 & 0x2) !== 0 && (reg1 & 0x18) === 0) {
@@ -930,7 +930,7 @@ export class F18A implements VDP {
         }
     }
 
-    writeData(b) {
+    writeData(b: number) {
         if (!this.dataPortMode) {
             this.ram[this.addressRegister] = b;
             this.addressRegister += this.addressIncrement;
@@ -1116,11 +1116,11 @@ export class F18A implements VDP {
         this.ram[addr] = i;
     }
 
-    getWord(addr) {
+    getWord(addr: number) {
         return addr < 0x4800 ? this.ram[addr] << 8 | this.ram[addr + 1] : 0;
     }
 
-    getCharAt(x, y) {
+    getCharAt(x: number, y: number) {
         if (this.screenMode === F18A.MODE_TEXT_80) {
             x *= 2;
         }
@@ -1148,7 +1148,7 @@ export class F18A implements VDP {
         return this.palette;
     }
 
-    getRegister(n): number {
+    getRegister(n: number): number {
         return this.registers[n];
     }
 
@@ -1427,7 +1427,7 @@ export class F18A implements VDP {
         canvasContext.putImageData(imageData, 0, 0);
     }
 
-    getState() {
+    getState(): any {
         return {
             ram: this.ram,
             registers: this.registers,
@@ -1515,7 +1515,7 @@ export class F18A implements VDP {
         };
     }
 
-    restoreState(state) {
+    restoreState(state: any) {
         this.ram = state.ram;
         this.registers = state.registers;
         this.addressRegister = state.addressRegister;

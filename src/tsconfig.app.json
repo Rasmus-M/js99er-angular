@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "../out-tsc/app",
     "baseUrl": "./",
-    "types": []
+    "types": ["gapi", "gapi.auth2"]
   },
   "files": [
     "main.ts",

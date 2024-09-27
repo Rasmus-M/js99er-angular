@@ -29,7 +29,7 @@ export class F18AGPU extends CPUCommon implements CPU {
     // Misc
     private cpuIdle: boolean;
 
-    constructor(f18a) {
+    constructor(f18a: F18A) {
         super();
         this.f18a = f18a;
         this.addSpecialInstructions();
@@ -141,12 +141,12 @@ export class F18AGPU extends CPUCommon implements CPU {
         }
     }
 
-    setPc(value) {
+    setPc(value: number) {
         super.setPc(value);
         this.setIdle(false);
     }
 
-    setWp(value) {
+    setWp(value: number) {
         this.log.warn("setWP not implemented.");
     }
 
@@ -520,7 +520,7 @@ export class F18AGPU extends CPUCommon implements CPU {
         return this.cpuIdle;
     }
 
-    setIdle(idle) {
+    setIdle(idle: boolean) {
         this.cpuIdle = idle;
     }
 
@@ -538,13 +538,13 @@ export class F18AGPU extends CPUCommon implements CPU {
     dumpProfile(): void {
     }
 
-    hexArrayToBin(hexArray) {
-        const binArray = [];
+    hexArrayToBin(hexArray: string[]) {
+        const binArray: number[] = [];
         let n = 0;
         for (let i = 0; i < hexArray.length; i++) {
             const row = hexArray[i];
             for (let j = 0; j < row.length; j += 2) {
-                binArray[n++] = parseInt(row.substr(j, 2), 16);
+                binArray[n++] = parseInt(row.substring(j, j + 2), 16);
             }
         }
         return binArray;

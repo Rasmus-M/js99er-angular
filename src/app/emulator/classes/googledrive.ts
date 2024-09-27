@@ -552,7 +552,7 @@ export class GoogleDrive {
         return catFile;
    }
 
-    writeAsString(data, n, str) {
+    writeAsString(data: number[], n: number, str: string) {
         data[n++] = str.length;
         for (let i = 0; i < str.length; i++) {
             data[n++] = str.charCodeAt(i);
@@ -561,7 +561,7 @@ export class GoogleDrive {
    }
 
     // Translated from Classic99
-    writeAsFloat(data, n, val) {
+    writeAsFloat(data: number[], n: number, val: number) {
         const word = [0, 0];
         // First write a size byte of 8
         data[n++] = 8;
@@ -595,7 +595,7 @@ export class GoogleDrive {
         return n;
    }
 
-    getFiles(parent, callback) {
+    getFiles(parent: string, callback: (items: any[]) => void) {
         const request = gapi.client.request({
             'path': '/drive/v2/files',
             'method': 'GET',
@@ -606,7 +606,7 @@ export class GoogleDrive {
         });
    }
 
-    findFile(fileName, parent, callback) {
+    findFile(fileName: string, parent: string, callback: (id: string) => void) {
         const request = gapi.client.request({
             'path': '/drive/v2/files',
             'method': 'GET',
@@ -621,7 +621,7 @@ export class GoogleDrive {
         });
    }
 
-    getFile(fileId, callback) {
+    getFile(fileId: string, callback: (file: any) => void) {
         const request = gapi.client.request({
             'path': '/drive/v2/files/' + fileId,
             'method': 'GET'
@@ -629,7 +629,7 @@ export class GoogleDrive {
         request.execute(callback);
    }
 
-    getFileContents(parent, callback) {
+    getFileContents(parent: string, callback: (files: any[]) => void) {
         const that = this;
         const files = [];
         this.getFiles(parent, (items) => {
@@ -650,7 +650,7 @@ export class GoogleDrive {
         }
    }
 
-    getFileContent(fileId, callback) {
+    getFileContent(fileId: string, callback: (data: Uint8Array | null) => void) {
         this.getFile(fileId, (file) => {
             if (file.downloadUrl) {
                 this.log.info("getFileContent: " + file.title);
@@ -675,7 +675,7 @@ export class GoogleDrive {
         });
    }
 
-    insertOrUpdateFile(fileName, parent, fileData, callback) {
+    insertOrUpdateFile(fileName: string, parent: string, fileData: Uint8Array, callback: (file: any) => void) {
         this.findFile(fileName, parent, (fileId) => {
             if (fileId === null) {
                 this.insertFile(fileName, parent, fileData, callback);
@@ -685,7 +685,7 @@ export class GoogleDrive {
         });
    }
 
-    insertFile(fileName, parent, fileData, callback) {
+    insertFile(fileName: string, parent: string, fileData: Uint8Array, callback: (file: any) => void) {
         const boundary = '-------314159265358979323846';
         const delimiter = "\r\n--" + boundary + "\r\n";
         const close_delim = "\r\n--" + boundary + "--";
@@ -725,7 +725,7 @@ export class GoogleDrive {
         };
    }
 
-    updateFile(fileId, fileData, callback) {
+    updateFile(fileId: string, fileData: Uint8Array, callback: (file: any) => void) {
         const boundary = '-------314159265358979323846';
         const delimiter = "\r\n--" + boundary + "\r\n";
         const close_delim = "\r\n--" + boundary + "--";
@@ -761,7 +761,7 @@ export class GoogleDrive {
         };
    }
 
-    getOrCreateFolder(path, parent, callback) {
+    getOrCreateFolder(path: string[], parent: string, callback: (parent: string) => void) {
         if (path.length > 0) {
             this.getFolder(path[0], parent, (id) => {
                 if (id === null) {
@@ -777,7 +777,7 @@ export class GoogleDrive {
         }
    }
 
-    createFolder(folderName, parent, callback) {
+    createFolder(folderName: string, parent: string, callback: (id: string) => void) {
         const metadata = {
             'title': folderName,
             'parents': [{'id': parent}],
@@ -797,7 +797,7 @@ export class GoogleDrive {
         });
    }
 
-    getFolder(folderName, parent, callback) {
+    getFolder(folderName: string, parent: string, callback: (id: string) => void) {
         const request = gapi.client.request({
             'path': '/drive/v2/files',
             'method': 'GET',

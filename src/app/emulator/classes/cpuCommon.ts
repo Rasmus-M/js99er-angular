@@ -2,7 +2,6 @@ import {Decoder} from "../../classes/decoder";
 import {Util} from "../../classes/util";
 import {Opcode} from "../../classes/opcode";
 import {Log} from "../../classes/log";
-import {CPU} from "../interfaces/cpu";
 
 export abstract class CPUCommon {
 
@@ -177,7 +176,7 @@ export abstract class CPUCommon {
         return this.pc;
     }
 
-    setPc(value) {
+    setPc(value: number) {
         if ((value & 1) !== 0) {
             this.log.warn("Setting odd PC from " + Util.toHexWord(this.pc));
         }
@@ -188,7 +187,7 @@ export abstract class CPUCommon {
         this.pc = (this.pc + 2) & 0xFFFE;
     }
 
-    addPc(value) {
+    addPc(value: number) {
         this.pc = (this.pc + value) & 0xFFFE;
     }
 
@@ -204,7 +203,7 @@ export abstract class CPUCommon {
         return this.st & 0x000F;
     }
 
-    addCycles(value) {
+    addCycles(value: number) {
         this.cycles += value;
     }
 
@@ -212,7 +211,7 @@ export abstract class CPUCommon {
         return this.cycles;
     }
 
-    decodeOperands(opcode: Opcode, instr) {
+    decodeOperands(opcode: Opcode, instr: number) {
         let cycles = 0;
         switch (opcode.format) {
             case 1:
@@ -1357,7 +1356,7 @@ export abstract class CPUCommon {
         return this.pc === this.breakpoint ? this.breakpoint : (this.pc === this.auxBreakpoint ? this.auxBreakpoint : this.breakpoint);
     }
 
-    setBreakpoint(addr) {
+    setBreakpoint(addr: number) {
         this.breakpoint = addr;
     }
 
@@ -1369,8 +1368,8 @@ export abstract class CPUCommon {
 
     getInstructionSize(instruction: number, opcode: Opcode): number {
         let size = 2;
-        let ts;
-        let td;
+        let ts: number;
+        let td: number;
         switch (opcode.format) {
             case 1:
                 // Two general addresses
