@@ -1,3 +1,8 @@
+// @ts-ignore
+import zip from 'zip-js/WebContent/zip.js';
+import Entry = zip.Entry;
+import Reader = zip.Reader;
+import ZipReader = zip.ZipReader;
 import {MemoryBlock, Software} from '../classes/software';
 import {Log} from '../classes/log';
 import {HttpClient} from '@angular/common/http';
@@ -7,10 +12,6 @@ import {Subject} from 'rxjs';
 import {ZipService} from './zip.service';
 import {Util} from '../classes/util';
 import {forkJoin} from "rxjs";
-import * as zip from 'zip-js/WebContent/zip.js';
-import Entry = zip.Entry;
-import Reader = zip.Reader;
-
 @Injectable()
 export class ModuleService {
 
@@ -118,8 +119,8 @@ export class ModuleService {
 
     loadRPKOrZipModule(reader: Reader): Observable<Software> {
         const subject = new Subject<Software>();
-        this.zipService.createReader(reader, (zipReader) => {
-            zipReader.getEntries((entries) => {
+        this.zipService.createReader(reader, (zipReader: ZipReader) => {
+            zipReader.getEntries((entries: any[]) => {
                 let layoutEntry = null;
                 entries.forEach((entry) => {
                     // log.info(entry.filename);
@@ -144,12 +145,12 @@ export class ModuleService {
         const
             zipService = this.zipService,
             writer = zipService.createTextWriter('ISO-8859-1');
-        layoutEntry.getData(writer, (txt) => {
+        layoutEntry.getData(writer, (txt: string) => {
             const
                 parser = new DOMParser(),
                 xmlDoc = parser.parseFromString(txt, 'text/xml'),
                 pcb = xmlDoc.getElementsByTagName('pcb')[0],
-                pcbType = pcb.getAttribute('type').toLowerCase(),
+                pcbType = pcb && pcb.getAttribute('type')?.toLowerCase(),
                 roms = xmlDoc.getElementsByTagName('rom'),
                 sockets = xmlDoc.getElementsByTagName('socket'),
                 module: Software = new Software(),
@@ -160,20 +161,24 @@ export class ModuleService {
             for (let i = 0; i < roms.length; i++) {
                 const rom = roms[i];
                 const romId = rom.getAttribute('id');
-                const filename = rom.getAttribute('file');
-                let socketId = null;
-                for (let j = 0; j < sockets.length && !socketId; j++) {
-                    if (sockets[j].getAttribute('uses') === romId) {
-                        socketId = sockets[j].getAttribute('id');
+                if (romId) {
+                    const filename = rom.getAttribute('file');
+                    let socketId = null;
+                    for (let j = 0; j < sockets.length && !socketId; j++) {
+                        if (sockets[j].getAttribute('uses') === romId) {
+                            socketId = sockets[j].getAttribute('id');
+                        }
+                    }
+                    if (filename && socketId) {
+                        let entry: Entry = null;
+                        for (let j = 0; j < entries.length && entry == null; j++) {
+                            if (entries[j].filename === filename) {
+                                entry = entries[j];
+                            }
+                        }
+                        observables.push(this.loadRPKEntry(entry, filename, romId, socketId));
                     }
                 }
-                let entry: Entry = null;
-                for (let j = 0; j < entries.length && entry == null; j++) {
-                    if (entries[j].filename === filename) {
-                        entry = entries[j];
-                    }
-                }
-                observables.push(this.loadRPKEntry(entry, filename, romId, socketId));
             }
             forkJoin(observables).subscribe(
                 (softwares: Software[]) => {
@@ -194,9 +199,9 @@ export class ModuleService {
                 },
                 subject.error
             );
-        }, (progress, total) => {
+        }, (progress: number, total: number) => {
             // On progress
-        }, (error) => {
+        }, (error: any) => {
             subject.error(error);
         });
     }
@@ -207,7 +212,7 @@ export class ModuleService {
             zipService = this.zipService,
             blobWriter = zipService.createBlobWriter(),
             log = Log.getLog();
-        entry.getData(blobWriter, (blob) => {
+        entry.getData(blobWriter, (blob: Blob) => {
             const reader = new FileReader();
             reader.onload = () => {
                 // reader.result contains the contents of blob as a typed array
@@ -254,9 +259,9 @@ export class ModuleService {
             baseFileName: string = this.getBaseFilename(entry.filename),
             zipService = this.zipService;
         const grom = baseFileName && (baseFileName.endsWith('g') || baseFileName.endsWith('G'));
-        software.inverted = baseFileName && (baseFileName.endsWith('3') || baseFileName.endsWith('9'));
+        software.inverted = baseFileName !== undefined && (baseFileName.endsWith('3') || baseFileName.endsWith('9'));
         const blobWriter = zipService.createBlobWriter();
-        entry.getData(blobWriter, (blob) => {
+        entry.getData(blobWriter, (blob: Blob) => {
             const reader = new FileReader();
             reader.onload = () => {
                 // reader.result contains the contents of blob as a typed array
@@ -276,7 +281,7 @@ export class ModuleService {
             reader.readAsArrayBuffer(blob);
         }, () => {
             // On progress
-        }, (error) => {
+        }, (error: any) => {
             subject.error(error);
         });
         return subject.asObservable();
@@ -286,7 +291,7 @@ export class ModuleService {
         const
             subject = new Subject<Software>(),
             baseFileName = this.getBaseFilename(file.name),
-            inverted = baseFileName && (baseFileName.endsWith('3') || baseFileName.endsWith('9')),
+            inverted = baseFileName !== undefined && (baseFileName.endsWith('3') || baseFileName.endsWith('9')),
             grom = baseFileName && (baseFileName.endsWith('g') || baseFileName.endsWith('G')),
             secondBank = considerExtensionForSecondBank && (baseFileName.endsWith('d') || baseFileName.endsWith('D')),
             reader = new FileReader();
@@ -316,7 +321,7 @@ export class ModuleService {
     loadBinModuleFromURL(url: string): Observable<Software> {
         const subject = new Subject<Software>();
         const baseFileName = url.split('.')[0];
-        const inverted = baseFileName && (baseFileName.endsWith('3') || baseFileName.endsWith('9'));
+        const inverted = baseFileName !== undefined && (baseFileName.endsWith('3') || baseFileName.endsWith('9'));
         this.httpClient.get(url, {responseType: 'arraybuffer'}).subscribe(
             (data: ArrayBuffer) => {
                 const byteArray = new Uint8Array(data);

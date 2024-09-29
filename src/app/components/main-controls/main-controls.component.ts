@@ -101,7 +101,7 @@ export class MainControlsComponent implements OnInit, OnDestroy {
 
     openModule(fileInput: HTMLInputElement) {
         const files = fileInput.files;
-        if (files.length) {
+        if (files && files.length) {
             this.commandDispatcherService.loadModule(files);
             fileInput.value = "";
         }
@@ -109,7 +109,7 @@ export class MainControlsComponent implements OnInit, OnDestroy {
 
     openDisk(fileInput: HTMLInputElement) {
         const files = fileInput.files;
-        if (files.length) {
+        if (files && files.length) {
             this.commandDispatcherService.loadDisk(this.driveIndex, files);
             fileInput.value = "";
         }
@@ -186,7 +186,7 @@ export class MainControlsComponent implements OnInit, OnDestroy {
             date.getSeconds().toString().padStart(2, "0");
     }
 
-    download(url, fileName) {
+    download(url: string, fileName: string) {
         const a = this.element.nativeElement.querySelector("#download-link");
         a.href = url;
         a.download = fileName;

@@ -9,6 +9,7 @@ import {TI994A} from './ti994a';
 import {Opcode} from "../../classes/opcode";
 import {Disassembler} from "../../classes/disassembler";
 import {CPUCommon} from "./cpuCommon";
+import {Console} from "../interfaces/console";
 
 export class TMS9900 extends CPUCommon implements CPU {
 
@@ -16,7 +17,7 @@ export class TMS9900 extends CPUCommon implements CPU {
     static readonly CYCLES_PER_SCANLINE = 183;
     static readonly PROFILE = false;
 
-    private console: TI994A;
+    private console: Console;
     private memory: Memory;
     private cru: TMS9901;
     private keyboard: Keyboard;
@@ -31,7 +32,7 @@ export class TMS9900 extends CPUCommon implements CPU {
     private maxCount: number;
     private disassembler: Disassembler;
 
-    constructor(console: TI994A) {
+    constructor(console: Console) {
         super();
         this.console = console;
         this.disassembler = new Disassembler();
@@ -39,9 +40,9 @@ export class TMS9900 extends CPUCommon implements CPU {
     }
 
     addSpecialInstructions() {
-        this.instructions.TB = this.tb;
-        this.instructions.SBO = this.sbo;
-        this.instructions.SBZ = this.sbz;
+        this.instructions['TB'] = this.tb;
+        this.instructions['SBO'] = this.sbo;
+        this.instructions['SBZ'] = this.sbz;
     }
 
     reset() {
@@ -130,7 +131,7 @@ export class TMS9900 extends CPUCommon implements CPU {
         const opcode: Opcode = this.decoderTable[instruction];
         if (opcode && opcode.original) {
             let cycles = this.decodeOperands(opcode, instruction);
-            const f: () => number = this.instructions[opcode.id];
+            const f: undefined | (() => number) = this.instructions[opcode.id];
             if (f) {
                 cycles += f.call(this);
                 if (TMS9900.PROFILE) {
@@ -398,7 +399,7 @@ export class TMS9900 extends CPUCommon implements CPU {
         return this.suspended;
     }
 
-    setSuspended(suspended) {
+    setSuspended(suspended: boolean) {
         this.suspended = suspended;
     }
 
@@ -417,20 +418,20 @@ export class TMS9900 extends CPUCommon implements CPU {
             });
             this.log.info("Profile:");
             for (let j = 0; j < 16; j++) {
-                this.log.info(sortedProfile[j].addr.toHexWord() + ": " + sortedProfile[j].count + " cycles.");
+                this.log.info(Util.toHexWord(sortedProfile[j].addr) + ": " + sortedProfile[j].count + " cycles.");
             }
             this.profile = new Uint32Array(0x10000);
             this.log.info("--------");
         }
     }
 
-    getState(): any {
+    override getState(): any {
         const state = super.getState();
         state.suspended = this.suspended;
         return state;
     }
 
-    restoreState(state: any) {
+    override restoreState(state: any) {
         super.restoreState(state);
         this.suspended = state.suspended;
     }

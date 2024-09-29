@@ -38,7 +38,7 @@ export class SoftwareMenuComponent implements OnInit {
         );
     }
 
-    openSoftware(url) {
+    openSoftware(url: string) {
         if (url) {
             this.moduleService.loadModuleFromURL(url).subscribe(
                 (software: Software) => {

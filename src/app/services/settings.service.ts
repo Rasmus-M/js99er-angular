@@ -77,13 +77,9 @@ export class SettingsService {
         return this.settings;
     }
 
-    setSettings(settings: any) {
-        for (const setting of Object.getOwnPropertyNames(settings)) {
-            const setterName = 'set' + setting.charAt(0).toUpperCase() + setting.substring(1);
-            if (this.settings[setterName]) {
-                this.settings[setterName](settings[setting]);
-            }
-        }
+    setSettings(otherSettings: Settings) {
+        // TODO
+        this.settings.copyFrom(otherSettings);
     }
 
     getPersistent(): boolean {

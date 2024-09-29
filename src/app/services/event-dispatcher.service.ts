@@ -61,7 +61,7 @@ export class EventDispatcherService {
         this.sendAsyncEvent(ConsoleEventType.DISK_DRIVE_CHANGED, diskDriveIndex);
     }
 
-    tapeOpened(playEnabled) {
+    tapeOpened(playEnabled: boolean) {
         this.sendAsyncEvent(ConsoleEventType.TAPE_OPENED, playEnabled);
     }
 

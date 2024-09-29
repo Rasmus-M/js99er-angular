@@ -21,7 +21,7 @@ export interface VDP extends Stateful, MemoryDevice {
     setByte(addr: number, i: number): void;
     getWord(addr: number): number;
     getCharAt(x: number, y: number): number;
-    getGPU(): CPU;
+    getGPU(): CPU | undefined;
     drawPaletteImage(canvas: HTMLCanvasElement): void;
     drawTilePatternImage(canvas: HTMLCanvasElement, section: number, gap: boolean): void;
     drawSpritePatternImage(canvas: HTMLCanvasElement, gap: boolean): void;

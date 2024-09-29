@@ -13,9 +13,8 @@ export class DiskFile implements Stateful {
     private operationMode: OperationMode;
     private recordPointer: number;
     private records: Record[];
-    private program: Uint8Array;
+    private program: Uint8Array | null;
     private accessType: AccessType;
-    private log: Log = Log.getLog();
 
     constructor(name: string, fileType: FileType, recordType: RecordType, recordLength: number, dataType: DataType) {
         this.name = name;
@@ -121,7 +120,7 @@ export class DiskFile implements Stateful {
                 eofOffset = 256 - sectorBytesLeft;
             }
         } else {
-            eofOffset = this.program.length % 256;
+            eofOffset = this.program ? this.program.length % 256 : 0;
         }
         return eofOffset;
     }
@@ -138,7 +137,7 @@ export class DiskFile implements Stateful {
                 return length;
             }
         } else {
-            return this.program.length;
+            return this.program ? this.program.length : 0;
         }
     }
 
@@ -176,7 +175,7 @@ export class DiskFile implements Stateful {
         this.program = program;
     }
 
-    getProgram(): Uint8Array {
+    getProgram(): Uint8Array | null {
         return this.program;
     }
 
@@ -232,7 +231,7 @@ export class DiskFile implements Stateful {
             for (let i = 0; i < state.records.length; i++) {
                 let record;
                 if (this.recordType === RecordType.FIXED) {
-                    record = new FixedRecord(null, 0);
+                    record = new FixedRecord([], 0);
                 } else {
                     record = new VariableRecord(state.records[i].data);
                 }
@@ -261,16 +260,18 @@ export class DiskFile implements Stateful {
                 s += "\n";
             }
         } else {
-            for (i = 0; i < this.program.length; i++) {
-                if (i % 32 === 0) {
-                    s += Util.toHexWord(i) + " ";
-                }
-                s += Util.toHexByteShort(this.program[i]);
-                if (i % 8 === 7) {
-                    s += " ";
-                }
-                if (i % 32 === 31) {
-                    s += "\n";
+            if (this.program) {
+                for (i = 0; i < this.program.length; i++) {
+                    if (i % 32 === 0) {
+                        s += Util.toHexWord(i) + " ";
+                    }
+                    s += Util.toHexByteShort(this.program[i]);
+                    if (i % 8 === 7) {
+                        s += " ";
+                    }
+                    if (i % 32 === 31) {
+                        s += "\n";
+                    }
                 }
             }
         }

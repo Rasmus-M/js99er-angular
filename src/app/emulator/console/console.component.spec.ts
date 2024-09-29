@@ -25,39 +25,47 @@ import {Software} from "../../classes/software";
 import {VDP} from "../interfaces/vdp";
 import {AudioService} from "../../services/audio.service";
 import {TIPI} from "../classes/tipi";
+import {TMS9919} from "../classes/tms9919";
+import {TMS9900} from "../classes/tms9900";
+import {TMS5200} from "../classes/tms5200";
+import {TMS9918A} from "../classes/tms9918a";
+import {WasmService} from "../../services/wasm.service";
 
 class ConsoleMock implements Console {
+
+    private settings = new Settings();
+
     frame(skipBreakpoint?: boolean) {
     }
     getCPU(): CPU {
-        return undefined;
+        return new TMS9900(this);
     }
     getCRU(): TMS9901 {
-        return undefined;
+        return new TMS9901(this);
     }
     getDiskDrives(): DiskDrive[] {
-        return undefined;
+        return [];
     }
     getGoogleDrives(): GoogleDrive[] {
-        return undefined;
+        return [];
     }
     getKeyboard(): Keyboard {
-        return undefined;
+        return new Keyboard({} as Document, this.settings);
     }
     getMemory(): Memory {
-        return undefined;
+        return new Memory(this, this.settings);
     }
     getPSG(): PSG {
-        return undefined;
+        return new TMS9919(this.getCPU(), this.getTape());
     }
     getSpeech(): Speech {
-        return undefined;
+        return new TMS5200(this, this.settings);
     }
     getTape(): Tape {
-        return undefined;
+        return new Tape();
     }
     getVDP(): VDP {
-        return undefined;
+        return new TMS9918A({} as HTMLCanvasElement, this, {} as WasmService);
     }
     isRunning() {
     }
@@ -79,15 +87,15 @@ class ConsoleMock implements Console {
     }
     stop() {
     }
-    getTIPI(): TIPI {
-        return undefined;
+    getTIPI(): TIPI | null {
+        return null;
     }
     setTIPI() {
     }
 }
 
 class ConsoleFactoryMock {
-    create(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: DiskImage[], settings: Settings, onBreakpoint: (CPU) => void): Console {
+    create(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: DiskImage[], settings: Settings, onBreakpoint: (cpu: CPU) => void): Console {
      return new ConsoleMock();
   }
 }

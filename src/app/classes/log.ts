@@ -57,8 +57,10 @@ export class Log {
     flushBuffer() {
         while (this.totalLines > Log.MAX_LOG_LINES) {
             const logTextNode = this.textNodes.shift();
-            this.element.removeChild(logTextNode.node);
-            this.totalLines -= logTextNode.lines;
+            if (logTextNode) {
+                this.element.removeChild(logTextNode.node);
+                this.totalLines -= logTextNode.lines;
+            }
         }
         if (this.buffer.length) {
             this.updateSameMessage();

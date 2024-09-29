@@ -287,7 +287,7 @@ export class KeyMapper {
         return KeyMapper.tiKeysByCode[code];
     }
 
-    public static getKeyFromKeyCode(keyCode: number): Key {
+    public static getKeyFromKeyCode(keyCode: number): Key | undefined {
         return Object.values(KeyMapper.tiKeysByCode).find(k => k.keyCode === keyCode);
     }
 
@@ -295,7 +295,7 @@ export class KeyMapper {
         return KeyMapper.tiKeysByKey[key];
     }
 
-    public static getKeyFromCharCode(charCode: number): Key {
+    public static getKeyFromCharCode(charCode: number): Key | undefined {
         return Object.values(KeyMapper.tiKeysByKey).find(k => k.charCode === charCode);
     }
 }

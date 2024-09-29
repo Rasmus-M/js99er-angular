@@ -1,11 +1,9 @@
 import {Log} from '../../classes/log';
-import {Util} from '../../classes/util';
 import {Stateful} from '../interfaces/stateful';
 import {AudioBufferToWav} from '../../classes/audio-buffer-to-wav';
 
 export class Tape implements Stateful {
 
-    static DEBUG = false;
     static LEVEL_CHANGE_FREQUENCY = 1379;
     static LEVEL_CHANGE_DURATION = 1 / Tape.LEVEL_CHANGE_FREQUENCY;
 
@@ -41,13 +39,8 @@ export class Tape implements Stateful {
     private paused: boolean;
     private sampleBufferOffset: number;
     private sampleBufferAudioOffset: number;
-    private lastWriteValue: number;
+    private lastWriteValue: boolean | number | null;
     private lastWriteTime: number;
-    private readFirst: boolean;
-    private lastReadValue: number;
-    private out: string;
-    private outByte: number;
-    private outByteCount: number;
     private audioGateBuffer = new Float32Array(Tape.AUDIO_GATE_BUFFER_LENGTH);
     private audioGateBufferStart = 0;
     private audioGateBufferEnd = 0;
@@ -86,14 +79,9 @@ export class Tape implements Stateful {
         this.sampleBufferAudioOffset = 0;
         this.lastWriteValue = null;
         this.lastWriteTime = -1;
-        // Debug
-        this.readFirst = null;
-        this.out = "";
-        this.outByte = 0;
-        this.outByteCount = 8;
     }
 
-    loadTapeFile(fileBuffer: ArrayBuffer, callback) {
+    loadTapeFile(fileBuffer: ArrayBuffer, callback: () => void) {
         const tape = this;
         if (this.audioContext) {
             this.audioContext.decodeAudioData(fileBuffer).then(
@@ -164,7 +152,7 @@ export class Tape implements Stateful {
         this.playing = this.playPressed;
     }
 
-    setAudioGate(value, time) {
+    setAudioGate(value: boolean | number, time: number) {
         if (this.lastAudioGateChange !== -1 && Math.abs(time - this.lastAudioGateChange) < 1000) {
             const audioGate = typeof value === 'boolean' ? (value ? 0.75 : -0.75) : value;
             const timePassed = Math.min(((time - this.lastAudioGateChange) >> 6), 8);
@@ -176,7 +164,7 @@ export class Tape implements Stateful {
         this.lastAudioGateChange = time;
     }
 
-    updateSoundBuffer(buffer) {
+    updateSoundBuffer(buffer: Float32Array) {
         if (!this.paused) {
             if (this.playing) {
                 if (this.playDelay === 0) {
@@ -236,7 +224,7 @@ export class Tape implements Stateful {
             let posCount = 0;
             let negCount = 0;
             let zeroCount = 0;
-            let sample;
+            let sample = 0;
             // Determine if it's a positive, negative or zero run
             while (offset < sampleBuffer.length && posCount < samplesPerQuarterBit && negCount < samplesPerQuarterBit && zeroCount < samplesPerHalfBit) {
                 sample = sampleBuffer[offset];
@@ -275,38 +263,13 @@ export class Tape implements Stateful {
             this.sampleBufferOffset = offset;
         }
 
-        // Debug only - show input bytes in console
-        if (Tape.DEBUG) {
-            if (this.readFirst) {
-                this.lastReadValue = readValue;
-                this.readFirst = false;
-            } else {
-                let bit = readValue !== this.lastReadValue && this.readFirst !== null ? 1 : 0;
-                this.outByte = (this.outByte << 1) | bit;
-                this.outByteCount--;
-                if (this.outByteCount === 0) {
-                    this.out += Util.toHexByteShort(this.outByte);
-                    this.outByteCount = 8;
-                    this.outByte = 0;
-                    if (this.out.length === 6) {
-                        bit = 0;
-                    }
-                }
-                this.readFirst = true;
-            }
-            if (this.out.length >= 32 || this.out.length > 0 && this.sampleBufferOffset === this.sampleBuffer.length) {
-                this.log.info(this.out);
-                this.out = "";
-            }
-        }
-
         return readValue;
     }
 
     // 1: 1/0, 0/1, next
     // 0: 1/0, ---, next
 
-    write(value, time) {
+    write(value: boolean | number, time: number) {
         const interval = this.lastWriteTime === -1 ? 1 : time - this.lastWriteTime;
         if (interval === 1) {
             if (this.lastWriteValue !== null) {
@@ -358,7 +321,7 @@ export class Tape implements Stateful {
         return newSignal;
     }
 
-    getState() {
+    getState(): any {
         return {
             recordPressed: this.recordPressed,
             playPressed: this.playPressed,
@@ -375,7 +338,7 @@ export class Tape implements Stateful {
         };
     }
 
-    restoreState(state) {
+    restoreState(state: any) {
         this.recordPressed = state.recordPressed;
         this.playPressed = state.playPressed;
         this.motorOn = state.motorOn;

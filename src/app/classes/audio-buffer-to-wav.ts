@@ -1,8 +1,6 @@
 export class AudioBufferToWav {
 
-    static convert(buffer, opt) {
-        opt = opt || {};
-
+    static convert(buffer: AudioBuffer, opt: {float32: boolean}) {
         const numChannels = buffer.numberOfChannels;
         const sampleRate = buffer.sampleRate;
         const format = opt.float32 ? 3 : 1;
@@ -18,7 +16,7 @@ export class AudioBufferToWav {
         return AudioBufferToWav.encodeWAV(result, format, sampleRate, numChannels, bitDepth);
     }
 
-    private static encodeWAV(samples, format, sampleRate, numChannels, bitDepth) {
+    private static encodeWAV(samples: Float32Array, format: number, sampleRate: number, numChannels: number, bitDepth: number) {
         const bytesPerSample = bitDepth / 8;
         const blockAlign = numChannels * bytesPerSample;
 
@@ -60,7 +58,7 @@ export class AudioBufferToWav {
         return buffer;
     }
 
-    private static interleave(inputL, inputR) {
+    private static interleave(inputL: Float32Array, inputR: Float32Array) {
         const length = inputL.length + inputR.length;
         const result = new Float32Array(length);
 
@@ -75,20 +73,20 @@ export class AudioBufferToWav {
         return result;
     }
 
-    private static writeFloat32(output, offset, input) {
+    private static writeFloat32(output: DataView, offset: number, input: Float32Array) {
         for (let i = 0; i < input.length; i++, offset += 4) {
             output.setFloat32(offset, input[i], true);
         }
     }
 
-    private static floatTo16BitPCM(output, offset, input) {
+    private static floatTo16BitPCM(output: DataView, offset: number, input: Float32Array) {
         for (let i = 0; i < input.length; i++, offset += 2) {
             const s = Math.max(-1, Math.min(1, input[i]));
             output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
         }
     }
 
-    private static writeString(view, offset, string) {
+    private static writeString(view: DataView, offset: number, string: string) {
         for (let i = 0; i < string.length; i++) {
             view.setUint8(offset + i, string.charCodeAt(i));
         }

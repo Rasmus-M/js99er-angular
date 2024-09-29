@@ -36,13 +36,13 @@ export class F18AGPU extends CPUCommon implements CPU {
     }
 
     addSpecialInstructions() {
-        this.instructions.CKON = this.ckon;
-        this.instructions.CKOF = this.ckof;
-        this.instructions.RET = this.ret;
-        this.instructions.CALL = this.call;
-        this.instructions.PUSH = this.push;
-        this.instructions.SLC = this.slc;
-        this.instructions.POP = this.pop;
+        this.instructions['CKON'] = this.ckon;
+        this.instructions['CKOF'] = this.ckof;
+        this.instructions['RET'] = this.ret;
+        this.instructions['CALL'] = this.call;
+        this.instructions['PUSH'] = this.push;
+        this.instructions['SLC'] = this.slc;
+        this.instructions['POP'] = this.pop;
     }
 
     reset() {
@@ -141,12 +141,12 @@ export class F18AGPU extends CPUCommon implements CPU {
         }
     }
 
-    setPc(value: number) {
+    override setPc(value: number) {
         super.setPc(value);
         this.setIdle(false);
     }
 
-    setWp(value: number) {
+    override setWp(value: number) {
         this.log.warn("setWP not implemented.");
     }
 
@@ -327,6 +327,8 @@ export class F18AGPU extends CPUCommon implements CPU {
             // GPU register
             case 0xF000:
                 return vdpRAM[addr];
+            default:
+                return 0;
         }
     }
 
@@ -378,8 +380,8 @@ export class F18AGPU extends CPUCommon implements CPU {
         this.dest = this.wp + (this.dest << 1);
         const x1 = this.readMemoryWord(this.source);
         let x2 = this.readMemoryWord(this.dest);
-        let pixOffset;
-        let addr = 0;
+        let pixOffset = 0;
+        let addr: number;
         if ((x2 & 0x8000) !== 0) {
             // calculate BM2 address:
             // 00PYYYYY00000YYY +
@@ -550,14 +552,14 @@ export class F18AGPU extends CPUCommon implements CPU {
         return binArray;
     }
 
-    getState(): any {
+    override getState(): any {
         const state = super.getState();
         state.cpuIdle = this.cpuIdle;
         state.flash = this.flash.getState();
         return state;
     }
 
-    restoreState(state: any) {
+    override restoreState(state: any) {
         super.restoreState(state);
         this.vdpRAM = this.f18a.getRAM();
         this.cpuIdle = state.cpuIdle;

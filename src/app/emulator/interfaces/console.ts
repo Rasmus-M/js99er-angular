@@ -12,13 +12,13 @@ import {GoogleDrive} from "../classes/googledrive";
 import {TIPI} from "../classes/tipi";
 
 export interface Console {
-    start(fast: boolean, skipBreakpoint?: boolean);
-    reset(keepCart: boolean);
-    frame(skipBreakpoint?: boolean);
-    step();
-    stepOver();
-    stop();
-    loadSoftware(software: Software);
+    start(fast: boolean, skipBreakpoint?: boolean): void;
+    reset(keepCart: boolean): void;
+    frame(skipBreakpoint?: boolean): void;
+    step(): void;
+    stepOver(): void;
+    stop(): void;
+    loadSoftware(software: Software): void;
     getDiskDrives(): DiskDrive[];
     getCPU(): CPU;
     getVDP(): VDP;
@@ -30,10 +30,10 @@ export interface Console {
     getTape(): Tape;
     getDiskDrives(): DiskDrive[];
     getGoogleDrives(): GoogleDrive[];
-    setGoogleDrive();
-    getTIPI(): TIPI;
-    setTIPI();
-    setVDP();
-    setPSG();
-    isRunning();
+    setGoogleDrive(): void;
+    getTIPI(): TIPI | null;
+    setTIPI(): void;
+    setVDP(): void;
+    setPSG(): void;
+    isRunning(): void;
 }

@@ -8,7 +8,7 @@ import {ModuleService} from '../../services/module.service';
 import {Log} from '../../classes/log';
 import {DiskService} from '../../services/disk.service';
 import {SettingsService} from '../../services/settings.service';
-import * as $ from 'jquery';
+import $ from 'jquery';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {CPU} from '../interfaces/cpu';
 import {DiskDrive} from '../classes/diskdrive';
@@ -158,7 +158,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                     const data = command.data;
                     const diskDrive = this.ti994A.getDiskDrives()[data.driveIndex];
                     this.diskService.loadDiskFiles(data.files, diskDrive).subscribe(
-                        (disk: DiskImage) => {
+                        (disk: DiskImage | null) => {
                             if (disk) {
                                 this.eventDispatcherService.diskInserted(diskDrive, disk);
                                 this.log.info(disk.getName() + " loaded to " + diskDrive.getName());
@@ -277,7 +277,9 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                     const diskDrive: DiskDrive = this.ti994A.getDiskDrives()[command.data];
                     const diskImage = diskDrive.getDiskImage();
                     diskDrive.setDiskImage(null);
-                    this.eventDispatcherService.diskRemoved(diskDrive, diskImage);
+                    if (diskImage) {
+                        this.eventDispatcherService.diskRemoved(diskDrive, diskImage);
+                    }
                 }
                 break;
             case CommandType.OPEN_TAPE: {
@@ -390,7 +392,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         this.canvas.requestPointerLock();
     }
 
-    lockChangeAlert(evt) {
+    lockChangeAlert() {
         this.pointerLocked = document.pointerLockElement === this.canvas;
         if (this.pointerLocked) {
             this.eventDispatcherService.pointerLocked();

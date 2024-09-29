@@ -11,9 +11,9 @@ export class SAMS implements Stateful {
     private pages: number;
     private registerAccess: boolean;
     private ram: Uint8Array;
-    private transparentMap: number[];
+    private transparentMap: (number | null)[];
     private registerMap: number[];
-    private map: number[];
+    private map: (number | null)[];
     private log: Log;
     private debugReset: boolean;
 
@@ -39,7 +39,6 @@ export class SAMS implements Stateful {
         this.registerMap = [
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         ];
-        this.map = null;
         this.setMode(SAMS.TRANSPARENT_MODE);
     }
 
@@ -76,7 +75,7 @@ export class SAMS implements Stateful {
     readWord(addr: number): number {
         const regNo = (addr & 0xF000) >> 12;
         if (this.transparentMap[regNo] != null) {
-            const samsAddr = ((this.map[regNo] & (this.pages - 1)) << 12) | (addr & 0x0FFF);
+            const samsAddr = ((this.map[regNo]! & (this.pages - 1)) << 12) | (addr & 0x0FFF);
             return this.ram[samsAddr] << 8 | this.ram[samsAddr + 1];
         }
         return 0;
@@ -85,7 +84,7 @@ export class SAMS implements Stateful {
     writeWord(addr: number, w: number) {
         const regNo = (addr & 0xF000) >> 12;
         if (this.transparentMap[regNo] != null) {
-            const samsAddr = ((this.map[regNo] & (this.pages - 1)) << 12) | (addr & 0x0FFF);
+            const samsAddr = ((this.map[regNo]! & (this.pages - 1)) << 12) | (addr & 0x0FFF);
             this.ram[samsAddr] = (w & 0xFF00) >> 8;
             this.ram[samsAddr + 1] = w & 0xFF;
         }
@@ -103,7 +102,7 @@ export class SAMS implements Stateful {
     setByte(addr: number, b: number) {
         const regNo = (addr & 0xF000) >> 12;
         if (this.transparentMap[regNo] != null) {
-            const samsAddr = ((this.map[regNo] & (this.pages - 1)) << 12) | (addr & 0x0FFF);
+            const samsAddr = ((this.map[regNo]! & (this.pages - 1)) << 12) | (addr & 0x0FFF);
             this.ram[samsAddr] = b;
         }
     }
@@ -112,13 +111,13 @@ export class SAMS implements Stateful {
         let s = "";
         for (let regNo = 0; regNo < this.transparentMap.length; regNo++) {
             if (this.transparentMap[regNo] != null) {
-               s += Util.toHexNybble(regNo) +  ":" + Util.toHexByte(this.map[regNo] & (this.pages - 1)) + " ";
+               s += Util.toHexNybble(regNo) +  ":" + Util.toHexByte(this.map[regNo]! & (this.pages - 1)) + " ";
             }
         }
         return s;
     }
 
-    getState(): object {
+    getState(): any {
         return {
             size: this.size,
             pages: this.pages,

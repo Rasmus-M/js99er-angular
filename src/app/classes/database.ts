@@ -13,7 +13,7 @@ export class Database {
     static MACHINE_STATE_STORE = "machineStates";
     static SOFTWARE_STORE = "software";
 
-    private db: IDBDatabase;
+    private db: IDBDatabase | null;
     private supported: boolean;
     private log: Log = Log.getLog();
 
@@ -54,7 +54,7 @@ export class Database {
             };
 
             request.onerror = () => {
-                this.log.warn("Database could not be opened: " + request.error.message);
+                this.log.warn("Database could not be opened: " + request.error?.message);
                 this.db = null;
                 if (callback) { callback(false); }
             };
@@ -70,7 +70,7 @@ export class Database {
         return this.supported;
     }
 
-    getDiskDrive(name, callback: (result: DiskDrive | false) => void) {
+    getDiskDrive(name: string, callback: (result: DiskDrive | false) => void) {
         if (this.db != null && name != null) {
             const trans: IDBTransaction = this.db.transaction([Database.DISK_DRIVES_STORE], "readonly");
             const store: IDBObjectStore = trans.objectStore(Database.DISK_DRIVES_STORE);
@@ -82,7 +82,7 @@ export class Database {
             };
 
             request.onerror = () => {
-                this.log.error(request.error.message);
+                this.logError(request);
                 if (callback) { callback(false); }
             };
         } else {
@@ -102,7 +102,7 @@ export class Database {
             };
 
             request.onerror = () => {
-                this.log.error(request.error.message);
+                this.logError(request);
                 if (callback) { callback(false); }
             };
         } else {
@@ -112,7 +112,7 @@ export class Database {
 
     getDiskImages(callback: (diskImages: DiskImage[] | boolean) => void) {
         if (this.db != null) {
-            const diskImages = [];
+            const diskImages: DiskImage[] = [];
             const trans: IDBTransaction = this.db.transaction([Database.DISK_IMAGES_STORE], "readonly");
             const store: IDBObjectStore = trans.objectStore(Database.DISK_IMAGES_STORE);
 
@@ -134,7 +134,7 @@ export class Database {
             };
 
             cursorRequest.onerror = () => {
-                this.log.error(cursorRequest.error.message);
+                this.logError(cursorRequest);
                 if (callback) { callback(false); }
             };
         } else {
@@ -157,7 +157,7 @@ export class Database {
             };
 
             request.onerror = () => {
-                this.log.error(request.error.message);
+                this.logError(request);
                 if (callback) { callback(false); }
             };
         } else {
@@ -177,7 +177,7 @@ export class Database {
             };
 
             request.onerror = () => {
-                this.log.error(request.error.message);
+                this.logError(request);
                 if (callback) { callback(false); }
             };
         } else {
@@ -197,7 +197,7 @@ export class Database {
             };
 
             request.onerror = () => {
-                this.log.error(request.error.message);
+                this.logError(request);
                 if (callback) { callback(false); }
             };
         } else {
@@ -224,7 +224,7 @@ export class Database {
             };
 
             cursorRequest.onerror = () => {
-                this.log.error(cursorRequest.error.message);
+                this.logError(cursorRequest);
                 if (callback) { callback(false); }
             };
         } else {
@@ -249,7 +249,7 @@ export class Database {
             };
 
             request.onerror = () => {
-                this.log.error(request.error.message);
+                this.logError(request);
                 if (callback) { callback(false); }
             };
         } else {
@@ -269,7 +269,7 @@ export class Database {
             };
 
             request.onerror = () => {
-                this.log.error(request.error.message);
+                this.logError(request);
                 if (callback) { callback(false); }
             };
         } else {
@@ -294,7 +294,7 @@ export class Database {
             };
 
             request.onerror = () => {
-                this.log.error(request.error.message);
+                this.logError(request);
                 if (callback) { callback(false); }
             };
         } else {
@@ -314,7 +314,7 @@ export class Database {
             };
 
             request.onerror = () => {
-                this.log.error(request.error.message);
+                this.logError(request);
                 if (callback) { callback(false); }
             };
         } else {
@@ -347,7 +347,7 @@ export class Database {
             };
 
             request.onerror = () => {
-                this.log.error(request.error.message);
+                this.logError(request);
                 if (callback) { callback(false); }
             };
         } else {
@@ -367,11 +367,17 @@ export class Database {
             };
 
             request.onerror = () => {
-                this.log.error(request.error.message);
+                this.logError(request);
                 if (callback) { callback(false); }
             };
         } else {
             if (callback) { callback(false); }
+        }
+    }
+
+    logError(request: IDBRequest) {
+        if (request.error) {
+            this.log.error(request.error.message);
         }
     }
 }

@@ -7,5 +7,5 @@ export interface Speech extends Stateful {
     writeSpeechData(b: number): void;
     readSpeechData(): number;
     setSpeechEnabled(enabled: boolean): void;
-    update(buffer: Int16Array, length: number);
+    update(buffer: Int16Array, length: number): void;
 }

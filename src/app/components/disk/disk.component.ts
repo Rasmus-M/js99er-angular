@@ -93,7 +93,7 @@ export class DiskComponent implements OnInit, OnDestroy {
             case ConsoleEventType.DISK_DRIVE_CHANGED: {
                     // Self-generated
                     const diskDrive: DiskDrive = this.diskDrives[event.data];
-                    const diskImage: DiskImage = diskDrive.getDiskImage();
+                    const diskImage: DiskImage = diskDrive.getDiskImage()!;
                     this.onDiskImageChanged(this.diskImages.indexOf(diskImage));
                 }
                 break;

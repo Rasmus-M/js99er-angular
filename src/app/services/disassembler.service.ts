@@ -18,7 +18,7 @@ export class DisassemblerService {
         this.disassembler.setMemory(memory);
     }
 
-    disassemble(start: number, length: number, maxInstructions: number, anchorAddr: number, breakpointAddr: number): MemoryView {
+    disassemble(start: number, length: number | null, maxInstructions: number | null, anchorAddr: number, breakpointAddr: number): MemoryView {
         return this.disassembler.disassemble(start, length, maxInstructions, anchorAddr, breakpointAddr);
     }
 }

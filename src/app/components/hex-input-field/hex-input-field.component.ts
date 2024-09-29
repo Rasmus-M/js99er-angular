@@ -20,7 +20,7 @@ export class HexInputFieldComponent implements OnChanges {
     ) {}
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (changes.model) {
+        if (changes['model']) {
             this.value = isNaN(this.model) ? '' : Util.toHexWordShort(this.model);
         }
     }

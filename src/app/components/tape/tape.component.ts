@@ -83,14 +83,16 @@ export class TapeComponent implements OnInit, OnDestroy {
 
     openTape(fileInput: HTMLInputElement) {
         const files = fileInput.files;
-        if (files.length) {
+        if (files && files.length) {
             const reader = new FileReader();
             const that = this;
             reader.onload = function () {
                 that.commandDispatcherService.openTape(reader.result as ArrayBuffer);
             };
             reader.onerror = function () {
-                that.log.error(reader.error.name);
+                if (reader.error) {
+                    that.log.error(reader.error.name);
+                }
             };
             reader.readAsArrayBuffer(files[0]);
             fileInput.value = "";

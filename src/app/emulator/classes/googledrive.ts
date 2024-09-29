@@ -1,4 +1,4 @@
-import * as gapi from 'gapi-client';
+import 'gapi-client';
 import {AccessType, DataType, Disk, DiskError, FileType, OpCode, OperationMode, RecordType} from './disk';
 import {Log} from '../../classes/log';
 import {TI994A} from './ti994a';
@@ -7,6 +7,14 @@ import {Util} from '../../classes/util';
 import {DiskFile, FixedRecord, VariableRecord} from './diskfile';
 import {DiskImage} from './diskimage';
 import {DiskDrive} from './diskdrive';
+
+interface GFile {
+    id: string;
+    name: string;
+    title: string;
+    downloadUrl?: string;
+    data: Uint8Array;
+}
 
 export class GoogleDrive {
 
@@ -69,13 +77,13 @@ export class GoogleDrive {
     private path: string;
     private console: TI994A;
     private ram: Uint8Array;
-    private folderId: string;
+    private folderId: string | null;
     private diskImage: DiskImage;
-    private catalogFile: DiskFile;
+    private catalogFile: DiskFile | null;
     private log: Log = Log.getLog();
 
-    static execute = function (pc: number, googleDrives: GoogleDrive[], memory: Memory, callback: (boolean) => void): boolean {
-        let googleDrive = null;
+    static execute = function (pc: number, googleDrives: GoogleDrive[], memory: Memory, callback: (value: boolean) => void): boolean {
+        let googleDrive: GoogleDrive | null = null;
         switch (pc) {
             case GoogleDrive.DSR_ROM_POWER_UP:
                 GoogleDrive.powerUp(callback);
@@ -127,7 +135,7 @@ export class GoogleDrive {
         }
     };
 
-    static powerUp = function (callback: (boolean) => void) {
+    static powerUp = function (callback: (result: boolean) => void) {
         const log = Log.getLog();
         log.info("Executing Google Drive DSR power-up routine.");
         gapi.load("client:auth2", function() {
@@ -236,18 +244,22 @@ export class GoogleDrive {
                                     that.findFile(fileName, parent, (id) => {
                                         if (id !== null) {
                                             that.getFileContent(id, (data) => {
-                                                file = that.diskImage.loadTIFile(fileName, data, true);
-                                                if (file !== null) {
-                                                    if (file.getOperationMode() !== -1 || file.getFileType() === FileType.PROGRAM || file.getRecordType() !== recordType || file.getRecordLength() !== recordLength && recordLength !== 0) {
-                                                        callback(0, DiskError.BAD_OPEN_ATTRIBUTE);
-                                                        return;
+                                                if (data) {
+                                                    file = that.diskImage.loadTIFile(fileName, data, true);
+                                                    if (file !== null) {
+                                                        if (file.getOperationMode() !== -1 || file.getFileType() === FileType.PROGRAM || file.getRecordType() !== recordType || file.getRecordLength() !== recordLength && recordLength !== 0) {
+                                                            callback(0, DiskError.BAD_OPEN_ATTRIBUTE);
+                                                            return;
+                                                        }
+                                                        if (recordLength === 0) {
+                                                            recordLength = file.getRecordLength();
+                                                            that.ram[pabAddr + 4] = recordLength;
+                                                        }
+                                                        file.open(operationMode, accessType);
+                                                        callback(0, 0);
+                                                    } else {
+                                                        callback(0, DiskError.FILE_ERROR);
                                                     }
-                                                    if (recordLength === 0) {
-                                                        recordLength = file.getRecordLength();
-                                                        that.ram[pabAddr + 4] = recordLength;
-                                                    }
-                                                    file.open(operationMode, accessType);
-                                                    callback(0, 0);
                                                 } else {
                                                     callback(0, DiskError.FILE_ERROR);
                                                 }
@@ -431,13 +443,19 @@ export class GoogleDrive {
                             that.findFile(fileName, parent, (id) => {
                                 if (id !== null) {
                                     that.getFileContent(id, (data) => {
-                                        file = that.diskImage.loadTIFile(fileName, data, true);
-                                        if (file !== null && file.getFileType() === FileType.PROGRAM) {
-                                            const loadBuffer = file.getProgram();
-                                            for (i = 0; i < Math.min(recordNumber, loadBuffer.length); i++) {
-                                                that.ram[dataBufferAddress + i] = loadBuffer[i];
+                                        if (data) {
+                                            file = that.diskImage.loadTIFile(fileName, data, true);
+                                            if (file !== null && file.getFileType() === FileType.PROGRAM) {
+                                                const loadBuffer = file.getProgram();
+                                                if (loadBuffer) {
+                                                    for (i = 0; i < Math.min(recordNumber, loadBuffer.length); i++) {
+                                                        that.ram[dataBufferAddress + i] = loadBuffer[i];
+                                                    }
+                                                }
+                                                callback(0, 0);
+                                            } else {
+                                                callback(0, DiskError.FILE_ERROR);
                                             }
-                                            callback(0, 0);
                                         } else {
                                             callback(0, DiskError.FILE_ERROR);
                                         }
@@ -509,10 +527,10 @@ export class GoogleDrive {
         });
    }
 
-    createCatalogFile(files: any[]): DiskFile {
+    createCatalogFile(files: GFile[]): DiskFile {
         const catFile = new DiskFile("CATALOG", FileType.DATA, RecordType.FIXED, 38, DataType.INTERNAL);
         catFile.open(OperationMode.OUTPUT, AccessType.SEQUENTIAL);
-        const data = [];
+        const data: number[] = [];
         let n = 0;
         n = this.writeAsString(data, n, this.diskImage.getName());
         n = this.writeAsFloat(data, n, 0);
@@ -522,24 +540,26 @@ export class GoogleDrive {
         for (let i = 0; i < files.length; i++) {
             const fileName = files[i].name;
             const file = this.diskImage.loadTIFile(fileName, files[i].data, true);
-            let type = 0;
-            if (file.getFileType() === FileType.PROGRAM) {
-                type = 5;
-            } else {
-                type = 1; // DF
-                if (file.getDataType() === DataType.INTERNAL) {
-                    type += 2;
+            if (file) {
+                let type = 0;
+                if (file.getFileType() === FileType.PROGRAM) {
+                    type = 5;
+                } else {
+                    type = 1; // DF
+                    if (file.getDataType() === DataType.INTERNAL) {
+                        type += 2;
+                    }
+                    if (file.getRecordType() === RecordType.VARIABLE) {
+                        type += 1;
+                    }
                 }
-                if (file.getRecordType() === RecordType.VARIABLE) {
-                    type += 1;
-                }
+                n = 0;
+                n = this.writeAsString(data, n, fileName);
+                n = this.writeAsFloat(data, n, type);
+                n = this.writeAsFloat(data, n, file.getSectorCount());
+                n = this.writeAsFloat(data, n, file.getRecordLength());
+                catFile.putRecord(new FixedRecord(data, 38));
             }
-            n = 0;
-            n = this.writeAsString(data, n, fileName);
-            n = this.writeAsFloat(data, n, type);
-            n = this.writeAsFloat(data, n, file.getSectorCount());
-            n = this.writeAsFloat(data, n, file.getRecordLength());
-            catFile.putRecord(new FixedRecord(data, 38));
         }
         n = 0;
         n = this.writeAsString(data, n, "");
@@ -621,7 +641,7 @@ export class GoogleDrive {
         });
    }
 
-    getFile(fileId: string, callback: (file: any) => void) {
+    getFile(fileId: string, callback: (file: GFile) => void) {
         const request = gapi.client.request({
             'path': '/drive/v2/files/' + fileId,
             'method': 'GET'
@@ -629,21 +649,23 @@ export class GoogleDrive {
         request.execute(callback);
    }
 
-    getFileContents(parent: string, callback: (files: any[]) => void) {
+    getFileContents(parent: string, callback: (files: GFile[]) => void) {
         const that = this;
-        const files = [];
+        const files: any[] = [];
         this.getFiles(parent, (items) => {
             _getFileContents(items, () => {
                 callback(files);
             });
         });
-        function _getFileContents(items, callback2) {
+        function _getFileContents(items: GFile[], callback2: () => void) {
             if (items.length) {
                 const item = items.shift();
-                that.getFileContent(item.id, (data) => {
-                    files.push({id: item.id, name: item.title, data: data});
-                    _getFileContents(items, callback2);
-                });
+                if (item) {
+                    that.getFileContent(item.id, (data) => {
+                        files.push({id: item.id, name: item.title, data: data});
+                        _getFileContents(items, callback2);
+                    });
+                }
             } else {
                 callback2();
             }
@@ -651,7 +673,7 @@ export class GoogleDrive {
    }
 
     getFileContent(fileId: string, callback: (data: Uint8Array | null) => void) {
-        this.getFile(fileId, (file) => {
+        this.getFile(fileId, (file: GFile) => {
             if (file.downloadUrl) {
                 this.log.info("getFileContent: " + file.title);
                 const accessToken = gapi.auth.getToken().access_token;
@@ -689,7 +711,6 @@ export class GoogleDrive {
         const boundary = '-------314159265358979323846';
         const delimiter = "\r\n--" + boundary + "\r\n";
         const close_delim = "\r\n--" + boundary + "--";
-
         const reader = new FileReader();
         reader.readAsBinaryString(new Blob([fileData]));
         reader.onload = (e) => {
@@ -729,7 +750,6 @@ export class GoogleDrive {
         const boundary = '-------314159265358979323846';
         const delimiter = "\r\n--" + boundary + "\r\n";
         const close_delim = "\r\n--" + boundary + "--";
-
         const reader = new FileReader();
         reader.readAsBinaryString(new Blob([fileData]));
         reader.onload = (e) => {

@@ -39,7 +39,7 @@ export class Settings {
     private enablePixelated: boolean;
     private enablePauseOnFocusLost: boolean;
     private tipi: TIPIType;
-    private tipiWebsocketURI: string;
+    private tipiWebsocketURI: string | null;
     private enableDebugReset: boolean;
     private enableH264Codec: boolean;
     private enableDisk: boolean;
@@ -163,7 +163,7 @@ export class Settings {
         return this.tipiWebsocketURI;
     }
 
-    setTIPIWebsocketURI(value: string) {
+    setTIPIWebsocketURI(value: string | null) {
         this.tipiWebsocketURI = value;
     }
 

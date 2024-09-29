@@ -51,7 +51,7 @@ export class SettingsComponent implements OnInit {
         this.enableGRAM = this.settingsService.isGRAMEnabled();
         this.enablePixelated = this.settingsService.isPixelatedEnabled();
         this.enablePauseOnFocusLost = this.settingsService.isPauseOnFocusLostEnabled();
-        this.tipiWebsocketURI = this.settingsService.getTIPIWebsocketURI();
+        this.tipiWebsocketURI = this.settingsService.getTIPIWebsocketURI() || '';
         this.enableDebugReset = this.settingsService.isDebugResetEnabled();
         this.enableH264Codec = this.settingsService.isH264CodecEnabled();
         this.enableDisk = this.settingsService.isDiskEnabled();

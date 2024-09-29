@@ -231,7 +231,7 @@ export class TIPI {
 
     private readonly cpu: CPU;
     private readonly websocketURI: string;
-    private readonly canvas: HTMLCanvasElement = null;
+    private readonly canvas: HTMLCanvasElement;
     private readonly enableWebsocket: boolean;
     private readonly fastMouseEmulation: boolean;
     private websocket: WebSocket;
@@ -241,7 +241,7 @@ export class TIPI {
     private tc = 0;
     private rd = 0;
     private rc = 0;
-    private txMsg: Uint8Array;
+    private txMsg: Uint8Array | null;
     private txLen = 0;
     private txIdx = -2;
     private rxMsgs: Uint8Array[] = [];

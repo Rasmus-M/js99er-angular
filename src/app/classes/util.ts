@@ -1,71 +1,39 @@
 export class Util {
 
-    static toHexWord(number): string {
-        if (typeof number === "number") {
-            let s = number.toString(16).toUpperCase();
-            while (s.length < 4) {
-                s = '0' + s;
-            }
-            return '>' + s;
-        } else {
-            return '>????';
+    static toHexWord(number: number): string {
+        let s = number.toString(16).toUpperCase();
+        while (s.length < 4) {
+            s = '0' + s;
         }
+        return '>' + s;
     }
 
-    static toHexWordShort(number): string {
-        if (typeof number === "number") {
-            let s = number.toString(16).toUpperCase();
-            while (s.length < 4) {
-                s = '0' + s;
-            }
-            return s;
-        } else {
-            return '????';
+    static toHexWordShort(number: number): string {
+        let s = number.toString(16).toUpperCase();
+        while (s.length < 4) {
+            s = '0' + s;
         }
+        return s;
     }
 
-    static toHex12Bit(number): string {
-        if (typeof number === "number") {
-            let s = number.toString(16).toUpperCase();
-            while (s.length < 3) {
-                s = '0' + s;
-            }
-            return '>' + s;
-        } else {
-            return '>???';
+    static toHexByte(number: number): string {
+        let s = number.toString(16).toUpperCase();
+        if (s.length < 2) {
+            s = '0' + s;
         }
+        return '>' + s;
     }
 
-    static toHexByte(number): string {
-        if (typeof number === "number") {
-            let s = number.toString(16).toUpperCase();
-            if (s.length < 2) {
-                s = '0' + s;
-            }
-            return '>' + s;
-        } else {
-            return '>??';
+    static toHexByteShort(number: number): string {
+        let s = number.toString(16).toUpperCase();
+        if (s.length < 2) {
+            s = '0' + s;
         }
+        return s;
     }
 
-    static toHexByteShort(number): string {
-        if (typeof number === "number") {
-            let s = number.toString(16).toUpperCase();
-            if (s.length < 2) {
-                s = '0' + s;
-            }
-            return s;
-        } else {
-            return '??';
-        }
-    }
-
-    static toHexNybble(number): string {
-        if (typeof number === "number") {
-            return '>' + number.toString(16).toUpperCase();
-        } else {
-            return '>?';
-        }
+    static toHexNybble(number: number): string {
+        return '>' + number.toString(16).toUpperCase();
     }
 
     static parseHexNumber(s: string): number {
@@ -101,5 +69,14 @@ export class Util {
             s1 += s;
         }
         return s1;
+    }
+
+    static format(s: string, ...args: (string | number)[]) {
+        if (s.indexOf('%s') !== -1 && args.length > 0) {
+            s = s.replace('%s', String(args[0]));
+        } else if (s.indexOf('%d') !== -1 && args.length > 0) {
+            s = s.replace('%d', String(args[0]));
+        }
+        return s;
     }
 }

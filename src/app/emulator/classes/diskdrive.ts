@@ -1,7 +1,7 @@
 import {DiskFile, FixedRecord, VariableRecord} from './diskfile';
 import {AccessType, DataType, Disk, DiskError, FileType, OpCode, OperationMode, RecordType} from './disk';
 import {Stateful} from '../interfaces/stateful';
-import {DiskImage} from './diskimage';
+import {DiskImage, DiskImageEvent} from './diskimage';
 import {TI994A} from './ti994a';
 import {Log} from '../../classes/log';
 import {Util} from '../../classes/util';
@@ -155,9 +155,9 @@ export class DiskDrive implements Stateful {
     static DSR_HOOK_END = DiskDrive.DSR_ROM_FILES_16;
 
     private name: string;
-    private diskImage: DiskImage;
+    private diskImage: DiskImage | null;
     private console: TI994A;
-    private catalogFile: DiskFile;
+    private catalogFile: DiskFile | null;
 
     private log: Log = Log.getLog();
 
@@ -259,8 +259,8 @@ export class DiskDrive implements Stateful {
             nFiles = 3;
         }
         Log.getLog().info("Executing disk DSR FILES routine (n = " + nFiles + ").");
-        memory.writeWord(0x8370, 0x3fff - nFiles * 0x2B8, null);
-        memory.writeWord(0x8350, memory.readWord(0x8350, null) & 0x00FF, null);
+        memory.setPADWord(0x8370, 0x3fff - nFiles * 0x2B8);
+        memory.setPADByte(0x8350, 0);
     }
 
     reset() {
@@ -402,7 +402,7 @@ export class DiskDrive implements Stateful {
                             file = this.diskImage.getFile(fileName);
                         } else {
                             // Catalog
-                            file = this.catalogFile;
+                            file = this.catalogFile!;
                         }
                         if (file != null) {
                             if (file.getFileType() === FileType.DATA) {
@@ -515,8 +515,10 @@ export class DiskDrive implements Stateful {
                         if (file != null) {
                             if (file.getFileType() === FileType.PROGRAM) {
                                 const loadBuffer = file.getProgram();
-                                for (i = 0; i < Math.min(recordNumber, loadBuffer.length); i++) {
-                                    vdp.setByte(dataBufferAddress + i, loadBuffer[i]);
+                                if (loadBuffer) {
+                                    for (i = 0; i < Math.min(recordNumber, loadBuffer.length); i++) {
+                                        vdp.setByte(dataBufferAddress + i, loadBuffer[i]);
+                                    }
                                 }
                             } else {
                                 errorCode = DiskError.FILE_ERROR;
@@ -658,8 +660,10 @@ export class DiskDrive implements Stateful {
                 this.log.info("Reading file " + this.getName() + "." + fileName + " sectors " + firstSector + "-" + (firstSector + sectors - 1) + " to VDP " + Util.toHexWord(bufferAddr));
                 if (file.getFileType() === FileType.PROGRAM) {
                     const program = file.getProgram();
-                    for (let i = 0; i < sectors * 256; i++) {
-                        vdp.setByte(bufferAddr + i, program[firstSector * 256 + i]);
+                    if (program) {
+                        for (let i = 0; i < sectors * 256; i++) {
+                            vdp.setByte(bufferAddr + i, program[firstSector * 256 + i]);
+                        }
                     }
                 } else {
                     this.log.warn("File input only implemented for program files.");
@@ -679,56 +683,58 @@ export class DiskDrive implements Stateful {
         }
     }
 
-    getDiskImage(): DiskImage {
+    getDiskImage(): DiskImage | null {
         return this.diskImage;
     }
 
-    setDiskImage(diskImage: DiskImage) {
+    setDiskImage(diskImage: DiskImage | null) {
         this.diskImage = diskImage;
     }
 
     createCatalogFile(): DiskFile {
         const catFile = new DiskFile("CATALOG", FileType.DATA, RecordType.FIXED, 38, DataType.INTERNAL);
-        catFile.open(OperationMode.OUTPUT, AccessType.SEQUENTIAL);
-        const data = [];
-        let n = 0;
-        n = this.writeAsString(data, n, this.diskImage.getName());
-        n = this.writeAsFloat(data, n, 0);
-        n = this.writeAsFloat(data, n, 1440); // Number of sectors on disk
-        n = this.writeAsFloat(data, n, 1311); // Number of free sectors;
-        catFile.putRecord(new FixedRecord(data, 38));
-        const files = this.diskImage.getFiles();
-        for (const fileName in files) {
-            if (files.hasOwnProperty(fileName)) {
-                const file = files[fileName];
-                let type = 0;
-                if (file.getFileType() === FileType.PROGRAM) {
-                    type = 5;
-                } else {
-                    type = 1; // DF
-                    if (file.getDataType() === DataType.INTERNAL) {
-                        type += 2;
+        if (this.diskImage) {
+            catFile.open(OperationMode.OUTPUT, AccessType.SEQUENTIAL);
+            const data: number[] = [];
+            let n = 0;
+            n = this.writeAsString(data, n, this.diskImage.getName());
+            n = this.writeAsFloat(data, n, 0);
+            n = this.writeAsFloat(data, n, 1440); // Number of sectors on disk
+            n = this.writeAsFloat(data, n, 1311); // Number of free sectors;
+            catFile.putRecord(new FixedRecord(data, 38));
+            const files = this.diskImage.getFiles();
+            for (const fileName in files) {
+                if (files.hasOwnProperty(fileName)) {
+                    const file = files[fileName];
+                    let type = 0;
+                    if (file.getFileType() === FileType.PROGRAM) {
+                        type = 5;
+                    } else {
+                        type = 1; // DF
+                        if (file.getDataType() === DataType.INTERNAL) {
+                            type += 2;
+                        }
+                        if (file.getRecordType() === RecordType.VARIABLE) {
+                            type += 1;
+                        }
                     }
-                    if (file.getRecordType() === RecordType.VARIABLE) {
-                        type += 1;
-                    }
+                    n = 0;
+                    n = this.writeAsString(data, n, fileName);
+                    n = this.writeAsFloat(data, n, type);
+                    n = this.writeAsFloat(data, n, file.getSectorCount());
+                    n = this.writeAsFloat(data, n, file.getRecordLength());
+                    catFile.putRecord(new FixedRecord(data, 38));
                 }
-                n = 0;
-                n = this.writeAsString(data, n, fileName);
-                n = this.writeAsFloat(data, n, type);
-                n = this.writeAsFloat(data, n, file.getSectorCount());
-                n = this.writeAsFloat(data, n, file.getRecordLength());
-                catFile.putRecord(new FixedRecord(data, 38));
             }
+            n = 0;
+            n = this.writeAsString(data, n, "");
+            n = this.writeAsFloat(data, n, 0);
+            n = this.writeAsFloat(data, n, 0);
+            this.writeAsFloat(data, n, 0);
+            catFile.putRecord(new FixedRecord(data, 38));
+            catFile.close();
+            // this.log.info(catFile.toString());
         }
-        n = 0;
-        n = this.writeAsString(data, n, "");
-        n = this.writeAsFloat(data, n, 0);
-        n = this.writeAsFloat(data, n, 0);
-        this.writeAsFloat(data, n, 0);
-        catFile.putRecord(new FixedRecord(data, 38));
-        catFile.close();
-        // this.log.info(catFile.toString());
         return catFile;
     }
 
@@ -775,7 +781,7 @@ export class DiskDrive implements Stateful {
         return n;
     }
 
-    loadDSKFromURL(url: string, onLoad: () => void, eventHandler: (DiskImageEvent) => void) {
+    loadDSKFromURL(url: string, onLoad: () => void, eventHandler: (event: DiskImageEvent) => void) {
         const xhr: XMLHttpRequest = new XMLHttpRequest();
         xhr.open('GET', url, true);
         xhr.responseType = 'arraybuffer';
@@ -788,7 +794,7 @@ export class DiskDrive implements Stateful {
         xhr.send();
     }
 
-    loadDSKFile(dskFileName: string, fileBuffer: Uint8Array, eventHandler: (DiskImageEvent) => void): DiskImage {
+    loadDSKFile(dskFileName: string, fileBuffer: Uint8Array, eventHandler: (event: DiskImageEvent) => void): DiskImage {
         const diskImage = new DiskImage(dskFileName, eventHandler);
         diskImage.loadBinaryImage(fileBuffer);
         this.setDiskImage(diskImage);

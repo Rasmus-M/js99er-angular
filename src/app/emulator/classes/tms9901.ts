@@ -6,14 +6,14 @@ import {Stateful} from '../interfaces/stateful';
 import {SAMS} from './sams';
 import {Util} from '../../classes/util';
 import {CPU} from '../interfaces/cpu';
-import {TI994A} from './ti994a';
+import {Console} from '../interfaces/console';
 
 export class TMS9901 implements Stateful {
 
     static TIMER_DECREMENT_PER_FRAME = 781; // 50000 / 64;
     static TIMER_DECREMENT_PER_SCANLINE = 2.8503;
 
-    private console: TI994A;
+    private console: Console;
     private keyboard: Keyboard;
     private tape: Tape;
     private memory: Memory;
@@ -30,7 +30,7 @@ export class TMS9901 implements Stateful {
 
     private log: Log = Log.getLog();
 
-    constructor(console: TI994A) {
+    constructor(console: Console) {
         this.console = console;
     }
 
@@ -103,15 +103,15 @@ export class TMS9901 implements Stateful {
                 const bitNo = (r12Addr & 0x000e) >> 1;
                 if (bitNo === 0) {
                     // Controls access to mapping registers
-                    this.memory.getSAMS().setRegisterAccess(value);
+                    this.memory.getSAMS()?.setRegisterAccess(value);
                 } else if (bitNo === 1) {
                     // Toggles between mapping mode and transparent mode
-                    this.memory.getSAMS().setMode(value ? SAMS.MAPPING_MODE : SAMS.TRANSPARENT_MODE);
+                    this.memory.getSAMS()?.setMode(value ? SAMS.MAPPING_MODE : SAMS.TRANSPARENT_MODE);
                 }
             }
             // TIPI
             if (r12Addr === 0x1102 && value && this.memory.isTIPIEnabled()) {
-                this.console.getTIPI().signalReset();
+                this.console.getTIPI()?.signalReset();
             }
         } else {
             // Timer

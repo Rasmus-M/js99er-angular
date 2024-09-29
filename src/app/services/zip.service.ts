@@ -1,9 +1,11 @@
-import {Injectable} from '@angular/core';
-import * as zip from 'zip-js/WebContent/zip.js';
+// @ts-ignore
+import zip from 'zip-js/WebContent/zip.js';
 import BlobReader = zip.BlobReader;
 import Reader = zip.Reader;
 import TextWriter = zip.TextWriter;
 import BlobWriter = zip.BlobWriter;
+import ZipReader = zip.ZipReader;
+import {Injectable} from '@angular/core';
 
 // Modification of zip.js HttpReader that uses GET instead of HEAD
 class HttpReader implements zip.HttpReader {
@@ -12,13 +14,13 @@ class HttpReader implements zip.HttpReader {
     size = 0;
     data: Uint8Array;
 
-    constructor(url) {
+    constructor(url: string) {
         this.url = url;
     }
 
-    getData(callback, onerror) {
+    getData(callback: () => void, onerror: (error: any) => void) {
         const that = this;
-        let request;
+        let request: XMLHttpRequest;
         if (!this.data) {
             request = new XMLHttpRequest();
             request.addEventListener("load", function() {
@@ -37,7 +39,7 @@ class HttpReader implements zip.HttpReader {
         }
     }
 
-    init(callback, onerror) {
+    init(callback: () => void, onerror: (error: any) => void) {
         const that = this;
         const request = new XMLHttpRequest();
         request.addEventListener("load", function() {
@@ -49,7 +51,7 @@ class HttpReader implements zip.HttpReader {
         request.send();
     }
 
-    readUint8Array(index, length, callback, onerror) {
+    readUint8Array(index: number, length: number, callback: (data: Uint8Array) => void, onerror: (error: any) => void) {
         const that = this;
         this.getData(function() {
             callback(new Uint8Array(that.data.subarray(index, index + length)));
@@ -74,7 +76,7 @@ export class ZipService {
         return new HttpReader(url);
     }
 
-    createReader(reader: any, callback: (zipReader) => void, onerror: (err: any) => void): Reader {
+    createReader(reader: any, callback: (zipReader: ZipReader) => void, onerror: (err: any) => void): Reader {
         return this.zip.createReader(reader, callback, onerror);
     }
 

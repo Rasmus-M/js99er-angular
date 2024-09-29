@@ -37,21 +37,17 @@ export class DiskImage implements Stateful {
     private name: string;
     private files: {[name: string]: DiskFile};
     private geometry: PhysicalProperties;
-    private binaryImage: Uint8Array;
-    private eventHandler: (event: DiskImageEvent) => void;
+    private binaryImage: Uint8Array | null;
+    private eventHandler: null | ((event: DiskImageEvent) => void);
     private log: Log;
 
-    constructor(name: string, eventHandler: (event: DiskImageEvent) => void) {
+    constructor(name: string, eventHandler: null | ((event: DiskImageEvent) => void)) {
         this.name = name;
         this.files = {};
         this.geometry = new PhysicalProperties(1440, 18, 2, 2, 2);
         this.binaryImage = null;
         this.eventHandler = eventHandler;
         this.log = Log.getLog();
-    }
-
-    setEventHandler(eventHandler: (event: DiskImageEvent) => void) {
-        this.eventHandler = eventHandler;
     }
 
     fireEvent(event: DiskImageEvent) {
@@ -95,7 +91,7 @@ export class DiskImage implements Stateful {
         this.fireEvent(new DiskImageEvent("fileDeleted", fileName));
     }
 
-    loadTIFile(fileName: string, fileBuffer: Uint8Array, ignoreTIFileName: boolean): DiskFile {
+    loadTIFile(fileName: string, fileBuffer: Uint8Array, ignoreTIFileName: boolean): DiskFile | null {
         if (fileBuffer != null && fileBuffer.length > 0x80) {
             let sectors: number;
             let flags: number;
@@ -266,10 +262,10 @@ export class DiskImage implements Stateful {
         return null;
     }
 
-    createTIFile(fileName: string): Uint8Array {
+    createTIFile(fileName: string): Uint8Array | null {
         const file = this.getFile(fileName);
         if (file) {
-            const data = [];
+            const data: number[] = [];
             let n = 0;
             // ID
             n = this.writeByte(data, n, 0x07);
@@ -601,10 +597,12 @@ export class DiskImage implements Stateful {
         } else {
             // Program
             const program = file.getProgram();
-            for (let i = 0; i < program.length; i++) {
-                n = this.writeByte(dskImg, n, program[i]);
+            if (program) {
+                for (let i = 0; i < program.length; i++) {
+                    n = this.writeByte(dskImg, n, program[i]);
+                }
+                sectorNo += Math.floor(program.length / 256) - (program.length % 256 === 0 ? 1 : 0);
             }
-            sectorNo += Math.floor(program.length / 256) - (program.length % 256 === 0 ? 1 : 0);
         }
         return sectorNo;
     }
@@ -698,7 +696,7 @@ export class DiskImage implements Stateful {
     }
 
     getState(): object {
-        const files = {};
+        const files: {[key: string]: any} = {};
         for (const fileName in this.files) {
             if (this.files.hasOwnProperty(fileName)) {
                 files[fileName] = this.files[fileName].getState();
@@ -712,7 +710,7 @@ export class DiskImage implements Stateful {
 
     restoreState(state: any) {
         this.name = state.name;
-        const files = {};
+        const files: {[key: string]: any} = {};
         for (const fileName in state.files) {
             if (state.files.hasOwnProperty(fileName)) {
                 const file = new DiskFile(fileName, FileType.DATA, RecordType.FIXED, 80, DataType.INTERNAL);

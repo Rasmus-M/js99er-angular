@@ -12,7 +12,7 @@ export class F18AFlash {
     static FAST_READ = 0x0b;
     static SECTOR_ERASE = 0xd8;
 
-    private flashRAM: Uint8Array;
+    private flashRAM: Uint8Array | null;
     private updated: boolean;
     private database: Database;
     private enabled: boolean;
@@ -25,7 +25,7 @@ export class F18AFlash {
     private writeEnabled: boolean;
     private log = Log.getLog();
 
-    constructor(callback) {
+    constructor(callback: (result: boolean) => void) {
         this.flashRAM = null;
         this.updated = false;
         const that = this;
@@ -68,27 +68,29 @@ export class F18AFlash {
 
     disable() {
         this.log.info("SPI DS - Disable line to SPI flash ROM");
-        let i;
-        if (this.command === F18AFlash.PAGE_PROGRAM) {
-            this.log.info("Writing " + Math.min(this.writeBuffer.length, 256) + " bytes to " + Util.toHexWord(this.address));
-            const baseAddress = this.address & 0xfff00;
-            let offset = this.address & 0x000ff;
-            for (i = Math.max(this.writeBuffer.length - 256, 0); i < this.writeBuffer.length; i++) {
-                this.flashRAM[baseAddress + offset] = this.writeBuffer[i];
-                offset = (offset + 1) & 0xff;
+        if (this.enabled && this.flashRAM) {
+            let i;
+            if (this.command === F18AFlash.PAGE_PROGRAM) {
+                this.log.info("Writing " + Math.min(this.writeBuffer.length, 256) + " bytes to " + Util.toHexWord(this.address));
+                const baseAddress = this.address & 0xfff00;
+                let offset = this.address & 0x000ff;
+                for (i = Math.max(this.writeBuffer.length - 256, 0); i < this.writeBuffer.length; i++) {
+                    this.flashRAM[baseAddress + offset] = this.writeBuffer[i];
+                    offset = (offset + 1) & 0xff;
+                }
+                this.updated = true;
             }
-            this.updated = true;
-        }
-        if (this.command === F18AFlash.SECTOR_ERASE) {
-            this.log.info("Erasing sector " + Util.toHexWord(this.address));
-            this.address &= 0xf0000;
-            for (i = 0; i < 0x10000; i++) {
-                this.flashRAM[this.address++] = 0xff;
+            if (this.command === F18AFlash.SECTOR_ERASE) {
+                this.log.info("Erasing sector " + Util.toHexWord(this.address));
+                this.address &= 0xf0000;
+                for (i = 0; i < 0x10000; i++) {
+                    this.flashRAM[this.address++] = 0xff;
+                }
+                this.address &= 0xfffff;
+                this.command = 0;
             }
-            this.address &= 0xfffff;
-            this.command = 0;
+            this.intReset();
         }
-        this.intReset();
     }
 
     writeByte(b: number) {
@@ -160,7 +162,7 @@ export class F18AFlash {
     }
 
     readByte() {
-        if (this.enabled) {
+        if (this.enabled && this.flashRAM) {
             let b = 0;
             switch (this.command) {
                 case F18AFlash.READ_STATUS_REGISTER:

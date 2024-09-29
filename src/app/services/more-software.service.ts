@@ -3,12 +3,18 @@ import {HttpClient} from '@angular/common/http';
 import {Software} from '../classes/software';
 import {Observable, ReplaySubject} from "rxjs";
 
+interface SoftwareEntry {
+    type: 'ITEM' | 'DIVIDER' | 'SUBMENU';
+    name: string;
+    url: string;
+}
+
 @Injectable({
     providedIn: 'root'
 })
 export class MoreSoftwareService {
 
-    private index: Software[] = null;
+    private index: Software[] | null = null;
 
     constructor(
         private httpClient: HttpClient
@@ -19,7 +25,8 @@ export class MoreSoftwareService {
         if (!this.index) {
             const service = this;
             this.httpClient.get("assets/carts/index.json", {responseType: "json"}).subscribe(
-                (carts: any[]) => {
+                (obj: Object) => {
+                    const carts: SoftwareEntry[] = obj as any as SoftwareEntry[];
                     const sortedCarts: Software[] = [];
                     for (let i = 0; i < carts.length; i++) {
                         const cart = carts[i];
@@ -62,7 +69,7 @@ export class MoreSoftwareService {
         return subject.asObservable();
     }
 
-    private createName(cart: Software) {
+    private createName(cart: SoftwareEntry) {
         let filename = cart.url.replace(".rpk", "");
         filename = filename.replace(/^(ag|as|aw|co|cy|db|dc|de|dlm|dv|fw|im|jp|mb|mi|na|ni|pb|ro|se|sf|sm|so|sp|ss|th|tv|vm|wd|wl)_/, "");
         filename = filename.replace(/_/g, " ");

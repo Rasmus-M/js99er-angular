@@ -1,6 +1,6 @@
 import {Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
 import {Subscription} from 'rxjs';
-import * as $ from 'jquery';
+import $ from 'jquery';
 import {TI994A} from '../../emulator/classes/ti994a';
 import {DisassemblerService} from '../../services/disassembler.service';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
@@ -10,9 +10,8 @@ import {CommandDispatcherService} from '../../services/command-dispatcher.servic
 import {Command, CommandType} from '../../classes/command';
 import {MemoryLine, MemoryView} from "../../classes/memoryview";
 import {faCogs} from "@fortawesome/free-solid-svg-icons";
-import {MatDialog, MatDialogRef} from "@angular/material/dialog";
+import {MatDialog} from "@angular/material/dialog";
 import {DebuggerDialogComponent, DebuggerDialogData} from "../debugger-dialog/debugger-dialog.component";
-import {DialogRef} from "@angular/cdk/dialog";
 
 enum MemoryViewType {
     DISASSEMBLY,
@@ -48,8 +47,8 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     protected readonly faCogs = faCogs;
 
     private ti994A: TI994A;
-    private timerHandle: number;
-    private scrollTimeoutHandles: number[] = [];
+    private timerHandle: number | null;
+    private scrollTimeoutHandles: {[key: string]: number} = {};
     private eventSubscription: Subscription;
     private commandSubscription: Subscription;
     private listView: MemoryView;
@@ -76,7 +75,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (changes.visible.currentValue) {
+        if (changes['visible'].currentValue) {
             this.updateDebugger(false);
         }
     }
@@ -166,8 +165,10 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             }
             this.scrollTimeoutHandles[id] = setTimeout(
                 function () {
-                    const lineHeight = $memory.prop('scrollHeight') / memoryView.lines.length;
-                    $memory.scrollTop(memoryView.anchorLine * lineHeight + 1);
+                    if (memoryView.anchorLine !== null) {
+                        const lineHeight = $memory.prop('scrollHeight') / memoryView.lines.length;
+                        $memory.scrollTop(memoryView.anchorLine * lineHeight + 1);
+                    }
                 }, 100
             );
         }
@@ -175,7 +176,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
 
     private getDisassemblyView(memoryType: MemoryType): MemoryView {
         let memoryView: MemoryView;
-        const breakpointAddress = this.getBreakpointAddress(null);
+        const breakpointAddress = this.getBreakpointAddress(NaN);
         const pc = this.ti994A.getPC();
         const cycleLog = this.ti994A.getCPU().getCycleLog();
         if (this.ti994A.isRunning()) {
@@ -196,9 +197,11 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                 this.disassemblerService.setMemory(this.ti994A.getMemory());
                 memoryView = this.disassemblerService.disassemble(viewAddress - 0x800, 0x1000, null, viewAddress, breakpointAddress);
                 memoryView.lines.forEach((memoryLine) => {
-                    const cycles = cycleLog[memoryLine.addr];
-                    if (cycles) {
-                        memoryLine.text = Util.padr(memoryLine.text + ' ', ' ', 38) + cycles;
+                    if (memoryLine.addr !== null) {
+                        const cycles = cycleLog[memoryLine.addr];
+                        if (cycles) {
+                            memoryLine.text = Util.padr(memoryLine.text + ' ', ' ', 38) + cycles;
+                        }
                     }
                 });
             } else {
@@ -256,7 +259,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                 this.lastAnchorLine = anchorLine;
             }
             this.listView.anchorLine = this.lastAnchorLine?.index || null;
-            const breakpointAddress = this.getBreakpointAddress(null);
+            const breakpointAddress = this.getBreakpointAddress(NaN);
             const breakpointLine = this.listViewMap.get(breakpointAddress);
             if (breakpointLine) {
                 breakpointLine.text = breakpointLine.text.charAt(0) + '\u25cf' + breakpointLine.text.substring(2);
@@ -303,7 +306,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             const lineNo = Math.floor(($memory.prop('scrollTop') + event.offsetY) / lineHeight);
             const line = this.memoryView.lines[lineNo];
             if (line.addr !== this.breakpointAddress) {
-                this.breakpointAddress = line.addr;
+                this.breakpointAddress = line.addr !== null ? line.addr : NaN;
             } else {
                 this.breakpointAddress = NaN;
             }
@@ -317,8 +320,8 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
 
     protected openListFile(fileInput: HTMLInputElement) {
         const files = fileInput.files;
-        if (files.length) {
-            const file: File = fileInput.files[0];
+        if (files && files.length) {
+            const file: File = files[0];
             const reader = new FileReader();
             reader.onload = () => {
                 const text = reader.result as string;

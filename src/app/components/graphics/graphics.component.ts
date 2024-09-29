@@ -16,7 +16,7 @@ export class GraphicsComponent implements OnInit, AfterViewInit, OnChanges {
     @Input() visible: boolean;
 
     private ti994A: TI994A;
-    private timerHandle: number;
+    private timerHandle: number | null;
     private eventSubscription: Subscription;
     private paletteCanvas: HTMLCanvasElement;
     private tileCanvasTop: HTMLCanvasElement;
@@ -62,7 +62,7 @@ export class GraphicsComponent implements OnInit, AfterViewInit, OnChanges {
     }
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (changes.visible.currentValue) {
+        if (changes['visible'].currentValue) {
             this.updateView();
         }
     }

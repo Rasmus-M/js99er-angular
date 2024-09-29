@@ -20,7 +20,7 @@ export class WasmService implements Resolve<any> {
         const memory = new WebAssembly.Memory({ initial: 2, maximum: 2 });
         return WebAssembly.instantiateStreaming(fetch('./assets/wasm/index.wasm'), {env: {
                 memory,
-                abort: (message, fileName, lineNumber, columnNumber) => { console.error(message); }
+                abort: (message: string, fileName: string, lineNumber: number, columnNumber: number) => { console.error(message); }
             }}).then(
             (source: WebAssembly.WebAssemblyInstantiatedSource) => {
                 this.exports = source.instance.exports;

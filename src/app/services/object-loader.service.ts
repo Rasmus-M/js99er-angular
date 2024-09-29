@@ -63,7 +63,7 @@ class LineReader {
         }
     }
 
-    readString(len) {
+    readString(len: number) {
         if (this.pos + len < this.line.length) {
             const str = this.line.substr(this.pos, len);
             this.pos += len;
@@ -308,7 +308,7 @@ export class ObjectLoaderService {
         this.action = action;
     }
 
-    getRAMBlock(start, length) {
+    getRAMBlock(start: number, length: number) {
         const ramBlock = new Uint8Array(length);
         for (let i = 0; i < length; i++) {
             ramBlock[i] = this.ram[start + i];

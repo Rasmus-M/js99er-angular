@@ -14,23 +14,23 @@ const scanlineColorBufferAddr = 0x11000;
 
 export class F18A implements VDP {
 
-    static VERSION = 0x19;
+    static readonly VERSION = 0x19;
 
-    static MAX_SCANLINE_SPRITES_JUMPER = true;
-    static SCANLINES_JUMPER = false;
+    static readonly MAX_SCANLINE_SPRITES_JUMPER = true;
+    static readonly SCANLINES_JUMPER = false;
 
-    static MODE_GRAPHICS = 0;
-    static MODE_TEXT = 1;
-    static MODE_TEXT_80 = 2;
-    static MODE_BITMAP = 3;
-    static MODE_MULTICOLOR = 4;
+    static readonly MODE_GRAPHICS = 0;
+    static readonly MODE_TEXT = 1;
+    static readonly MODE_TEXT_80 = 2;
+    static readonly MODE_BITMAP = 3;
+    static readonly MODE_MULTICOLOR = 4;
 
-    static COLOR_MODE_NORMAL = 0;
-    static COLOR_MODE_ECM_1 = 1;
-    static COLOR_MODE_ECM_2 = 2;
-    static COLOR_MODE_ECM_3 = 3;
+    static readonly COLOR_MODE_NORMAL = 0;
+    static readonly COLOR_MODE_ECM_1 = 1;
+    static readonly COLOR_MODE_ECM_2 = 2;
+    static readonly COLOR_MODE_ECM_3 = 3;
 
-    static PALETTE = [
+    static readonly PALETTE = [
         // Palette 0, original 9918A NTSC color approximations
         "000", //  0 Transparent
         "000", //  1 Black
@@ -210,16 +210,19 @@ export class F18A implements VDP {
 
     constructor(canvas: HTMLCanvasElement, console: TI994A, wasmService: WasmService) {
         this.canvas = canvas;
-        this.canvasContext = canvas.getContext('2d');
         this.console = console;
         this.wasmService = wasmService;
-
+        const canvasContext = canvas.getContext('2d');
+        if (canvasContext) {
+            this.canvasContext = canvasContext;
+        } else {
+            throw new Error("No canvas context provided.");
+        }
         const imageObj = new Image();
         imageObj.onload = () => {
             this.splashImage = imageObj;
         };
         imageObj.src = 'assets/images/f18a_bitmap_v' + this.getVersionNoString() + '.png';
-
         this.log.info("F18A emulation enabled");
     }
 
@@ -970,7 +973,7 @@ export class F18A implements VDP {
         this.writeAddress(i);
     }
 
-    readStatus() {
+    readStatus(): number {
         switch (this.statusRegisterNo) {
             case 0:
                 // Normal status
@@ -1018,7 +1021,8 @@ export class F18A implements VDP {
                 // Status register number
                 return this.registers[15];
         }
-        this.latch = false; // According to Matthew
+        this.latch = false; // TODO: According to Matthew
+        return 0;
     }
 
     readData() {
@@ -1078,34 +1082,7 @@ export class F18A implements VDP {
     }
 
     hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
-        const mask = width - 1;
-        const lines: MemoryLine[] = [];
-        let anchorLine: number = null;
-        let addr = start;
-        let lineNo = 0;
-        let line = "";
-        let ascii = "";
-        for (let i = 0; i < length; addr++, i++) {
-            if (anchorAddr === addr) {
-                anchorLine = lineNo;
-            }
-            if ((i & mask) === 0) {
-                line += Util.toHexWord(addr) + ': ';
-            }
-            const byte = this.ram[addr];
-            line += Util.toHexByteShort(byte);
-            ascii += byte >= 32 && byte < 127 ? String.fromCharCode(byte) : "\u25a1";
-            if ((i & mask) === mask) {
-                line += " " + ascii;
-                lines.push({addr: addr, text: line});
-                line = "";
-                ascii = "";
-                lineNo++;
-            } else {
-                line += ' ';
-            }
-        }
-        return new MemoryView(lines, anchorLine, 0);
+        return MemoryView.hexView(start, length, width, anchorAddr, this.getByte);
     }
 
     getByte(addr: number): number {
@@ -1175,15 +1152,17 @@ export class F18A implements VDP {
             width = canvas.width = 32 * size + 32,
             height = canvas.height = 2 * size + 2,
             canvasContext = canvas.getContext("2d");
-        canvasContext.fillStyle = "rgba(255, 255, 255, 1)";
-        canvasContext.fillRect(0, 0, width, height);
-        let color = 0;
-        for (let y = 0; y < height; y += size + 1) {
-            for (let x = 0; x < width; x += size + 1) {
-                const rgbColor  = this.palette[color];
-                canvasContext.fillStyle = "rgba(" + rgbColor[0] + "," + rgbColor[1] + "," + rgbColor[2] + ",1)";
-                canvasContext.fillRect(x, y, size, size);
-                color++;
+        if (canvasContext) {
+            canvasContext.fillStyle = "rgba(255, 255, 255, 1)";
+            canvasContext.fillRect(0, 0, width, height);
+            let color = 0;
+            for (let y = 0; y < height; y += size + 1) {
+                for (let x = 0; x < width; x += size + 1) {
+                    const rgbColor = this.palette[color];
+                    canvasContext.fillStyle = "rgba(" + rgbColor[0] + "," + rgbColor[1] + "," + rgbColor[2] + ",1)";
+                    canvasContext.fillRect(x, y, size, size);
+                    color++;
+                }
             }
         }
     }
@@ -1195,7 +1174,6 @@ export class F18A implements VDP {
             baseHeight = 64,
             height = canvas.height = baseHeight + (gap ? 8 : 0),
             canvasContext = canvas.getContext("2d"),
-            imageData = canvasContext.createImageData(width, height),
             screenMode = this.screenMode,
             ram = this.ram,
             baseTableOffset = section << 11,
@@ -1207,12 +1185,17 @@ export class F18A implements VDP {
             tilePaletteSelect = this.tilePaletteSelect1,
             palette = this.palette,
             fgColor = this.fgColor,
-            bgColor = this.bgColor,
+            bgColor = this.bgColor;
+        if (!canvasContext) {
+            return;
+        }
+        const
+            imageData = canvasContext.createImageData(width, height),
             imageDataData = imageData.data;
         let
             name: number,
             tableOffset: number,
-            tileAttributeByte: number,
+            tileAttributeByte = 0,
             colorByte: number,
             bit: number,
             transparentColor0: boolean,
@@ -1314,7 +1297,6 @@ export class F18A implements VDP {
             baseHeight = 64,
             height = canvas.height = baseHeight + (gap ? 4 : 0),
             canvasContext = canvas.getContext("2d"),
-            imageData = canvasContext.createImageData(width, height),
             ram = this.ram,
             spritePatternTable = this.spritePatternTable,
             spriteAttributeTable = this.spriteAttributeTable,
@@ -1325,7 +1307,12 @@ export class F18A implements VDP {
             maxSpriteAttrAddr = (this.maxSprites << 2),
             row30: boolean = this.row30Enabled,
             palette = this.palette,
-            patternColorMap = this.spritePatternColorMap,
+            patternColorMap: {[key: number]: {paletteBaseIndex: number, baseColor: number}} = this.spritePatternColorMap;
+        if (!canvasContext) {
+            return;
+        }
+        const
+            imageData = canvasContext.createImageData(width, height),
             imageDataData = imageData.data;
         let
             pattern: number,
@@ -1381,6 +1368,7 @@ export class F18A implements VDP {
                 patternByte2 = ram[(patternAddr + (spritePlaneOffset << 1)) & 0x3fff];
                 color = 0;
                 colorMapEntry = patternColorMap[pattern & 0xfc];
+                pixelOn = false;
                 switch (spriteColorMode) {
                     case F18A.COLOR_MODE_NORMAL:
                         pixelOn = (patternByte & bit) !== 0;

@@ -8,14 +8,14 @@ import {Subject} from 'rxjs';
 import {ObjectLoaderService} from './object-loader.service';
 import {DiskImage, DiskImageEvent} from '../emulator/classes/diskimage';
 import {EventDispatcherService} from './event-dispatcher.service';
-import {saveAs} from 'file-saver';
+import saveAs from 'file-saver';
 import {Subscription} from 'rxjs';
 import {Command, CommandType} from '../classes/command';
 import {ConsoleEvent, ConsoleEventType} from '../classes/consoleevent';
 import {DiskFile} from '../emulator/classes/diskfile';
 import {DatabaseService} from "./database.service";
 import {forkJoin} from "rxjs";
-import {Disk} from "../emulator/classes/disk";
+import Entry = zip.Entry;
 
 @Injectable()
 export class DiskService {
@@ -54,8 +54,8 @@ export class DiskService {
        this.eventDispatcherService.diskChanged(event.diskImage);
     }
 
-    loadDiskFiles(files: FileList, diskDrive: DiskDrive): Observable<DiskImage> {
-        const subject = new Subject<DiskImage>();
+    loadDiskFiles(files: FileList, diskDrive: DiskDrive): Observable<DiskImage | null> {
+        const subject = new Subject<DiskImage | null>();
         const log = this.log;
         const service = this;
         for (let i = 0; i < files.length; i++) {
@@ -65,7 +65,7 @@ export class DiskService {
                 if (extension != null && extension.toLowerCase() === 'zip') {
                     // Zip file
                     this.zipService.createReader(this.zipService.createBlobReader(file), function (zipReader) {
-                        zipReader.getEntries(function (entries) {
+                        zipReader.getEntries(function (entries: Entry[]) {
                             const observables: Observable<DiskImage>[] = [];
                             entries.forEach(entry => {
                                 if (!entry.directory) {
@@ -98,7 +98,7 @@ export class DiskService {
                         subject.next(null);
                     };
                     reader.onerror = function () {
-                        subject.error(reader.error.name);
+                        subject.error(reader.error?.name);
                     };
                     reader.readAsText(file);
                 } else {
@@ -110,24 +110,24 @@ export class DiskService {
         return subject.asObservable();
     }
 
-    loadDiskFileFromZipEntry(entry, diskDrive: DiskDrive): Observable<DiskImage> {
+    loadDiskFileFromZipEntry(entry: Entry, diskDrive: DiskDrive): Observable<DiskImage> {
         const subject = new Subject<DiskImage>();
         const service = this;
         const blobWriter = this.zipService.createBlobWriter();
-        entry.getData(blobWriter, function (blob) {
-            service.loadDiskFile(entry.filename.split('/').pop(), blob, diskDrive, false).subscribe(subject);
+        entry.getData(blobWriter, function (blob: Blob) {
+            service.loadDiskFile(entry.filename.split('/').pop() || '', blob, diskDrive, false).subscribe(subject);
         });
         return subject.asObservable();
     }
 
-    loadDiskFile(filename: string, file: File, diskDrive: DiskDrive, acceptDiskImage: boolean): Observable<DiskImage> {
+    loadDiskFile(filename: string, file: Blob, diskDrive: DiskDrive, acceptDiskImage: boolean): Observable<DiskImage> {
         const subject = new Subject<DiskImage>();
         const reader = new FileReader();
         const service = this;
         reader.onload = function () {
             // reader.result contains the contents of blob as a typed array
             const fileBuffer = new Uint8Array(this.result as ArrayBuffer);
-            let diskImage: DiskImage;
+            let diskImage: DiskImage | null;
             if (acceptDiskImage && fileBuffer.length >= 16 && fileBuffer[0x0D] === 0x44 && fileBuffer[0x0E] === 0x53 && fileBuffer[0x0F] === 0x4B) {
                 diskImage = diskDrive.loadDSKFile(filename, fileBuffer, service.onDiskImageChanged.bind(service));
             } else {
@@ -142,7 +142,7 @@ export class DiskService {
             subject.next(diskImage);
         };
         reader.onerror = function () {
-            subject.error(reader.error.name);
+            subject.error(reader.error?.name);
         };
         reader.readAsArrayBuffer(file);
         return subject.asObservable();
@@ -172,8 +172,10 @@ export class DiskService {
     saveFiles(diskImage: DiskImage, diskFiles: DiskFile[]) {
         for (const diskFile of diskFiles) {
             const tiFile = diskImage.createTIFile(diskFile.getName());
-            const blob = new Blob([tiFile], { type: "application/octet-stream" });
-            saveAs(blob, diskFile.getName() + ".tifiles");
+            if (tiFile) {
+                const blob = new Blob([tiFile], { type: "application/octet-stream" });
+                saveAs(blob, diskFile.getName() + ".tifiles");
+            }
         }
     }
 
@@ -244,14 +246,14 @@ export class DiskService {
             (diskDriveState: any) => {
                 if (diskDriveState) {
                     if (diskDriveState.diskImage) {
-                        let diskImage: DiskImage = null;
+                        let diskImage: DiskImage | null = null;
                         for (let i = 0; i < diskImages.length && !diskImage; i++) {
                             if (diskImages[i].getName() === diskDriveState.diskImage) {
                                 diskImage = diskImages[i];
                             }
                         }
                         diskDrive.setDiskImage(diskImage);
-                        this.log.info("Disk image " + diskDrive.getDiskImage().getName() + " restored to " + diskDrive.getName() + ".");
+                        this.log.info("Disk image " + diskDrive.getDiskImage()?.getName() + " restored to " + diskDrive.getName() + ".");
                     } else {
                         diskDrive.setDiskImage(null);
                     }

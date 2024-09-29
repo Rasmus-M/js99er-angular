@@ -5,6 +5,7 @@ import {CPU} from '../interfaces/cpu';
 import {TI994A} from './ti994a';
 import {MemoryLine, MemoryView} from "../../classes/memoryview";
 import {WasmService} from "../../services/wasm.service";
+import {Console} from '../interfaces/console';
 
 export enum ScreenMode {
     MODE_GRAPHICS = 0,
@@ -23,7 +24,7 @@ const scanlineColorBufferAddr = 0x11000;
 export class TMS9918A implements VDP {
 
     private canvas: HTMLCanvasElement;
-    private console: TI994A;
+    private console: Console;
     private cru: TMS9901;
     private wasmService: WasmService;
 
@@ -75,13 +76,18 @@ export class TMS9918A implements VDP {
     private width: number;
     private height: number;
 
-    private spritePatternColorMap: {};
+    private spritePatternColorMap: {[key: number]: number};
 
-    constructor(canvas: HTMLCanvasElement, console: TI994A, wasmService: WasmService) {
+    constructor(canvas: HTMLCanvasElement, console: Console, wasmService: WasmService) {
         this.canvas = canvas;
-        this.canvasContext = canvas.getContext('2d', {willReadFrequently: true});
         this.console = console;
         this.wasmService = wasmService;
+        const canvasContext = canvas.getContext('2d', {willReadFrequently: true});
+        if (canvasContext) {
+            this.canvasContext = canvasContext;
+        } else {
+            throw new Error("No canvas context provided.");
+        }
     }
 
     reset() {
@@ -394,34 +400,7 @@ export class TMS9918A implements VDP {
     }
 
     hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
-        const mask = width - 1;
-        const lines: MemoryLine[] = [];
-        let anchorLine: number = null;
-        let addr = start;
-        let lineNo = 0;
-        let line = "";
-        let ascii = "";
-        for (let i = 0; i < length; addr++, i++) {
-            if (anchorAddr === addr) {
-                anchorLine = lineNo;
-            }
-            if ((i & mask) === 0) {
-                line += Util.toHexWord(addr) + ': ';
-            }
-            const byte = this.ram[addr];
-            line += Util.toHexByteShort(byte);
-            ascii += byte >= 32 && byte < 127 ? String.fromCharCode(byte) : "\u25a1";
-            if ((i & mask) === mask) {
-                line += " " + ascii;
-                lines.push({addr: addr, text: line});
-                line = "";
-                ascii = "";
-                lineNo++;
-            } else {
-                line += ' ';
-            }
-        }
-        return new MemoryView(lines, anchorLine, 0);
+        return MemoryView.hexView(start, length, width, anchorAddr, this.getByte);
     }
 
     getByte(addr: number): number {
@@ -454,7 +433,7 @@ export class TMS9918A implements VDP {
         return -1;
     }
 
-    getGPU(): CPU {
+    getGPU(): CPU | undefined {
         return undefined;
     }
 
@@ -464,6 +443,9 @@ export class TMS9918A implements VDP {
             width = canvas.width = 16 * size + 16,
             height = canvas.height = size,
             canvasContext = canvas.getContext("2d");
+        if (!canvasContext) {
+            return;
+        }
         canvasContext.fillStyle = "rgba(255, 255, 255, 1)";
         canvasContext.fillRect(0, 0, width, height);
         let color = 0;
@@ -482,7 +464,6 @@ export class TMS9918A implements VDP {
             baseHeight = 64,
             height = canvas.height = baseHeight + (gap ? 8 : 0),
             canvasContext = canvas.getContext("2d"),
-            imageData = canvasContext.createImageData(width, height),
             screenMode = this.screenMode,
             ram = this.ram,
             baseTableOffset = section << 11,
@@ -492,7 +473,12 @@ export class TMS9918A implements VDP {
             patternTableMask = this.patternTableMask,
             palette = this.palette,
             fgColor = this.fgColor,
-            bgColor = this.bgColor,
+            bgColor = this.bgColor;
+        if (!canvasContext) {
+            return;
+        }
+        const
+            imageData = canvasContext.createImageData(width, height),
             imageDataData = imageData.data;
         let
             name: number,
@@ -558,12 +544,16 @@ export class TMS9918A implements VDP {
             baseHeight = 64,
             height = canvas.height = baseHeight + (gap ? 4 : 0),
             canvasContext = canvas.getContext("2d"),
-            imageData = canvasContext.createImageData(width, height),
             ram = this.ram,
             spritePatternTable = this.spritePatternTable,
             spriteAttributeTable = this.spriteAttributeTable,
             palette = this.palette,
-            patternColorMap = this.spritePatternColorMap,
+            patternColorMap = this.spritePatternColorMap;
+        if (!canvasContext) {
+            return;
+        }
+        const
+            imageData = canvasContext.createImageData(width, height),
             imageDataData = imageData.data;
         let
             pattern: number,

@@ -26,7 +26,7 @@ export class Disassembler {
         this.memory = memory;
     }
 
-    public disassemble(start: number, length: number, maxInstructions: number, anchorAddr: number, breakpointAddr: number): MemoryView {
+    public disassemble(start: number, length: number | null, maxInstructions: number | null, anchorAddr: number, breakpointAddr: number): MemoryView {
         this.start = Math.max(start || 0, 0);
         this.length = Math.min(length || 0x10000, 0x10000 - this.start);
         this.maxInstructions = maxInstructions || 0x10000;
@@ -37,7 +37,9 @@ export class Disassembler {
         if (this.start < this.anchorAddr) {
             const result2 = this.disassembleRange(this.start, this.anchorAddr - this.start, this.maxInstructions - result.lines.length, null, breakpointAddr);
             result.lines = result2.lines.concat(result.lines);
-            result.anchorLine += result2.lines.length;
+            if (result.anchorLine !== null) {
+                result.anchorLine += result2.lines.length;
+            }
         }
         return result;
     }
@@ -47,7 +49,7 @@ export class Disassembler {
         return this.disassembleNextInstruction();
     }
 
-    private disassembleRange(start: number, length: number, maxInstructions: number, anchorAddr: number, breakpointAddr: number): MemoryView {
+    private disassembleRange(start: number, length: number, maxInstructions: number, anchorAddr: number | null, breakpointAddr: number): MemoryView {
         this.addr = start;
         const end = start + length;
         const disassembly: MemoryLine[] = [];
@@ -68,7 +70,7 @@ export class Disassembler {
             disassembly.push(new MemoryLine(instrAddr , linePrefix + line));
             this.addr += 2;
         }
-        return new MemoryView(disassembly, anchorLine, breakpointLine);
+        return new MemoryView(disassembly, anchorLine, breakpointLine );
     }
 
     private disassembleNextInstruction(): string {
@@ -213,6 +215,8 @@ export class Disassembler {
                 // Post increment (*R1+)
                 text = '*' + Disassembler.r(val) + '+';
                 break;
+            default:
+                text = '';
         }
         return text;
     }

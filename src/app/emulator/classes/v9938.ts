@@ -1,11 +1,11 @@
 /* tslint:disable */
 
-import {TI994A} from "./ti994a";
 import {VDP} from "../interfaces/vdp";
 import {CPU} from "../interfaces/cpu";
-import {MemoryLine, MemoryView} from "../../classes/memoryview";
+import {MemoryView} from "../../classes/memoryview";
 import {Util} from "../../classes/util";
 import {Log} from "../../classes/log";
+import {Console} from '../interfaces/console';
 
 declare type int = number;
 declare type int16_t = number;
@@ -20,8 +20,8 @@ interface V99x8Mode {
     m: uint8_t;
     visible_32: (ln: uint32_t[], line: int) => void;
     border_32: (ln: uint32_t[]) => void;
-    sprites: (line: int, ln: uint8_t[]) => void;
-    draw_sprite_32: (ln: uint32_t[], col: uint8_t[]) => void;
+    sprites?: (line: int, ln: uint8_t[]) => void;
+    draw_sprite_32?: (ln: uint32_t[], col: uint8_t[]) => void;
 }
 
 class MMC {
@@ -507,7 +507,7 @@ export class V9938 implements VDP {
     // Command unit
     private mmc = new MMC();
     private vdp_ops_count: int = 0;
-    private vdp_engine: () => void | undefined;
+    private vdp_engine: (() => void) | undefined;
 
     private s_modes: V99x8Mode[] = [
         {
@@ -687,33 +687,29 @@ export class V9938 implements VDP {
     private canvas: HTMLCanvasElement;
     private canvasContext: CanvasRenderingContext2D;
     private imageData: ImageData;
-    private console: TI994A;
+    private console: Console;
 
-    constructor(canvas: HTMLCanvasElement, console: TI994A) {
+    constructor(canvas: HTMLCanvasElement, console: Console) {
         this.canvas = canvas;
-        this.canvasContext = canvas.getContext('2d', {willReadFrequently: true});
         this.console = console;
+        const canvasContext = canvas.getContext('2d', {willReadFrequently: true});
+        if (canvasContext) {
+            this.canvasContext = canvasContext;
+        } else {
+            throw new Error("No canvas context provided.");
+        }
         this.device_start();
         this.mouseEmulation();
     }
 
-    static LOGMASKED(logType: number, message: string, ...args: any[]) {
+    static LOGMASKED(logType: number, message: string, ...args: (string | number)[]) {
         if (logType & V9938.LOG_LEVEL) {
             if (logType === V9938.LOG_WARN) {
-                Log.getLog().warn(V9938.format(message, args));
+                Log.getLog().warn(Util.format(message, ...args));
             } else {
-                Log.getLog().info(V9938.format(message, args));
+                Log.getLog().info(Util.format(message, ...args));
             }
         }
-    }
-
-    static format(s: string, ...args) {
-        if (s.indexOf('%s') !== -1 && args.length > 0) {
-            s = s.replace('%s', args[0]);
-        } else if (s.indexOf('%d') !== -1 && args.length > 0) {
-            s = s.replace('%d', args[0]);
-        }
-        return s;
     }
 
     static BIT(value: int, bitNo: int) {
@@ -814,10 +810,28 @@ export class V9938 implements VDP {
     }
 
     getCharAt(x: number, y: number): number {
-        return 0;
+        const scaleX = (this.mode === V9938.MODE_TEXT2 ? 512 : 256) / 300; // ?
+        x *= scaleX;
+        x -= 8;
+        y -= 24;
+        console.log(x, y);
+        if (x >= 0 && x < 256 && y >= 0 && y < 192) {
+            switch (this.mode) {
+                case V9938.MODE_GRAPHIC1:
+                case V9938.MODE_GRAPHIC2:
+                case V9938.MODE_GRAPHIC3:
+                    return this.getByte(this.nameTableAddress() + (x >> 3) + ((y >> 3) << 5));
+                case V9938.MODE_TEXT1:
+                    return this.getByte(this.nameTableAddress() + Math.floor((x - 8) / 6) + (y >> 3) * 40);
+                case V9938.MODE_TEXT2:
+                    return this.getByte(this.nameTableAddress() + Math.floor((x - 24) / 6) + ((y + 8) >> 3) * 80);
+            }
+        }
+        return -1;
+
     }
 
-    getGPU(): CPU {
+    getGPU(): CPU | undefined {
         return undefined;
     }
 
@@ -827,14 +841,16 @@ export class V9938 implements VDP {
             width = canvas.width = 16 * size + 16,
             height = canvas.height = size,
             canvasContext = canvas.getContext("2d");
-        canvasContext.fillStyle = "rgba(255, 255, 255, 1)";
-        canvasContext.fillRect(0, 0, width, height);
-        let color = 0;
-        for (let x = 0; x < width; x += size + 1) {
-            const rgbColor = this.palette[color];
-            canvasContext.fillStyle = "rgba(" + rgbColor.r + "," + rgbColor.g + "," + rgbColor.b + ",1)";
-            canvasContext.fillRect(x, 0, size, size);
-            color++;
+        if (canvasContext) {
+            canvasContext.fillStyle = "rgba(255, 255, 255, 1)";
+            canvasContext.fillRect(0, 0, width, height);
+            let color = 0;
+            for (let x = 0; x < width; x += size + 1) {
+                const rgbColor = this.palette[color];
+                canvasContext.fillStyle = "rgba(" + rgbColor.r + "," + rgbColor.g + "," + rgbColor.b + ",1)";
+                canvasContext.fillRect(x, 0, size, size);
+                color++;
+            }
         }
     }
 
@@ -845,7 +861,6 @@ export class V9938 implements VDP {
             baseHeight = 64,
             height = canvas.height = baseHeight + (gap ? 8 : 0),
             canvasContext = canvas.getContext("2d"),
-            imageData = canvasContext.createImageData(width, height),
             screenMode = this.mode,
             ram = this.vram_space,
             baseTableOffset = section << 11,
@@ -855,7 +870,12 @@ export class V9938 implements VDP {
             patternTableMask = this.patternTableMask(),
             palette = this.palette,
             fgColor = (this.cont_reg[7] & 0xf0) >> 4,
-            bgColor = this.cont_reg[7] & 0x0f,
+            bgColor = this.cont_reg[7] & 0x0f;
+        if (!canvasContext) {
+            return;
+        }
+        const
+            imageData = canvasContext.createImageData(width, height),
             imageDataData = imageData.data;
         let
             name: number,
@@ -923,14 +943,18 @@ export class V9938 implements VDP {
             baseHeight = 64,
             height = canvas.height = baseHeight + (gap ? 4 : 0),
             canvasContext = canvas.getContext("2d"),
-            imageData = canvasContext.createImageData(width, height),
             ram = this.vram_space,
             spritePatternTable = this.spritePatternTableAddress(),
             spriteAttributeTable = this.spriteAttributeTableAddress(),
             palette = this.palette,
             patternColorMap = [],
-            imageDataData = imageData.data,
             backgroundColor = new Color(224, 244, 255);
+        if (!canvasContext) {
+            return;
+        }
+        const
+            imageData = canvasContext.createImageData(width, height),
+            imageDataData = imageData.data;
         let
             pattern: number,
             patternByte: number,
@@ -970,34 +994,10 @@ export class V9938 implements VDP {
 
     hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
         const pageOffset = (this.cont_reg[14] << 14) + (this.cont_reg[45] & 0x40 ? V9938.EXPMEM_OFFSET : 0);
-        const mask = width - 1;
-        const lines: MemoryLine[] = [];
-        let anchorLine: number = null;
-        let addr = start;
-        let lineNo = 0;
-        let line = "";
-        let ascii = "";
-        for (let i = 0; i < length; addr++, i++) {
-            if (anchorAddr === addr) {
-                anchorLine = lineNo;
-            }
-            if ((i & mask) === 0) {
-                line += Util.toHexWord(addr) + ': ';
-            }
-            const byte = this.getByte(pageOffset + addr);
-            line += Util.toHexByteShort(byte);
-            ascii += byte >= 32 && byte < 127 ? String.fromCharCode(byte) : "\u25a1";
-            if ((i & mask) === mask) {
-                line += " " + ascii;
-                lines.push({addr: addr, text: line});
-                line = "";
-                ascii = "";
-                lineNo++;
-            } else {
-                line += ' ';
-            }
-        }
-        return new MemoryView(lines, anchorLine, 0);
+        const getByte = (addr: number) => {
+            return this.getByte(pageOffset + addr);
+        };
+        return MemoryView.hexView(start, length, width, anchorAddr, getByte);
     }
 
     getState(): any {
@@ -1224,7 +1224,7 @@ export class V9938 implements VDP {
         return (value < 8) ? -value : 16 - value;
     }
 
-    timer_callback_member(update_line) {
+    timer_callback_member(update_line: number) {
         const scanline: int = (this.scanline - (this.scanline_start + this.offset_y));
 
         this.update_command();
@@ -1508,11 +1508,6 @@ export class V9938 implements VDP {
                 }
             }
         }
-    }
-
-    screen_update(screen, bitmap, cliprect): uint32_t {
-        // copybitmap(bitmap, this.bitmap, 0, 0, 0, 0, cliprect);
-        return 0;
     }
 
     read(offset: offs_t): uint8_t {
@@ -3053,13 +3048,14 @@ export class V9938 implements VDP {
             double_lines = true;
         }
 
+        const mode = this.s_modes[this.mode];
         if (!(this.cont_reg[1] & 0x40) || (this.stat_reg[2] & 0x40)) {
-            this.s_modes[this.mode].border_32(ln);
+            mode.border_32(ln);
         } else {
-            this.s_modes[this.mode].visible_32(ln, line);
-            if (this.s_modes[this.mode].sprites) {
-                this.s_modes[this.mode].sprites(line, col);
-                this.s_modes[this.mode].draw_sprite_32(ln, col);
+            mode.visible_32(ln, line);
+            if (mode.sprites && mode.draw_sprite_32) {
+                mode.sprites(line, col);
+                mode.draw_sprite_32(ln, col);
             }
         }
 

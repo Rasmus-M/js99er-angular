@@ -3,12 +3,12 @@ import {Log} from '../../classes/log';
 
 export class Joystick implements Stateful {
 
-    private static gamepadIndices: object;
+    private static gamepadIndices: {[key: number]: number | null};
     private static threshold = 0.25;
 
     private column: boolean[];
     private number: number;
-    private index: number;
+    private index: number | null;
     private interval: number;
     private log: Log;
 
@@ -85,13 +85,13 @@ export class Joystick implements Stateful {
         }
     }
 
-    getState() {
+    getState(): any {
         return {
             column: this.column
         };
     }
 
-    restoreState(state) {
+    restoreState(state: any) {
         this.column = state.column;
     }
 }

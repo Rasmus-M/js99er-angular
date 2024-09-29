@@ -1,4 +1,3 @@
-import {Log} from '../../classes/log';
 import {Joystick} from './joystick';
 import {Stateful} from '../interfaces/stateful';
 import {Settings} from '../../classes/settings';
@@ -6,13 +5,13 @@ import {Key, KeyMapper, TIKey} from "../../classes/keymapper";
 
 export class Keyboard implements Stateful {
 
-    static KEYPRESS_DURATION = 100;
-    static EMULATE_JOYSTICK_2 = false;
+    static readonly KEYPRESS_DURATION = 100;
+    static readonly EMULATE_JOYSTICK_2 = false;
 
     private document: Document;
     private pcKeyboardEnabled: boolean;
     private mapArrowKeysToFctnSDEX: boolean;
-    private mappedArrowKeyPressed: TIKey;
+    private mappedArrowKeyPressed: TIKey | null;
     private running: boolean;
     private columns: boolean[][];
     private joystick1: Joystick;
@@ -21,15 +20,13 @@ export class Keyboard implements Stateful {
     private joystickHandle: number;
     private keyCode: number;
     private alphaLock: boolean;
-    private keyHandles: {};
-    private pasteBuffer: string;
+    private keyHandles: {[key: string]: number};
+    private pasteBuffer: string | null;
     private pasteIndex: number;
 
-    private keydownListener: EventListener;
-    private keyupListener: EventListener;
-    private pasteListener: EventListener;
-
-    private log: Log = Log.getLog();
+    private keydownListener: ((evt: KeyboardEvent) => void) | null;
+    private keyupListener: ((evt: KeyboardEvent) => void) | null;
+    private pasteListener: ((evt: ClipboardEvent) => void) | null;
 
     constructor(document: Document, settings: Settings) {
         this.document = document;
@@ -123,8 +120,10 @@ export class Keyboard implements Stateful {
         }
         if (!this.pasteListener) {
             this.pasteListener = (evt: ClipboardEvent) => {
-                this.pasteBuffer = "\n" + evt.clipboardData.getData('text/plain') + "\n";
-                this.pasteIndex = 0;
+                if (evt.clipboardData) {
+                    this.pasteBuffer = "\n" + evt.clipboardData.getData('text/plain') + "\n";
+                    this.pasteIndex = 0;
+                }
             };
             this.document.addEventListener("paste", this.pasteListener);
         }
@@ -170,7 +169,7 @@ export class Keyboard implements Stateful {
     }
 
     private keyEvent(evt: KeyboardEvent | any, down: boolean) {
-        let key: Key;
+        let key: Key | undefined;
         if (evt.code) {
             key = KeyMapper.getKeyFromCode(evt.code);
         } else if (evt.keyCode) {
@@ -180,7 +179,9 @@ export class Keyboard implements Stateful {
             key.tiKeys.forEach((tiKey) => {
                 this.setTIKeyDown(tiKey, down);
             });
-            this.handleAdditionalKeys(key.code, down);
+            if (key.code) {
+                this.handleAdditionalKeys(key.code, down);
+            }
         }
         if (!key || this.handledByBrowser(evt)) {
             // Let browser handle unused keys
@@ -192,13 +193,13 @@ export class Keyboard implements Stateful {
     // For PC keyboard
     private keyEventPC(evt: KeyboardEvent | any, down: boolean) {
         // console.log(evt.keyCode, evt.charCode, evt.code, evt.key);
-        let key: Key;
+        let key: Key | undefined;
         if (evt.key) {
             key = KeyMapper.getKeyFromKey(evt.key);
         } else if (evt.keyCode) {
             key = KeyMapper.getKeyFromKeyCode(evt.keyCode);
         }
-        if (key) {
+        if (key && key.key) {
             const fctn = this.isTIKeyDown(TIKey.Fctn);
             const ctrl = this.isTIKeyDown(TIKey.Ctrl);
             this.setTIKeyDown(TIKey.Fctn, false);
@@ -206,7 +207,7 @@ export class Keyboard implements Stateful {
             this.setTIKeyDown(TIKey.Ctrl, false);
             key.tiKeys.forEach((tiKey) => {
                 this.setTIKeyDown(tiKey, down);
-                if (!tiKey.isSticky()) {
+                if (!tiKey.isSticky() && key.key) {
                     const handle = this.keyHandles[key.key];
                     if (handle) {
                         window.clearTimeout(handle);
@@ -283,7 +284,7 @@ export class Keyboard implements Stateful {
         }
     }
 
-    private handleMappedArrowKey(key: TIKey, down) {
+    private handleMappedArrowKey(key: TIKey, down: boolean) {
         if (this.mapArrowKeysToFctnSDEX && this.joystickActiveCountdown === 0 && (!this.mappedArrowKeyPressed || this.mappedArrowKeyPressed === key)) {
             this.setTIKeyDown(TIKey.Fctn, down);
             this.setTIKeyDown(key, down);
@@ -317,7 +318,7 @@ export class Keyboard implements Stateful {
         }
     }
 
-    simulateKeyPresses(keyString: string, callback: () => void) {
+    simulateKeyPresses(keyString: string, callback: (() => void) | null) {
         if (keyString.length > 0) {
             const pause = keyString.charAt(0) === "§";
             if (!pause) {
@@ -337,7 +338,7 @@ export class Keyboard implements Stateful {
         }
     }
 
-    simulateKeyPress(keyCode: number, callback: () => void) {
+    simulateKeyPress(keyCode: number, callback: (() => void) | null) {
         this.simulateKeyDown(keyCode);
         window.setTimeout(() => {
             this.simulateKeyUp(keyCode);
@@ -404,7 +405,7 @@ export class Keyboard implements Stateful {
         return charCode;
     }
 
-    getState(): object {
+    getState(): any {
         return {
             pcKeyboardEnabled: this.pcKeyboardEnabled,
             mapArrowKeysToFctnSDEX: this.mapArrowKeysToFctnSDEX,
@@ -419,7 +420,7 @@ export class Keyboard implements Stateful {
         };
     }
 
-    restoreState(state) {
+    restoreState(state: any) {
         this.pcKeyboardEnabled = state.pcKeyboardEnabled;
         this.mapArrowKeysToFctnSDEX = state.mapArrowKeysToFctnSDEX;
         this.columns = state.columns;

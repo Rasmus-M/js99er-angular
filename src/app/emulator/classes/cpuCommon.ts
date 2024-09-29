@@ -48,7 +48,7 @@ export abstract class CPUCommon {
     // Logging
     protected cycleLog = new Int32Array(0x10000);
 
-    protected instructions: {[key: string]: () => number } = {
+    protected instructions: {[key: string]: undefined | (() => number) } = {
         LI: this.li,
         AI: this.ai,
         ANDI: this.andi,
@@ -119,7 +119,7 @@ export abstract class CPUCommon {
 
     // Misc
     protected breakpoint: number;
-    protected auxBreakpoint: number;
+    protected auxBreakpoint: number | null;
     protected stoppedAtBreakpoint: boolean;
     protected tracing: boolean;
     protected log = Log.getLog();
@@ -195,7 +195,7 @@ export abstract class CPUCommon {
         return this.wp;
     }
 
-    setWp(value) {
+    setWp(value: number) {
         this.wp = value & 0xFFFE;
     }
 
@@ -365,11 +365,11 @@ export abstract class CPUCommon {
         return cycles;
     }
 
-    abstract execute(instruction: number);
+    abstract execute(instruction: number): number;
 
-    abstract writeMemoryWord(addr: number, w: number);
+    abstract writeMemoryWord(addr: number, w: number): void;
 
-    abstract writeMemoryByte(addr: number, b: number);
+    abstract writeMemoryByte(addr: number, b: number): void;
 
     abstract readMemoryWord(addr: number): number;
 

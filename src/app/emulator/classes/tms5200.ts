@@ -5,6 +5,7 @@ import {System} from './system';
 import {Util} from '../../classes/util';
 import {Settings} from '../../classes/settings';
 import {TI994A} from './ti994a';
+import {Console} from '../interfaces/console';
 
 /**********************************************************************************************
 
@@ -379,7 +380,7 @@ export class TMS5200 implements Speech {
         interp_coeff: [ 0, 3, 3, 3, 2, 2, 1, 1 ]
     };
 
-    private console: TI994A;
+    private console: Console;
     private cpu: CPU;
     private enabled: boolean;
 
@@ -420,8 +421,8 @@ export class TMS5200 implements Speech {
     private m_ROM_bits_count: number;
     private m_irq_pin: number;
     private m_io_ready: boolean;
-    private m_irq_handler: (object) => void;
-    private m_readyq_handler: (object) => void;
+    private m_irq_handler: (value: boolean) => void;
+    private m_readyq_handler: (value: boolean) => void;
     private m_fifo_bits_taken: number;
     private m_fifo_head: number;
     private m_pitch_count: number;
@@ -435,7 +436,7 @@ export class TMS5200 implements Speech {
 
     private log: Log = Log.getLog();
 
-    constructor(console: TI994A, settings: Settings) {
+    constructor(console: Console, settings: Settings) {
         this.console = console;
         this.enabled = settings.isSpeechEnabled();
     }
@@ -504,7 +505,7 @@ export class TMS5200 implements Speech {
         return this.enabled ? this.status_read() : 0;
     }
 
-    setSpeechEnabled(enabled) {
+    setSpeechEnabled(enabled: boolean) {
         this.enabled = enabled;
     }
 
@@ -699,46 +700,6 @@ export class TMS5200 implements Speech {
 
     private ready_read(): boolean {
         return ((this.m_fifo_count < TMS5200.FIFO_SIZE) || (!this.m_speak_external)) && this.m_io_ready;
-    }
-
-    /**********************************************************************************************
-
-     tms5220_cycles_to_ready -- returns the number of cycles until ready is asserted
-     NOTE: this function is deprecated and is known to be VERY inaccurate.
-     Use at your own peril!
-
-     ***********************************************************************************************/
-
-    private cycles_to_ready(): number {
-        let answer;
-
-
-        if (this.ready_read()) {
-            answer = 0;
-        } else {
-            let val;
-            const samples_per_frame = this.m_subc_reload ? 200 : 304; // either (13 A cycles + 12 B cycles) * 8 interps for normal SPEAK/SPKEXT, or (13*2 A cycles + 12 B cycles) * 8 interps for SPKSLOW
-            const current_sample = ((this.m_PC * (3 - this.m_subc_reload)) + ((this.m_subc_reload ? 38 : 25) * this.m_IP));
-            answer = samples_per_frame - current_sample + 8;
-
-            // total number of bits available in current byte is (8 - m_fifo_bits_taken)
-            // if more than 4 are available, we need to check the energy
-            if (this.m_fifo_bits_taken < 4) {
-                // read energy
-                val = (this.m_fifo[this.m_fifo_head] >> this.m_fifo_bits_taken) & 0xf;
-                if (val === 0) {
-                    /* 0 -> silence frame: we will only read 4 bits, and we will
-                     * therefore need to read another frame before the FIFO is not
-                     * full any more */
-                    answer += this.m_subc_reload ? 200 : 304;
-                    /* 15 -> stop frame, we will only read 4 bits, but the FIFO will
-                     * we cleared; otherwise, we need to parse the repeat flag (1 bit)
-                     * and the pitch (6 bits), so everything will be OK. */
-                }
-            }
-        }
-
-        return answer;
     }
 
     /**********************************************************************************************
@@ -1228,7 +1189,7 @@ export class TMS5200 implements Speech {
             const bitsLeft = this.m_fifo_count * 8 - this.m_fifo_bits_taken;
             // console.log("Frame requires", requiredBits, ". Bits left=", bitsLeft);
             if (requiredBits >= bitsLeft || requiredBits === 4 && bitsLeft === 4) {
-                return;
+                return 0;
             }
         }
 
@@ -1314,6 +1275,7 @@ export class TMS5200 implements Speech {
         } else {
             this.log.debug("Parsed a frame successfully in ROM\n");
         }
+        return 1;
     }
 
     private getRequiredBits() {
@@ -1465,7 +1427,7 @@ export class TMS5200 implements Speech {
     /*
      Write an address nibble to speech ROM
      */
-    private rom_load_address(data) {
+    private rom_load_address(data: number) {
         /* tms5220 data sheet says that if we load only one 4-bit nibble, it won't work.
          This code does not care about this. */
         this.m_speechROMaddr = ( (this.m_speechROMaddr & ~(0xf << this.m_load_pointer))

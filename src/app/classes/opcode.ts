@@ -8,7 +8,7 @@ export class Opcode {
     formatMask: number;
     invFormatMask: number;
 
-    constructor(code, id, format, original) {
+    constructor(code: number, id: string, format: number, original: boolean) {
         this.code = code;
         this.id = id;
         this.format = format;

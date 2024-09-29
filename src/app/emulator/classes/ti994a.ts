@@ -23,7 +23,7 @@ import {DiskImage} from './diskimage';
 import {Console} from "../interfaces/console";
 import {TIPI} from "./tipi";
 import {WasmService} from "../../services/wasm.service";
-import * as $ from "jquery";
+import $ from "jquery";
 import {V9938} from "./v9938";
 import {Forti} from "./forti";
 
@@ -48,7 +48,7 @@ export class TI994A implements Console, Stateful {
     private tape: Tape;
     private diskDrives: DiskDrive[];
     private googleDrives: GoogleDrive[];
-    private tipi: TIPI;
+    private tipi: TIPI | null;
 
     private running: boolean;
     private cpuSpeed: number;
@@ -59,14 +59,14 @@ export class TI994A implements Console, Stateful {
 
     private frameCount: number;
     private frameInterval: number;
-    private lastFrameTime: number;
+    private lastFrameTime: number | null;
     private fpsFrameCount: number;
     private fpsInterval: number;
-    private lastFpsTime: number;
+    private lastFpsTime: number | null;
 
     private log: Log;
 
-    constructor(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: DiskImage[], settings: Settings, wasmService: WasmService, onBreakpoint: (CPU) => void) {
+    constructor(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: DiskImage[], settings: Settings, wasmService: WasmService, onBreakpoint: (cpu: CPU) => void) {
         this.document = document;
         this.canvas = canvas;
         this.settings = settings;
@@ -170,7 +170,7 @@ export class TI994A implements Console, Stateful {
         if (this.settings.getTIPI() !== 'NONE') {
             this.tipi = new TIPI(
                 this.cpu,
-                this.settings.getTIPIWebsocketURI(),
+                this.settings.getTIPIWebsocketURI() || '',
                 this.canvas,
                 this.settings.getTIPI() === 'FULL',
                 this.settings.getTIPI() === 'MOUSE'
@@ -220,7 +220,7 @@ export class TI994A implements Console, Stateful {
         return this.googleDrives;
     }
 
-    getTIPI(): TIPI {
+    getTIPI(): TIPI | null {
         return this.tipi;
     }
 
@@ -332,7 +332,7 @@ export class TI994A implements Console, Stateful {
                 }
             }
             // F18A GPU
-            const gpu: CPU = this.vdp.getGPU();
+            const gpu: CPU | undefined = this.vdp.getGPU();
             if (gpu && !gpu.isIdle()) {
                 this.activeCPU = gpu;
                 gpu.run(f18ACyclesPerScanline, skipBreakpoint);
@@ -452,7 +452,7 @@ export class TI994A implements Console, Stateful {
         }
     }
 
-    getState() {
+    getState(): any {
         return {
             cpu: this.cpu.getState(),
             memory: this.memory.getState(),
@@ -465,7 +465,7 @@ export class TI994A implements Console, Stateful {
         };
     }
 
-    restoreState(state) {
+    restoreState(state: any) {
         if (state.cpu) {
             this.cpu.restoreState(state.cpu);
         }

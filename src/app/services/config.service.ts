@@ -6,6 +6,7 @@ export interface ConfigObject {
     toolbarVisible?: boolean;
     settings?: Settings;
     cartName?: string;
+    cartridgeURL?: string;
 }
 
 @Injectable({
@@ -15,7 +16,7 @@ export class ConfigService {
 
     private _config: ConfigObject;
 
-    get config(): any {
+    get config(): ConfigObject {
         return this._config;
     }
 
