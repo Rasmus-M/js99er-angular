@@ -814,7 +814,6 @@ export class V9938 implements VDP {
         x *= scaleX;
         x -= 8;
         y -= 24;
-        console.log(x, y);
         if (x >= 0 && x < 256 && y >= 0 && y < 192) {
             switch (this.mode) {
                 case V9938.MODE_GRAPHIC1:
@@ -828,7 +827,6 @@ export class V9938 implements VDP {
             }
         }
         return -1;
-
     }
 
     getGPU(): CPU | undefined {
