@@ -1,4 +1,5 @@
-import 'gapi-client';
+// @ts-ignore
+import gapi from 'gapi-client';
 import {AccessType, DataType, Disk, DiskError, FileType, OpCode, OperationMode, RecordType} from './disk';
 import {Log} from '../../classes/log';
 import {TI994A} from './ti994a';
@@ -152,7 +153,7 @@ export class GoogleDrive {
                     callback(true);
                 } else {
                     authInstance.signIn();
-                    authInstance.isSignedIn.listen(function (isSignedIn) {
+                    authInstance.isSignedIn.listen(function (isSignedIn: boolean) {
                         log.info("Signed in: " + isSignedIn);
                         GoogleDrive.AUTHORIZED = isSignedIn;
                         callback(isSignedIn);
@@ -621,7 +622,7 @@ export class GoogleDrive {
             'method': 'GET',
             'params': {'q': "mimeType != 'application/vnd.google-apps.folder' and '" + parent + "' in parents and trashed = false"}
         });
-        request.execute((result) => {
+        request.execute((result: any) => {
             callback(result.items);
         });
    }
@@ -633,7 +634,7 @@ export class GoogleDrive {
             'params': {'q': "mimeType != 'application/vnd.google-apps.folder' and title = '" + fileName + "' and '" + parent + "' in parents and trashed = false"}
         });
 
-        request.execute((result) => {
+        request.execute((result: any) => {
             const items = result.items;
             const id = items && items.length > 0 ? items[0].id : null;
             this.log.info("findFile '" + fileName + "': " + id);
@@ -810,7 +811,7 @@ export class GoogleDrive {
             'body': JSON.stringify(metadata)
         });
 
-        request.execute((result) => {
+        request.execute((result: any) => {
             const id = result.id;
             this.log.info("createFolder '" + folderName + "': " + id);
             callback(id);
@@ -824,7 +825,7 @@ export class GoogleDrive {
             'params': {'q': "mimeType = 'application/vnd.google-apps.folder' and title = '" + folderName + "' and '" + parent + "' in parents and trashed = false"}
         });
 
-        request.execute((result) => {
+        request.execute((result: any) => {
             const items = result.items;
             const id = items.length > 0 ? items[0].id : null;
             this.log.info("getFolder '" + folderName + "': " + id);

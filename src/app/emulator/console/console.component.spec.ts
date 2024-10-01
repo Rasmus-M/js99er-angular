@@ -4,7 +4,6 @@ import {ConsoleComponent} from './console.component';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {ModuleService} from "../../services/module.service";
 import {HttpClient, HttpHandler} from "@angular/common/http";
-import {ZipService} from "../../services/zip.service";
 import {DiskService} from "../../services/disk.service";
 import {ObjectLoaderService} from "../../services/object-loader.service";
 import {SettingsService} from "../../services/settings.service";
@@ -65,7 +64,11 @@ class ConsoleMock implements Console {
         return new Tape();
     }
     getVDP(): VDP {
-        return new TMS9918A({} as HTMLCanvasElement, this, {} as WasmService);
+        return new TMS9918A({
+            getContext(contextId: "2d", options?: CanvasRenderingContext2DSettings): CanvasRenderingContext2D | null {
+                return {} as CanvasRenderingContext2D;
+            }
+        } as HTMLCanvasElement, this, {} as WasmService);
     }
     isRunning() {
     }
@@ -96,8 +99,8 @@ class ConsoleMock implements Console {
 
 class ConsoleFactoryMock {
     create(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: DiskImage[], settings: Settings, onBreakpoint: (cpu: CPU) => void): Console {
-     return new ConsoleMock();
-  }
+        return new ConsoleMock();
+    }
 }
 
 describe('ConsoleComponent', () => {
@@ -112,7 +115,6 @@ describe('ConsoleComponent', () => {
                 ModuleService,
                 HttpClient,
                 HttpHandler,
-                ZipService,
                 DiskService,
                 ObjectLoaderService,
                 SettingsService,

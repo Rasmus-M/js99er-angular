@@ -37,7 +37,6 @@ import {AboutComponent} from './components/about/about.component';
 import {GraphicsComponent} from './components/graphics/graphics.component';
 import {ModuleService} from './services/module.service';
 import {AudioService} from './services/audio.service';
-import {ZipService} from './services/zip.service';
 import {DiskService} from './services/disk.service';
 import {CommandDispatcherService} from './services/command-dispatcher.service';
 import {ObjectLoaderService} from './services/object-loader.service';
@@ -97,7 +96,6 @@ import {HexInputFieldComponent} from "./components/hex-input-field/hex-input-fie
         ModuleService,
         DiskService,
         AudioService,
-        ZipService,
         CommandDispatcherService,
         EventDispatcherService,
         ObjectLoaderService,

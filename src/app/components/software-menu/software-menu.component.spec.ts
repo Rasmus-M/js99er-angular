@@ -6,7 +6,6 @@ import { MatDialogModule } from "@angular/material/dialog";
 import { MatMenuModule } from "@angular/material/menu";
 import {ModuleService} from "../../services/module.service";
 import {HttpClient, HttpHandler} from "@angular/common/http";
-import {ZipService} from "../../services/zip.service";
 import {CommandDispatcherService} from "../../services/command-dispatcher.service";
 
 describe('SoftwareMenuComponent', () => {
@@ -18,7 +17,7 @@ describe('SoftwareMenuComponent', () => {
             schemas: [NO_ERRORS_SCHEMA],
             declarations: [SoftwareMenuComponent],
             imports: [MatMenuModule, MatDialogModule],
-            providers: [ModuleService, HttpClient, HttpHandler, ZipService, CommandDispatcherService]
+            providers: [ModuleService, HttpClient, HttpHandler, CommandDispatcherService]
         }).compileComponents();
     }));
 

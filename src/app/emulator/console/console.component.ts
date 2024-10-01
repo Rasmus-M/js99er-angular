@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, Input, NgZone, OnDestroy, OnInit} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input, NgZone, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {DiskImage} from '../classes/diskimage';
 import {Setting} from '../../classes/settings';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
@@ -28,6 +28,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
     public static LATEST_SOFTWARE = "latest_software";
 
     @Input() diskImages: DiskImage[];
+    @ViewChild('canvas') canvasRef: ElementRef;
 
     protected canvasStretchX: boolean;
     protected canvasPixelated: boolean;
@@ -41,7 +42,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
     private log: Log = Log.getLog();
 
     constructor(
-        private element: ElementRef,
+        private elementRef: ElementRef,
         private commandDispatcherService: CommandDispatcherService,
         private eventDispatcherService: EventDispatcherService,
         private softwareService: ModuleService,
@@ -56,15 +57,15 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngOnInit() {
         this.subscription = this.commandDispatcherService.subscribe(this.onCommand.bind(this));
+        this.canvasStretchX = this.settingsService.getVDP() === 'V9938';
+        this.canvasPixelated = this.settingsService.isPixelatedEnabled();
     }
 
     ngAfterViewInit() {
-        this.canvas = this.element.nativeElement.querySelector('canvas');
+        this.canvas = this.elementRef.nativeElement.querySelector('canvas');
         this.ti994A = this.consoleFactoryService.create(document, this.canvas, this.diskImages, this.settingsService.getSettings(), this.onBreakpoint.bind(this));
         this.ti994A.reset(false);
         this.eventDispatcherService.ready(this.ti994A);
-        this.canvasStretchX = this.ti994A.getVDP().getType() === 'V9938';
-        this.canvasPixelated = this.settingsService.isPixelatedEnabled();
         document.addEventListener('pointerlockchange', this.lockChangeAlert.bind(this), false);
     }
 

@@ -1,7 +1,6 @@
 import {Injectable} from '@angular/core';
 import {Log} from '../classes/log';
 import {DiskDrive} from '../emulator/classes/diskdrive';
-import {ZipService} from './zip.service';
 import {CommandDispatcherService} from './command-dispatcher.service';
 import {Observable} from 'rxjs';
 import {Subject} from 'rxjs';
@@ -9,32 +8,28 @@ import {ObjectLoaderService} from './object-loader.service';
 import {DiskImage, DiskImageEvent} from '../emulator/classes/diskimage';
 import {EventDispatcherService} from './event-dispatcher.service';
 import saveAs from 'file-saver';
-import {Subscription} from 'rxjs';
 import {Command, CommandType} from '../classes/command';
 import {ConsoleEvent, ConsoleEventType} from '../classes/consoleevent';
 import {DiskFile} from '../emulator/classes/diskfile';
 import {DatabaseService} from "./database.service";
 import {forkJoin} from "rxjs";
-import Entry = zip.Entry;
+import {BlobReader, BlobWriter, Entry, ZipReader} from "@zip.js/zip.js";
 
 @Injectable()
 export class DiskService {
 
     private diskImages: DiskImage[] = [];
     private diskImageCharCode = 65;
-    private commandSubscription: Subscription;
-    private eventSubscription: Subscription;
     private log: Log = Log.getLog();
 
     constructor(
-        private zipService: ZipService,
         private commandDispatcherService: CommandDispatcherService,
         private eventDispatcherService: EventDispatcherService,
         private objectLoaderService: ObjectLoaderService,
         private databaseService: DatabaseService
     ) {
-        this.commandSubscription = this.commandDispatcherService.subscribe(this.onCommand.bind(this));
-        this.eventSubscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
+        this.commandDispatcherService.subscribe(this.onCommand.bind(this));
+        this.eventDispatcherService.subscribe(this.onEvent.bind(this));
     }
 
     createDefaultDiskImages(): DiskImage[] {
@@ -56,7 +51,6 @@ export class DiskService {
 
     loadDiskFiles(files: FileList, diskDrive: DiskDrive): Observable<DiskImage | null> {
         const subject = new Subject<DiskImage | null>();
-        const log = this.log;
         const service = this;
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
@@ -64,8 +58,8 @@ export class DiskService {
                 const extension = file.name.split('.').pop();
                 if (extension != null && extension.toLowerCase() === 'zip') {
                     // Zip file
-                    this.zipService.createReader(this.zipService.createBlobReader(file), function (zipReader) {
-                        zipReader.getEntries(function (entries: Entry[]) {
+                    new ZipReader(new BlobReader(file)).getEntries().then(
+                        (entries: Entry[]) => {
                             const observables: Observable<DiskImage>[] = [];
                             entries.forEach(entry => {
                                 if (!entry.directory) {
@@ -73,22 +67,24 @@ export class DiskService {
                                 }
                             });
                             forkJoin(observables).subscribe(
-                                function (diskImages: DiskImage[]) {
+                                (diskImages: DiskImage[]) => {
                                     subject.next(diskImages.length ? diskImages[0] : null);
                                 },
-                                function (message) {
-                                    log.error(message);
+                                (message) => {
+                                    this.log.error(message);
                                     subject.error(message);
                                 }
                             );
-                        });
-                    }, function (message) {
-                        log.error(message);
-                        subject.error(message);
-                    });
+                        }
+                    ).catch(
+                        (message) => {
+                            this.log.error(message);
+                            subject.error(message);
+                        }
+                    );
                 } else if (extension != null && extension.toLowerCase() === 'obj') {
                     // Object file
-                    log.info('Loading object file.');
+                    this.log.info('Loading object file.');
                     const reader = new FileReader();
                     reader.onload = function () {
                         service.objectLoaderService.loadObjFile(reader.result as string);
@@ -112,11 +108,11 @@ export class DiskService {
 
     loadDiskFileFromZipEntry(entry: Entry, diskDrive: DiskDrive): Observable<DiskImage> {
         const subject = new Subject<DiskImage>();
-        const service = this;
-        const blobWriter = this.zipService.createBlobWriter();
-        entry.getData(blobWriter, function (blob: Blob) {
-            service.loadDiskFile(entry.filename.split('/').pop() || '', blob, diskDrive, false).subscribe(subject);
-        });
+        entry.getData!(new BlobWriter()).then(
+            (blob: Blob) => {
+                this.loadDiskFile(entry.filename.split('/').pop() || '', blob, diskDrive, false).subscribe(subject);
+            }
+        );
         return subject.asObservable();
     }
 

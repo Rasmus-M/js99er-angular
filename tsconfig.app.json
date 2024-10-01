@@ -4,7 +4,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/app",
-    "types": ["gapi", "gapi.auth2", "zip.js"]
+    "types": ["gapi.client"]
   },
   "files": [
     "src/main.ts"
