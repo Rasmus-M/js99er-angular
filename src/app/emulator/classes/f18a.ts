@@ -5,8 +5,9 @@ import {TI994A} from './ti994a';
 import {F18AGPU} from './f18agpu';
 import {Log, LogLevel} from '../../classes/log';
 import {Util} from '../../classes/util';
-import {MemoryLine, MemoryView} from "../../classes/memoryview";
+import {MemoryView} from "../../classes/memoryview";
 import {WasmService} from "../../services/wasm.service";
+import {VDPType} from "../../classes/settings";
 
 // WASM memory addresses
 const paletteAddr = 0x10000;
@@ -228,6 +229,10 @@ export class F18A implements VDP {
 
     getGPU() {
         return this.gpu;
+    }
+
+    getType(): VDPType {
+        return 'F18A';
     }
 
     reset() {
@@ -529,11 +534,9 @@ export class F18A implements VDP {
 
     _duplicateScanline(y: number) {
         const lineBytes = this.canvasWidth << 2;
-        let imageDataAddr = y * 2 * lineBytes;
-        let imageDataAddr2 = imageDataAddr + lineBytes;
-        for (let i = 0; i < lineBytes; i++) {
-            this.imageDataData[imageDataAddr2++] = this.imageDataData[imageDataAddr++];
-        }
+        const imageDataAddr = y * 2 * lineBytes;
+        const imageDataAddr2 = imageDataAddr + lineBytes;
+        this.imageDataData.copyWithin(imageDataAddr2, imageDataAddr, imageDataAddr + lineBytes);
     }
 
     writeAddress(i: number) {

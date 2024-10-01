@@ -2,10 +2,10 @@ import {TMS9901} from './tms9901';
 import {Util} from '../../classes/util';
 import {VDP} from '../interfaces/vdp';
 import {CPU} from '../interfaces/cpu';
-import {TI994A} from './ti994a';
-import {MemoryLine, MemoryView} from "../../classes/memoryview";
+import {MemoryView} from "../../classes/memoryview";
 import {WasmService} from "../../services/wasm.service";
 import {Console} from '../interfaces/console';
+import {VDPType} from "../../classes/settings";
 
 export enum ScreenMode {
     MODE_GRAPHICS = 0,
@@ -88,6 +88,10 @@ export class TMS9918A implements VDP {
         } else {
             throw new Error("No canvas context provided.");
         }
+    }
+
+    getType(): VDPType {
+        return 'TMS9918A';
     }
 
     reset() {

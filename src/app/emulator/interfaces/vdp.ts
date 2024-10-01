@@ -1,8 +1,10 @@
 import {CPU} from './cpu';
 import {Stateful} from './stateful';
 import {MemoryDevice} from './memory-device';
+import {VDPType} from "../../classes/settings";
 
 export interface VDP extends Stateful, MemoryDevice {
+    getType(): VDPType;
     reset(): void;
     initFrame(): void;
     drawScanline(y: number): void;

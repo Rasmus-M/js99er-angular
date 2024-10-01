@@ -1,6 +1,11 @@
-canvas {
-    max-width: 100%;
+canvas.stretch-x {
+    width: 100%;
+    max-height: 100%;
+}
+
+canvas.stretch-y {
     height: 100%;
+    max-width: 100%;
 }
 
 .pixelated {

@@ -8,7 +8,6 @@ import {ModuleService} from '../../services/module.service';
 import {Log} from '../../classes/log';
 import {DiskService} from '../../services/disk.service';
 import {SettingsService} from '../../services/settings.service';
-import $ from 'jquery';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {CPU} from '../interfaces/cpu';
 import {DiskDrive} from '../classes/diskdrive';
@@ -29,6 +28,9 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
     public static LATEST_SOFTWARE = "latest_software";
 
     @Input() diskImages: DiskImage[];
+
+    protected canvasStretchX: boolean;
+    protected canvasPixelated: boolean;
 
     private ti994A: Console;
     private canvas: HTMLCanvasElement;
@@ -58,10 +60,11 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngAfterViewInit() {
         this.canvas = this.element.nativeElement.querySelector('canvas');
-        $(this.canvas).toggleClass("pixelated", this.settingsService.isPixelatedEnabled());
         this.ti994A = this.consoleFactoryService.create(document, this.canvas, this.diskImages, this.settingsService.getSettings(), this.onBreakpoint.bind(this));
         this.ti994A.reset(false);
         this.eventDispatcherService.ready(this.ti994A);
+        this.canvasStretchX = this.ti994A.getVDP().getType() === 'V9938';
+        this.canvasPixelated = this.settingsService.isPixelatedEnabled();
         document.addEventListener('pointerlockchange', this.lockChangeAlert.bind(this), false);
     }
 
@@ -210,6 +213,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         break;
                     case Setting.VDP:
                         this.ti994A.setVDP();
+                        this.canvasStretchX = value === 'V9938';
                         resetRequired = true;
                         break;
                     case Setting.PC_KEYBOARD:
@@ -226,7 +230,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         this.ti994A.getMemory().setGRAMEnabled(value);
                         break;
                     case Setting.PIXELATED:
-                        $(this.canvas).toggleClass("pixelated", value);
+                        this.canvasPixelated = value;
                         break;
                     case Setting.PAUSE_ON_FOCUS_LOST:
                         // Handled by main component

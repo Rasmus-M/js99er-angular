@@ -6,6 +6,7 @@ import {MemoryView} from "../../classes/memoryview";
 import {Util} from "../../classes/util";
 import {Log} from "../../classes/log";
 import {Console} from '../interfaces/console';
+import {VDPType} from "../../classes/settings";
 
 declare type int = number;
 declare type int16_t = number;
@@ -722,11 +723,15 @@ export class V9938 implements VDP {
 
      ***************************************************************************/
 
+    getType(): VDPType {
+        return 'V9938';
+    }
+
     reset(): void {
         this.patch_groms(this.console.getMemory().getGROMs());
         this.device_reset();
         this.canvas.width = V9938.HVISIBLE;
-        this.canvas.height = V9938.VVISIBLE_NTSC;
+        this.canvas.height = 2 * V9938.VVISIBLE_NTSC;
         this.imageData = this.canvasContext.getImageData(0, 0, this.canvas.width, this.canvas.height);
     }
 
@@ -3040,7 +3045,6 @@ export class V9938 implements VDP {
         let canvasLine: number;
         if (this.cont_reg[9] & 0x08) {
             canvasLine = this.scanline * 2 + ((this.stat_reg[2] >> 1) & 1);
-            this.imageData.data.slice();
         } else {
             canvasLine = this.scanline * 2;
             double_lines = true;
@@ -3059,7 +3063,7 @@ export class V9938 implements VDP {
 
         const data = this.imageData.data;
 
-        let offset = canvasLine * this.imageData.width << 1;
+        let offset = canvasLine * this.imageData.width << 2;
         let startOffset = offset;
         for (let i = 0; i < ln.length; i++) {
             const rgba = ln[i];
@@ -3071,9 +3075,8 @@ export class V9938 implements VDP {
 
         if (double_lines) {
             // memcpy(ln2, ln, (512 + 32) * sizeof(*ln));
-            for (let i = 0; i < ln.length * 4; i++) {
-                data[offset++] = data[startOffset++];
-            }
+            offset = (canvasLine + 1) * this.imageData.width << 2;
+            data.copyWithin(offset, startOffset, startOffset + ln.length * 4)
         }
     }
 
