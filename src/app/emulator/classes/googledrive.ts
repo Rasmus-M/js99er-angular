@@ -1,4 +1,3 @@
-// @ts-ignore
 import gapi from 'gapi-client';
 import {AccessType, DataType, Disk, DiskError, FileType, OpCode, OperationMode, RecordType} from './disk';
 import {Log} from '../../classes/log';
@@ -83,7 +82,7 @@ export class GoogleDrive {
     private catalogFile: DiskFile | null;
     private log: Log = Log.getLog();
 
-    static execute = function (pc: number, googleDrives: GoogleDrive[], memory: Memory, callback: (value: boolean) => void): boolean {
+    static execute(pc: number, googleDrives: GoogleDrive[], memory: Memory, callback: (value: boolean) => void): boolean {
         let googleDrive: GoogleDrive | null = null;
         switch (pc) {
             case GoogleDrive.DSR_ROM_POWER_UP:
@@ -108,7 +107,7 @@ export class GoogleDrive {
             GoogleDrive.authorize(
                 opCode !== OpCode.READ && opCode !== OpCode.WRITE,
                 () => {
-                    googleDrive.dsrRoutine(pabAddr, function (status, errorCode) {
+                    googleDrive.dsrRoutine(pabAddr, (status, errorCode) => {
                         googleDrive.log.info("Returned error code: " + errorCode + "\n");
                         googleDrive.ram[pabAddr + 1] = (googleDrive.ram[pabAddr + 1] | (errorCode << 5)) & 0xFF;
                         memory.setPADByte(0x837C, memory.getPADByte(0x837C) | status);
@@ -125,26 +124,26 @@ export class GoogleDrive {
             return true; // Suspend CPU until callback
         }
         return false; // Continue
-    };
+    }
 
-    static authorize = function (refresh: boolean, success: () => void, failure: () => void) {
+    static authorize (refresh: boolean, success: () => void, failure: () => void) {
        if (GoogleDrive.AUTHORIZED) {
             setTimeout(success);
         } else {
             Log.getLog().warn("Not signed in to Google");
             setTimeout(failure);
         }
-    };
+    }
 
-    static powerUp = function (callback: (result: boolean) => void) {
+    static powerUp(callback: (result: boolean) => void) {
         const log = Log.getLog();
         log.info("Executing Google Drive DSR power-up routine.");
-        gapi.load("client:auth2", function() {
+        gapi.load("client:auth2", () => {
             log.info("Google library loaded");
             gapi.client.init({
                 clientId: GoogleDrive.CLIENT_ID,
                 scope: GoogleDrive.SCOPES
-            }).then(function () {
+            }).then(() => {
                 log.info("Google client init OK");
                 const authInstance = gapi.auth2.getAuthInstance();
                 if (authInstance.isSignedIn.get()) {
@@ -153,7 +152,7 @@ export class GoogleDrive {
                     callback(true);
                 } else {
                     authInstance.signIn();
-                    authInstance.isSignedIn.listen(function (isSignedIn: boolean) {
+                    authInstance.isSignedIn.listen((isSignedIn: boolean) => {
                         log.info("Signed in: " + isSignedIn);
                         GoogleDrive.AUTHORIZED = isSignedIn;
                         callback(isSignedIn);
@@ -161,8 +160,7 @@ export class GoogleDrive {
                 }
             });
         });
-    };
-
+    }
 
     constructor(name: string, path: string, console: TI994A) {
         this.name = name;
@@ -189,7 +187,7 @@ export class GoogleDrive {
         }
    }
 
-    dsrRoutine(pabAddr: number, callback: (statuc: number, error: DiskError) => void) {
+    private dsrRoutine(pabAddr: number, callback: (statuc: number, error: DiskError) => void) {
         this.log.info("Executing DSR routine for " + this.name + ", PAB in " + Util.toHexWord(pabAddr) + ".");
         let i;
         const opCode = this.ram[pabAddr];
@@ -299,7 +297,7 @@ export class GoogleDrive {
                                                 that.log.info("Saving to Google Drive");
                                                 const fileData = that.diskImage.createTIFile(fileName);
                                                 if (fileData !== null) {
-                                                    that.insertOrUpdateFile(fileName, parent, fileData, (file2) => {
+                                                    that.insertOrUpdateFile(fileName, parent, fileData, () => {
                                                         callback(0, 0);
                                                     });
                                                 } else {
@@ -642,12 +640,12 @@ export class GoogleDrive {
         });
    }
 
-    getFile(fileId: string, callback: (file: GFile) => void) {
+    getFile(fileId: string, callback: (file: GFile) => any) {
         const request = gapi.client.request({
             'path': '/drive/v2/files/' + fileId,
             'method': 'GET'
         });
-        request.execute(callback);
+        request.execute(callback as (response: any) => any);
    }
 
     getFileContents(parent: string, callback: (files: GFile[]) => void) {

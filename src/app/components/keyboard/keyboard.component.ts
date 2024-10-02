@@ -1,5 +1,4 @@
 import {Component, ElementRef, Input, OnChanges, SimpleChanges} from '@angular/core';
-// @ts-ignore
 import imageMapResize from 'image-map-resizer';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 
@@ -19,7 +18,7 @@ export class KeyboardComponent implements OnChanges {
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['visible'].currentValue) {
-            const map = this.element.nativeElement.querySelector('map');
+            const map = this.element.nativeElement.querySelector('map') as HTMLMapElement;
             imageMapResize(map);
         }
     }
