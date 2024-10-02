@@ -91,10 +91,7 @@
             "karmaConfig": "./karma.conf.js",
             "polyfills": "zone.js",
             "tsConfig": "tsconfig.spec.json",
-            "scripts": [
-              "node_modules/zip-js/WebContent/zip.js",
-              "node_modules/zip-js/WebContent/zip-ext.js"
-            ],
+            "scripts": [],
             "styles": [
               "src/styles.scss"
             ],

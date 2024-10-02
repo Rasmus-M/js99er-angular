@@ -6,7 +6,7 @@ import {Observable} from 'rxjs';
 import {Subject} from 'rxjs';
 import {Util} from '../classes/util';
 import {forkJoin} from "rxjs";
-import {BlobReader, BlobWriter, Entry, HttpReader, Reader, TextWriter, URLString, ZipEntry, ZipReader} from "@zip.js/zip.js";
+import {BlobReader, BlobWriter, Entry, HttpReader, Reader, TextWriter, URLString, ZipReader} from "@zip.js/zip.js";
 @Injectable()
 export class ModuleService {
 
