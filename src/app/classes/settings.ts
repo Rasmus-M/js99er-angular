@@ -209,21 +209,53 @@ export class Settings {
     }
 
     copyFrom(otherSettings: Settings) {
-        this.enableSound = otherSettings.isSoundEnabled();
-        this.psg = otherSettings.getPSG();
-        this.enableSpeech = otherSettings.isSpeechEnabled();
-        this.ram = otherSettings.getRAM();
-        this.vdp = otherSettings.getVDP();
-        this.enablePCKeyboard = otherSettings.isPCKeyboardEnabled();
-        this.enableMapArrowKeys = otherSettings.isMapArrowKeysEnabled();
-        this.enableGoogleDrive = otherSettings.isGoogleDriveEnabled();
-        this.enableGRAM = otherSettings.isGRAMEnabled();
-        this.enablePixelated = otherSettings.isPixelatedEnabled();
-        this.enablePauseOnFocusLost = otherSettings.isPauseOnFocusLostEnabled();
-        this.tipi = otherSettings.getTIPI();
-        this.tipiWebsocketURI = otherSettings.getTIPIWebsocketURI();
-        this.enableDebugReset = otherSettings.isDebugResetEnabled();
-        this.enableH264Codec = otherSettings.isH264CodexEnabled();
-        this.enableDisk = otherSettings.enableDisk;
+        if (otherSettings.isSoundEnabled() !== undefined) {
+            this.enableSound = otherSettings.isSoundEnabled();
+        }
+        if (otherSettings.getPSG() !== undefined) {
+            this.psg = otherSettings.getPSG();
+        }
+        if (otherSettings.isSpeechEnabled() !== undefined) {
+            this.enableSpeech = otherSettings.isSpeechEnabled();
+        }
+        if (otherSettings.getRAM() !== undefined) {
+            this.ram = otherSettings.getRAM();
+        }
+        if (otherSettings.getVDP() !== undefined) {
+            this.vdp = otherSettings.getVDP();
+        }
+        if (otherSettings.isPCKeyboardEnabled() !== undefined) {
+            this.enablePCKeyboard = otherSettings.isPCKeyboardEnabled();
+        }
+        if (otherSettings.isMapArrowKeysEnabled() !== undefined) {
+            this.enableMapArrowKeys = otherSettings.isMapArrowKeysEnabled();
+        }
+        if (otherSettings.isGoogleDriveEnabled() !== undefined) {
+            this.enableGoogleDrive = otherSettings.isGoogleDriveEnabled();
+        }
+        if (otherSettings.isGRAMEnabled() !== undefined) {
+            this.enableGRAM = otherSettings.isGRAMEnabled();
+        }
+        if (otherSettings.isPixelatedEnabled() !== undefined) {
+            this.enablePixelated = otherSettings.isPixelatedEnabled();
+        }
+        if (otherSettings.isPauseOnFocusLostEnabled() !== undefined) {
+            this.enablePauseOnFocusLost = otherSettings.isPauseOnFocusLostEnabled();
+        }
+        if (otherSettings.getTIPI() !== undefined) {
+            this.tipi = otherSettings.getTIPI();
+        }
+        if (otherSettings.getTIPIWebsocketURI() !== undefined) {
+            this.tipiWebsocketURI = otherSettings.getTIPIWebsocketURI();
+        }
+        if (otherSettings.isDebugResetEnabled() !== undefined) {
+            this.enableDebugReset = otherSettings.isDebugResetEnabled();
+        }
+        if (otherSettings.isH264CodexEnabled() !== undefined) {
+            this.enableH264Codec = otherSettings.isH264CodexEnabled();
+        }
+        if (otherSettings.isDiskEnabled() !== undefined) {
+            this.enableDisk = otherSettings.enableDisk;
+        }
     }
 }

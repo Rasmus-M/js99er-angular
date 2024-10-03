@@ -78,7 +78,6 @@ export class SettingsService {
     }
 
     setSettings(otherSettings: Settings) {
-        // TODO
         this.settings.copyFrom(otherSettings);
     }
 
