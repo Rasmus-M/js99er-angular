@@ -28,7 +28,6 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
     public static LATEST_SOFTWARE = "latest_software";
 
     @Input() diskImages: DiskImage[];
-    @ViewChild('canvas') canvasRef: ElementRef;
 
     protected canvasStretchX: boolean;
     protected canvasPixelated: boolean;
