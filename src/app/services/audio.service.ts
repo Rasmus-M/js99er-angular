@@ -12,8 +12,8 @@ export class AudioService {
 
     private audioContext: AudioContext;
     private enabled: boolean;
-    private psgDev: PSG;
-    private speechDev: Speech;
+    private psg: PSG;
+    private speech: Speech;
     private tape: Tape;
     private sampleRate: number;
     private bufferSize: number;
@@ -45,9 +45,9 @@ export class AudioService {
         }
     }
 
-    init(enabled: boolean, psgDev: PSG, speechDev: Speech, tape: Tape) {
-        this.psgDev = psgDev;
-        this.speechDev = speechDev;
+    init(enabled: boolean, psg: PSG, speech: Speech, tape: Tape) {
+        this.psg = psg;
+        this.speech = speech;
         this.tape = tape;
         if (!this.audioContext && AudioContext) {
             this.audioContext = new AudioContext();
@@ -58,13 +58,13 @@ export class AudioService {
             this.log.info('AudioContext: sample rate is ' + this.sampleRate);
             this.bufferSize = 1024;
             const that = this;
-            if (psgDev) {
-                psgDev.setSampleRate(this.sampleRate);
+            if (psg) {
+                psg.setSampleRate(this.sampleRate);
                 this.psgSampleBuffer = new Int8Array(this.bufferSize);
                 this.psgScriptProcessor = this.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
                 this.psgScriptProcessor.addEventListener("audioprocess", function (event) { that.onPSGAudioProcess(event); });
             }
-            if (speechDev) {
+            if (speech) {
                 const speechSampleRate = TMS5200.SAMPLE_RATE;
                 this.speechScale = this.sampleRate / speechSampleRate;
                 this.speechSampleBuffer = new Int16Array(Math.floor(this.bufferSize / this.speechScale) + 1);
@@ -92,7 +92,7 @@ export class AudioService {
         // Get Float32Array output buffer
         const out = event.outputBuffer.getChannelData(0);
         // Get Int8Array input buffer
-        this.psgDev.update(this.psgSampleBuffer, this.bufferSize);
+        this.psg.update(this.psgSampleBuffer, this.bufferSize);
         // Process buffer conversion
         for (let i = 0; i < this.bufferSize; i++) {
             out[i] = this.psgSampleBuffer[i] / 128.0;
@@ -103,7 +103,7 @@ export class AudioService {
         // Get Float32Array output buffer
         const out = event.outputBuffer.getChannelData(0);
         // Get Int16Array input buffer
-        this.speechDev.update(this.speechSampleBuffer, this.speechSampleBuffer.length);
+        this.speech.update(this.speechSampleBuffer, this.speechSampleBuffer.length);
         // Process buffer conversion
         let s = 0;
         let r = 0;
@@ -130,7 +130,6 @@ export class AudioService {
 
     setSoundEnabled(enabled: boolean) {
         this.resumeSound();
-        const oldEnabled = this.enabled;
         if (this.audioContext) {
             if (enabled && !this.enabled) {
                 if (this.psgScriptProcessor) {
@@ -160,7 +159,6 @@ export class AudioService {
             }
         }
         this.enabled = enabled;
-        return oldEnabled;
     }
 
     getMediaStream(): MediaStream {
