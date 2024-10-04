@@ -8,10 +8,9 @@ import {Log} from '../classes/log';
 @Injectable()
 export class AudioService {
 
-    static USE_SPEECH_SAMPLE_INTERPOLATION = true;
+    static readonly USE_SPEECH_SAMPLE_INTERPOLATION = true;
 
-    static audioContext: AudioContext;
-
+    private audioContext: AudioContext;
     private enabled: boolean;
     private psgDev: PSG;
     private speechDev: Speech;
@@ -30,10 +29,12 @@ export class AudioService {
 
     private log: Log = Log.getLog();
 
-    static resumeSound() {
-        if (AudioService.audioContext && AudioService.audioContext.state !== "running") {
+    constructor() { }
+
+    public resumeSound() {
+        if (this.audioContext && this.audioContext.state !== "running") {
             console.log("Resume sound");
-            AudioService.audioContext.resume().then(
+            this.audioContext.resume().then(
                 () => {
                     console.log("Resumed");
                 },
@@ -44,45 +45,43 @@ export class AudioService {
         }
     }
 
-    constructor() { }
-
     init(enabled: boolean, psgDev: PSG, speechDev: Speech, tape: Tape) {
         this.psgDev = psgDev;
         this.speechDev = speechDev;
         this.tape = tape;
-        if (!AudioService.audioContext && AudioContext) {
-            AudioService.audioContext = new AudioContext();
+        if (!this.audioContext && AudioContext) {
+            this.audioContext = new AudioContext();
         }
-        if (AudioService.audioContext) {
+        if (this.audioContext) {
             this.log.info("Web Audio API detected");
-            this.sampleRate = AudioService.audioContext.sampleRate;
+            this.sampleRate = this.audioContext.sampleRate;
             this.log.info('AudioContext: sample rate is ' + this.sampleRate);
             this.bufferSize = 1024;
             const that = this;
             if (psgDev) {
                 psgDev.setSampleRate(this.sampleRate);
                 this.psgSampleBuffer = new Int8Array(this.bufferSize);
-                this.psgScriptProcessor = AudioService.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
+                this.psgScriptProcessor = this.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
                 this.psgScriptProcessor.addEventListener("audioprocess", function (event) { that.onPSGAudioProcess(event); });
             }
             if (speechDev) {
                 const speechSampleRate = TMS5200.SAMPLE_RATE;
                 this.speechScale = this.sampleRate / speechSampleRate;
                 this.speechSampleBuffer = new Int16Array(Math.floor(this.bufferSize / this.speechScale) + 1);
-                this.speechScriptProcessor = AudioService.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
+                this.speechScriptProcessor = this.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
                 this.speechScriptProcessor.addEventListener("audioprocess", function (event) { that.onSpeechAudioProcess(event); });
-                this.speechFilter = AudioService.audioContext.createBiquadFilter();
+                this.speechFilter = this.audioContext.createBiquadFilter();
                 this.speechFilter.type = "lowpass";
                 this.speechFilter.frequency.value = speechSampleRate / 2;
             }
             if (tape) {
-                this.tapeScriptProcessor = AudioService.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
+                this.tapeScriptProcessor = this.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
                 this.tapeScriptProcessor.addEventListener("audioprocess", function (event) { that.onTapeAudioProcess(event); });
-                this.tapeFilter = AudioService.audioContext.createBiquadFilter();
+                this.tapeFilter = this.audioContext.createBiquadFilter();
                 this.tapeFilter.type = "lowpass";
                 this.tapeFilter.frequency.value = 4000;
             }
-            this.mediaStreamDestination = AudioService.audioContext.createMediaStreamDestination();
+            this.mediaStreamDestination = this.audioContext.createMediaStreamDestination();
             this.setSoundEnabled(enabled);
         } else {
             this.log.warn("Web Audio API not supported by this browser.");
@@ -130,22 +129,22 @@ export class AudioService {
     }
 
     setSoundEnabled(enabled: boolean) {
-        AudioService.resumeSound();
+        this.resumeSound();
         const oldEnabled = this.enabled;
-        if (AudioService.audioContext) {
+        if (this.audioContext) {
             if (enabled && !this.enabled) {
                 if (this.psgScriptProcessor) {
-                    this.psgScriptProcessor.connect(AudioService.audioContext.destination);
+                    this.psgScriptProcessor.connect(this.audioContext.destination);
                     this.psgScriptProcessor.connect(this.mediaStreamDestination);
                 }
                 if (this.speechScriptProcessor) {
                     this.speechScriptProcessor.connect(this.speechFilter);
-                    this.speechFilter.connect(AudioService.audioContext.destination);
+                    this.speechFilter.connect(this.audioContext.destination);
                     this.speechScriptProcessor.connect(this.mediaStreamDestination);
                 }
                 if (this.tapeScriptProcessor) {
                     this.tapeScriptProcessor.connect(this.tapeFilter);
-                    this.tapeFilter.connect(AudioService.audioContext.destination);
+                    this.tapeFilter.connect(this.audioContext.destination);
                 }
             } else if (!enabled && this.enabled) {
                 if (this.psgScriptProcessor) {

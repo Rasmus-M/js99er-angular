@@ -78,10 +78,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngAfterViewInit(): void {
         $(this.element.nativeElement).one("click touchstart", () => {
-            AudioService.resumeSound();
+            this.audioService.resumeSound();
         });
         $(document).one("keydown", () => {
-            AudioService.resumeSound();
+            this.audioService.resumeSound();
         });
     }
 
