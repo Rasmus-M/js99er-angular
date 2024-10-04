@@ -1,11 +1,8 @@
-import {CPU} from '../interfaces/cpu';
 import {Log} from '../../classes/log';
 import {Speech} from '../interfaces/speech';
 import {System} from './system';
 import {Util} from '../../classes/util';
-import {Settings} from '../../classes/settings';
-import {TI994A} from './ti994a';
-import {Console} from '../interfaces/console';
+import {Observable, Subject} from "rxjs";
 
 /**********************************************************************************************
 
@@ -318,7 +315,7 @@ export class TMS5200 implements Speech {
      be a leftover from an older design predating even the patent.
      */
 
-    static coeff = {
+    static readonly coeff = {
         subtype: 8,
         num_k: 10,
         energy_bits: 4,
@@ -380,9 +377,8 @@ export class TMS5200 implements Speech {
         interp_coeff: [ 0, 3, 3, 3, 2, 2, 1, 1 ]
     };
 
-    private console: Console;
-    private cpu: CPU;
     private enabled: boolean;
+    private ready: Subject<boolean>;
 
     private m_coeff: any = TMS5200.coeff;
     private m_speak_external: boolean;
@@ -436,9 +432,9 @@ export class TMS5200 implements Speech {
 
     private log: Log = Log.getLog();
 
-    constructor(console: Console, settings: Settings) {
-        this.console = console;
-        this.enabled = settings.isSpeechEnabled();
+    constructor(enabled: boolean) {
+        this.enabled = enabled;
+        this.ready = new Subject<boolean>();
     }
 
     /**********************************************************************************************
@@ -447,12 +443,7 @@ export class TMS5200 implements Speech {
 
     ***********************************************************************************************/
 
-    setCPU(cpu: CPU) {
-        this.cpu = cpu;
-    }
-
     reset() {
-        this.cpu = this.console.getCPU();
         this.m_coeff = TMS5200.coeff;
         // this.m_speak_external = false;
         // this.m_talk_status = false;
@@ -495,22 +486,26 @@ export class TMS5200 implements Speech {
         this.device_reset();
     }
 
-    writeSpeechData(b: number) {
+    setEnabled(enabled: boolean) {
+        this.enabled = enabled;
+    }
+
+    write(b: number) {
         if (this.enabled) {
             this.data_write(b);
         }
     }
 
-    readSpeechData(): number {
+    read(): number {
         return this.enabled ? this.status_read() : 0;
-    }
-
-    setSpeechEnabled(enabled: boolean) {
-        this.enabled = enabled;
     }
 
     update(buffer: Int16Array, length: number) {
         this.process(buffer, length);
+    }
+
+    public isReady(): Observable<boolean> {
+        return this.ready.asObservable();
     }
 
     /**********************************************************************************************
@@ -1325,9 +1320,7 @@ export class TMS5200 implements Speech {
             this.m_readyq_handler(!state);
         }
         this.m_ready_pin = state;
-        if (this.cpu) {
-            this.cpu.setSuspended(!this.m_ready_pin);
-        }
+        this.ready.next(this.m_ready_pin);
     }
 
     // -------------------------------------------------

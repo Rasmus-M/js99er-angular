@@ -113,7 +113,7 @@ export class TI994A implements Console, Stateful {
         this.setVDP();
         this.tape = new Tape();
         this.setPSG();
-        this.speech = new TMS5200(this, this.settings);
+        this.speech = new TMS5200(this.settings.isSpeechEnabled());
         this.tms9901 = new TMS9901(this);
         this.keyboard = new Keyboard(this.document, this.settings);
         this.diskDrives = [
@@ -123,7 +123,11 @@ export class TI994A implements Console, Stateful {
         ];
         this.setGoogleDrive();
         this.setTIPI();
-        this.speech.setCPU(this.cpu);
+        this.speech.isReady().subscribe(
+            (ready) => {
+                this.cpu.setSuspended(!ready);
+            }
+        );
     }
 
     setVDP() {

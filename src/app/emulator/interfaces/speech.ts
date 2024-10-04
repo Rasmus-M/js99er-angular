@@ -1,11 +1,12 @@
 import {CPU} from './cpu';
 import {Stateful} from './stateful';
+import {Observable} from "rxjs";
 
 export interface Speech extends Stateful {
-    setCPU(cpu: CPU): void;
     reset(): void;
-    writeSpeechData(b: number): void;
-    readSpeechData(): number;
-    setSpeechEnabled(enabled: boolean): void;
+    setEnabled(enabled: boolean): void;
+    write(b: number): void;
+    read(): number;
     update(buffer: Int16Array, length: number): void;
+    isReady(): Observable<boolean>;
 }

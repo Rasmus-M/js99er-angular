@@ -477,12 +477,12 @@ export class Memory implements Stateful, MemoryDevice {
 
     private readSpeech(addr: number, cpu: CPU): number {
         cpu.addCycles(4);
-        return this.speech.readSpeechData() << 8;
+        return this.speech.read() << 8;
     }
 
     private writeSpeech(addr: number, w: number, cpu: CPU) {
         cpu.addCycles(68);
-        this.speech.writeSpeechData(w >> 8);
+        this.speech.write(w >> 8);
     }
 
     private readGROM(addr: number, cpu: CPU): number {

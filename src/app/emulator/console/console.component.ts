@@ -205,7 +205,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         resetRequired = true;
                         break;
                     case Setting.SPEECH:
-                        this.ti994A.getSpeech().setSpeechEnabled(value);
+                        this.ti994A.getSpeech().setEnabled(value);
                         break;
                     case Setting.RAM:
                         this.ti994A.getMemory().setRAMType(value);
