@@ -89,12 +89,18 @@ export class ModuleService {
     }
 
     loadModuleFromURL(url: string): Observable<Software> {
+        console.log("load", url);
+        if (url.startsWith('http')) {
+            url = 'proxy?url=' + url;
+        } else {
+            url = 'assets/' + url;
+        }
         if (url.substr(url.length - 3).toLowerCase() === 'rpk') {
-            return this.loadRPKOrZipModuleFromURL('assets/' + url);
+            return this.loadRPKOrZipModuleFromURL(url);
         } else if (url.substr(url.length - 3).toLowerCase() === 'bin') {
-            return this.loadBinModuleFromURL('assets/' + url);
+            return this.loadBinModuleFromURL(url);
         } else if (url.substr(url.length - 4).toLowerCase() === 'json') {
-            return this.loadJSONModuleFromURL('assets/' + url);
+            return this.loadJSONModuleFromURL(url);
         } else {
             const subject = new Subject<Software>();
             subject.error("Invalid url: " + url);

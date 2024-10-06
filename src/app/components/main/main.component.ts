@@ -3,7 +3,7 @@ import {DiskImage} from "../../emulator/classes/diskimage";
 import {TI994A} from "../../emulator/classes/ti994a";
 import {Subscription} from "rxjs";
 import {Log} from "../../classes/log";
-import {ActivatedRoute, ParamMap} from "@angular/router";
+import {ActivatedRoute, ParamMap, Params} from "@angular/router";
 import {AudioService} from "../../services/audio.service";
 import {CommandDispatcherService} from "../../services/command-dispatcher.service";
 import {EventDispatcherService} from "../../services/event-dispatcher.service";
@@ -62,7 +62,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         private databaseService: DatabaseService,
         private moduleService: ModuleService,
         private moreSoftwareService: MoreSoftwareService,
-        private configService: ConfigService
+        private configService: ConfigService,
     ) {}
 
     ngOnInit() {
@@ -70,7 +70,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         this.diskImages = this.diskService.createDefaultDiskImages();
         this.commandSubscription = this.commandDispatcherService.subscribe(this.onCommand.bind(this));
         this.eventSubscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
-        this.route.paramMap.subscribe(this.onParametersChanged.bind(this));
+        this.route.queryParams.subscribe(this.onParametersChanged.bind(this));
         const logInfo = "Welcome to " + Js99erComponent.TITLE + " version " + Js99erComponent.VERSION + " (" + Js99erComponent.DATE + ")";
         this.log.info(logInfo);
         this.log.info(Util.repeat("-", logInfo.length));
@@ -99,14 +99,20 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
-    onParametersChanged(params: ParamMap) {
-        const cartName = params.get('cart');
-        if (cartName) {
+    onParametersChanged(params: Params) {
+        const cartUrl = params['cartUrl'];
+        if (cartUrl) {
             this.autoRun = true;
-            if (this.started) {
-                this.loadCartridge(cartName);
-            } else {
-                this.cartName = cartName;
+            this.loadCartridgeFromURL(cartUrl);
+        } else {
+            const cartName = params['cart'];
+            if (cartName) {
+                this.autoRun = true;
+                if (this.started) {
+                    this.loadCartridge(cartName);
+                } else {
+                    this.cartName = cartName;
+                }
             }
         }
     }

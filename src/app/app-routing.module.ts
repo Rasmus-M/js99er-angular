@@ -5,7 +5,6 @@ import {MainComponent} from "./components/main/main.component";
 import {WasmService} from "./services/wasm.service";
 
 const appRoutes: Routes = [
-    {path: 'cart/:cart', component: MainComponent, resolve: {source: WasmService}},
     {path: '**', component: MainComponent, resolve: {source: WasmService}},
 ];
 
