@@ -3,45 +3,45 @@
         <app-console class="console" [diskImages]="diskImages"></app-console>
     </div>
     <div class="side-panel" [hidden]="!sidePanelVisible">
-        <mat-tab-group (selectedTabChange)="onTabSelected($event)">
+        <mat-tab-group [selectedIndex]="tabIndex" (selectedTabChange)="onTabSelected($event)">
             <mat-tab label="Log">
                 <div class="tab-content">
-                    <app-log></app-log>
+                    <log></log>
                 </div>
             </mat-tab>
             <mat-tab label="Disk">
                 <div class="tab-content">
-                    <app-disk [diskImages]="diskImages"></app-disk>
+                    <disk [diskImages]="diskImages"></disk>
                 </div>
             </mat-tab>
             <mat-tab label="Tape">
                 <div class="tab-content">
-                    <app-tape></app-tape>
+                    <tape></tape>
                 </div>
             </mat-tab>
             <mat-tab label="Keyboard">
                 <div class="tab-content">
-                    <app-keyboard [visible]="tabIndex === 3"></app-keyboard>
+                    <keyboard [visible]="tabIndex === 3"></keyboard>
                 </div>
             </mat-tab>
             <mat-tab label="Debugger">
                 <div class="tab-content">
-                    <app-debugger [visible]="tabIndex === 4"></app-debugger>
+                    <debugger [visible]="tabIndex === 4"></debugger>
                 </div>
             </mat-tab>
             <mat-tab label="Graphics">
                 <div class="tab-content">
-                    <app-graphics [visible]="tabIndex === 5"></app-graphics>
+                    <graphics [visible]="tabIndex === 5"></graphics>
                 </div>
             </mat-tab>
             <mat-tab label="Options">
                 <div class="tab-content">
-                    <app-settings></app-settings>
+                    <options></options>
                 </div>
             </mat-tab>
             <mat-tab label="About">
                 <div class="tab-content">
-                    <app-about [title]="title" [version]="version" [date]="date"></app-about>
+                    <about [title]="title" [version]="version" [date]="date"></about>
                 </div>
             </mat-tab>
         </mat-tab-group>

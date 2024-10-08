@@ -5,11 +5,11 @@ import {CommandDispatcherService} from "../../services/command-dispatcher.servic
 import {RAMType, PSGType, TIPIType, VDPType} from "../../classes/settings";
 
 @Component({
-    selector: 'app-settings',
-    templateUrl: './settings.component.html',
-    styleUrls: ['./settings.component.css']
+    selector: 'options',
+    templateUrl: './options.component.html',
+    styleUrls: ['./options.component.css']
 })
-export class SettingsComponent implements OnInit {
+export class OptionsComponent implements OnInit {
 
     vdp: VDPType;
     ram: RAMType;

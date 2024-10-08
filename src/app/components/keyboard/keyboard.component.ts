@@ -3,7 +3,7 @@ import imageMapResize from 'image-map-resizer';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 
 @Component({
-    selector: 'app-keyboard',
+    selector: 'keyboard',
     templateUrl: './keyboard.component.html',
     styleUrls: ['./keyboard.component.css']
 })
@@ -17,9 +17,15 @@ export class KeyboardComponent implements OnChanges {
     ) {}
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (changes['visible'].currentValue) {
-            const map = this.element.nativeElement.querySelector('map') as HTMLMapElement;
-            imageMapResize(map);
+        if (changes['visible'] && changes['visible'].currentValue) {
+            setTimeout(
+                () => {
+                    const map = this.element.nativeElement.querySelector('map') as HTMLMapElement;
+                    if (map) {
+                        imageMapResize(map);
+                    }
+                }, 200
+            );
         }
     }
 

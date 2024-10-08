@@ -7,7 +7,7 @@ import {saveAs} from 'file-saver';
 import { faDownload } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
-    selector: 'app-graphics',
+    selector: 'graphics',
     templateUrl: './graphics.component.html',
     styleUrls: ['./graphics.component.css']
 })
@@ -103,7 +103,7 @@ export class GraphicsComponent implements OnInit, AfterViewInit, OnChanges {
     }
 
     updateView() {
-        if (this.visible) {
+        if (this.visible && this.ti994A) {
             const vdp = this.ti994A.getVDP();
             vdp.drawPaletteImage(this.paletteCanvas);
             if (this.tileCanvasTopVisible) {

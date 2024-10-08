@@ -3,7 +3,7 @@ import {DiskImage} from "../../emulator/classes/diskimage";
 import {TI994A} from "../../emulator/classes/ti994a";
 import {Subscription} from "rxjs";
 import {Log} from "../../classes/log";
-import {ActivatedRoute, ParamMap, Params} from "@angular/router";
+import {ActivatedRoute, Params, Router, UrlSegment} from "@angular/router";
 import {AudioService} from "../../services/audio.service";
 import {CommandDispatcherService} from "../../services/command-dispatcher.service";
 import {EventDispatcherService} from "../../services/event-dispatcher.service";
@@ -23,6 +23,7 @@ import {map, mergeMap} from "rxjs/operators";
 import {ConfigService} from "../../services/config.service";
 import {ConsoleComponent} from "../../emulator/console/console.component";
 import {Util} from "../../classes/util";
+import {Location} from "@angular/common";
 
 @Component({
   selector: 'app-main',
@@ -53,7 +54,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
     constructor(
         private element: ElementRef,
+        private router: Router,
         private route: ActivatedRoute,
+        private location: Location,
         private audioService: AudioService,
         private commandDispatcherService: CommandDispatcherService,
         private eventDispatcherService: EventDispatcherService,
@@ -68,9 +71,18 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     ngOnInit() {
         this.configure();
         this.diskImages = this.diskService.createDefaultDiskImages();
-        this.commandSubscription = this.commandDispatcherService.subscribe(this.onCommand.bind(this));
-        this.eventSubscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
-        this.route.queryParams.subscribe(this.onParametersChanged.bind(this));
+        this.commandSubscription = this.commandDispatcherService.subscribe((command) => {
+            this.onCommand(command);
+        });
+        this.eventSubscription = this.eventDispatcherService.subscribe((event) => {
+            this.onEvent(event);
+        });
+        this.route.url.subscribe((urlSegments) => {
+            this.onUrlChanged(urlSegments);
+        });
+        this.route.queryParams.subscribe((params: Params) => {
+            this.onQueryParametersChanged(params);
+        });
         const logInfo = "Welcome to " + Js99erComponent.TITLE + " version " + Js99erComponent.VERSION + " (" + Js99erComponent.DATE + ")";
         this.log.info(logInfo);
         this.log.info(Util.repeat("-", logInfo.length));
@@ -99,7 +111,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
-    onParametersChanged(params: Params) {
+    onQueryParametersChanged(params: Params) {
         const cartUrl = params['cartUrl'];
         if (cartUrl) {
             this.autoRun = true;
@@ -117,8 +129,66 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
+    onUrlChanged(urlSegments: UrlSegment[]) {
+        if (!urlSegments.length) {
+            return;
+        }
+        switch (urlSegments[0].path) {
+            case 'log':
+                this.tabIndex = 0;
+                break;
+            case 'disk':
+                this.tabIndex = 1;
+                break;
+            case 'tape':
+                this.tabIndex = 2;
+                break;
+            case 'keyboard':
+                this.tabIndex = 3;
+                break;
+            case 'debugger':
+                this.tabIndex = 4;
+                break;
+            case 'graphics':
+                this.tabIndex = 5;
+                break;
+            case 'options':
+                this.tabIndex = 6;
+                break;
+            case 'about':
+                this.tabIndex = 7;
+                break;
+        }
+    }
+
     onTabSelected(event: MatTabChangeEvent) {
         this.tabIndex = event.index;
+        switch (event.index) {
+            case 0:
+                this.location.go("/log");
+                break;
+            case 1:
+                this.location.go("/disk");
+                break;
+            case 2:
+                this.location.go("/tape");
+                break;
+            case 3:
+                this.location.go("/keyboard");
+                break;
+            case 4:
+                this.location.go("/debugger");
+                break;
+            case 5:
+                this.location.go("/graphics");
+                break;
+            case 6:
+                this.location.go("/options");
+                break;
+            case 7:
+                this.location.go("/about");
+                break;
+        }
     }
 
     onCommand(command: Command) {

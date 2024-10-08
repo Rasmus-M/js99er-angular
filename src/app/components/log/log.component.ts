@@ -2,7 +2,7 @@ import {Component, ElementRef, OnInit} from '@angular/core';
 import {Log} from '../../classes/log';
 
 @Component({
-    selector: 'app-log',
+    selector: 'log',
     templateUrl: './log.component.html',
     styleUrls: ['./log.component.css']
 })

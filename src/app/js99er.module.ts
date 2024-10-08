@@ -21,12 +21,12 @@ import {MatTabsModule} from '@angular/material/tabs';
 import {MatToolbarModule} from '@angular/material/toolbar';
 import {MatTooltipModule} from "@angular/material/tooltip";
 import {EmulatorModule} from './emulator/emulator.module';
-import {AppRoutingModule} from './app-routing.module';
+import {RoutingModule} from './routing.module';
 import {Js99erComponent} from './js99er.component';
 import {MainComponent} from './components/main/main.component';
 import {DebuggerComponent} from './components/debugger/debugger.component';
 import {MainControlsComponent} from './components/main-controls/main-controls.component';
-import {SettingsComponent} from './components/settings/settings.component';
+import {OptionsComponent} from './components/settings/options.component';
 import {LogComponent} from './components/log/log.component';
 import {KeyboardComponent} from './components/keyboard/keyboard.component';
 import {DiskComponent} from './components/disk/disk.component';
@@ -52,7 +52,7 @@ import {HexInputFieldComponent} from "./components/hex-input-field/hex-input-fie
         Js99erComponent,
         DebuggerComponent,
         MainControlsComponent,
-        SettingsComponent,
+        OptionsComponent,
         LogComponent,
         KeyboardComponent,
         DiskComponent,
@@ -88,7 +88,7 @@ import {HexInputFieldComponent} from "./components/hex-input-field/hex-input-fie
         FontAwesomeModule,
         HttpClientModule,
         EmulatorModule,
-        AppRoutingModule,
+        RoutingModule,
         MatTooltipModule,
         MatGridListModule
     ],
@@ -106,5 +106,5 @@ import {HexInputFieldComponent} from "./components/hex-input-field/hex-input-fie
         Js99erComponent
     ]
 })
-export class AppModule {
+export class Js99erModule {
 }

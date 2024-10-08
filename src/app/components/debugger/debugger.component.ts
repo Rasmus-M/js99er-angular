@@ -26,7 +26,7 @@ enum MemoryType {
 }
 
 @Component({
-    selector: 'app-debugger',
+    selector: 'debugger',
     templateUrl: './debugger.component.html',
     styleUrls: ['./debugger.component.css']
 })

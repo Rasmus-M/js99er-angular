@@ -12,7 +12,7 @@ import { faHdd, faBan, faSave, faPlus, faDownload, faCaretUp } from '@fortawesom
 import {FileType} from "../../emulator/classes/disk";
 
 @Component({
-    selector: 'app-disk',
+    selector: 'disk',
     templateUrl: './disk.component.html',
     styleUrls: ['./disk.component.css']
 })

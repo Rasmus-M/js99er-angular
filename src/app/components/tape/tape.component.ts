@@ -10,7 +10,7 @@ import {Log} from '../../classes/log';
 import { faUpload, faDownload, faCircle, faPlay, faBackward, faStop } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
-    selector: 'app-tape',
+    selector: 'tape',
     templateUrl: './tape.component.html',
     styleUrls: ['./tape.component.css']
 })
