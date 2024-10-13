@@ -404,7 +404,9 @@ export class TMS9918A implements VDP {
     }
 
     hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
-        return MemoryView.hexView(start, length, width, anchorAddr, this.getByte);
+        return MemoryView.hexView(start, length, width, anchorAddr, (addr: number) => {
+            return this.getByte(addr);
+        });
     }
 
     getByte(addr: number): number {

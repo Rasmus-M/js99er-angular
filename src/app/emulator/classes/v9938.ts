@@ -997,10 +997,9 @@ export class V9938 implements VDP {
 
     hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
         const pageOffset = (this.cont_reg[14] << 14) + (this.cont_reg[45] & 0x40 ? V9938.EXPMEM_OFFSET : 0);
-        const getByte = (addr: number) => {
+        return MemoryView.hexView(start, length, width, anchorAddr, (addr: number) => {
             return this.getByte(pageOffset + addr);
-        };
-        return MemoryView.hexView(start, length, width, anchorAddr, getByte);
+        });
     }
 
     getState(): any {
