@@ -145,6 +145,7 @@ export class KeyMapper {
         "Space": {code: "Space", keyCode: 32, tiKeys: [TIKey.Space]},
         "Enter": {code: "Enter", keyCode: 13, tiKeys: [TIKey.Enter]},
         "Tab": {code: "Tab", keyCode: 9, tiKeys: [TIKey.J1Fire]},
+        "Backquote": {code: "Backquote", keyCode: 220, tiKeys: [TIKey.J2Fire]},
         "AltLeft": {code: "AltLeft", keyCode: 18, tiKeys: [TIKey.Fctn]},
         "AltRight": {code: "AltRight", keyCode: 18, tiKeys: [TIKey.Fctn]},
         "ControlLeft": {code: "ControlLeft", keyCode: 17, tiKeys: [TIKey.Ctrl]},
@@ -155,6 +156,10 @@ export class KeyMapper {
         "ArrowLeft": {code: "ArrowLeft", keyCode: 37, tiKeys: [TIKey.J1Left]},
         "ArrowRight": {code: "ArrowRight", keyCode: 39, tiKeys: [TIKey.J1Right]},
         "ArrowUp": {code: "ArrowUp", keyCode: 38, tiKeys: [TIKey.J1Up]},
+        "Numpad2": {code: "Numpad2", keyCode: 98, tiKeys: [TIKey.J2Down]},
+        "Numpad4": {code: "Numpad4", keyCode: 100, tiKeys: [TIKey.J2Left]},
+        "Numpad6": {code: "Numpad6", keyCode: 102, tiKeys: [TIKey.J1Right]},
+        "Numpad8": {code: "Numpad8", keyCode: 104, tiKeys: [TIKey.J2Up]},
         "Escape": {code: "Escape", keyCode: 27, tiKeys: [TIKey.Fctn, TIKey.Digit9]},
         "Backspace": {code: "Backspace", keyCode: 8, tiKeys: [TIKey.Fctn, TIKey.KeyS]},
         "Delete": {code: "Delete", keyCode: 46, tiKeys: [TIKey.Fctn, TIKey.Digit1]},
@@ -287,16 +292,12 @@ export class KeyMapper {
         return KeyMapper.tiKeysByCode[code];
     }
 
-    public static getKeyFromKeyCode(keyCode: number): Key | undefined {
-        return Object.values(KeyMapper.tiKeysByCode).find(k => k.keyCode === keyCode);
-    }
-
     public static getKeyFromKey(key: string): Key {
         return KeyMapper.tiKeysByKey[key];
     }
 
-    public static getKeyFromCharCode(charCode: number): Key | undefined {
-        return Object.values(KeyMapper.tiKeysByKey).find(k => k.charCode === charCode);
+    public static getKeyFromKeyCode(keyCode: number): Key | undefined {
+        return Object.values(KeyMapper.tiKeysByCode).find(k => k.keyCode === keyCode);
     }
 }
 

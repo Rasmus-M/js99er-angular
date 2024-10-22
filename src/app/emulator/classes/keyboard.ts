@@ -6,7 +6,6 @@ import {Key, KeyMapper, TIKey} from "../../classes/keymapper";
 export class Keyboard implements Stateful {
 
     static readonly KEYPRESS_DURATION = 100;
-    static readonly EMULATE_JOYSTICK_2 = false;
 
     private document: Document;
     private pcKeyboardEnabled: boolean;
@@ -169,6 +168,7 @@ export class Keyboard implements Stateful {
     }
 
     private keyEvent(evt: KeyboardEvent | any, down: boolean) {
+        console.log(evt);
         let key: Key | undefined;
         if (evt.code) {
             key = KeyMapper.getKeyFromCode(evt.code);
@@ -247,33 +247,16 @@ export class Keyboard implements Stateful {
 
     private handleAdditionalKeys(code: string, down: boolean) {
         switch (code) {
-            case 'Tab':
-                if (Keyboard.EMULATE_JOYSTICK_2) {
-                    this.setTIKeyDown(TIKey.J2Fire, down);
-                }
-                break;
             case 'ArrowLeft':
-                if (Keyboard.EMULATE_JOYSTICK_2) {
-                    this.setTIKeyDown(TIKey.J2Left, down);
-                }
                 this.handleMappedArrowKey(TIKey.KeyS, down);
                 break;
             case 'ArrowRight':
-                if (Keyboard.EMULATE_JOYSTICK_2) {
-                    this.setTIKeyDown(TIKey.J2Right, down);
-                }
                 this.handleMappedArrowKey(TIKey.KeyD, down);
                 break;
             case 'ArrowDown':
-                if (Keyboard.EMULATE_JOYSTICK_2) {
-                    this.setTIKeyDown(TIKey.J2Down, down);
-                }
                 this.handleMappedArrowKey(TIKey.KeyX, down);
                 break;
             case 'ArrowUp':
-                if (Keyboard.EMULATE_JOYSTICK_2) {
-                    this.setTIKeyDown(TIKey.J2Up, down);
-                }
                 this.handleMappedArrowKey(TIKey.KeyE, down);
                 break;
             case 'CapsLock':
