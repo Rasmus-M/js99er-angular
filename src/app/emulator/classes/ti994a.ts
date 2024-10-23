@@ -431,6 +431,8 @@ export class TI994A implements Console, Stateful {
                 this.memory.loadRAM(memoryBlock.address, memoryBlock.data);
             }
         }
+        this.memory.setRAMAt0000(sw.ramAt0000);
+        this.memory.setRAMAt4000(sw.ramAt4000);
         if (sw.rom) {
             this.memory.setCartridgeImage(
                 sw.rom,

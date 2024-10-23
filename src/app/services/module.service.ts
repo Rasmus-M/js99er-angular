@@ -1,10 +1,9 @@
-import {MemoryBlock, Software} from '../classes/software';
+import {Software} from '../classes/software';
 import {Log} from '../classes/log';
 import {HttpClient} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {Subject} from 'rxjs';
-import {Util} from '../classes/util';
 import {forkJoin} from "rxjs";
 import {BlobReader, BlobWriter, Entry, HttpReader, Reader, TextWriter, URLString, ZipReader} from "@zip.js/zip.js";
 @Injectable()
@@ -15,18 +14,6 @@ export class ModuleService {
     constructor(
         private httpClient: HttpClient
     ) {}
-
-    private static hexArrayToByteArray(hexArray: string[]) {
-        const binArray = [];
-        let n = 0;
-        for (let i = 0; i < hexArray.length; i++) {
-            const row = hexArray[i];
-            for (let j = 0; j < row.length; j += 2) {
-                binArray[n++] = parseInt(row.substr(j, 2), 16);
-            }
-        }
-        return new Uint8Array(binArray);
-    }
 
     private static insertROM(romArray: number[], rom: Uint8Array, offset: number) {
         if (romArray.length < offset) {
@@ -346,35 +333,7 @@ export class ModuleService {
         const subject = new Subject<Software>();
         this.httpClient.get(url, {responseType: 'json'}).subscribe(
             (data: any) => {
-                const software = new Software();
-                software.inverted = data.inverted;
-                software.cruBankSwitched = data.cruBankSwitched;
-                if (data.startAddress) {
-                    software.startAddress = Util.parseNumber(data.startAddress);
-                }
-                if (data.rom != null) {
-                    software.rom = ModuleService.hexArrayToByteArray(data.rom);
-                }
-                if (data.grom != null) {
-                    software.grom = ModuleService.hexArrayToByteArray(data.grom);
-                }
-                if (data.groms != null) {
-                    software.groms = [];
-                    for (let g = 0; g < data.groms.length; g++) {
-                        software.groms[g] = ModuleService.hexArrayToByteArray(data.groms[g]);
-                    }
-                }
-                if (data.memoryBlocks != null) {
-                    software.memoryBlocks = [];
-                    for (let i = 0; i < data.memoryBlocks.length; i++) {
-                        software.memoryBlocks[i] = new MemoryBlock(
-                            Util.parseNumber(data.memoryBlocks[i].address),
-                            ModuleService.hexArrayToByteArray(data.memoryBlocks[i].data)
-                        );
-                    }
-                }
-                software.ramAt6000 = data.ramAt6000;
-                software.ramAt7000 = data.ramAt7000;
+                const software = new Software(data);
                 subject.next(software);
                 subject.complete();
             },

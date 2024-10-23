@@ -1,3 +1,5 @@
+import {Util} from "./util";
+
 export class MemoryBlock {
 
     private _address: number;
@@ -34,6 +36,8 @@ export class Software {
     private _rom: Uint8Array;
     private _grom: Uint8Array;
     private _groms: Uint8Array[];
+    private _ramAt0000 = false;
+    private _ramAt4000 = false;
     private _ramAt6000 = false;
     private _ramAt7000 = false;
     private _ramFG99Paged: boolean;
@@ -43,7 +47,44 @@ export class Software {
     private _socketId: string;
     private _secondBank: boolean;
 
-    constructor() {}
+    constructor(data?: any) {
+        if (data) {
+            this.parseData(data);
+        }
+    }
+
+    parseData(data: any) {
+        this.inverted = data.inverted;
+        this.cruBankSwitched = data.cruBankSwitched;
+        if (data.startAddress) {
+            this.startAddress = Util.parseNumber(data.startAddress);
+        }
+        if (data.rom != null) {
+            this.rom = Util.hexArrayToByteArray(data.rom);
+        }
+        if (data.grom != null) {
+            this.grom = Util.hexArrayToByteArray(data.grom);
+        }
+        if (data.groms != null) {
+            this.groms = [];
+            for (let g = 0; g < data.groms.length; g++) {
+                this.groms[g] = Util.hexArrayToByteArray(data.groms[g]);
+            }
+        }
+        if (data.memoryBlocks != null) {
+            this.memoryBlocks = [];
+            for (let i = 0; i < data.memoryBlocks.length; i++) {
+                this.memoryBlocks[i] = new MemoryBlock(
+                    Util.parseNumber(data.memoryBlocks[i].address),
+                    Util.hexArrayToByteArray(data.memoryBlocks[i].data)
+                );
+            }
+        }
+        this.ramAt0000 = data.ramAt0000;
+        this.ramAt4000 = data.ramAt4000;
+        this.ramAt6000 = data.ramAt6000;
+        this.ramAt7000 = data.ramAt7000;
+    }
 
     get name(): string {
         return this._name;
@@ -99,6 +140,22 @@ export class Software {
 
     set groms(value: Uint8Array[]) {
         this._groms = value;
+    }
+
+    get ramAt0000(): boolean {
+        return this._ramAt0000;
+    }
+
+    set ramAt0000(value: boolean) {
+        this._ramAt0000 = value;
+    }
+
+    get ramAt4000(): boolean {
+        return this._ramAt4000;
+    }
+
+    set ramAt4000(value: boolean) {
+        this._ramAt4000 = value;
     }
 
     get ramAt6000(): boolean {

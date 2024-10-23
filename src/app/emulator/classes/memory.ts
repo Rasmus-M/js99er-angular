@@ -7,7 +7,6 @@ import {System} from './system';
 import {Util} from '../../classes/util';
 import {CPU} from '../interfaces/cpu';
 import {Stateful} from '../interfaces/stateful';
-import {TI994A} from './ti994a';
 import {RAMType, Settings, TIPIType} from '../../classes/settings';
 import {PSG} from '../interfaces/psg';
 import {Speech} from '../interfaces/speech';
@@ -45,6 +44,8 @@ export class Memory implements Stateful, MemoryDevice {
     private enableGRAM: boolean;
     private tipiType: TIPIType;
     private diskEnabled: boolean;
+    private ramAt0000: boolean;
+    private ramAt4000: boolean;
     private ramAt6000: boolean;
     private ramAt7000: boolean;
     private debugReset: boolean;
@@ -191,13 +192,13 @@ export class Memory implements Stateful, MemoryDevice {
         const gromWriteAccessors = [this.readNull, this.writeGROM];
         let i: number;
         for (i = 0; i < 0x2000; i++) {
-            this.memoryMap[i] = romAccessors;
+            this.memoryMap[i] = this.ramAt0000 ? ramAccessors : romAccessors;
         }
         for (i = 0x2000; i < 0x4000; i++) {
             this.memoryMap[i] = ramAccessors;
         }
         for (i = 0x4000; i < 0x6000; i++) {
-            this.memoryMap[i] = peripheralROMAccessors;
+            this.memoryMap[i] = this.ramAt4000 ? ramAccessors : peripheralROMAccessors;
         }
         for (i = 0x6000; i < 0x7000; i++) {
             this.memoryMap[i] = this.ramAt6000 ? cartridgeRAMAccessors : cartridgeROMAccessors;
@@ -712,6 +713,14 @@ export class Memory implements Stateful, MemoryDevice {
         this.ramType = ramType;
     }
 
+    setRAMAt0000(enabled: boolean) {
+        this.ramAt0000 = enabled;
+    }
+
+    setRAMAt4000(enabled: boolean) {
+        this.ramAt4000 = enabled;
+    }
+
     setGRAMEnabled(enabled: boolean) {
         this.enableGRAM = enabled;
     }
@@ -770,6 +779,8 @@ export class Memory implements Stateful, MemoryDevice {
             enableGRAM: this.enableGRAM,
             tipiType: this.tipiType,
             enableDisk: this.diskEnabled,
+            ramAt0000: this.ramAt0000,
+            ramAt4000: this.ramAt4000,
             ramAt6000: this.ramAt6000,
             ramAt7000: this.ramAt7000,
             ram: this.ram,
@@ -800,6 +811,8 @@ export class Memory implements Stateful, MemoryDevice {
         this.enableGRAM = state.enableGRAM;
         this.tipiType = state.tipiType;
         this.diskEnabled = state.diskEnabled;
+        this.ramAt0000 = state.ramAt0000;
+        this.ramAt4000 = state.ramAt4000;
         this.ramAt6000 = state.ramAt6000;
         this.ramAt7000 = state.ramAt7000;
         this.ram = state.ram;

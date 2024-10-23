@@ -14,6 +14,7 @@ import {DiskFile} from '../emulator/classes/diskfile';
 import {DatabaseService} from "./database.service";
 import {forkJoin} from "rxjs";
 import {BlobReader, BlobWriter, Entry, ZipReader} from "@zip.js/zip.js";
+import {Software} from "../classes/software";
 
 @Injectable()
 export class DiskService {
@@ -51,7 +52,6 @@ export class DiskService {
 
     loadDiskFiles(files: FileList, diskDrive: DiskDrive): Observable<DiskImage | null> {
         const subject = new Subject<DiskImage | null>();
-        const service = this;
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             if (file != null) {
@@ -63,7 +63,7 @@ export class DiskService {
                             const observables: Observable<DiskImage>[] = [];
                             entries.forEach(entry => {
                                 if (!entry.directory) {
-                                    observables.push(service.loadDiskFileFromZipEntry(entry, diskDrive));
+                                    observables.push(this.loadDiskFileFromZipEntry(entry, diskDrive));
                                 }
                             });
                             forkJoin(observables).subscribe(
@@ -86,20 +86,35 @@ export class DiskService {
                     // Object file
                     this.log.info('Loading object file.');
                     const reader = new FileReader();
-                    reader.onload = function () {
-                        service.objectLoaderService.loadObjFile(reader.result as string);
-                        service.commandDispatcherService.loadSoftware(
-                            service.objectLoaderService.getSoftware()
+                    reader.onload = () => {
+                        this.objectLoaderService.loadObjFile(reader.result as string);
+                        this.commandDispatcherService.loadSoftware(
+                            this.objectLoaderService.getSoftware()
                         );
                         subject.next(null);
                     };
-                    reader.onerror = function () {
+                    reader.onerror = () => {
+                        subject.error(reader.error?.name);
+                    };
+                    reader.readAsText(file);
+                } else if (extension != null && extension.toLowerCase() === 'json') {
+                    // JSON software
+                    this.log.info('Loading JSON file.');
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const data = JSON.parse(reader.result as string);
+                        this.commandDispatcherService.loadSoftware(
+                            new Software(data)
+                        );
+                        subject.next(null);
+                    };
+                    reader.onerror = () => {
                         subject.error(reader.error?.name);
                     };
                     reader.readAsText(file);
                 } else {
                     // Single file (DSK image, TIFILE, V9T9)
-                    service.loadDiskFile(file.name, file, diskDrive, true).subscribe(subject);
+                    this.loadDiskFile(file.name, file, diskDrive, true).subscribe(subject);
                 }
             }
         }

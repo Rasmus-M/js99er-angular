@@ -79,4 +79,16 @@ export class Util {
         }
         return s;
     }
+
+    static hexArrayToByteArray(hexArray: string[]) {
+        const binArray = [];
+        let n = 0;
+        for (let i = 0; i < hexArray.length; i++) {
+            const row = hexArray[i];
+            for (let j = 0; j < row.length; j += 2) {
+                binArray[n++] = parseInt(row.substr(j, 2), 16);
+            }
+        }
+        return new Uint8Array(binArray);
+    }
 }
