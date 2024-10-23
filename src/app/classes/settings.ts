@@ -208,53 +208,53 @@ export class Settings {
         }
     }
 
-    copyFrom(otherSettings: Settings) {
-        if (otherSettings.isSoundEnabled() !== undefined) {
-            this.enableSound = otherSettings.isSoundEnabled();
+    copyFrom(otherSettings: any) {
+        if (otherSettings.enableSound !== undefined) {
+            this.enableSound = otherSettings.enableSound;
         }
-        if (otherSettings.getPSG() !== undefined) {
-            this.psg = otherSettings.getPSG();
+        if (otherSettings.psg !== undefined) {
+            this.psg = otherSettings.psg;
         }
-        if (otherSettings.isSpeechEnabled() !== undefined) {
-            this.enableSpeech = otherSettings.isSpeechEnabled();
+        if (otherSettings.enableSpeech !== undefined) {
+            this.enableSpeech = otherSettings.enableSpeech;
         }
-        if (otherSettings.getRAM() !== undefined) {
-            this.ram = otherSettings.getRAM();
+        if (otherSettings.ram !== undefined) {
+            this.ram = otherSettings.ram;
         }
-        if (otherSettings.getVDP() !== undefined) {
-            this.vdp = otherSettings.getVDP();
+        if (otherSettings.vdp !== undefined) {
+            this.vdp = otherSettings.vdp;
         }
-        if (otherSettings.isPCKeyboardEnabled() !== undefined) {
-            this.enablePCKeyboard = otherSettings.isPCKeyboardEnabled();
+        if (otherSettings.enablePCKeyboard !== undefined) {
+            this.enablePCKeyboard = otherSettings.enablePCKeyboard;
         }
-        if (otherSettings.isMapArrowKeysEnabled() !== undefined) {
-            this.enableMapArrowKeys = otherSettings.isMapArrowKeysEnabled();
+        if (otherSettings.enableMapArrowKeys !== undefined) {
+            this.enableMapArrowKeys = otherSettings.enableMapArrowKeys;
         }
-        if (otherSettings.isGoogleDriveEnabled() !== undefined) {
-            this.enableGoogleDrive = otherSettings.isGoogleDriveEnabled();
+        if (otherSettings.enableGoogleDrive !== undefined) {
+            this.enableGoogleDrive = otherSettings.enableGoogleDrive;
         }
-        if (otherSettings.isGRAMEnabled() !== undefined) {
-            this.enableGRAM = otherSettings.isGRAMEnabled();
+        if (otherSettings.enableGRAM !== undefined) {
+            this.enableGRAM = otherSettings.enableGRAM;
         }
-        if (otherSettings.isPixelatedEnabled() !== undefined) {
-            this.enablePixelated = otherSettings.isPixelatedEnabled();
+        if (otherSettings.enablePixelated !== undefined) {
+            this.enablePixelated = otherSettings.enablePixelated;
         }
-        if (otherSettings.isPauseOnFocusLostEnabled() !== undefined) {
-            this.enablePauseOnFocusLost = otherSettings.isPauseOnFocusLostEnabled();
+        if (otherSettings.enablePauseOnFocusLost !== undefined) {
+            this.enablePauseOnFocusLost = otherSettings.enablePauseOnFocusLost;
         }
-        if (otherSettings.getTIPI() !== undefined) {
-            this.tipi = otherSettings.getTIPI();
+        if (otherSettings.tipi !== undefined) {
+            this.tipi = otherSettings.tipi;
         }
-        if (otherSettings.getTIPIWebsocketURI() !== undefined) {
-            this.tipiWebsocketURI = otherSettings.getTIPIWebsocketURI();
+        if (otherSettings.tipiWebsocketURI !== undefined) {
+            this.tipiWebsocketURI = otherSettings.tipiWebsocketURI;
         }
-        if (otherSettings.isDebugResetEnabled() !== undefined) {
-            this.enableDebugReset = otherSettings.isDebugResetEnabled();
+        if (otherSettings.enableDebugReset !== undefined) {
+            this.enableDebugReset = otherSettings.enableDebugReset;
         }
-        if (otherSettings.isH264CodexEnabled() !== undefined) {
-            this.enableH264Codec = otherSettings.isH264CodexEnabled();
+        if (otherSettings.enableH264Codec !== undefined) {
+            this.enableH264Codec = otherSettings.enableH264Codec;
         }
-        if (otherSettings.isDiskEnabled() !== undefined) {
+        if (otherSettings.enableDisk !== undefined) {
             this.enableDisk = otherSettings.enableDisk;
         }
     }

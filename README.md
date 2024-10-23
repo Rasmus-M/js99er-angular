@@ -37,14 +37,14 @@ The settings object may contain the following properties, shown here with the de
 "settings": {
     "enableSound": true,
     "psg": "STANDARD",              // "STANDARD" | "FORTI"
-    "enableSpeech: true,
-    "ram: "32K",                    // "NONE" | "32K" | "SAMS1M" | "SAMS4M" | "SAMS16M"
-    "vdp: "TMS9918A",               // "TMS9918A" | "F18A" | "V9938"
+    "enableSpeech": true,
+    "ram": "32K",                   // "NONE" | "32K" | "SAMS1M" | "SAMS4M" | "SAMS16M"
+    "vdp": "TMS9918A",              // "TMS9918A" | "F18A" | "V9938"
     "enablePCKeyboard": false,
     "enableMapArrowKeys": false,
     "enableGoogleDrive": false,
     "enableGRAM": false,
-    "enablePixelated": fale,
+    "enablePixelated": false,
     "enablePauseOnFocusLost": false,
     "tipi": "NONE",                 // "NONE" | "MOUSE" | "FULL"
     "tipiWebsocketURI": "ws://localhost:9901/tipi",

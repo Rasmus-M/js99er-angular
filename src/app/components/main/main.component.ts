@@ -34,7 +34,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
     static DEFAULT_CART_NAME = 'software/extended_basic.rpk';
 
-    diskImages: DiskImage[];
+    diskImages: DiskImage[] = [];
     ti994A: TI994A;
     tabIndex: number;
 

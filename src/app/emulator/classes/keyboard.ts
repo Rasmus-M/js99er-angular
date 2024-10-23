@@ -168,7 +168,6 @@ export class Keyboard implements Stateful {
     }
 
     private keyEvent(evt: KeyboardEvent | any, down: boolean) {
-        console.log(evt);
         let key: Key | undefined;
         if (evt.code) {
             key = KeyMapper.getKeyFromCode(evt.code);
