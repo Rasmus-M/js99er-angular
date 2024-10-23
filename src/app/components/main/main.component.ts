@@ -312,7 +312,6 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     restoreState() {
-        const that = this;
         const database = this.databaseService;
         const wasRunning = this.ti994A.isRunning();
         if (wasRunning) {
@@ -320,69 +319,84 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         database.getDiskImages().pipe(
             map((diskImages: DiskImage[]) => {
-                that.diskImages = diskImages;
-                that.log.info("Disk images restored OK.");
-                const diskDrives = that.ti994A.getDiskDrives();
-                return that.diskService.restoreDiskDrives(diskDrives, diskImages);
+                this.diskImages = diskImages;
+                this.log.info("Disk images restored OK.");
+                const diskDrives = this.ti994A.getDiskDrives();
+                return this.diskService.restoreDiskDrives(diskDrives, diskImages);
             })
         ).pipe(
             mergeMap(() => {
-                that.log.info("Disk drives restored OK.");
+                this.log.info("Disk drives restored OK.");
                 return database.getMachineState("ti994a");
             })
         ).subscribe(
             (state: any) => {
                 const f18AEnabled = typeof(state.vdp.gpu) === "object";
                 const v9938Enabled = typeof(state.vdp.mmc) === "object";
-                if (f18AEnabled && that.settingsService.getVDP() !== 'F18A') {
-                    that.log.error("Please enable F18A VDP before restoring the state");
+                if (f18AEnabled && this.settingsService.getVDP() !== 'F18A') {
+                    this.log.error("Please enable F18A VDP before restoring the state");
                     return;
-                } else if (v9938Enabled && that.settingsService.getVDP() !== 'V9938') {
-                    that.log.error("Please enable V9938 VDP before restoring the state");
+                } else if (v9938Enabled && this.settingsService.getVDP() !== 'V9938') {
+                    this.log.error("Please enable V9938 VDP before restoring the state");
                     return;
-                } else if (!f18AEnabled && !v9938Enabled && that.settingsService.getVDP() === 'TMS9918A') {
-                    that.log.error("Please enable TMS9918A VDP before restoring the state");
+                } else if (!f18AEnabled && !v9938Enabled && this.settingsService.getVDP() !== 'TMS9918A') {
+                    this.log.error("Please enable TMS9918A VDP before restoring the state");
                     return;
                 }
-                that.ti994A.restoreState(state);
-                that.log.info("Console state restored");
+                const fortiEnabled = Array.isArray(state.psg);
+                if (fortiEnabled && this.settingsService.getPSG() !== 'FORTI') {
+                    this.log.error("Please enable FORTi PSG before restoring the state");
+                    return;
+                } else if (!f18AEnabled && this.settingsService.getPSG() !== 'STANDARD') {
+                    this.log.error("Please enable Standard PSG before restoring the state");
+                    return;
+                }
+                this.ti994A.restoreState(state);
+                this.log.info("Console state restored");
 
                 const settings: Settings = new Settings();
-                settings.setSoundEnabled(that.settingsService.isSoundEnabled());
-                settings.setPSG(that.settingsService.getPSG());
+                settings.setSoundEnabled(this.settingsService.isSoundEnabled());
+                settings.setPSG(this.settingsService.getPSG());
                 settings.setSpeechEnabled(state.speech.enabled);
                 settings.setRAM(state.memory.ramType);
-                settings.setVDP(that.settingsService.getVDP());
-                settings.setTIPI(that.settingsService.getTIPI());
+                settings.setVDP(this.settingsService.getVDP());
+                settings.setTIPI(this.settingsService.getTIPI());
+                settings.setTIPIWebsocketURI(this.settingsService.getTIPIWebsocketURI());
                 settings.setPCKeyboardEnabled(state.keyboard.pcKeyboardEnabled);
                 settings.setMapArrowKeysEnabled(state.keyboard.mapArrowKeysToFctnSDEX);
-                settings.setGoogleDriveEnabled(that.settingsService.isGoogleDriveEnabled());
+                settings.setGoogleDriveEnabled(this.settingsService.isGoogleDriveEnabled());
                 settings.setGRAMEnabled(state.memory.enableGRAM);
-                settings.setPixelatedEnabled(that.settingsService.isPixelatedEnabled());
-                that.settingsService.restoreSettings(settings);
+                settings.setPixelatedEnabled(this.settingsService.isPixelatedEnabled());
+                settings.setPauseOnFocusLostEnabled(this.settingsService.isPauseOnFocusLostEnabled());
+                settings.setDebugResetEnabled(this.settingsService.isDebugResetEnabled());
+                settings.setH264CodecEnabled(this.settingsService.isH264CodecEnabled());
+                settings.setDiskEnabled(this.settingsService.isDiskEnabled());
+                this.settingsService.restoreSettings(settings);
 
                 if (state.tape.recordPressed) {
-                    that.eventDispatcherService.tapeRecording();
+                    this.eventDispatcherService.tapeRecording();
                 } else if (state.tape.playPressed) {
-                    that.eventDispatcherService.tapePlaying();
+                    this.eventDispatcherService.tapePlaying();
                 } else {
-                    const tape = that.ti994A.getTape();
-                    that.eventDispatcherService.tapeStopped(tape.isPlayEnabled(), tape.isRewindEnabled());
+                    const tape = this.ti994A.getTape();
+                    this.eventDispatcherService.tapeStopped(tape.isPlayEnabled(), tape.isRewindEnabled());
                 }
 
-                that.commandDispatcherService.setBreakpointAddress(state.cpu.breakpoint);
+                this.commandDispatcherService.setBreakpointAddress(state.cpu.breakpoint);
 
                 if (wasRunning) {
-                    that.commandDispatcherService.start();
+                    this.commandDispatcherService.start();
                 } else {
-                    that.ti994A.getPSG().mute();
+                    this.ti994A.getPSG().mute();
                 }
 
-                that.eventDispatcherService.stateRestored();
+                this.eventDispatcherService.stateRestored();
 
-                that.log.info("Machine state restored OK.");
+                this.log.info("Machine state restored OK.");
             },
-            that.log.error
+            (error) => {
+                this.log.error(error);
+            }
         );
     }
 

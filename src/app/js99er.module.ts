@@ -26,7 +26,7 @@ import {Js99erComponent} from './js99er.component';
 import {MainComponent} from './components/main/main.component';
 import {DebuggerComponent} from './components/debugger/debugger.component';
 import {MainControlsComponent} from './components/main-controls/main-controls.component';
-import {OptionsComponent} from './components/settings/options.component';
+import {OptionsComponent} from './components/options/options.component';
 import {LogComponent} from './components/log/log.component';
 import {KeyboardComponent} from './components/keyboard/keyboard.component';
 import {DiskComponent} from './components/disk/disk.component';

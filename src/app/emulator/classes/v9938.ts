@@ -1058,7 +1058,7 @@ export class V9938 implements VDP {
 
     restoreState(state: any) {
         this.model = state.model;
-        this.vram_space = state.vram_space;
+        this.vram_space.set(state.vram_space);
         this.offset_x = state.offset_x;
         this.offset_y = state.offset_y;
         this.visible_y = state.visible_y;
