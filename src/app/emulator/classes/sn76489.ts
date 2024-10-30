@@ -231,12 +231,13 @@ export class SN76489 implements Stateful {
             // Tone register updated
             // If the register value is zero then the output is a constant value of +1.
             // This is often used for sample playback on the SN76489.
+            // RM: Changed to 0x400 for compatibility with MAME and Classic99
             // ------------------------------------------------------------------------------------
             case 0:
             case 2:
             case 4:
                 if (this.reg[this.regLatch] === 0) {
-                    this.reg[this.regLatch] = 1;
+                    this.reg[this.regLatch] = 0x400;
                 }
                 break;
 

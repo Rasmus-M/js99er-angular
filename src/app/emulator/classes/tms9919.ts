@@ -32,7 +32,7 @@ export class TMS9919 implements PSG {
     }
 
     writeData(addr: number, b: number) {
-        // this.log.debug("PSG: " + Util.toHexByte(b));
+        // this.log.info("PSG: " + Util.toHexByte(b));
         if (this.sn76489.isSample(b)) {
             this.tape.setAudioGate((15 - (b & 0x0f)) / 16, this.cpu.getCycles());
         } else {
