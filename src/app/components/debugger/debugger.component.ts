@@ -167,7 +167,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                 function () {
                     if (memoryView.anchorLine !== null) {
                         const lineHeight = $memory.prop('scrollHeight') / memoryView.lines.length;
-                        $memory.scrollTop(memoryView.anchorLine * lineHeight + 1);
+                        $memory.scrollTop(memoryView.anchorLine * lineHeight - 1);
                     }
                 }, 100
             );

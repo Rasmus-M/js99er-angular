@@ -46,6 +46,10 @@
     padding-right: 8px;
 }
 
+.address-field {
+    width: 16%;
+}
+
 .debugger {
     display: grid;
     height: 100%;

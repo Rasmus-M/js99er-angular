@@ -21,8 +21,8 @@
                 <mat-option [value]="1">VDP memory</mat-option>
             </mat-select>
         </mat-form-field>
-        <hex-input-field [(model)]="viewAddress" [placeholder]="'View Address'" (modelChange)="onViewAddressChanged()"></hex-input-field>
-        <hex-input-field [(model)]="breakpointAddress" [placeholder]="'Breakpoint'" (modelChange)="onBreakpointAddressChanged()"></hex-input-field>
+        <hex-input-field class="address-field" [(model)]="viewAddress" [placeholder]="'View Address'" (modelChange)="onViewAddressChanged()"></hex-input-field>
+        <hex-input-field class="address-field" [(model)]="breakpointAddress" [placeholder]="'Breakpoint'" (modelChange)="onBreakpointAddressChanged()"></hex-input-field>
         <button mat-button (click)="openDialog()"><fa-icon [icon]="faCogs"></fa-icon></button>
     </div>
     <pre [hidden]="memoryViewType===2" class="memory-view mat-elevation-z1" id="memory" (click)="onMemoryViewClicked($event)">{{memoryString}}</pre>
