@@ -18,8 +18,9 @@ export enum ScreenMode {
 }
 
 // WASM memory addresses
+const vdpRAMAddr = 0x00000;
 const paletteAddr = 0x10000;
-const scanlineColorBufferAddr = 0x11000;
+const imageDataAddr = 0x20000;
 
 export class TMS9918A implements VDP {
 
@@ -28,7 +29,7 @@ export class TMS9918A implements VDP {
     private cru: TMS9901;
     private wasmService: WasmService;
 
-    private ram: Uint8Array = new Uint8Array(16384); // VDP RAM
+    private ram: Uint8Array; // VDP RAM
     private registers: Uint8Array = new Uint8Array(8);
     private addressRegister: number;
     private statusRegister: number;
@@ -96,7 +97,7 @@ export class TMS9918A implements VDP {
 
     reset() {
         this.cru = this.console.getCRU();
-        this.ram = new Uint8Array(this.wasmService.getMemoryBuffer(), 0, 0x4000);
+        this.ram = new Uint8Array(this.wasmService.getMemoryBuffer(), vdpRAMAddr, 0x4000);
         for (let i = 0; i < this.ram.length; i++) {
             this.ram[i] = 0;
         }
@@ -125,22 +126,17 @@ export class TMS9918A implements VDP {
         this.fgColor = 0;
         this.bgColor = 0;
 
-        this.canvas.width = 320;
-        this.canvas.height = 240;
-        this.canvasContext.fillStyle = 'rgba(' + this.palette[7].join(',') + ',1.0)';
-        this.canvasContext.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.width = this.canvas.width = 320;
+        this.height = this.canvas.height = 240;
+        this.imageData = new ImageData(new Uint8ClampedArray(this.wasmService.getMemoryBuffer(), imageDataAddr, (this.width * this.height) << 2), this.width, this.height);
 
-        this.imageData = this.canvasContext.getImageData(0, 0, this.canvas.width, this.canvas.height);
-        this.width = this.canvas.width;
-        this.height = this.canvas.height;
-
-        const colorMemory = new Uint8Array(this.wasmService.getMemoryBuffer(), paletteAddr, 64);
+        const paletteMemory = new Uint8Array(this.wasmService.getMemoryBuffer(), paletteAddr, 64);
         let addr = 0;
         for (let i = 0; i < this.palette.length; i++) {
-            colorMemory[addr++] = this.palette[i][0];
-            colorMemory[addr++] = this.palette[i][1];
-            colorMemory[addr++] = this.palette[i][2];
-            colorMemory[addr++] = 0xff;
+            paletteMemory[addr++] = this.palette[i][0];
+            paletteMemory[addr++] = this.palette[i][1];
+            paletteMemory[addr++] = this.palette[i][2];
+            paletteMemory[addr++] = 0xff;
         }
 
         this.spritePatternColorMap = {};
@@ -174,8 +170,6 @@ export class TMS9918A implements VDP {
         if (this.interruptsOn && (this.statusRegister & 0x80) !== 0) {
             this.cru.setVDPInterrupt(true);
         }
-        const buffer = new Uint8Array(this.wasmService.getMemoryBuffer(), scanlineColorBufferAddr, this.width << 2);
-        new Uint8Array(this.imageData.data.buffer).set(buffer, (y * this.width) << 2);
     }
 
     drawInvisibleScanline(y: number): void {

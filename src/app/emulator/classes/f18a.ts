@@ -11,7 +11,7 @@ import {VDPType} from "../../classes/settings";
 
 // WASM memory addresses
 const paletteAddr = 0x10000;
-const scanlineColorBufferAddr = 0x11000;
+const imageDataAddr = 0x20000;
 
 export class F18A implements VDP {
 
@@ -197,7 +197,6 @@ export class F18A implements VDP {
     private leftBorder: number;
     private topBorder: number;
     private imageData: ImageData;
-    private imageDataData: Uint8ClampedArray;
     private frameCounter: number;
     private lastTime: number;
 
@@ -355,12 +354,12 @@ export class F18A implements VDP {
     }
 
     writePaletteEntryToWasm(index: number) {
-        const colorMemory = new Uint8Array(this.wasmService.getMemoryBuffer(), paletteAddr + (index << 2), 4);
+        const paletteMemory = new Uint8Array(this.wasmService.getMemoryBuffer(), paletteAddr + (index << 2), 4);
         const paletteEntry = this.palette[index];
-        colorMemory[0] = paletteEntry[0];
-        colorMemory[1] = paletteEntry[1];
-        colorMemory[2] = paletteEntry[2];
-        colorMemory[3] = 0xff;
+        paletteMemory[0] = paletteEntry[0];
+        paletteMemory[1] = paletteEntry[1];
+        paletteMemory[2] = paletteEntry[2];
+        paletteMemory[3] = 0xff;
     }
 
     resetRegs() {
@@ -402,8 +401,8 @@ export class F18A implements VDP {
         const newCanvasHeight = this.screenMode === F18A.MODE_TEXT_80 ? 480 : 240;
         const newDimensions = force || newCanvasWidth !== this.canvas.width || newCanvasHeight !== this.canvas.height;
         if (newDimensions) {
-            this.canvas.width = this.canvasWidth = newCanvasWidth;
-            this.canvas.height = this.canvasHeight = newCanvasHeight;
+            this.canvasWidth = this.canvas.width = newCanvasWidth;
+            this.canvasHeight = this.canvas.height = newCanvasHeight;
         }
         this.drawWidth = this.screenMode === F18A.MODE_TEXT_80 ? 512 : 256;
         this.drawHeight = this.row30Enabled ? 240 : 192;
@@ -411,8 +410,7 @@ export class F18A implements VDP {
         this.topBorder = Math.floor(((this.canvasHeight >> (this.screenMode === F18A.MODE_TEXT_80 ? 1 : 0)) - this.drawHeight) >> 1);
         if (newDimensions) {
             this.fillCanvas(this.bgColor);
-            this.imageData = this.canvasContext.getImageData(0, 0, this.canvasWidth, this.canvasHeight);
-            this.imageDataData = this.imageData.data;
+            this.imageData = new ImageData(new Uint8ClampedArray(this.wasmService.getMemoryBuffer(), imageDataAddr, (this.canvasWidth * this.canvasHeight) << 2), this.canvasWidth, this.canvasHeight);
         }
     }
 
@@ -430,6 +428,7 @@ export class F18A implements VDP {
 
         this.statusRegister = this.wasmService.getExports().drawScanlineF18a(
             y,
+            this.canvasWidth,
             this.displayOn,
             this.topBorder,
             this.drawHeight,
@@ -455,7 +454,6 @@ export class F18A implements VDP {
             this.bitmapPaletteSelect,
             this.nameTable,
             this.nameTable2,
-            this.canvasWidth,
             this.scanLines,
             this.bgColor,
             this.leftBorder,
@@ -489,13 +487,6 @@ export class F18A implements VDP {
             this.statusRegister
         );
 
-        const buffer = new Uint8Array(this.wasmService.getMemoryBuffer(), scanlineColorBufferAddr, this.canvasWidth << 2);
-        new Uint8Array(this.imageData.data.buffer).set(buffer, (y * this.canvasWidth) << (this.screenMode === F18A.MODE_TEXT_80 ? 3 : 2));
-
-        if (this.screenMode === F18A.MODE_TEXT_80) {
-            this._duplicateScanline(y);
-        }
-
         this.blanking = 1; // GPU code after scanline may depend on this
 
         if (this.reportMax) {
@@ -524,19 +515,11 @@ export class F18A implements VDP {
         }
     }
 
-
     updateCanvas() {
         this.canvasContext.putImageData(this.imageData, 0, 0);
         if (this.splashImage && this.frameCounter < 300) {
             this.canvasContext.drawImage(this.splashImage, 0, 0);
         }
-    }
-
-    _duplicateScanline(y: number) {
-        const lineBytes = this.canvasWidth << 2;
-        const imageDataAddr = y * 2 * lineBytes;
-        const imageDataAddr2 = imageDataAddr + lineBytes;
-        this.imageDataData.copyWithin(imageDataAddr2, imageDataAddr, imageDataAddr + lineBytes);
     }
 
     writeAddress(i: number) {

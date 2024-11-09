@@ -3026,10 +3026,10 @@ asn1@~0.2.3:
   dependencies:
     safer-buffer "~2.1.0"
 
-assemblyscript@^0.27.29:
-  version "0.27.29"
-  resolved "https://registry.npmjs.org/assemblyscript/-/assemblyscript-0.27.29.tgz"
-  integrity sha512-pH6udb7aE2F0t6cTh+0uCepmucykhMnAmm7k0kkAU3SY7LvpIngEBZWM6p5VCguu4EpmKGwEuZpZbEXzJ/frHQ==
+assemblyscript@^0.27.30:
+  version "0.27.30"
+  resolved "https://registry.yarnpkg.com/assemblyscript/-/assemblyscript-0.27.30.tgz#840bcdb2b5400782adf666fc2b807e04d256994d"
+  integrity sha512-tSlwbLEDM1X+w/6/Y2psc3sEg9/7r+m7xv44G6FI2G/w1MNnnulLxcPo7FN0kVIBoD/oxCiRFGaQAanFY0gPhA==
   dependencies:
     binaryen "116.0.0-nightly.20240114"
     long "^5.2.1"
@@ -8262,6 +8262,7 @@ wildcard@^2.0.1:
   integrity sha512-CC1bOL87PIWSBhDcTrdeLo6eGT7mCFtrg0uIJtqJUFyK+eJnzl8A1niH56uu7KMa5XFrtiV+AQuHO3n7DsHnLQ==
 
 "wrap-ansi-cjs@npm:wrap-ansi@^7.0.0", wrap-ansi@^7.0.0:
+  name wrap-ansi-cjs
   version "7.0.0"
   resolved "https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-7.0.0.tgz"
   integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==

@@ -11,9 +11,9 @@ const COLOR_MODE_ECM_3 = 3;
 
 const vdpRAMAddr = 0x00000;
 const paletteAddr = 0x10000;
-const scanlineColorBufferAddr = 0x11000;
-const spriteColorBufferAddr = 0x12000;
-const spritePaletteBaseIndexBufferAddr = 0x13000;
+const spriteColorBufferAddr = 0x11000;
+const spritePaletteBaseIndexBufferAddr = 0x12000;
+const imageDataAddr = 0x20000;
 
 let pixelTilePriority: bool = false;
 let pixelTransparentColor0: bool = false;
@@ -22,6 +22,7 @@ let pixelPaletteBaseIndex: i32 = 0;
 
 export function drawScanline(
     y: i32,
+    width: i32,
     displayOn: bool,
     topBorder: i32,
     drawHeight: i32,
@@ -47,7 +48,6 @@ export function drawScanline(
     bitmapPaletteSelect: i32,
     nameTable: i32,
     nameTable2: i32,
-    canvasWidth: i32,
     scanLines: bool,
     bgColor: i32,
     leftBorder: i32,
@@ -80,7 +80,7 @@ export function drawScanline(
     fgColor: i32,
     statusRegister: u8
 ): u8 {
-    let imageDataAddr: i32 = 0;
+    let pixelOffset: i32 = (y * width) << (screenMode === MODE_TEXT_80 ? 1 : 0);
     if (displayOn && y >= topBorder && y < topBorder + drawHeight) {
         y -= topBorder;
         // Prepare sprites
@@ -176,7 +176,7 @@ export function drawScanline(
         // Prepare values for sprite layer
         const spritesEnabled: bool = unlocked || (screenMode !== MODE_TEXT && screenMode !== MODE_TEXT_80);
         // Draw line
-        for (let xc: i32 = 0; xc < canvasWidth; xc++) {
+        for (let xc: i32 = 0; xc < width; xc++) {
             // Draw pixel
             let color: i32 = bgColor;
             let paletteBaseIndex: i32 = 0;
@@ -290,24 +290,37 @@ export function drawScanline(
             }
             // Draw pixel
             const rgbColor: u32 = getColor(color + paletteBaseIndex);
-            setImageData(imageDataAddr++, rgbColor);
+            setImageData(pixelOffset++, rgbColor);
         }
     } else {
         // Empty scanline
         const rgbColor: u32 = getColor(bgColor);
-        for (let xc: i32 = 0; xc < canvasWidth; xc++) {
-            setImageData(imageDataAddr++, rgbColor);
+        for (let xc: i32 = 0; xc < width; xc++) {
+            setImageData(pixelOffset++, rgbColor);
         }
     }
     if (scanLines && (y & 1) !== 0) {
         // Dim last scan line
-        let imagedataAddr2: i32 = imageDataAddr - (canvasWidth << 2);
-        for (let xc: i32 = 0; xc < canvasWidth; xc++) {
-            const rgbColor: u32 = getImageData(imagedataAddr2);
-            setImageData(imagedataAddr2++, rgbColor); // TODO: * 0.75
+        let pixelOffset2: i32 = pixelOffset - width;
+        for (let xc: i32 = 0; xc < width; xc++) {
+            const rgbColor: u32 = getImageData(pixelOffset2);
+            const dimmedRgbColor: u32 = 0xff000000 |
+                (dim((rgbColor >> 16) & 0xff) << 16) |
+                (dim((rgbColor >> 8) & 0xff) << 8) |
+                dim(rgbColor & 0xff);
+            setImageData(pixelOffset2++, dimmedRgbColor);
         }
     }
+    if (screenMode === MODE_TEXT_80) {
+        duplicateLastScanline(pixelOffset, width);
+    }
     return statusRegister;
+}
+
+// @ts-ignore
+@inline
+function dim(colorComponent: u32): u32 {
+    return (colorComponent >> 1) + (colorComponent >> 2);
 }
 
 function drawTileLayer(
@@ -700,12 +713,18 @@ function getSpritePaletteBaseIndexBuffer(offset: i32): i32 {
 
 // @ts-ignore
 @inline
-function setImageData(addr: i32, value: u32): void {
-    store<u32>(scanlineColorBufferAddr + (addr << 2), value);
+function setImageData(pixelOffset: i32, value: u32): void {
+    store<u32>(imageDataAddr + (pixelOffset << 2), value);
 }
 
 // @ts-ignore
 @inline
-function getImageData(addr: i32): u32 {
-    return load<u32>(scanlineColorBufferAddr + (addr << 2));
+function getImageData(pixelOffset: i32): u32 {
+    return load<u32>(imageDataAddr + (pixelOffset << 2));
+}
+
+// @ts-ignore
+@inline
+function duplicateLastScanline(pixelOffset: i32, width: i32): void {
+    memory.copy(imageDataAddr + (pixelOffset << 2), imageDataAddr + ((pixelOffset - width) << 2), width << 2);
 }

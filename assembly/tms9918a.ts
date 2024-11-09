@@ -8,8 +8,8 @@ const MODE_ILLEGAL = 6;
 
 const vdpRAMAddr = 0x00000;
 const paletteAddr = 0x10000;
-const scanlineColorBufferAddr = 0x11000;
-const spriteBufferAddr = 0x12000;
+const spriteBufferAddr = 0x11000;
+const imageDataAddr = 0x20000;
 
 export function drawScanline(
     y: i32,
@@ -42,7 +42,7 @@ export function drawScanline(
         spriteDimension: i32 = (spriteSize ? 16 : 8) << (spriteMagnify ? 1 : 0),
         maxSpritesOnLine: i32 = 4;
     let
-        imageDataAddr: i32 = 0,
+        pixelOffset: i32 = y * width,
         collision: bool = false,
         fifthSprite: bool = false,
         fifthSpriteIndex: u8 = 31,
@@ -185,13 +185,13 @@ export function drawScanline(
                 color = bgColor;
             }
             rgbColor = getColor(color);
-            setImageData(imageDataAddr++, rgbColor);
+            setImageData(pixelOffset++, rgbColor);
         }
     } else {
-        // Top/bottom border
+        // Top/bottom border or blanking
         rgbColor = getColor(bgColor);
         for (x = 0; x < width; x++) {
-            setImageData(imageDataAddr++, rgbColor);
+            setImageData(pixelOffset++, rgbColor);
         }
     }
     if (y === vBorder + drawHeight) {
@@ -239,6 +239,6 @@ function getSpriteBuffer(offset: i32): i32 {
 
 // @ts-ignore
 @inline
-function setImageData(addr: i32, value: u32): void {
-    store<u32>(scanlineColorBufferAddr + (addr << 2), value);
+function setImageData(pixelOffset: i32, value: u32): void {
+    store<u32>(imageDataAddr + (pixelOffset << 2), value);
 }

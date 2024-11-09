@@ -17,11 +17,17 @@ export class WasmService implements Resolve<any> {
     }
 
     private instantiateWasm() {
-        const memory = new WebAssembly.Memory({ initial: 2, maximum: 2 });
-        return WebAssembly.instantiateStreaming(fetch('./assets/wasm/index.wasm'), {env: {
-                memory,
-                abort: (message: string, fileName: string, lineNumber: number, columnNumber: number) => { console.error(message); }
-            }}).then(
+        const memory = new WebAssembly.Memory({ initial: 21, maximum: 21 });
+        return WebAssembly.instantiateStreaming(
+            fetch('./assets/wasm/index.wasm'), {
+                env: {
+                    memory,
+                    abort: (message: string, fileName: string, lineNumber: number, columnNumber: number) => {
+                        console.error(message, fileName, lineNumber, columnNumber);
+                    }
+                }
+            }
+        ).then(
             (source: WebAssembly.WebAssemblyInstantiatedSource) => {
                 this.exports = source.instance.exports;
                 this.buffer = memory.buffer;
