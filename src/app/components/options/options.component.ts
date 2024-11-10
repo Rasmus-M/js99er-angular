@@ -27,6 +27,7 @@ export class OptionsComponent implements OnInit {
     enableDebugReset: boolean;
     enableH264Codec: boolean;
     enableDisk: boolean;
+    enablePCode: boolean;
 
     constructor(
         private settingsService: SettingsService,
@@ -55,6 +56,7 @@ export class OptionsComponent implements OnInit {
         this.enableDebugReset = this.settingsService.isDebugResetEnabled();
         this.enableH264Codec = this.settingsService.isH264CodecEnabled();
         this.enableDisk = this.settingsService.isDiskEnabled();
+        this.enablePCode = this.settingsService.isPCodeEnabled();
     }
 
     onEvent(event: ConsoleEvent) {
@@ -135,5 +137,9 @@ export class OptionsComponent implements OnInit {
 
     onEnableDiskChanged(value: boolean) {
         this.settingsService.setDiskEnabled(value);
+    }
+
+    onEnablePCodeChanged(value: boolean) {
+        this.settingsService.setPCodeEnabled(value);
     }
 }

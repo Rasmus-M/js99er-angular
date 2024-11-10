@@ -183,7 +183,7 @@ export class TMS9900 extends CPUCommon implements CPU {
                         const groms = this.memory.getGROMs();
                         if (groms && groms.length) {
                             const grom = groms[0];
-                            if (grom[0x6343] === 0x45 && grom[0x6344] === 0x58 && grom[0x6345] === 0x54) {
+                            if (grom.getByte(0x6343) === 0x45 && grom.getByte(0x6344) === 0x58 && grom.getByte(0x6345) === 0x54) {
                                 this.memory.setPADByte(0x835F, 0x5d); // Max length for BASIC continuously set
                             }
                         }

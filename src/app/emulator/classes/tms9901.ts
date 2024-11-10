@@ -113,6 +113,11 @@ export class TMS9901 implements Stateful {
             if (r12Addr === 0x1102 && value && this.memory.isTIPIEnabled()) {
                 this.console.getTIPI()?.signalReset();
             }
+            // P-Code
+            if (r12Addr === 0x1f80) {
+                // this.log.info("Set P-Code ROM bank " + (value ? 1 : 0));
+                this.memory.setCurrentPeripheralROMBank(value ? 1 : 0);
+            }
         } else {
             // Timer
             if (addr === 0) {
