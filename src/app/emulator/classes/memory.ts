@@ -150,21 +150,22 @@ export class Memory implements Stateful, MemoryDevice {
         this.tipiROMNumber = -1;
         this.gdrROMNumber = -1;
         this.pCodeROMNumber = -1;
+        let romNumber = 1;
         if (this.tipiType === 'FULL') {
-            this.tipiROMNumber = 1;
-            this.loadPeripheralROM(new Uint8Array(TIPI.DSR_ROM), this.tipiROMNumber);
+            this.tipiROMNumber = romNumber;
+            this.loadPeripheralROM(new Uint8Array(TIPI.DSR_ROM), romNumber++);
         }
         if (this.diskEnabled) {
-            this.diskROMNumber = 2;
-            this.loadPeripheralROM(new Uint8Array(DiskDrive.DSR_ROM), this.diskROMNumber);
+            this.diskROMNumber = romNumber;
+            this.loadPeripheralROM(new Uint8Array(DiskDrive.DSR_ROM), romNumber++);
         }
         if (this.tipiType === 'MOUSE') {
-            this.tipiROMNumber = 3;
-            this.loadPeripheralROM(new Uint8Array(TIPI.DSR_ROM), this.tipiROMNumber);
+            this.tipiROMNumber = romNumber;
+            this.loadPeripheralROM(new Uint8Array(TIPI.DSR_ROM), romNumber++);
         }
         if (this.settings.isGoogleDriveEnabled()) {
-            this.gdrROMNumber = 4;
-            this.loadPeripheralROM(new Uint8Array(GoogleDrive.DSR_ROM), this.gdrROMNumber);
+            this.gdrROMNumber = romNumber;
+            this.loadPeripheralROM(new Uint8Array(GoogleDrive.DSR_ROM), romNumber++);
         }
         if (this.pCodeEnabled) {
             this.pCodeROMNumber = 15;
