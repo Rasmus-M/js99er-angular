@@ -26,8 +26,8 @@ export class Memory implements Stateful, MemoryDevice {
     static readonly VDPWA = 0x8C02;  // VDP set read/write address
     static readonly VDPWP = 0x8C04;  // VDP write palette
     static readonly VDPWC = 0x8C06;  // VDP write register indirect
-    static readonly SPCHWD = 0x9000; // Speech write data
-    static readonly SPCHRD = 0x9400; // Speech read data
+    static readonly SPCHRD = 0x9000; // Speech read data
+    static readonly SPCHWD = 0x9400; // Speech write data
     static readonly GRMRD = 0x9800;  // GROM read data
     static readonly GRMRA = 0x9802;  // GROM read address
     static readonly GRMWD = 0x9C00;  // GROM write data
@@ -65,13 +65,13 @@ export class Memory implements Stateful, MemoryDevice {
     private cartCRUBankSwitched: boolean;
     private cartBankCount: number;
     private currentCartBank: number;
-    private currentPeripheralROMBank: number;
     private cartAddrOffset: number;
     private cartRAMFG99Paged: boolean;
     private currentCartRAMBank: number;
     private cartAddrRAMOffset: number;
 
     private peripheralROMs: Uint8Array[];
+    private peripheralROMBanks: number[];
     private peripheralROMEnabled: boolean;
     private peripheralROMNumber: number;
     private diskROMNumber = -1;
@@ -143,9 +143,9 @@ export class Memory implements Stateful, MemoryDevice {
 
         // Peripheral ROM
         this.peripheralROMs = [];
+        this.peripheralROMBanks = [];
         this.peripheralROMEnabled = false;
         this.peripheralROMNumber = 0;
-        this.currentPeripheralROMBank = 0;
         this.diskROMNumber = -1;
         this.tipiROMNumber = -1;
         this.gdrROMNumber = -1;
@@ -222,13 +222,13 @@ export class Memory implements Stateful, MemoryDevice {
         for (i = Memory.VDPRD; i < Memory.VDPWD; i++) {
             this.memoryMap[i] = vdpReadAccessors;
         }
-        for (i = Memory.VDPWD; i < Memory.SPCHWD; i++) {
+        for (i = Memory.VDPWD; i < Memory.SPCHRD; i++) {
             this.memoryMap[i] = vdpWriteAccessors;
         }
-        for (i = Memory.SPCHWD; i < Memory.SPCHRD; i++) {
+        for (i = Memory.SPCHRD; i < Memory.SPCHWD; i++) {
             this.memoryMap[i] = speechReadAccessors;
         }
-        for (i = Memory.SPCHRD; i < Memory.GRMRD; i++) {
+        for (i = Memory.SPCHWD; i < Memory.GRMRD; i++) {
             this.memoryMap[i] = speechWriteAccessors;
         }
         for (i = Memory.GRMRD; i < Memory.GRMWD; i++) {
@@ -324,9 +324,7 @@ export class Memory implements Stateful, MemoryDevice {
     }
 
     setCurrentPeripheralROMBank(bank: number) {
-        if (this.pCodeEnabled && this.peripheralROMNumber === this.pCodeROMNumber) {
-            this.currentPeripheralROMBank = bank;
-        }
+        this.peripheralROMBanks[this.peripheralROMNumber] = bank;
     }
 
     private setCurrentCartBank(bank: number) {
@@ -389,7 +387,7 @@ export class Memory implements Stateful, MemoryDevice {
                 } else if (isTIPIROM && addr === TIPI.TD_OUT) {
                     return this.console.getTIPI()!.getTD();
                 } else {
-                    const romAddr = addr - 0x4000 + (this.currentPeripheralROMBank << 13);
+                    const romAddr = addr - 0x4000 + (this.peripheralROMBanks[this.peripheralROMNumber] << 13);
                     // this.log.info("Read peripheral ROM " + addr.toHexWord() + ": " + (peripheralROM[romAddr] << 8 | peripheralROM[romAddr + 1]).toHexWord());
                     return peripheralROM[romAddr] << 8 | peripheralROM[romAddr + 1];
                 }
@@ -616,7 +614,7 @@ export class Memory implements Stateful, MemoryDevice {
                 return (addr & 1) === 0 ? (w & 0xFF) : (w >> 8);
             } else if (this.peripheralROMEnabled) {
                 const peripheralROM = this.peripheralROMs[this.peripheralROMNumber];
-                const romAddr = addr - 0x4000 + (this.currentPeripheralROMBank << 13);
+                const romAddr = addr - 0x4000 + (this.peripheralROMBanks[this.peripheralROMNumber] << 13);
                 return peripheralROM ? peripheralROM[romAddr] : 0;
             } else {
                 return 0;
@@ -663,7 +661,7 @@ export class Memory implements Stateful, MemoryDevice {
         if (addr < 0x6000) {
             if (this.peripheralROMEnabled) {
                 const peripheralROM = this.peripheralROMs[this.peripheralROMNumber];
-                const romAddr = addr - 0x4000 + (this.currentPeripheralROMBank << 13);
+                const romAddr = addr - 0x4000 + (this.peripheralROMBanks[this.peripheralROMNumber] << 13);
                 return peripheralROM ? peripheralROM[romAddr] << 8 | peripheralROM[romAddr + 1] : 0;
             } else {
                 return 0;
@@ -809,7 +807,7 @@ export class Memory implements Stateful, MemoryDevice {
             ramAt7000: this.ramAt7000,
             ram: this.ram,
             rom: this.rom,
-            groms: this.gromBases,  // TODO
+            gromBases: this.gromBases.map(gromBase => gromBase ? gromBase.getState() : null),
             cartImage: this.cartImage,
             cartInverted: this.cartInverted,
             cartBankCount: this.cartBankCount,
@@ -821,6 +819,7 @@ export class Memory implements Stateful, MemoryDevice {
             peripheralROMs: this.peripheralROMs,
             peripheralROMEnabled: this.peripheralROMEnabled,
             peripheralROMNumber: this.peripheralROMNumber,
+            peripheralROMBanks: this.peripheralROMBanks,
             sams: this.sams ? this.sams.getState() : null
         };
     }
@@ -837,7 +836,13 @@ export class Memory implements Stateful, MemoryDevice {
         this.ramAt7000 = state.ramAt7000;
         this.ram = state.ram;
         this.rom = state.rom;
-        this.gromBases = state.gromBases; // TODO
+        this.gromBases = [];
+        state.gromBases.forEach((gromBaseState: any, i: number) => {
+            if (gromBaseState) {
+                this.gromBases[i] = new GROMArray();
+                this.gromBases[i].restoreState(gromBaseState);
+            }
+        });
         this.cartImage = state.cartImage;
         this.cartInverted = state.cartInverted;
         this.cartBankCount = state.cartBankCount;
@@ -849,6 +854,7 @@ export class Memory implements Stateful, MemoryDevice {
         this.peripheralROMs = state.peripheralROMs;
         this.peripheralROMEnabled = state.peripheralROMEnabled;
         this.peripheralROMNumber = state.peripheralROMNumber;
+        this.peripheralROMBanks = state.peripheralROMBanks;
         if (state.sams) {
             this.sams = new SAMS(this.samsSize, false);
             this.sams.restoreState(state.sams);

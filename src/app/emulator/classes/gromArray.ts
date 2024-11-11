@@ -1,4 +1,6 @@
-export class GROMArray {
+import {Stateful} from "../interfaces/stateful";
+
+export class GROMArray implements Stateful {
 
     private data: Uint8Array;
     private address: number;
@@ -65,7 +67,19 @@ export class GROMArray {
         return this.address;
     }
 
-    public setAddress(addr: number) {
-        return this.address = addr;
+    getState(): any {
+        return {
+            data: this.data,
+            address: this.address,
+            prefetch: this.prefetch,
+            access: this.access
+        };
+    }
+
+    restoreState(state: any): void {
+        this.data.set(state.data);
+        this.address = state.address;
+        this.prefetch = state.prefetch;
+        this.access = state.access;
     }
 }

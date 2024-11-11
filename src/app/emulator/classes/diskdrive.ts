@@ -236,22 +236,32 @@ export class DiskDrive implements Stateful {
     }
 
     static setFiles(nFiles: number, memory: Memory) {
+        // Code from Classic99
         if (nFiles === -1) {
-            // Get parameter from BASIC (code from Classic99)
-            let x = memory.getPADWord(0x832c);		// Get next basic token
-            x += 7;						                // Skip "FILES"
-            const vdp = memory.getVDP();    // Get the VDP RAM
-            let y = (vdp.getByte(x) << 8) | vdp.getByte(x + 1);	// Get two bytes (size of string)
-            if (y === 0xc801) {                         // c8 means unquoted string, 1 is the length
-                x += 2;						            // Increment pointer
-                y = vdp.getByte(x) - 0x30;				    // this is the number of files in ASCII
+            // Get parameter from BASIC
+            // Get next basic token
+            let x = memory.getPADWord(0x832c);
+            // Skip "FILES"
+            x += 7;
+            // Get the VDP RAM
+            const vdp = memory.getVDP();
+            // Get two bytes (size of string)
+            let y = (vdp.getByte(x) << 8) | vdp.getByte(x + 1);
+            // c8 means unquoted string, 1 is the length
+            if (y === 0xc801) {
+                // Increment pointer
+                x += 2;
+                // This is the number of files in ASCII
+                y = vdp.getByte(x) - 0x30;
                 if ((y <= 9) && (y >= 0)) {
                     // valid count
                     nFiles = y;
                     // Try to skip the rest of the statement
                     x += 3;
-                    memory.setPADWord(0x832c, x);    // Write new pointer
-                    memory.setPADWord(0x8342, 0); // Clear 'current' token
+                    // Write new pointer
+                    memory.setPADWord(0x832c, x);
+                    // Clear 'current' token
+                    memory.setPADWord(0x8342, 0);
                 }
             }
         }
@@ -259,8 +269,18 @@ export class DiskDrive implements Stateful {
             nFiles = 3;
         }
         Log.getLog().info("Executing disk DSR FILES routine (n = " + nFiles + ").");
-        memory.setPADWord(0x8370, 0x3fff - nFiles * 0x2B8);
-        memory.setPADByte(0x8350, 0);
+        if (nFiles > 0) {
+            let newTop = 0x3def - (256 + 256 + 6) * nFiles - 5 - 1;
+            memory.setPADWord(0x8370, newTop);
+            const vdp = memory.getVDP();
+            vdp.setByte(++newTop, 0xaa); // Valid header
+            vdp.setByte(++newTop, 0x3f); // Top of VRAM, MSB
+            vdp.setByte(++newTop, 0xff); // Top of VRAM, LSB
+            vdp.setByte(++newTop, 0x11); // CRU of this disk controller
+            vdp.setByte(++newTop, nFiles); // Number of files
+        } else {
+            memory.setPADWord(0x8370, 0x3fff);
+        }
     }
 
     reset() {
