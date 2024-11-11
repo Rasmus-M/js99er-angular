@@ -69,6 +69,9 @@ export class SettingsService {
             if (storage.getItem('enableDisk') != null) {
                 this.settings.setDiskEnabled(storage.getItem('enableDisk') === 'true');
             }
+            if (storage.getItem('enablePCode') != null) {
+                this.settings.setPCodeEnabled(storage.getItem('enablePCode') === 'true');
+            }
             this.storage = storage;
         }
     }
@@ -312,6 +315,20 @@ export class SettingsService {
             if (this.persistent && this.storage) {
                 this.storage.setItem('enableDisk', enabled ? 'true' : 'false');
                 this.commandDispatcherService.changeSetting(Setting.DISK, enabled);
+            }
+        }
+    }
+
+    isPCodeEnabled() {
+        return this.settings.isPCodeEnabled();
+    }
+
+    setPCodeEnabled(enabled: boolean) {
+        if (enabled !== this.settings.isPCodeEnabled()) {
+            this.settings.setPCodeEnabled(enabled);
+            if (this.persistent && this.storage) {
+                this.storage.setItem('enablePCode', enabled ? 'true' : 'false');
+                this.commandDispatcherService.changeSetting(Setting.PCODE, enabled);
             }
         }
     }

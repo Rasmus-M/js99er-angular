@@ -22,6 +22,9 @@
         <mat-checkbox [ngModel]="enableGRAM" (ngModelChange)="onEnableGRAMChanged($event)">GRAM enabled</mat-checkbox>
     </div>
     <div class="checkbox-setting">
+        <mat-checkbox [ngModel]="enablePCode" (ngModelChange)="onEnablePCodeChanged($event)">P-code card enabled</mat-checkbox>
+    </div>
+    <div class="checkbox-setting">
         <mat-checkbox [ngModel]="enableSound" (ngModelChange)="onEnableSoundChanged($event)">Sound enabled (general)</mat-checkbox>
     </div>
     <mat-form-field class="setting">

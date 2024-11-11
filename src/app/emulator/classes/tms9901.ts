@@ -90,13 +90,12 @@ export class TMS9901 implements Stateful {
 
     writeBit(addr: number, value: boolean) {
         const r12Addr = addr << 1;
-        if (addr >= 0x800) {
+        if (r12Addr >= 0x1000) {
             // DSR space
             if ((r12Addr & 0xff) === 0) {
                 // Enable DSR ROM
-                const dsr = (r12Addr >> 8) & 0xf;
-                // this.log.info("DSR ROM " + dsr + " " + (bit ? "enabled" : "disabled") + ".");
-                this.memory.setPeripheralROM(dsr, value);
+                const romNo = (r12Addr >> 8) & 0xf;
+                this.memory.setPeripheralROM(romNo, value);
             }
             // SAMS
             if (r12Addr >= 0x1e00 && r12Addr < 0x1f00 && this.memory.isSAMSEnabled()) {
@@ -112,6 +111,11 @@ export class TMS9901 implements Stateful {
             // TIPI
             if (r12Addr === 0x1102 && value && this.memory.isTIPIEnabled()) {
                 this.console.getTIPI()?.signalReset();
+            }
+            // P-Code
+            if (r12Addr === 0x1f80) {
+                // this.log.info("Set P-Code ROM bank " + (value ? 1 : 0));
+                this.memory.setCurrentPeripheralROMBank(value ? 1 : 0);
             }
         } else {
             // Timer

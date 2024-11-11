@@ -3,6 +3,7 @@ import {Util} from "../../classes/util";
 import {Opcode} from "../../classes/opcode";
 import {Log} from "../../classes/log";
 
+// Based on code from Classic99
 export abstract class CPUCommon {
 
     // Internal registers

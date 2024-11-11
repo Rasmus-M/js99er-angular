@@ -15,6 +15,7 @@ export enum Setting {
     DEBUG_RESET,
     H264_CODEC,
     DISK,
+    PCODE
 }
 
 export type PSGType = 'STANDARD' | 'FORTI';
@@ -43,6 +44,7 @@ export class Settings {
     private enableDebugReset: boolean;
     private enableH264Codec: boolean;
     private enableDisk: boolean;
+    private enablePCode: boolean;
 
     constructor() {
         this.enableSound = true;
@@ -61,6 +63,7 @@ export class Settings {
         this.enableDebugReset = false;
         this.enableH264Codec = false;
         this.enableDisk = true;
+        this.enablePCode = false;
     }
 
     isSoundEnabled(): boolean {
@@ -193,6 +196,14 @@ export class Settings {
 
     isSAMSEnabled() {
         return this.ram === 'SAMS1M' || this.ram === 'SAMS4M' || this.ram === 'SAMS16M';
+    }
+
+    isPCodeEnabled() {
+        return this.enablePCode;
+    }
+
+    setPCodeEnabled(enabled: boolean) {
+        this.enablePCode = enabled;
     }
 
     getSAMSSize() {

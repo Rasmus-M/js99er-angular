@@ -7,6 +7,7 @@ import {Util} from "../../classes/util";
 import {Log} from "../../classes/log";
 import {Console} from '../interfaces/console';
 import {VDPType} from "../../classes/settings";
+import {GROMArray} from "./gromArray";
 
 declare type int = number;
 declare type int16_t = number;
@@ -1113,13 +1114,14 @@ export class V9938 implements VDP {
 
      ***************************************************************************/
 
-    private patch_groms(groms: Uint8Array[]) {
+    private patch_groms(groms: GROMArray[]) {
         const vdpRegisterData = 0x0451;
         if (groms && groms.length) {
-            groms[0][vdpRegisterData + 2] = groms[0][vdpRegisterData + 2] & 0x0f; // Name table
-            groms[0][vdpRegisterData + 4] = groms[0][vdpRegisterData + 4] & 0x07; // Pattern table
-            groms[0][vdpRegisterData + 5] = groms[0][vdpRegisterData + 5] & 0x7f; // Sprite attribute table
-            groms[0][vdpRegisterData + 6] = groms[0][vdpRegisterData + 6] & 0x07; // Sprite pattern table
+            const grom = groms[0];
+            grom.setByte(vdpRegisterData + 2, grom.getByte(vdpRegisterData + 2) & 0x0f); // Name table
+            grom.setByte(vdpRegisterData + 4, grom.getByte(vdpRegisterData + 4) & 0x07); // Pattern table
+            grom.setByte(vdpRegisterData + 5, grom.getByte(vdpRegisterData + 5) & 0x7f); // Sprite attribute table
+            grom.setByte(vdpRegisterData + 6, grom.getByte(vdpRegisterData + 6) & 0x07); // Sprite pattern table
         } else {
             console.error("GROM patching failed");
         }
