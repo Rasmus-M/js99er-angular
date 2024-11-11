@@ -58,7 +58,7 @@ export class Memory implements Stateful, MemoryDevice {
 
     private rom: Uint8Array;
     private gromBases: GROMArray[];
-    private pcodeGroms: GROMArray;
+    private pCodeGroms: GROMArray;
 
     private cartImage: Uint8Array | null;
     private cartInverted: boolean;
@@ -137,8 +137,8 @@ export class Memory implements Stateful, MemoryDevice {
         this.cartAddrRAMOffset = -0x6000;
 
         if (this.pCodeEnabled) {
-            this.pcodeGroms = new GROMArray();
-            this.pcodeGroms.setData(new Uint8Array(PCODE_GROM), 0);
+            this.pCodeGroms = new GROMArray();
+            this.pCodeGroms.setData(new Uint8Array(PCODE_GROM), 0);
         }
 
         // Peripheral ROM
@@ -561,10 +561,10 @@ export class Memory implements Stateful, MemoryDevice {
         if (addr === 0x5BFC) {
             // Read data from GROM
             cpu.addCycles(6);
-            value = this.pcodeGroms.readData();
+            value = this.pCodeGroms.readData();
         } else if (addr === 0x5BFE) {
             // Get GROM address
-            value = this.pcodeGroms.readAddress();
+            value = this.pCodeGroms.readAddress();
         }
         return value;
     }
@@ -573,7 +573,7 @@ export class Memory implements Stateful, MemoryDevice {
         cpu.addCycles(23 + 6);
         if (addr === 0x5FFE) {
             // Set GROM address
-            this.pcodeGroms.writeAddress(w);
+            this.pCodeGroms.writeAddress(w);
         }
     }
 
@@ -820,7 +820,9 @@ export class Memory implements Stateful, MemoryDevice {
             peripheralROMEnabled: this.peripheralROMEnabled,
             peripheralROMNumber: this.peripheralROMNumber,
             peripheralROMBanks: this.peripheralROMBanks,
-            sams: this.sams ? this.sams.getState() : null
+            sams: this.sams ? this.sams.getState() : null,
+            pCodeEnabled: this.pCodeEnabled,
+            pCodeGroms: this.pCodeGroms ? this.pCodeGroms.getState() : null,
         };
     }
 
@@ -858,6 +860,11 @@ export class Memory implements Stateful, MemoryDevice {
         if (state.sams) {
             this.sams = new SAMS(this.samsSize, false);
             this.sams.restoreState(state.sams);
+        }
+        this.pCodeEnabled = state.pCodeEnabled;
+        if (state.pCodeGroms) {
+            this.pCodeGroms = new GROMArray();
+            this.pCodeGroms.restoreState(state.pCodeGroms);
         }
         this.buildMemoryMap();
     }
