@@ -1183,8 +1183,8 @@ export class TMS5200 implements Speech {
             const requiredBits = this.getRequiredBits();
             const bitsLeft = this.m_fifo_count * 8 - this.m_fifo_bits_taken;
             // console.log("Frame requires", requiredBits, ". Bits left=", bitsLeft);
-            if (requiredBits >= bitsLeft || requiredBits === 4 && bitsLeft === 4) {
-                this.m_talk_status = false;
+            if (requiredBits > 4 && requiredBits >= bitsLeft || requiredBits === 4 && requiredBits > bitsLeft) {
+                console.log("Frame requires", requiredBits, ". Bits left=", bitsLeft);
                 return 0;
             }
         }
