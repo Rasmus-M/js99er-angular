@@ -721,10 +721,14 @@ export class Memory implements Stateful, MemoryDevice {
             (this.sams ? '\nSAMS Regs: ' + this.sams.getStatusString() : '');
     }
 
-     hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
+    hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
         return MemoryView.hexView(start, length, width, anchorAddr, (addr: number) => {
             return this.getByte(addr);
         });
+    }
+
+    getMemorySize(): number {
+        return 0x10000;
     }
 
     setRAMType(ramType: RAMType) {
@@ -760,6 +764,21 @@ export class Memory implements Stateful, MemoryDevice {
 
     setDiskEnabled(enabled: boolean) {
         this.diskEnabled = enabled;
+    }
+
+    getCartridgeROM(): MemoryDevice {
+        const cartImage = this.cartImage;
+        return {
+            getMemorySize(): number {
+                return cartImage ? cartImage.length : 0;
+            }, getWord(addr: number): number {
+                return cartImage ? (cartImage[addr] << 8) | cartImage[addr + 1] : 0;
+            }, hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
+                return MemoryView.hexView(start, length, width, anchorAddr, (addr: number) => {
+                    return cartImage ? cartImage[addr] : 0;
+                });
+            }
+        };
     }
 
     getGROMs(): GROMArray[] {

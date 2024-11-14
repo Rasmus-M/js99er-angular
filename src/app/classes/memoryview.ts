@@ -40,7 +40,7 @@ export class MemoryView {
                 line += Util.toHexWord(addr) + ': ';
             }
             const byte = getByte(addr);
-            line += Util.toHexByteShort(byte);
+            line += byte !== undefined ? Util.toHexByteShort(byte) : '--';
             ascii += byte >= 32 && byte < 127 ? String.fromCharCode(byte) : "\u25a1";
             if ((i & mask) === mask) {
                 line += " " + ascii;

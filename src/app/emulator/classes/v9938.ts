@@ -1003,6 +1003,10 @@ export class V9938 implements VDP {
         });
     }
 
+    getMemorySize(): number {
+        return this.vram_space.length;
+    }
+
     getState(): any {
         return {
             model: this.model,

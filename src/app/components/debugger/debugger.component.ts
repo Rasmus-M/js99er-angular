@@ -12,6 +12,7 @@ import {MemoryLine, MemoryView} from "../../classes/memoryview";
 import {faCogs} from "@fortawesome/free-solid-svg-icons";
 import {MatDialog} from "@angular/material/dialog";
 import {DebuggerDialogComponent, DebuggerDialogData} from "../debugger-dialog/debugger-dialog.component";
+import {MemoryDevice} from "../../emulator/interfaces/memory-device";
 
 enum MemoryViewType {
     DISASSEMBLY,
@@ -22,7 +23,10 @@ enum MemoryViewType {
 
 enum MemoryType {
     CPU,
-    VDP
+    VDP,
+    SAMS,
+    ROM = 3,
+    GROM
 }
 
 @Component({
@@ -38,6 +42,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     memoryType: MemoryType = MemoryType.CPU;
     viewAddress: number;
     breakpointAddress: number;
+    addressDigits = 4;
     statusString: string;
     memoryString: string;
     memoryString2: string;
@@ -56,6 +61,16 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     private lastAnchorLine: MemoryLine | null = null;
     private lastBreakpointLine: MemoryLine | null = null;
 
+    private readonly nullMemoryDevice: MemoryDevice = {
+        getMemorySize(): number {
+            return 0;
+        }, getWord(addr: number): number {
+            return 0;
+        }, hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
+            return new MemoryView([], null, null);
+        }
+    };
+
     constructor(
         private element: ElementRef,
         private disassemblerService: DisassemblerService,
@@ -63,7 +78,6 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         private commandDispatcherService: CommandDispatcherService,
         private matDialog: MatDialog
     ) {}
-
 
     ngOnInit() {
         this.eventSubscription = this.eventDispatcherService.subscribe((event) => {
@@ -163,7 +177,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             if (this.scrollTimeoutHandles[id]) {
                 clearTimeout(this.scrollTimeoutHandles[id]);
             }
-            this.scrollTimeoutHandles[id] = setTimeout(
+            this.scrollTimeoutHandles[id] = window.setTimeout(
                 function () {
                     if (memoryView.anchorLine !== null) {
                         const lineHeight = $memory.prop('scrollHeight') / memoryView.lines.length;
@@ -179,23 +193,17 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         const breakpointAddress = this.getBreakpointAddress(NaN);
         const pc = this.ti994A.getPC();
         const cycleLog = this.ti994A.getCPU().getCycleLog();
+        const memoryDevice = this.getMemoryDevice(memoryType);
         if (this.ti994A.isRunning()) {
             // Running
-            if (memoryType === MemoryType.CPU) {
-                // CPU
-                this.disassemblerService.setMemory(this.ti994A.getMemory());
-            } else {
-                // VDP
-                this.disassemblerService.setMemory(this.ti994A.getVDP());
-            }
+            this.disassemblerService.setMemory(memoryDevice);
             memoryView = this.disassemblerService.disassemble(pc, null, 32, pc, breakpointAddress);
         } else {
             // Stopped
             const viewAddress = this.memoryViewType === MemoryViewType.SPLIT ? pc : this.getViewAddress(pc);
+            this.disassemblerService.setMemory(memoryDevice);
+            memoryView = this.disassemblerService.disassemble(Math.max(viewAddress - 0x800, 0), 0x1000, null, viewAddress, breakpointAddress);
             if (memoryType === MemoryType.CPU) {
-                // CPU
-                this.disassemblerService.setMemory(this.ti994A.getMemory());
-                memoryView = this.disassemblerService.disassemble(viewAddress - 0x800, 0x1000, null, viewAddress, breakpointAddress);
                 memoryView.lines.forEach((memoryLine) => {
                     if (memoryLine.addr !== null) {
                         const cycles = cycleLog[memoryLine.addr];
@@ -204,40 +212,26 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                         }
                     }
                 });
-            } else {
-                // VDP
-                this.disassemblerService.setMemory(this.ti994A.getVDP());
-                memoryView = this.disassemblerService.disassemble(0, this.ti994A.getVDP().getGPU() ? 0x4800 : 0x4000, null, viewAddress, breakpointAddress);
             }
         }
         return memoryView;
     }
 
     private getHexView(memoryType: MemoryType, narrow: boolean): MemoryView {
-        const width = narrow ? 8 : 16;
         let memoryView: MemoryView;
-        const pc = this.ti994A.getPC();
+        const width = narrow ? 8 : 16;
+        const memoryDevice = this.getMemoryDevice(memoryType);
         if (this.ti994A.isRunning()) {
             // Running
-            if (memoryType === MemoryType.CPU) {
-                // CPU
-                const viewAddress = this.getViewAddress(0x8300);
-                memoryView = this.ti994A.getMemory().hexView(viewAddress, 512, width, viewAddress);
-            } else {
-                // VDP
-                const viewAddress = this.getViewAddress(0);
-                memoryView = this.ti994A.getVDP().hexView(viewAddress, 512, width, viewAddress);
-            }
+            const viewAddress = this.getViewAddress(memoryType === MemoryType.CPU ? 0x8300 : 0);
+            memoryView = memoryDevice.hexView(viewAddress, 512, width, viewAddress);
         } else {
             // Stopped
-            const viewAddress = this.getViewAddress(pc);
-            if (memoryType === MemoryType.CPU) {
-                // CPU
-                memoryView = this.ti994A.getMemory().hexView(viewAddress % width, 0x10000, width, viewAddress);
-            } else {
-                // VDP
-                memoryView = this.ti994A.getVDP().hexView(0, this.ti994A.getVDP().getGPU() ? 0x4800 : 0x4000, width, viewAddress);
-            }
+            const viewAddress = this.getViewAddress(this.ti994A.getPC());
+            const size = Math.min(memoryDevice.getMemorySize(), 0x10000);
+            const offset = viewAddress % width;
+            const start = Math.max(viewAddress - size / 2, 0) + offset;
+            memoryView = memoryDevice.hexView(start, size + offset, width, viewAddress);
         }
         return memoryView;
     }
@@ -272,6 +266,24 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         }
     }
 
+    private getMemoryDevice(memoryType: MemoryType): MemoryDevice {
+        const memory = this.ti994A.getMemory();
+        switch (memoryType) {
+            case MemoryType.CPU:
+                return memory;
+            case MemoryType.VDP:
+                return this.ti994A.getVDP();
+            case MemoryType.SAMS:
+                return memory.getSAMS() || this.nullMemoryDevice;
+            case MemoryType.ROM:
+                return memory.getCartridgeROM();
+            case MemoryType.GROM:
+                return memory.getGROMs()[0];
+            default:
+                return memory;
+        }
+    }
+
     private getViewAddress(defaultValue: number) {
         return isNaN(this.viewAddress) ? defaultValue : this.viewAddress;
     }
@@ -296,6 +308,23 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
 
     protected onMemoryTypeChanged(memoryType: MemoryType) {
         this.memoryType = memoryType;
+        switch (memoryType) {
+            case MemoryType.CPU:
+                this.addressDigits = 4;
+                break;
+            case MemoryType.VDP:
+                this.addressDigits = 4;
+                break;
+            case MemoryType.SAMS:
+                this.addressDigits = 5;
+                break;
+            case MemoryType.ROM:
+                this.addressDigits = 5;
+                break;
+            case MemoryType.GROM:
+                this.addressDigits = 4;
+                break;
+        }
         this.updateDebugger(true);
     }
 

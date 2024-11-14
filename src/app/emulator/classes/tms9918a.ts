@@ -403,6 +403,10 @@ export class TMS9918A implements VDP {
         });
     }
 
+    getMemorySize(): number {
+        return this.ram.length;
+    }
+
     getByte(addr: number): number {
         return this.ram[addr];
     }

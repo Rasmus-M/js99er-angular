@@ -1,6 +1,8 @@
 import {Stateful} from "../interfaces/stateful";
+import {MemoryView} from "../../classes/memoryview";
+import {MemoryDevice} from "../interfaces/memory-device";
 
-export class GROMArray implements Stateful {
+export class GROMArray implements Stateful, MemoryDevice {
 
     private data: Uint8Array;
     private address: number;
@@ -65,6 +67,20 @@ export class GROMArray implements Stateful {
 
     public getAddress() {
         return this.address;
+    }
+
+    getWord(addr: number): number {
+        return this.data[addr] << 8 | this.data[addr + 1];
+    }
+
+    hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
+        return MemoryView.hexView(start, length, width, anchorAddr, (addr: number) => {
+            return this.data[addr];
+        });
+    }
+
+    getMemorySize(): number {
+        return this.data.length;
     }
 
     getState(): any {

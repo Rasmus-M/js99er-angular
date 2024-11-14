@@ -11,9 +11,11 @@ export class HexInputFieldComponent implements OnChanges {
 
     @Input() model: number;
     @Input() placeholder: string;
+    @Input() digits: number;
     @Output() modelChange = new EventEmitter<number>();
 
     protected value: string;
+    protected maxLength = 5;
 
     constructor(
         private commandDispatcherService: CommandDispatcherService
@@ -22,6 +24,9 @@ export class HexInputFieldComponent implements OnChanges {
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['model']) {
             this.value = isNaN(this.model) ? '' : Util.toHexWordShort(this.model);
+        }
+        if (changes['digits']) {
+            this.maxLength = this.digits + 1;
         }
     }
 

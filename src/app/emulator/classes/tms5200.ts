@@ -286,7 +286,7 @@ export class TMS5200 implements Speech {
 
     static USE_JAVASCRIPT_RNG = true;
 
-    static SAMPLE_RATE = 8000;
+    static SAMPLE_RATE = 7800;
 
     // Sample count reload for 5220c and cd2501ecd only; 5200 and 5220 always reload with 0;
     // keep in mind this is loaded on IP=0 PC=12 subcycle=1 so it immediately will increment after one sample,
@@ -1178,13 +1178,13 @@ export class TMS5200 implements Speech {
 
     private parse_frame() {
 
-        // RM: Added
+        // RM: Added to prevent audio issues when running out of bits
         if (this.m_speak_external) {
             const requiredBits = this.getRequiredBits();
             const bitsLeft = this.m_fifo_count * 8 - this.m_fifo_bits_taken;
             // console.log("Frame requires", requiredBits, ". Bits left=", bitsLeft);
             if (requiredBits > 4 && requiredBits >= bitsLeft || requiredBits === 4 && requiredBits > bitsLeft) {
-                console.log("Frame requires", requiredBits, ". Bits left=", bitsLeft);
+                this.log.warn("Frame requires " + requiredBits + ". Bits left=" + bitsLeft);
                 return 0;
             }
         }

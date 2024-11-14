@@ -268,5 +268,8 @@ export class Settings {
         if (otherSettings.enableDisk !== undefined) {
             this.enableDisk = otherSettings.enableDisk;
         }
+        if (otherSettings.enablePCode !== undefined) {
+            this.enablePCode = otherSettings.enablePCode;
+        }
     }
 }

@@ -1,8 +1,10 @@
 import {Log} from '../../classes/log';
 import {Stateful} from '../interfaces/stateful';
 import {Util} from '../../classes/util';
+import {MemoryView} from "../../classes/memoryview";
+import {MemoryDevice} from "../interfaces/memory-device";
 
-export class SAMS implements Stateful {
+export class SAMS implements Stateful, MemoryDevice {
 
     static MAPPING_MODE = 0;
     static TRANSPARENT_MODE = 1;
@@ -115,6 +117,20 @@ export class SAMS implements Stateful {
             }
         }
         return s;
+    }
+
+    getWord(addr: number): number {
+        return this.ram[addr] << 8 | this.ram[addr + 1];
+    }
+
+    hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
+        return MemoryView.hexView(start, length, width, anchorAddr, (addr: number) => {
+            return this.ram[addr];
+        });
+    }
+
+    getMemorySize(): number {
+        return this.ram.length;
     }
 
     getState(): any {
