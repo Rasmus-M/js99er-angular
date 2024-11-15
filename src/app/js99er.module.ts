@@ -46,6 +46,7 @@ import {ConfigService} from "./services/config.service";
 import {DebuggerDialogComponent} from "./components/debugger-dialog/debugger-dialog.component";
 import {MatGridListModule} from "@angular/material/grid-list";
 import {HexInputFieldComponent} from "./components/hex-input-field/hex-input-field.component";
+import {ErrorDialogComponent} from "./components/error-dialog/error-dialog.component";
 
 @NgModule({
     declarations: [
@@ -63,7 +64,8 @@ import {HexInputFieldComponent} from "./components/hex-input-field/hex-input-fie
         GraphicsComponent,
         MainComponent,
         DebuggerDialogComponent,
-        HexInputFieldComponent
+        HexInputFieldComponent,
+        ErrorDialogComponent
     ],
     imports: [
         BrowserModule,

@@ -24,6 +24,7 @@ import {ConfigService} from "../../services/config.service";
 import {ConsoleComponent} from "../../emulator/console/console.component";
 import {Util} from "../../classes/util";
 import {Location} from "@angular/common";
+import {DialogService} from "../../services/dialog.service";
 
 @Component({
   selector: 'app-main',
@@ -66,6 +67,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         private moduleService: ModuleService,
         private moreSoftwareService: MoreSoftwareService,
         private configService: ConfigService,
+        private dialogService: DialogService
     ) {}
 
     ngOnInit() {
@@ -281,6 +283,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                         }
                     }
                 );
+            },
+            error: (error) => {
+                this.log.error(error);
             }
         });
     }
@@ -307,7 +312,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.commandDispatcherService.loadSoftware(software);
             },
             (error) => {
-                this.log.error(error + " " + url);
+                this.log.error(error);
             }
         );
     }
