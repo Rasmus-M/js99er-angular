@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, Input, NgZone, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input, NgZone, OnDestroy, OnInit} from '@angular/core';
 import {DiskImage} from '../classes/diskimage';
 import {Setting} from '../../classes/settings';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
@@ -160,17 +160,17 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
             case CommandType.LOAD_DISK: {
                     const data = command.data;
                     const diskDrive = this.ti994A.getDiskDrives()[data.driveIndex];
-                    this.diskService.loadDiskFiles(data.files, diskDrive).subscribe(
-                        (disk: DiskImage | null) => {
+                    this.diskService.loadDiskFiles(data.files, diskDrive).subscribe({
+                        next: (disk: DiskImage | null) => {
                             if (disk) {
                                 this.eventDispatcherService.diskInserted(diskDrive, disk);
                                 this.log.info(disk.getName() + " loaded to " + diskDrive.getName());
                             }
                         },
-                        (error) => {
+                        error: (error) => {
                             this.log.error(error);
                         }
-                    );
+                    });
                 }
                 break;
             case CommandType.LOAD_SOFTWARE: {

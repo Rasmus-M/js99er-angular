@@ -801,19 +801,6 @@ export class DiskDrive implements Stateful {
         return n;
     }
 
-    loadDSKFromURL(url: string, onLoad: () => void, eventHandler: (event: DiskImageEvent) => void) {
-        const xhr: XMLHttpRequest = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.responseType = 'arraybuffer';
-        xhr.onload = () => {
-            this.loadDSKFile("", new Uint8Array(xhr.response), eventHandler);
-            if (onLoad) {
-                onLoad();
-            }
-        };
-        xhr.send();
-    }
-
     loadDSKFile(dskFileName: string, fileBuffer: Uint8Array, eventHandler: (event: DiskImageEvent) => void): DiskImage {
         const diskImage = new DiskImage(dskFileName, eventHandler);
         diskImage.loadBinaryImage(fileBuffer);

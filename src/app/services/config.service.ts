@@ -6,6 +6,7 @@ export interface ConfigObject {
     toolbarVisible?: boolean;
     settings?: Settings;
     cartName?: string;
+    diskURL?: string;
     cartridgeURL?: string;
 }
 

@@ -69,12 +69,14 @@
                 {
                     "type": "ITEM",
                     "name": "TurboForth",
-                    "url": "software/turboforth.rpk"
+                    "url": "software/turboforth.rpk",
+                    "diskUrl": "software/turboforth.dsk"
                 },
                 {
                     "type": "ITEM",
                     "name": "fbForth",
-                    "url": "software/fbForth300.rpk"
+                    "url": "software/fbForth300.rpk",
+                    "diskUrl": "software/FBFORTH300.dsk"
                 },
                 {
                     "type": "ITEM",
@@ -98,8 +100,9 @@
                 },
                 {
                     "type": "ITEM",
-                    "name": "Myarc XBII v2.12 (disk required)",
-                    "url": "software/mxbii.json"
+                    "name": "Myarc XBII v2.12 (SAMS version)",
+                    "url": "software/mxbii.json",
+                    "diskUrl": "software/MXBII.dsk"
                 }
             ]
         },

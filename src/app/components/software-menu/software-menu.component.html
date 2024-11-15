@@ -9,7 +9,7 @@
                 <mat-menu #subMenu="matMenu">
                     <ng-template matMenuContent let-items="items">
                         <ng-container *ngFor="let item of items">
-                            <button *ngIf="item.type==='ITEM'" mat-menu-item (click)="openSoftware(item.url)">{{item.name}}</button>
+                            <button *ngIf="item.type==='ITEM'" mat-menu-item (click)="openSoftware(item.url, item.diskUrl)">{{item.name}}</button>
                             <mat-divider *ngIf="item.type==='DIVIDER'"></mat-divider>
                         </ng-container>
                     </ng-template>

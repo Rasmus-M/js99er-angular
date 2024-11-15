@@ -8,6 +8,7 @@ import {MoreSoftwareComponent} from '../more-software/more-software.component';
 import { MatDialog } from '@angular/material/dialog';
 import {MoreSoftwareService} from '../../services/more-software.service';
 import { faBars } from '@fortawesome/free-solid-svg-icons';
+import {DiskService} from "../../services/disk.service";
 
 @Component({
     selector: 'app-software-menu',
@@ -25,6 +26,7 @@ export class SoftwareMenuComponent implements OnInit {
         private httpClient: HttpClient,
         public dialog: MatDialog,
         private moduleService: ModuleService,
+        private diskService: DiskService,
         private moreSoftwareService: MoreSoftwareService,
         private commandDispatcherService: CommandDispatcherService
     ) {}
@@ -38,14 +40,26 @@ export class SoftwareMenuComponent implements OnInit {
         );
     }
 
-    openSoftware(url: string) {
+    openSoftware(url: string, diskUrl?: string) {
         if (url) {
-            this.moduleService.loadModuleFromURL(url).subscribe(
-                (software: Software) => {
+            this.moduleService.loadModuleFromURL(url).subscribe({
+                next: (software: Software) => {
                     this.commandDispatcherService.loadSoftware(software);
                 },
-                this.log.error
-            );
+                error: (error) => {
+                    this.log.error(error);
+                }
+            });
+            if (diskUrl) {
+                this.diskService.fetchDiskFileFromURL(diskUrl).subscribe({
+                    next: (file: File) => {
+                        this.commandDispatcherService.loadDisk(0, [file]);
+                    },
+                    error: (error) => {
+                        this.log.error(error);
+                    }
+                });
+            }
         } else {
             this.commandDispatcherService.unloadSoftware();
         }

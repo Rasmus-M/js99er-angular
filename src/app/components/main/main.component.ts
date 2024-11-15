@@ -42,6 +42,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     version = Js99erComponent.VERSION;
     date = Js99erComponent.DATE;
 
+    private diskURL: string;
     private cartURL: string;
     private cartName = MainComponent.DEFAULT_CART_NAME;
     private started = false;
@@ -54,7 +55,6 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
     constructor(
         private element: ElementRef,
-        private router: Router,
         private route: ActivatedRoute,
         private location: Location,
         private audioService: AudioService,
@@ -105,6 +105,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
             if (config.settings) {
                 this.settingsService.setSettings(config.settings);
             }
+            if (config.diskURL) {
+                this.diskURL = config.diskURL;
+            }
             if (config.cartridgeURL) {
                 this.cartURL = config.cartridgeURL;
             }
@@ -112,6 +115,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     onQueryParametersChanged(params: Params) {
+        const diskUrl = params['diskUrl'];
+        if (diskUrl) {
+            this.loadDiskFromUrl(diskUrl);
+        }
         const cartUrl = params['cartUrl'];
         if (cartUrl) {
             this.autoRun = true;
@@ -221,24 +228,28 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
             case ConsoleEventType.READY:
                 this.ti994A = event.data;
                 this.audioService.init(this.settingsService.isSoundEnabled(), this.ti994A.getPSG(), this.ti994A.getSpeech(), this.ti994A.getTape());
+                if (this.diskURL) {
+                    this.loadDiskFromUrl(this.diskURL);
+                }
                 if (this.cartURL) {
                     this.loadCartridgeFromURL(this.cartURL);
                 } else if (this.cartName !== MainComponent.DEFAULT_CART_NAME) {
                     this.loadCartridge(this.cartName);
                 } else  {
-                    this.databaseService.whenReady().subscribe((
-                        supported) => {
-                        this.databaseService.getSoftware(ConsoleComponent.LATEST_SOFTWARE).subscribe({
-                            next: (software: Software) => {
-                                this.commandDispatcherService.loadSoftware(software);
-                            },
-                            error: () => {
-                                console.log("Failed to load latest software from database");
-                                if (this.cartName) {
-                                    this.loadCartridge(this.cartName);
+                    this.databaseService.whenReady().subscribe((supported) => {
+                        if (supported) {
+                            this.databaseService.getSoftware(ConsoleComponent.LATEST_SOFTWARE).subscribe({
+                                next: (software: Software) => {
+                                    this.commandDispatcherService.loadSoftware(software);
+                                },
+                                error: () => {
+                                    console.log("Failed to load latest software from database");
+                                    if (this.cartName) {
+                                        this.loadCartridge(this.cartName);
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
                     });
                 }
                 this.commandDispatcherService.start();
@@ -257,19 +268,36 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
+    loadDiskFromUrl(url: string) {
+        this.diskService.fetchDiskFileFromURL(url).subscribe({
+            next: (file) => {
+                file.arrayBuffer().then(
+                    (value) => {
+                        const bytes = new Uint8Array(value);
+                        if (Util.isDiskImage(bytes)) {
+                            const diskImage = this.diskImages[0];
+                            diskImage.loadBinaryImage(bytes);
+                            this.eventDispatcherService.diskAdded(diskImage);
+                        }
+                    }
+                );
+            }
+        });
+    }
+
     loadCartridge(cartName: string) {
         this.log.info("Load cart: " + cartName);
         if (cartName.startsWith('software/')) {
             this.loadCartridgeFromURL(cartName);
         } else {
-            this.moreSoftwareService.getByName(cartName.replace(/_/g, ' ')).subscribe(
-                (cart: Software) => {
+            this.moreSoftwareService.getByName(cartName.replace(/_/g, ' ')).subscribe({
+                next: (cart: Software) => {
                     this.loadCartridgeFromURL(cart.url);
                 },
-                (error) => {
+                error: (error) => {
                     this.log.error(error);
                 }
-            );
+            });
         }
     }
 
@@ -302,12 +330,14 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                     const state = that.ti994A.getState();
                     return database.putMachineState('ti994a', state);
                 })
-            ).subscribe(
-                () => {
+            ).subscribe({
+                next: () => {
                     this.log.info("Machine state saved OK.");
                 },
-                that.log.error
-            );
+                error: (error) => {
+                    that.log.error(error);
+                }
+            });
         }
     }
 

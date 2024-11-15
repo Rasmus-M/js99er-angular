@@ -22,6 +22,7 @@ import {
     faSyncAlt,
     faUnlock
 } from '@fortawesome/free-solid-svg-icons';
+import {Util} from "../../classes/util";
 
 @Component({
     selector: 'app-main-controls',
@@ -108,8 +109,8 @@ export class MainControlsComponent implements OnInit, OnDestroy {
     }
 
     openDisk(fileInput: HTMLInputElement) {
-        const files = fileInput.files;
-        if (files && files.length) {
+        const files = Util.fileListToFileArray(fileInput.files);
+        if (files.length) {
             this.commandDispatcherService.loadDisk(this.driveIndex, files);
             fileInput.value = "";
         }

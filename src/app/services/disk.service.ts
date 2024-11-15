@@ -15,6 +15,8 @@ import {DatabaseService} from "./database.service";
 import {forkJoin} from "rxjs";
 import {BlobReader, BlobWriter, Entry, ZipReader} from "@zip.js/zip.js";
 import {Software} from "../classes/software";
+import {HttpClient} from "@angular/common/http";
+import {Util} from "../classes/util";
 
 @Injectable()
 export class DiskService {
@@ -27,7 +29,8 @@ export class DiskService {
         private commandDispatcherService: CommandDispatcherService,
         private eventDispatcherService: EventDispatcherService,
         private objectLoaderService: ObjectLoaderService,
-        private databaseService: DatabaseService
+        private databaseService: DatabaseService,
+        private httpClient: HttpClient
     ) {
         this.commandDispatcherService.subscribe(this.onCommand.bind(this));
         this.eventDispatcherService.subscribe(this.onEvent.bind(this));
@@ -50,7 +53,7 @@ export class DiskService {
        this.eventDispatcherService.diskChanged(event.diskImage);
     }
 
-    loadDiskFiles(files: FileList, diskDrive: DiskDrive): Observable<DiskImage | null> {
+    loadDiskFiles(files: [File], diskDrive: DiskDrive): Observable<DiskImage | null> {
         const subject = new Subject<DiskImage | null>();
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
@@ -139,7 +142,7 @@ export class DiskService {
             // reader.result contains the contents of blob as a typed array
             const fileBuffer = new Uint8Array(this.result as ArrayBuffer);
             let diskImage: DiskImage | null;
-            if (acceptDiskImage && fileBuffer.length >= 16 && fileBuffer[0x0D] === 0x44 && fileBuffer[0x0E] === 0x53 && fileBuffer[0x0F] === 0x4B) {
+            if (acceptDiskImage && Util.isDiskImage(fileBuffer)) {
                 diskImage = diskDrive.loadDSKFile(filename, fileBuffer, service.onDiskImageChanged.bind(service));
             } else {
                 diskImage = diskDrive.getDiskImage();
@@ -156,6 +159,48 @@ export class DiskService {
             subject.error(reader.error?.name);
         };
         reader.readAsArrayBuffer(file);
+        return subject.asObservable();
+    }
+
+    fetchAndLoadDiskFileFromURL(url: string, diskDrive: DiskDrive): Observable<DiskImage> {
+        const subject = new Subject<DiskImage>();
+        this.fetchDiskFileFromURL(url).subscribe({
+            next: (file) => {
+                this.loadDiskFile(file.name, file, diskDrive, true).subscribe({
+                    next: (diskImage) => {
+                        subject.next(diskImage);
+                        subject.complete();
+                    },
+                    error: (error) => {
+                        subject.error(error);
+                    }
+                });
+            },
+            error: (error) => {
+                subject.error(error);
+            }
+        });
+        return subject.asObservable();
+    }
+
+    fetchDiskFileFromURL(url: string): Observable<File> {
+        const subject = new Subject<File>();
+        if (url.startsWith('http')) {
+            url = 'proxy?url=' + url;
+        } else {
+            url = 'assets/' + url;
+        }
+        this.httpClient.get(url, {responseType: 'blob'}).subscribe({
+            next: (blob) => {
+                const filename = url.split('/').pop() || 'unknown';
+                const file = new File([blob], filename);
+                subject.next(file);
+                subject.complete();
+            },
+            error: (error) => {
+                subject.error(error);
+            }
+        });
         return subject.asObservable();
     }
 

@@ -76,17 +76,16 @@ export class ModuleService {
     }
 
     loadModuleFromURL(url: string): Observable<Software> {
-        console.log("load", url);
         if (url.startsWith('http')) {
             url = 'proxy?url=' + url;
         } else {
             url = 'assets/' + url;
         }
-        if (url.substr(url.length - 3).toLowerCase() === 'rpk') {
+        if (url.substring(url.length - 3).toLowerCase() === 'rpk') {
             return this.loadRPKOrZipModuleFromURL(url);
-        } else if (url.substr(url.length - 3).toLowerCase() === 'bin') {
+        } else if (url.substring(url.length - 3).toLowerCase() === 'bin') {
             return this.loadBinModuleFromURL(url);
-        } else if (url.substr(url.length - 4).toLowerCase() === 'json') {
+        } else if (url.substring(url.length - 4).toLowerCase() === 'json') {
             return this.loadJSONModuleFromURL(url);
         } else {
             const subject = new Subject<Software>();
@@ -170,8 +169,8 @@ export class ModuleService {
                         }
                     }
                 }
-                forkJoin(observables).subscribe(
-                    (softwares: Software[]) => {
+                forkJoin(observables).subscribe({
+                    next: (softwares: Software[]) => {
                         const romArray: number[] = [];
                         softwares.forEach((software: Software) => {
                             if (software.grom) {
@@ -187,8 +186,10 @@ export class ModuleService {
                         subject.next(module);
                         subject.complete();
                     },
-                    subject.error
-                );
+                    error: (error) => {
+                        subject.error(error);
+                    }
+                });
             }
         ).catch(
             (error: any) => {
@@ -208,11 +209,11 @@ export class ModuleService {
                 // reader.result contains the contents of blob as a typed array
                 const byteArray = new Uint8Array(reader.result as ArrayBuffer);
                 const software = new Software();
-                if (socketId.substr(0, 3).toLowerCase() === 'rom') {
+                if (socketId.substring(0, 3).toLowerCase() === 'rom') {
                     this.log.info('ROM ' + romId + ' (' + socketId + '): \'' + filename + '\', ' + byteArray.length + ' bytes');
                     software.rom = byteArray;
                     software.socketId = socketId;
-                } else if (socketId.substr(0, 4).toLowerCase() === 'grom') {
+                } else if (socketId.substring(0, 4).toLowerCase() === 'grom') {
                     this.log.info('GROM ' + romId + ' (' + socketId + '): \'' + filename + '\', ' + byteArray.length + ' bytes');
                     software.grom = byteArray;
                 }
@@ -313,8 +314,8 @@ export class ModuleService {
         const subject = new Subject<Software>();
         const baseFileName = url.split('.')[0];
         const inverted = baseFileName !== undefined && (baseFileName.endsWith('3') || baseFileName.endsWith('9'));
-        this.httpClient.get(url, {responseType: 'arraybuffer'}).subscribe(
-            (data: ArrayBuffer) => {
+        this.httpClient.get(url, {responseType: 'arraybuffer'}).subscribe({
+            next: (data: ArrayBuffer) => {
                 const byteArray = new Uint8Array(data);
                 const module = new Software();
                 module.inverted = inverted;
@@ -322,33 +323,33 @@ export class ModuleService {
                 subject.next(module);
                 subject.complete();
             },
-            (error) => {
+            error: (error) => {
                 subject.error(error);
             }
-        );
+        });
         return subject.asObservable();
     }
 
     loadJSONModuleFromURL(url: string): Observable<Software> {
         const subject = new Subject<Software>();
-        this.httpClient.get(url, {responseType: 'json'}).subscribe(
-            (data: any) => {
+        this.httpClient.get(url, {responseType: 'json'}).subscribe({
+            next: (data: any) => {
                 const software = new Software(data);
                 subject.next(software);
                 subject.complete();
             },
-            (error) => {
+            error: (error) => {
                 subject.error(error.error);
             }
-        );
+        });
         return subject.asObservable();
     }
 
     combineSoftwareIntoModule(observables: Observable<Software>[]): Observable<Software> {
         const subject = new Subject<Software>();
         const module: Software = new Software();
-        forkJoin(observables).subscribe(
-            (softwares: Software[]) => {
+        forkJoin(observables).subscribe({
+            next: (softwares: Software[]) => {
                 softwares.forEach((software: Software) => {
                     if (software.grom) {
                         module.grom = software.grom;
@@ -385,8 +386,10 @@ export class ModuleService {
                 subject.next(module);
                 subject.complete();
             },
-            subject.error
-        );
+            error: (error) => {
+                subject.error(error);
+            }
+        });
         return subject.asObservable();
     }
 

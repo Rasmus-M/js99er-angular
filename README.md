@@ -50,6 +50,7 @@ The settings object may contain the following properties, shown here with the de
     "tipiWebsocketURI": "ws://localhost:9901/tipi",
     "enableDebugReset": false,
     "enableH264Codec": false,
-    "enableDisk": true
+    "enableDisk": true,
+    "enablePCode": false
 }
 ```
