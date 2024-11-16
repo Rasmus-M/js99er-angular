@@ -25,7 +25,7 @@ enum MemoryType {
     CPU,
     VDP,
     SAMS,
-    ROM = 3,
+    CART= 3,
     GROM
 }
 
@@ -275,7 +275,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                 return this.ti994A.getVDP();
             case MemoryType.SAMS:
                 return memory.getSAMS() || this.nullMemoryDevice;
-            case MemoryType.ROM:
+            case MemoryType.CART:
                 return memory.getCartridgeROM();
             case MemoryType.GROM:
                 return memory.getGROMs()[0];
@@ -318,7 +318,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             case MemoryType.SAMS:
                 this.addressDigits = 5;
                 break;
-            case MemoryType.ROM:
+            case MemoryType.CART:
                 this.addressDigits = 5;
                 break;
             case MemoryType.GROM:
