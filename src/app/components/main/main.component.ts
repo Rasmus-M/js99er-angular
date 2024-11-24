@@ -66,8 +66,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         private databaseService: DatabaseService,
         private moduleService: ModuleService,
         private moreSoftwareService: MoreSoftwareService,
-        private configService: ConfigService,
-        private dialogService: DialogService
+        private configService: ConfigService
     ) {}
 
     ngOnInit() {
@@ -405,7 +404,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                 settings.setPauseOnFocusLostEnabled(this.settingsService.isPauseOnFocusLostEnabled());
                 settings.setDebugResetEnabled(this.settingsService.isDebugResetEnabled());
                 settings.setH264CodecEnabled(this.settingsService.isH264CodecEnabled());
-                settings.setDiskEnabled(this.settingsService.isDiskEnabled());
+                settings.setDisk(this.settingsService.getDisk());
                 this.settingsService.restoreSettings(settings);
 
                 if (state.tape.recordPressed) {

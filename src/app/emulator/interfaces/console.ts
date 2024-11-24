@@ -10,6 +10,7 @@ import {CPU} from "./cpu";
 import {TMS9901} from "../classes/tms9901";
 import {GoogleDrive} from "../classes/googledrive";
 import {TIPI} from "../classes/tipi";
+import {TIFDC} from "../classes/tifdc";
 
 export interface Console {
     start(fast: boolean, skipBreakpoint?: boolean): void;
@@ -32,6 +33,7 @@ export interface Console {
     getGoogleDrives(): GoogleDrive[];
     setGoogleDrive(): void;
     getTIPI(): TIPI | null;
+    getFDC(): TIFDC;
     setTIPI(): void;
     setVDP(): void;
     setPSG(): void;

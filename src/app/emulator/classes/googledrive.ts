@@ -16,50 +16,50 @@ interface GFile {
     data: Uint8Array;
 }
 
-export class GoogleDrive {
+export const GDR_DSR_ROM = [
+    0xAA,                           // >4000 Standard header
+    0x01,                           // >4001 Version
+    0x00,                           // >4002 No programs allowed in peripheral card ROMs
+    0x00,                           // >4003 Not used
+    0x40, 0x10,                     // >4004 Pointer to power-up list
+    0x00, 0x00,                     // >4006 Pointer to program list
+    0x40, 0x14,                     // >4008 Pointer to DSR list
+    0x00, 0x00,                     // >400A Pointer to subprogram list
+    0x00, 0x00,                     // >400C Pointer to ISR list
+    0x00, 0x00,                     // >400E Pointer to ?
+    // Power-up list
+    0x00, 0x00,                     // >4010 Link to next power-up routine (no more)
+    0x40, 0x32,                     // >4012 Address of this power-up routine
+    // DSR list
+    0x40, 0x1E,                     // >4014 Link to next DSR
+    0x40, 0x34,                     // >4016 Address of this DSR
+    0x04,                           // >4018 Name length
+    0x47, 0x44, 0x52, 0x31,         // >4019 Name "GDR1"
+    0x00,                           // >401D Align to word
+    0x40, 0x28,                     // >401E Link to next DSR
+    0x40, 0x38,                     // >4020 Address of this DSR
+    0x04,                           // >4022 Name length
+    0x47, 0x44, 0x52, 0x32,         // >4023 Name "GDR2"
+    0x00,                           // >4027 Align to word
+    0x00, 0x00,                     // >4028 Link to next DSR (no more)
+    0x40, 0x3C,                     // >402A Address of this DSR
+    0x04,                           // >402C Name length
+    0x47, 0x44, 0x52, 0x33,         // >402D Name "GDR3"
+    0x00,                           // >4031 Align to word
+    // Power-up routine
+    0x04, 0x5B,                     // >4032 B *R11
+    // GDR1 routine
+    0x05, 0xCB,                     // >4034 INCT R11
+    0x04, 0x5B,                     // >4036 B *R11
+    // GDR2 routine
+    0x05, 0xCB,                     // >4038 INCT R11
+    0x04, 0x5B,                     // >403A B *R11
+    // GDR3 routine
+    0x05, 0xCB,                     // >403C INCT R11
+    0x04, 0x5B                      // >403E B *R11
+];
 
-    static DSR_ROM = [
-        0xAA,                           // >4000 Standard header
-        0x01,                           // >4001 Version
-        0x00,                           // >4002 No programs allowed in peripheral card ROMs
-        0x00,                           // >4003 Not used
-        0x40, 0x10,                     // >4004 Pointer to power-up list
-        0x00, 0x00,                     // >4006 Pointer to program list
-        0x40, 0x14,                     // >4008 Pointer to DSR list
-        0x00, 0x00,                     // >400A Pointer to subprogram list
-        0x00, 0x00,                     // >400C Pointer to ISR list
-        0x00, 0x00,                     // >400E Pointer to ?
-        // Power-up list
-        0x00, 0x00,                     // >4010 Link to next power-up routine (no more)
-        0x40, 0x32,                     // >4012 Address of this power-up routine
-        // DSR list
-        0x40, 0x1E,                     // >4014 Link to next DSR
-        0x40, 0x34,                     // >4016 Address of this DSR
-        0x04,                           // >4018 Name length
-        0x47, 0x44, 0x52, 0x31,         // >4019 Name "GDR1"
-        0x00,                           // >401D Align to word
-        0x40, 0x28,                     // >401E Link to next DSR
-        0x40, 0x38,                     // >4020 Address of this DSR
-        0x04,                           // >4022 Name length
-        0x47, 0x44, 0x52, 0x32,         // >4023 Name "GDR2"
-        0x00,                           // >4027 Align to word
-        0x00, 0x00,                     // >4028 Link to next DSR (no more)
-        0x40, 0x3C,                     // >402A Address of this DSR
-        0x04,                           // >402C Name length
-        0x47, 0x44, 0x52, 0x33,         // >402D Name "GDR3"
-        0x00,                           // >4031 Align to word
-        // Power-up routine
-        0x04, 0x5B,                     // >4032 B *R11
-        // GDR1 routine
-        0x05, 0xCB,                     // >4034 INCT R11
-        0x04, 0x5B,                     // >4036 B *R11
-        // GDR2 routine
-        0x05, 0xCB,                     // >4038 INCT R11
-        0x04, 0x5B,                     // >403A B *R11
-        // GDR3 routine
-        0x05, 0xCB,                     // >403C INCT R11
-        0x04, 0x5B                      // >403E B *R11
-    ];
+export class GoogleDrive {
 
     static DSR_ROM_POWER_UP = 0x4032;
     static DSR_ROM_GDR1 = 0x4034;

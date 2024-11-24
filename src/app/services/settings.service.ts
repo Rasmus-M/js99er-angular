@@ -1,12 +1,12 @@
 import {Injectable} from '@angular/core';
-import {RAMType, Setting, Settings, PSGType, TIPIType, VDPType} from '../classes/settings';
+import {RAMType, Setting, Settings, PSGType, TIPIType, VDPType, DiskType} from '../classes/settings';
 import {CommandDispatcherService} from './command-dispatcher.service';
 import {EventDispatcherService} from './event-dispatcher.service';
 
 @Injectable()
 export class SettingsService {
 
-    private settings: Settings;
+    private readonly settings: Settings;
     private persistent = true;
     private storage: Storage;
 
@@ -66,8 +66,8 @@ export class SettingsService {
             if (storage.getItem('enableH264Codec') != null) {
                 this.settings.setH264CodecEnabled(storage.getItem('enableH264Codec') === 'true');
             }
-            if (storage.getItem('enableDisk') != null) {
-                this.settings.setDiskEnabled(storage.getItem('enableDisk') === 'true');
+            if (storage.getItem('disk') != null) {
+                this.settings.setDisk(storage.getItem('disk') as DiskType);
             }
             if (storage.getItem('enablePCode') != null) {
                 this.settings.setPCodeEnabled(storage.getItem('enablePCode') === 'true');
@@ -82,14 +82,6 @@ export class SettingsService {
 
     setSettings(otherSettings: any) {
         this.settings.copyFrom(otherSettings);
-    }
-
-    getPersistent(): boolean {
-        return this.persistent;
-    }
-
-    setPersistent(value: boolean) {
-        this.persistent = value;
     }
 
     getPSG(): PSGType {
@@ -305,16 +297,16 @@ export class SettingsService {
         }
     }
 
-    isDiskEnabled() {
-        return this.settings.isDiskEnabled();
+    getDisk() {
+        return this.settings.getDisk();
     }
 
-    setDiskEnabled(enabled: boolean) {
-        if (enabled !== this.settings.isDiskEnabled()) {
-            this.settings.setDiskEnabled(enabled);
+    setDisk(disk: DiskType) {
+        if (disk !== this.settings.getDisk()) {
+            this.settings.setDisk(disk);
             if (this.persistent && this.storage) {
-                this.storage.setItem('enableDisk', enabled ? 'true' : 'false');
-                this.commandDispatcherService.changeSetting(Setting.DISK, enabled);
+                this.storage.setItem('disk', disk);
+                this.commandDispatcherService.changeSetting(Setting.DISK, disk);
             }
         }
     }

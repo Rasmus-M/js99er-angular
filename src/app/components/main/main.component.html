@@ -6,7 +6,7 @@
         <mat-tab-group [selectedIndex]="tabIndex" (selectedTabChange)="onTabSelected($event)">
             <mat-tab label="Log">
                 <div class="tab-content">
-                    <log></log>
+                    <log [active]="tabIndex === 0"></log>
                 </div>
             </mat-tab>
             <mat-tab label="Disk">

@@ -29,6 +29,7 @@ import {TMS9900} from "../classes/tms9900";
 import {TMS5200} from "../classes/tms5200";
 import {TMS9918A} from "../classes/tms9918a";
 import {WasmService} from "../../services/wasm.service";
+import {TIFDC} from "../classes/tifdc";
 
 class ConsoleMock implements Console {
 
@@ -58,7 +59,7 @@ class ConsoleMock implements Console {
         return new TMS9919(this.getCPU(), this.getTape());
     }
     getSpeech(): Speech {
-        return new TMS5200(this, this.settings);
+        return new TMS5200(true);
     }
     getTape(): Tape {
         return new Tape();
@@ -94,6 +95,9 @@ class ConsoleMock implements Console {
         return null;
     }
     setTIPI() {
+    }
+    getFDC(): TIFDC {
+        return new TIFDC([]);
     }
 }
 

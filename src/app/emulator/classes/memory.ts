@@ -1,21 +1,22 @@
 import {Log} from '../../classes/log';
 import {VDP} from '../interfaces/vdp';
 import {SAMS} from './sams';
-import {DiskDrive} from './diskdrive';
-import {GoogleDrive} from './googledrive';
+import {DISK_DSR_ROM} from './diskdrive';
+import {GDR_DSR_ROM} from './googledrive';
 import {System} from './system';
 import {Util} from '../../classes/util';
 import {CPU} from '../interfaces/cpu';
 import {Stateful} from '../interfaces/stateful';
-import {RAMType, Settings, TIPIType} from '../../classes/settings';
+import {DiskType, RAMType, Settings, TIPIType} from '../../classes/settings';
 import {PSG} from '../interfaces/psg';
 import {Speech} from '../interfaces/speech';
 import {MemoryDevice} from '../interfaces/memory-device';
-import {MemoryLine, MemoryView} from "../../classes/memoryview";
-import {TIPI} from "./tipi";
+import {MemoryView} from "../../classes/memoryview";
+import {TIPI, TIPI_DSR_ROM} from "./tipi";
 import {Console} from '../interfaces/console';
 import {PCODE_GROM, PCODE_ROM} from "./pcode";
 import {GROMArray} from "./gromArray";
+import {TI_FDC_ROM, TIFDC} from "./tifdc";
 
 export class Memory implements Stateful, MemoryDevice {
 
@@ -33,12 +34,11 @@ export class Memory implements Stateful, MemoryDevice {
     static readonly GRMWD = 0x9C00;  // GROM write data
     static readonly GRMWA = 0x9C02;  // GROM write address
 
-    static readonly GROM_BASES = 16;
-
     private console: Console;
     private vdp: VDP;
     private psg: PSG;
     private speech: Speech;
+    private fdc: TIFDC;
     private settings: Settings;
 
     private ramType: RAMType;
@@ -46,7 +46,7 @@ export class Memory implements Stateful, MemoryDevice {
     private gramEnabled: boolean;
     private pCodeEnabled: boolean;
     private tipiType: TIPIType;
-    private diskEnabled: boolean;
+    private disk: DiskType;
     private ramAt0000: boolean;
     private ramAt4000: boolean;
     private ramAt6000: boolean;
@@ -93,6 +93,7 @@ export class Memory implements Stateful, MemoryDevice {
         this.vdp = this.console.getVDP();
         this.psg = this.console.getPSG();
         this.speech = this.console.getSpeech();
+        this.fdc = this.console.getFDC();
 
         // RAM
         this.ramType = this.settings.getRAM();
@@ -100,7 +101,7 @@ export class Memory implements Stateful, MemoryDevice {
         this.gramEnabled = this.settings.isGRAMEnabled();
         this.pCodeEnabled = this.settings.isPCodeEnabled();
         this.tipiType = this.settings.getTIPI();
-        this.diskEnabled = this.settings.isDiskEnabled();
+        this.disk = this.settings.getDisk();
         this.debugReset = this.settings.isDebugResetEnabled();
         this.ram = new Uint8Array(0x10000);
         if (this.debugReset) {
@@ -151,21 +152,24 @@ export class Memory implements Stateful, MemoryDevice {
         this.gdrROMNumber = -1;
         this.pCodeROMNumber = -1;
         let romNumber = 1;
-        if (this.tipiType === 'FULL') {
+        if (this.tipiType === 'FULL' && this.disk !== 'TIFDC') {
             this.tipiROMNumber = romNumber;
-            this.loadPeripheralROM(new Uint8Array(TIPI.DSR_ROM), romNumber++);
+            this.loadPeripheralROM(new Uint8Array(TIPI_DSR_ROM), romNumber++);
         }
-        if (this.diskEnabled) {
+        if (this.disk === 'GENERIC') {
             this.diskROMNumber = romNumber;
-            this.loadPeripheralROM(new Uint8Array(DiskDrive.DSR_ROM), romNumber++);
+            this.loadPeripheralROM(new Uint8Array(DISK_DSR_ROM), romNumber++);
+        } else if (this.disk === 'TIFDC') {
+            this.diskROMNumber = romNumber;
+            this.loadPeripheralROM(new Uint8Array(TI_FDC_ROM), romNumber++);
         }
-        if (this.tipiType === 'MOUSE') {
+        if (this.tipiType === 'MOUSE' || this.tipiType === 'FULL' && this.disk === 'TIFDC') {
             this.tipiROMNumber = romNumber;
-            this.loadPeripheralROM(new Uint8Array(TIPI.DSR_ROM), romNumber++);
+            this.loadPeripheralROM(new Uint8Array(TIPI_DSR_ROM), romNumber++);
         }
         if (this.settings.isGoogleDriveEnabled()) {
             this.gdrROMNumber = romNumber;
-            this.loadPeripheralROM(new Uint8Array(GoogleDrive.DSR_ROM), romNumber++);
+            this.loadPeripheralROM(new Uint8Array(GDR_DSR_ROM), romNumber++);
         }
         if (this.pCodeEnabled) {
             this.pCodeROMNumber = 15;
@@ -197,6 +201,8 @@ export class Memory implements Stateful, MemoryDevice {
         const gromWriteAccessors = [this.readNull, this.writeGROM];
         const pCodeGROMReadAccessors = [this.readPCodeGROM, this.writeNull];
         const pCodeGROMWriteAccessors = [this.readNull, this.writePCodeGROM];
+        const tifdcRegisterReadAccessors = [this.readTIFDCRegister, this.writeNull];
+        const tifdcRegisterWriteAccessors = [this.readNull, this.writeTIFDCRegister];
         let i: number;
         for (i = 0; i < 0x2000; i++) {
             this.memoryMap[i] = this.ramAt0000 ? ramAccessors : romAccessors;
@@ -246,6 +252,14 @@ export class Memory implements Stateful, MemoryDevice {
             this.memoryMap[0x5bfe] = pCodeGROMReadAccessors;
             this.memoryMap[0x5ffc] = pCodeGROMWriteAccessors;
             this.memoryMap[0x5ffe] = pCodeGROMWriteAccessors;
+        }
+        if (this.disk === 'TIFDC') {
+            for (let i = 0x5ff0; i < 0x5ff8; i++) {
+                this.memoryMap[i] = tifdcRegisterReadAccessors;
+            }
+            for (let i = 0x5ff8; i < 0x6000; i++) {
+                this.memoryMap[i] = tifdcRegisterWriteAccessors;
+            }
         }
     }
 
@@ -319,6 +333,7 @@ export class Memory implements Stateful, MemoryDevice {
 
     setCRUCartBank(bank: number) {
         if (this.cartCRUBankSwitched) {
+            // this.log.info("Set CRU cart bank " + bank);
             this.setCurrentCartBank(bank);
         }
     }
@@ -547,7 +562,7 @@ export class Memory implements Stateful, MemoryDevice {
             }
         } else if (addr === Memory.GRMWA) {
             // Set GROM address
-            this.gromBases.forEach((grom, i) => {
+            this.gromBases.forEach((grom) => {
                 if (grom) {
                     grom.writeAddress(w);
                 }
@@ -574,6 +589,44 @@ export class Memory implements Stateful, MemoryDevice {
         if (addr === 0x5FFE) {
             // Set GROM address
             this.pCodeGroms.writeAddress(w);
+        }
+    }
+
+    private readTIFDCRegister(addr: number, cpu: CPU) {
+        let byte = 0;
+        switch (addr) {
+            case 0x5ff0:
+                byte = this.fdc.getStatus();
+                break;
+            case 0x5ff2:
+                byte = this.fdc.getTrack();
+                break;
+            case 0x5ff4:
+                byte = this.fdc.getSector();
+                break;
+            case 0x5ff6:
+                byte = this.fdc.getData();
+                break;
+        }
+        return (byte ^ 0xff) << 8; // Inverted data bus
+    }
+
+    private writeTIFDCRegister(addr: number, w: number, cpu: CPU) {
+        cpu.addCycles(4);
+        const byte = (w >> 8) ^ 0xff; // Inverted data bus
+        switch (addr) {
+            case 0x5ff8:
+                this.fdc.setCommand(byte);
+                break;
+            case 0x5ffa:
+                this.fdc.setTrack(byte);
+                break;
+            case 0x5ffc:
+                this.fdc.setSector(byte);
+                break;
+            case 0x5ffe:
+                this.fdc.setData(byte);
+                break;
         }
     }
 
@@ -718,7 +771,7 @@ export class Memory implements Stateful, MemoryDevice {
         return 'GROM:' + Util.toHexWord(gromAddress) + ' (bank:' + ((gromAddress & 0xE000) >> 13) +
             ', addr:' + Util.toHexWord(gromAddress & 0x1FFF) + ') ' +
             (this.cartImage ? 'CART: bank ' + this.currentCartBank + (this.cartRAMFG99Paged ? '/' + this.currentCartRAMBank : '') + ' of ' + this.cartBankCount : '') +
-            (this.sams ? '\nSAMS Regs: ' + this.sams.getStatusString() : '');
+            (this.sams ? '\nSAMS Regs: ' + this.sams.getStatusString(detailed) : '');
     }
 
     hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
@@ -762,8 +815,12 @@ export class Memory implements Stateful, MemoryDevice {
         }
     }
 
-    setDiskEnabled(enabled: boolean) {
-        this.diskEnabled = enabled;
+    getDisk() {
+        return this.disk;
+    }
+
+    setDisk(disk: DiskType) {
+        this.disk = disk;
     }
 
     getCartridgeROM(): MemoryDevice {
@@ -809,6 +866,10 @@ export class Memory implements Stateful, MemoryDevice {
         return this.peripheralROMNumber === this.tipiROMNumber;
     }
 
+    getTIPIROMNumber() {
+        return this.tipiROMNumber;
+    }
+
     isGoogleDriveROMEnabled() {
         return this.peripheralROMNumber === this.gdrROMNumber;
     }
@@ -819,7 +880,7 @@ export class Memory implements Stateful, MemoryDevice {
             samsSize: this.samsSize,
             enableGRAM: this.gramEnabled,
             tipiType: this.tipiType,
-            enableDisk: this.diskEnabled,
+            enableDisk: this.disk,
             ramAt0000: this.ramAt0000,
             ramAt4000: this.ramAt4000,
             ramAt6000: this.ramAt6000,
@@ -850,7 +911,7 @@ export class Memory implements Stateful, MemoryDevice {
         this.samsSize = state.samsSize;
         this.gramEnabled = state.gramEnabled;
         this.tipiType = state.tipiType;
-        this.diskEnabled = state.diskEnabled;
+        this.disk = state.disk;
         this.ramAt0000 = state.ramAt0000;
         this.ramAt4000 = state.ramAt4000;
         this.ramAt6000 = state.ramAt6000;

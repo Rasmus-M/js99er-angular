@@ -2,7 +2,8 @@ import {Component, OnInit} from '@angular/core';
 import {SettingsService} from '../../services/settings.service';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
 import {CommandDispatcherService} from "../../services/command-dispatcher.service";
-import {RAMType, PSGType, TIPIType, VDPType} from "../../classes/settings";
+import {RAMType, PSGType, TIPIType, VDPType, DiskType} from "../../classes/settings";
+import {EventDispatcherService} from "../../services/event-dispatcher.service";
 
 @Component({
     selector: 'options',
@@ -26,17 +27,21 @@ export class OptionsComponent implements OnInit {
     tipiWebsocketURI: string;
     enableDebugReset: boolean;
     enableH264Codec: boolean;
-    enableDisk: boolean;
+    disk: DiskType;
     enablePCode: boolean;
 
     constructor(
         private settingsService: SettingsService,
-        private commandDispatcherService: CommandDispatcherService
+        private commandDispatcherService: CommandDispatcherService,
+        private eventDispatherService: EventDispatcherService
     ) {
     }
 
     ngOnInit() {
         this.readSettings();
+        this.eventDispatherService.subscribe((event) => {
+            this.onEvent(event);
+        });
     }
 
     readSettings() {
@@ -55,7 +60,7 @@ export class OptionsComponent implements OnInit {
         this.tipiWebsocketURI = this.settingsService.getTIPIWebsocketURI() || '';
         this.enableDebugReset = this.settingsService.isDebugResetEnabled();
         this.enableH264Codec = this.settingsService.isH264CodecEnabled();
-        this.enableDisk = this.settingsService.isDiskEnabled();
+        this.disk = this.settingsService.getDisk();
         this.enablePCode = this.settingsService.isPCodeEnabled();
     }
 
@@ -135,8 +140,8 @@ export class OptionsComponent implements OnInit {
         this.settingsService.setTIPI(value);
     }
 
-    onEnableDiskChanged(value: boolean) {
-        this.settingsService.setDiskEnabled(value);
+    onDiskChanged(value: DiskType) {
+        this.settingsService.setDisk(value);
     }
 
     onEnablePCodeChanged(value: boolean) {

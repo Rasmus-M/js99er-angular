@@ -1,7 +1,12 @@
+.clear-button {
+    position: absolute;
+    right: 32px;
+}
 pre {
     margin: 0;
     padding: 0;
     height: 100%;
+    min-height: 48px;
     white-space: pre;
     overflow-x: hidden;
     overflow-y: scroll;

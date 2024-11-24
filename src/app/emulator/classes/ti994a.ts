@@ -26,6 +26,7 @@ import {WasmService} from "../../services/wasm.service";
 import $ from "jquery";
 import {V9938} from "./v9938";
 import {Forti} from "./forti";
+import {TIFDC} from "./tifdc";
 
 export class TI994A implements Console, Stateful {
 
@@ -49,6 +50,7 @@ export class TI994A implements Console, Stateful {
     private diskDrives: DiskDrive[];
     private googleDrives: GoogleDrive[];
     private tipi: TIPI | null;
+    private fdc: TIFDC;
 
     private running: boolean;
     private cpuSpeed: number;
@@ -123,6 +125,7 @@ export class TI994A implements Console, Stateful {
         ];
         this.setGoogleDrive();
         this.setTIPI();
+        this.fdc = new TIFDC(this, this.diskDrives);
         this.speech.isReady().subscribe(
             (ready) => {
                 this.cpu.setSuspended(!ready);
@@ -226,6 +229,10 @@ export class TI994A implements Console, Stateful {
 
     getTIPI(): TIPI | null {
         return this.tipi;
+    }
+
+    getFDC() {
+        return this.fdc;
     }
 
     isRunning() {

@@ -153,7 +153,7 @@ export class TMS9900 extends CPUCommon implements CPU {
     executeHooks() {
         if (this.pc >= 0x4000 && this.pc < 0x6000) {
             // Hook into disk DSR
-            if (this.memory.isDiskROMEnabled()) {
+            if (this.memory.isDiskROMEnabled() && this.memory.getDisk() === 'GENERIC') {
                 if (this.pc >= DiskDrive.DSR_HOOK_START && this.pc <= DiskDrive.DSR_HOOK_END) {
                     DiskDrive.execute(this.pc, this.diskDrives, this.memory);
                 }
@@ -324,7 +324,7 @@ export class TMS9900 extends CPUCommon implements CPU {
         return 20 + 2 * this.dest;
     }
 
-    // STore CRU: STCR src, dst
+    // STore CRU: STC6R src, dst
     // Stores dst bits from the CRU into src
     stcr(): number {
         if (this.dest === 0) { this.dest = 16; }

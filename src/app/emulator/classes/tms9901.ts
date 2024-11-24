@@ -3,7 +3,6 @@ import {Keyboard} from './keyboard';
 import {Memory} from './memory';
 import {Tape} from './tape';
 import {Stateful} from '../interfaces/stateful';
-import {SAMS} from './sams';
 import {Util} from '../../classes/util';
 import {CPU} from '../interfaces/cpu';
 import {Console} from '../interfaces/console';
@@ -56,116 +55,130 @@ export class TMS9901 implements Stateful {
     }
 
     readBit(addr: number): boolean {
-        if (!this.timerMode) {
-            // VDP interrupt
-            if (addr === 2) {
-                return !this.vdpInterrupt;
-            } else if (addr >= 3 && addr <= 10) {
-                // Keyboard
-                const col = (this.cru[18] ? 1 : 0) | (this.cru[19] ? 2 : 0) | (this.cru[20] ? 4 : 0);
-                // this.log.info("Addr: " + addr + " Col: " + col + " Down: " + this.keyboard.isKeyDown(col, addr));
-                if (addr === 7 && !this.cru[21]) {
-                    return !this.keyboard.isAlphaLockDown();
-                } else {
-                    return !(this.keyboard.isKeyDown(col, addr));
+        if (addr < 0x800) {
+            if (this.timerMode && addr < 16) {
+                return this.readBitTimerMode(addr);
+            } else {
+                if (addr === 2) {
+                    // VDP interrupt
+                    return !this.vdpInterrupt;
+                } else if (addr >= 3 && addr <= 10) {
+                    // Keyboard
+                    return this.readBitKeyboard(addr);
+                } else if (addr === 27) {
+                    // Cassette
+                    return this.tape.read() === 1;
                 }
             }
         } else {
-            // Timer
-            if (addr === 0) {
-                return this.timerMode;
-            } else if (addr > 0 && addr < 15) {
-                return (this.readRegister & (1 << (addr - 1))) !== 0;
-            } else if (addr === 15) {
-                this.log.info("Read timer interrupt status");
-                return this.timerInterrupt;
+            // DSR space
+            const r12Addr = addr << 1;
+            // TI FDC
+            if (r12Addr >= 0x1100 && r12Addr < 0x1110 && this.memory.getDisk() === "TIFDC") {
+                // this.log.info("Read from CRU " + Util.toHexWord(r12Addr));
+                return this.console.getFDC().readCruBit((r12Addr & 0x000e) >> 1);
             }
-        }
-        // Cassette
-        if (addr === 27) {
-            return this.tape.read() === 1;
         }
         return this.cru[addr];
     }
 
     writeBit(addr: number, value: boolean) {
-        const r12Addr = addr << 1;
-        if (r12Addr >= 0x1000) {
-            // DSR space
-            if ((r12Addr & 0xff) === 0) {
-                // Enable DSR ROM
-                const romNo = (r12Addr >> 8) & 0xf;
-                this.memory.setPeripheralROM(romNo, value);
+        if (addr < 0x800) {
+            if (this.timerMode && this.writeBitTimerMode(addr, value)) {
+                return;
             }
-            // SAMS
-            if (r12Addr >= 0x1e00 && r12Addr < 0x1f00 && this.memory.isSAMSEnabled()) {
-                const bitNo = (r12Addr & 0x000e) >> 1;
-                if (bitNo === 0) {
-                    // Controls access to mapping registers
-                    this.memory.getSAMS()?.setRegisterAccess(value);
-                } else if (bitNo === 1) {
-                    // Toggles between mapping mode and transparent mode
-                    this.memory.getSAMS()?.setMode(value ? SAMS.MAPPING_MODE : SAMS.TRANSPARENT_MODE);
-                }
-            }
-            // TIPI
-            if (r12Addr === 0x1102 && value && this.memory.isTIPIEnabled()) {
-                this.console.getTIPI()?.signalReset();
-            }
-            // P-Code
-            if (r12Addr === 0x1f80) {
-                // this.log.info("Set P-Code ROM bank " + (value ? 1 : 0));
-                this.memory.setCurrentPeripheralROMBank(value ? 1 : 0);
-            }
-        } else {
-            // Timer
             if (addr === 0) {
                 this.setTimerMode(value);
-            } else if (this.timerMode) {
-                if (addr > 0 && addr < 15) {
-                    // Write to clock register
-                    const bit  = 1 << (addr - 1);
-                    if (value) {
-                        this.clockRegister |= bit;
-                    } else {
-                        this.clockRegister &= ~bit;
-                    }
-                    // If any bit between 1 and 14 is written to while in timer mode, the decrementer will be reinitialized with the current value of the Clock register
-                    if (this.clockRegister !== 0) {
-                        this.decrementer = this.clockRegister;
-                    }
-                    // Do not set cru bit
-                    return;
-                } else if (addr === 15 && !value) {
-                    // TODO: Should be a soft reset
-                    this.log.info("Reset 9901");
-                    // this.reset();
-                } else if (addr >= 16) {
-                    this.setTimerMode(false);
-                }
-            } else {
-                if (addr === 3) {
-                    this.timerInterrupt = false;
-                }
-            }
-            if (addr === 22) {
+            } else if (addr === 3) {
+                this.timerInterrupt = false;
+            } else if (addr === 22) {
                 this.tape.setMotorOn(value);
             } else if (addr === 24) {
-               this.tape.setAudioGate(value, this.cpu.getCycles());
+                this.tape.setAudioGate(value, this.cpu.getCycles());
             } else if (addr === 25) {
                 this.tape.write(value, this.timerInterruptCount);
-            } else if ((addr & 0xfc00) === 0x0400) {
+            } else if (addr >= 0x0400) {
                 const bit = (addr & 0x000f);
                 if (value && bit > 0) {
                     const bank = (bit - 1) >> 1;
                     this.memory.setCRUCartBank(bank);
                 }
             }
-            // if (this.cpu.getPC() !== 0x033e) {
-            //     this.log.info("Write CRU address " + Util.toHexWord(addr) + ": " + value + " PC=" + Util.toHexWord(this.cpu.getPC()));
-            // }
-            this.cru[addr] = value;
+        } else {
+            // DSR space
+            const r12Addr = addr << 1;
+            if ((r12Addr & 0xff) === 0) {
+                // Enable DSR ROM
+                const romNo = (r12Addr >> 8) & 0xf;
+                this.memory.setPeripheralROM(romNo, value);
+            }
+            // TI FDC
+            if (r12Addr >= 0x1100 && r12Addr < 0x1110 && this.memory.getDisk() === "TIFDC") {
+                // this.log.info("Write " + value + " to CRU " + Util.toHexWord(r12Addr));
+                this.console.getFDC().writeCruBit((r12Addr & 0x000e) >> 1, value);
+            }
+            // TIPI
+            if (r12Addr === 0x1002 + this.memory.getTIPIROMNumber() * 0x100 && value && this.memory.isTIPIEnabled()) {
+                this.console.getTIPI()?.signalReset();
+            }
+            // SAMS
+            if (r12Addr >= 0x1e00 && r12Addr < 0x1f00 && this.memory.isSAMSEnabled()) {
+                this.memory.getSAMS()!.writeCruBit((r12Addr & 0x000e) >> 1, value);
+            }
+            // P-Code
+            if (r12Addr === 0x1f80) {
+                // this.log.info("Set P-Code ROM bank " + (value ? 1 : 0));
+                this.memory.setCurrentPeripheralROMBank(value ? 1 : 0);
+            }
         }
+        this.cru[addr] = value;
+    }
+
+    readBitKeyboard(addr: number): boolean {
+        const col = (this.cru[18] ? 1 : 0) | (this.cru[19] ? 2 : 0) | (this.cru[20] ? 4 : 0);
+        // this.log.info("Addr: " + addr + " Col: " + col + " Down: " + this.keyboard.isKeyDown(col, addr));
+        if (addr === 7 && !this.cru[21]) {
+            return !this.keyboard.isAlphaLockDown();
+        } else {
+            return !(this.keyboard.isKeyDown(col, addr));
+        }
+    }
+
+    readBitTimerMode(addr: number): boolean {
+        if (addr === 0) {
+            return this.timerMode;
+        } else if (addr > 0 && addr < 15) {
+            return (this.readRegister & (1 << (addr - 1))) !== 0;
+        } else if (addr === 15) {
+            this.log.info("Read timer interrupt status");
+            return this.timerInterrupt;
+        }
+        return false;
+    }
+
+    writeBitTimerMode(addr: number, value: boolean) {
+        if (addr > 0 && addr < 15) {
+            // Write to clock register
+            const bit  = 1 << (addr - 1);
+            if (value) {
+                this.clockRegister |= bit;
+            } else {
+                this.clockRegister &= ~bit;
+            }
+            // If any bit between 1 and 14 is written to while in timer mode, the decrementer
+            // will be reinitialized with the current value of the Clock register
+            if (this.clockRegister !== 0) {
+                this.decrementer = this.clockRegister;
+            }
+            return true;
+        } else if (addr === 15 && !value) {
+            // TODO: Should be a soft reset
+            this.log.info("Reset 9901");
+            // this.reset();
+        } else if (addr >= 16) {
+            this.setTimerMode(false);
+        }
+        return false;
     }
 
     setVDPInterrupt(value: boolean) {

@@ -44,6 +44,16 @@ export class SAMS implements Stateful, MemoryDevice {
         this.setMode(SAMS.TRANSPARENT_MODE);
     }
 
+    public writeCruBit(bit: number, value: boolean) {
+        if (bit === 0) {
+            // Controls access to mapping registers
+            this.setRegisterAccess(value);
+        } else if (bit === 1) {
+            // Toggles between mapping mode and transparent mode
+            this.setMode(value ? SAMS.MAPPING_MODE : SAMS.TRANSPARENT_MODE);
+        }
+    }
+
     setDebugResetEnabled(enabled: boolean) {
         this.debugReset = enabled;
     }
@@ -109,7 +119,7 @@ export class SAMS implements Stateful, MemoryDevice {
         }
     }
 
-    getStatusString(): string {
+    getStatusString(detailed: boolean): string {
         let s = "";
         for (let regNo = 0; regNo < this.transparentMap.length; regNo++) {
             if (this.transparentMap[regNo] != null) {

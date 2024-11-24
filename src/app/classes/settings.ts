@@ -26,6 +26,8 @@ export type VDPType = 'TMS9918A' | 'F18A' | 'V9938';
 
 export type TIPIType = 'NONE' | 'MOUSE' | 'FULL';
 
+export type DiskType = 'NONE' | 'TIFDC' | 'GENERIC';
+
 export class Settings {
 
     private enableSound: boolean;
@@ -43,7 +45,7 @@ export class Settings {
     private tipiWebsocketURI: string | null;
     private enableDebugReset: boolean;
     private enableH264Codec: boolean;
-    private enableDisk: boolean;
+    private disk: DiskType;
     private enablePCode: boolean;
 
     constructor() {
@@ -62,7 +64,7 @@ export class Settings {
         this.tipiWebsocketURI = "ws://localhost:9901/tipi";
         this.enableDebugReset = false;
         this.enableH264Codec = false;
-        this.enableDisk = true;
+        this.disk = 'GENERIC';
         this.enablePCode = false;
     }
 
@@ -186,12 +188,12 @@ export class Settings {
         this.enableH264Codec = enabled;
     }
 
-    isDiskEnabled() {
-        return this.enableDisk;
+    getDisk() {
+        return this.disk;
     }
 
-    setDiskEnabled(enabled: boolean) {
-        this.enableDisk = enabled;
+    setDisk(disk: DiskType) {
+        this.disk = disk;
     }
 
     isSAMSEnabled() {
@@ -265,8 +267,8 @@ export class Settings {
         if (otherSettings.enableH264Codec !== undefined) {
             this.enableH264Codec = otherSettings.enableH264Codec;
         }
-        if (otherSettings.enableDisk !== undefined) {
-            this.enableDisk = otherSettings.enableDisk;
+        if (otherSettings.disk !== undefined) {
+            this.disk = otherSettings.disk;
         }
         if (otherSettings.enablePCode !== undefined) {
             this.enablePCode = otherSettings.enablePCode;

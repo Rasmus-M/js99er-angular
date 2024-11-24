@@ -37,9 +37,15 @@
     <div class="checkbox-setting">
         <mat-checkbox [ngModel]="enableSpeech" (ngModelChange)="onEnableSpeechChanged($event)">Speech enabled</mat-checkbox>
     </div>
-    <div class="checkbox-setting">
-        <mat-checkbox [ngModel]="enableDisk" (ngModelChange)="onEnableDiskChanged($event)">Disk enabled</mat-checkbox>
-    </div>
+    <mat-form-field class="setting">
+        <mat-label>Disk</mat-label>
+        <mat-select [(ngModel)]="disk" (ngModelChange)="onDiskChanged($event)">
+            <mat-option [value]="'NONE'">No disk</mat-option>
+            <mat-option [value]="'GENERIC'">Generic</mat-option>
+            <mat-option [value]="'TIFDC'">TI Floppy Disk Controller</mat-option>
+        </mat-select>
+    </mat-form-field>
+    <br>
     <mat-form-field class="setting">
         <mat-label>TIPI emulation</mat-label>
         <mat-select [(ngModel)]="tipi" (ngModelChange)="onTIPIEmulationChanged($event)">

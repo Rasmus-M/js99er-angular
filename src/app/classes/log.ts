@@ -44,6 +44,14 @@ export class Log {
         this.element = element;
     }
 
+    clear() {
+        for (const textNode of this.textNodes) {
+            this.element.removeChild(textNode.node);
+        }
+        this.totalLines = 0;
+        this.textNodes = [];
+    }
+
     print(message: string) {
         if (this.buffer.length === 0 || this.buffer[this.buffer.length - 1] !== message) {
             this.updateSameMessage();
