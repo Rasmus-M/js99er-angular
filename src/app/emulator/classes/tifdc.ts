@@ -17,6 +17,7 @@ export class TIFDC {
     private headLoaded = false;
     private motorStrobe = false;
     private readBuffer: number[] = [];
+    private writeBuffer: number[] = [];
     private log = Log.getLog();
 
     constructor(
@@ -141,6 +142,7 @@ export class TIFDC {
     public setData(data: number) {
         this.log.info("Set data " + Util.toHexByte(data));
         this.data = data;
+        this.writeByteToBuffer(data);
     }
 
     /*
@@ -258,7 +260,8 @@ export class TIFDC {
     }
 
     private writeSector(multiple: boolean, flags: number) {
-        this.log.info("Cmd: Write sector: " + multiple);
+        this.log.info("Cmd: Write sector: " + Util.toHexWord(this.getSectorIndex()) + (multiple ? " multiple" : ""));
+        this.writeBuffer = [];
     }
 
     private readId(flags: number) {
@@ -308,6 +311,14 @@ export class TIFDC {
         return status;
     }
 
+    private getSectorIndex() {
+        if (this.side === 0) {
+            return this.track * 9 + this.sector;
+        } else {
+            return 360 + (39 - this.track) * 9 + this.sector;
+        }
+    }
+
     private loadHead() {
         this.headLoadedRequested = true;
         this.headLoaded = true;
@@ -321,20 +332,28 @@ export class TIFDC {
         }
     }
 
-    private getSectorIndex() {
-        if (this.side === 0) {
-            return this.track * 9 + this.sector;
-        } else {
-            return 360 + (39 - this.track) * 9 + this.sector;
-        }
-    }
-
     private readByteFromBuffer() {
         this.data = this.readBuffer.shift() || 0x00;
         if (this.readBuffer.length === 0 && (this.command & 0xf0) === 0x90) {
             // Read sector multiple
             this.sector++;
             this.readSectorIntoBuffer();
+        }
+    }
+
+    private writeBufferToSector() {
+        const sector = this.getSectorIndex();
+        this.diskDrives[this.drive - 1].getDiskImage()?.writeSector(sector, new Uint8Array(this.writeBuffer));
+    }
+
+    private writeByteToBuffer(data: number) {
+        this.writeBuffer.push(data);
+        if (this.writeBuffer.length === 256) {
+            this.writeBufferToSector();
+            this.writeBuffer = [];
+            if (this.command === 0xb0) {
+                this.sector++;
+            }
         }
     }
 }

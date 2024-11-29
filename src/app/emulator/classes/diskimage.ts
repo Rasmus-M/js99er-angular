@@ -302,6 +302,12 @@ export class DiskImage implements Stateful {
         return tiDiskImage.slice(sectorOffset, sectorOffset + 256);
     }
 
+    writeSector(sectorNo: number, data: Uint8Array) {
+        const tiDiskImage = this.getBinaryImage();
+        const sectorOffset = 256 * sectorNo;
+        return tiDiskImage.set(data, sectorOffset);
+    }
+
     getBinaryImage(): Uint8Array {
         if (this.binaryImage == null) {
             this.binaryImage = this.createBinaryImage();
