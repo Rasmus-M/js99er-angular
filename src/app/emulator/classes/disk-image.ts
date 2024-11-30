@@ -49,9 +49,9 @@ export class DiskImage implements Stateful {
         this.name = name;
         this.files = {};
         this.physicalProperties = new PhysicalProperties(720, 9, 40, 2, 1);
-        this.binaryImage = null;
         this.eventHandler = eventHandler;
         this.log = Log.getLog();
+        this.binaryImage = this.createBinaryImage();
     }
 
     fireEvent(event: DiskImageEvent) {

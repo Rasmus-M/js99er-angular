@@ -159,7 +159,7 @@ export class TiFdc implements FDC, Stateful {
     }
 
     public setData(data: number) {
-        this.log.info("Set data " + Util.toHexByte(data));
+        this.log.debug("Set data " + Util.toHexByte(data));
         this.data = data;
         this.writeByteToBuffer(data);
     }
@@ -272,19 +272,19 @@ export class TiFdc implements FDC, Stateful {
     }
 
     private readSector(multiple: boolean, flags: number) {
-        this.log.info("Cmd: Read sector: " + Util.toHexByte(this.sector) + " track " + Util.toHexByte(this.track) + " side " + Util.toHexByte(this.side) + " = " + Util.toHexWord(this.getSectorIndex()) + (multiple ? " multiple" : ""));
+        this.log.info("Cmd: Read sector " + Util.toHexWord(this.getSectorIndex()) + " (sector " + Util.toHexByte(this.sector) + ", track " + Util.toHexByte(this.track) + ", side " + Util.toHexByte(this.side) + ")" + (multiple ? " multiple" : ""));
         this.readSectorIntoBuffer();
         this.readByteFromBuffer();
         this.loadHead();
     }
 
     private writeSector(multiple: boolean, flags: number) {
-        this.log.info("Cmd: Write sector: " + Util.toHexWord(this.getSectorIndex()) + (multiple ? " multiple" : ""));
+        this.log.info("Cmd: Write sector " + Util.toHexWord(this.getSectorIndex()) + (multiple ? " multiple" : ""));
         this.writeBuffer = [];
     }
 
     private readId(flags: number) {
-        this.log.info("Cmd: Read ID");
+        this.log.debug("Cmd: Read ID");
         this.readBuffer.push(this.track);
         this.readBuffer.push(this.side);
         this.readBuffer.push(this.sector);
@@ -297,16 +297,16 @@ export class TiFdc implements FDC, Stateful {
     }
 
     private forceInterrupt(flags: number) {
-        this.log.info("Cmd: Force interrupt");
+        this.log.debug("Cmd: Force interrupt");
         this.busy = false;
     }
 
     private readTrack(flags: number) {
-        this.log.info("Cmd: Read track");
+        this.log.info("Cmd: Read track (not implemented)");
     }
 
     private writeTrack(flags: number) {
-        this.log.info("Cmd: Write track");
+        this.log.info("Cmd: Write track (not implemented)");
     }
 
     public getStatus() {
