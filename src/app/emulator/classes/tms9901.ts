@@ -76,7 +76,7 @@ export class TMS9901 implements Stateful {
             // TI FDC
             if (r12Addr >= 0x1100 && r12Addr < 0x1110 && this.memory.getDisk() === "TIFDC") {
                 // this.log.info("Read from CRU " + Util.toHexWord(r12Addr));
-                return this.console.getFDC().readCruBit((r12Addr & 0x000e) >> 1);
+                return this.console.getTiFdc().readCruBit((r12Addr & 0x000e) >> 1);
             }
         }
         return this.cru[addr];
@@ -115,7 +115,7 @@ export class TMS9901 implements Stateful {
             // TI FDC
             if (r12Addr >= 0x1100 && r12Addr < 0x1110 && this.memory.getDisk() === "TIFDC") {
                 // this.log.info("Write " + value + " to CRU " + Util.toHexWord(r12Addr));
-                this.console.getFDC().writeCruBit((r12Addr & 0x000e) >> 1, value);
+                this.console.getTiFdc().writeCruBit((r12Addr & 0x000e) >> 1, value);
             }
             // TIPI
             if (r12Addr === 0x1002 + this.memory.getTIPIROMNumber() * 0x100 && value && this.memory.isTIPIEnabled()) {

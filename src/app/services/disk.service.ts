@@ -143,7 +143,7 @@ export class DiskService {
             const fileBuffer = new Uint8Array(this.result as ArrayBuffer);
             let diskImage: DiskImage | null;
             if (acceptDiskImage && Util.isDiskImage(fileBuffer)) {
-                diskImage = diskDrive.loadDSKFile(filename, fileBuffer, service.onDiskImageChanged.bind(service));
+                diskImage = diskDrive.loadBinaryImage(filename, fileBuffer, service.onDiskImageChanged.bind(service));
             } else {
                 diskImage = diskDrive.getDiskImage();
                 if (!diskImage) {
@@ -236,7 +236,7 @@ export class DiskService {
     }
 
     saveDiskImageAs(diskImage: DiskImage) {
-        const imageFile = diskImage.createBinaryImage();
+        const imageFile = diskImage.getBinaryImage();
         const blob = new Blob([imageFile], { type: "application/octet-stream" });
         saveAs(blob, diskImage.getName() + ".dsk");
     }

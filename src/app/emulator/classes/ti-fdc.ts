@@ -2,8 +2,11 @@ import {DiskDrive} from "./diskdrive";
 import {Log} from "../../classes/log";
 import {Util} from "../../classes/util";
 import {Console} from "../interfaces/console";
+import {FDC} from "../interfaces/fdc";
+import {Stateful} from "../interfaces/stateful";
+import {data} from "jquery";
 
-export class TIFDC {
+export class TiFdc implements FDC, Stateful {
 
     private command = 0;
     private drive = 0;
@@ -23,6 +26,22 @@ export class TIFDC {
     constructor(
         private console: Console,
         private diskDrives: DiskDrive[]) {
+    }
+
+    reset() {
+        this.command = 0;
+        this.drive = 0;
+        this.side = 0;
+        this.track = 0;
+        this.sector = 0;
+        this.direction = 1;
+        this.data = 0;
+        this.busy = false;
+        this.headLoadedRequested = false;
+        this.headLoaded = false;
+        this.motorStrobe = false;
+        this.readBuffer = [];
+        this.writeBuffer = [];
     }
 
     public writeCruBit(bit: number, value: boolean) {
@@ -355,6 +374,12 @@ export class TIFDC {
                 this.sector++;
             }
         }
+    }
+
+    getState(): any {
+    }
+
+    restoreState(state: any): void {
     }
 }
 

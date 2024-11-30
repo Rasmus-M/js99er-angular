@@ -388,7 +388,7 @@ export class DiskImage implements Stateful {
         this.binaryImage = fileBuffer;
     }
 
-    createBinaryImage(): Uint8Array {
+    private createBinaryImage(): Uint8Array {
         const totalSectors = this.geometry.totalSectors;
         const sectorsPerAU = this.getSectorsPerAllocationUnit();
         this.log.info("Sectors per AU: " + sectorsPerAU);

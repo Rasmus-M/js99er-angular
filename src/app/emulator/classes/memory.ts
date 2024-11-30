@@ -1,8 +1,8 @@
 import {Log} from '../../classes/log';
 import {VDP} from '../interfaces/vdp';
 import {SAMS} from './sams';
-import {DISK_DSR_ROM} from './diskdrive';
-import {GDR_DSR_ROM} from './googledrive';
+import {DISK_DSR_ROM} from './generic-fdc';
+import {GDR_DSR_ROM} from './google-drive-fdc';
 import {System} from './system';
 import {Util} from '../../classes/util';
 import {CPU} from '../interfaces/cpu';
@@ -16,7 +16,7 @@ import {TIPI, TIPI_DSR_ROM} from "./tipi";
 import {Console} from '../interfaces/console';
 import {PCODE_GROM, PCODE_ROM} from "./pcode";
 import {GROMArray} from "./gromArray";
-import {TI_FDC_ROM, TIFDC} from "./tifdc";
+import {TI_FDC_ROM, TiFdc} from "./ti-fdc";
 
 export class Memory implements Stateful, MemoryDevice {
 
@@ -38,7 +38,7 @@ export class Memory implements Stateful, MemoryDevice {
     private vdp: VDP;
     private psg: PSG;
     private speech: Speech;
-    private fdc: TIFDC;
+    private fdc: TiFdc;
     private settings: Settings;
 
     private ramType: RAMType;
@@ -93,7 +93,7 @@ export class Memory implements Stateful, MemoryDevice {
         this.vdp = this.console.getVDP();
         this.psg = this.console.getPSG();
         this.speech = this.console.getSpeech();
-        this.fdc = this.console.getFDC();
+        this.fdc = this.console.getTiFdc();
 
         // RAM
         this.ramType = this.settings.getRAM();

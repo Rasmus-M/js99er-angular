@@ -5,11 +5,13 @@ import {Memory} from './memory';
 import {DiskDrive} from './diskdrive';
 import {GoogleDrive} from './googledrive';
 import {CPU} from '../interfaces/cpu';
-import {TI994A} from './ti994a';
 import {Opcode} from "../../classes/opcode";
 import {Disassembler} from "../../classes/disassembler";
 import {CPUCommon} from "./cpuCommon";
 import {Console} from "../interfaces/console";
+import {TiFdc} from "./ti-fdc";
+import {GenericFdc} from "./generic-fdc";
+import {GoogleDriveFdc} from "./google-drive-fdc";
 
 export class TMS9900 extends CPUCommon implements CPU {
 
@@ -21,8 +23,8 @@ export class TMS9900 extends CPUCommon implements CPU {
     private memory: Memory;
     private cru: TMS9901;
     private keyboard: Keyboard;
-    private diskDrives: DiskDrive[];
-    private googleDrives: GoogleDrive[];
+    private genericFdc: GenericFdc;
+    private googleDrivesFdc: GoogleDriveFdc;
 
     // Misc
     private suspended: boolean;
@@ -49,8 +51,8 @@ export class TMS9900 extends CPUCommon implements CPU {
         this.memory = this.console.getMemory();
         this.cru = this.console.getCRU();
         this.keyboard = this.console.getKeyboard();
-        this.diskDrives = this.console.getDiskDrives();
-        this.googleDrives = this.console.getGoogleDrives();
+        this.genericFdc = this.console.getGenericFdc();
+        this.googleDrivesFdc = this.console.getGoogleDrivesFDc();
 
         this.pc = 0;
         this.wp = 0;
@@ -154,12 +156,12 @@ export class TMS9900 extends CPUCommon implements CPU {
         if (this.pc >= 0x4000 && this.pc < 0x6000) {
             // Hook into disk DSR
             if (this.memory.isDiskROMEnabled() && this.memory.getDisk() === 'GENERIC') {
-                if (this.pc >= DiskDrive.DSR_HOOK_START && this.pc <= DiskDrive.DSR_HOOK_END) {
-                    DiskDrive.execute(this.pc, this.diskDrives, this.memory);
+                if (this.pc >= GenericFdc.DSR_HOOK_START && this.pc <= GenericFdc.DSR_HOOK_END) {
+                    this.genericFdc.execute(this.pc);
                 }
             } else if (this.memory.isGoogleDriveROMEnabled()) {
-                if (this.pc >= GoogleDrive.DSR_HOOK_START && this.pc <= GoogleDrive.DSR_HOOK_END) {
-                    if (GoogleDrive.execute(this.pc, this.googleDrives, this.memory, (success: boolean) => {
+                if (this.pc >= GoogleDriveFdc.DSR_HOOK_START && this.pc <= GoogleDriveFdc.DSR_HOOK_END) {
+                    if (this.googleDrivesFdc.execute(this.pc, (success: boolean) => {
                         this.log.debug("CPU resumed, success=" + success);
                         this.setSuspended(false);
                     })) {

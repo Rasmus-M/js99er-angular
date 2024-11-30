@@ -50,6 +50,14 @@ export enum DiskError {
     FILE_ERROR = 7
 }
 
+export const STATUS_NO_SUCH_FILE = 0x80;
+export const STATUS_PROTECTED = 0x40;
+export const STATUS_INTERNAL = 0x10;
+export const STATUS_PROGRAM = 0x08;
+export const STATUS_VARIABLE = 0x04;
+export const STATUS_DISK_FULL = 0x02;
+export const STATUS_EOF = 0x01;
+
 export class Disk {
 
     static FILE_TYPE_LABELS: string[] = [

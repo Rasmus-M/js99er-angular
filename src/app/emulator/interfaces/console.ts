@@ -8,9 +8,10 @@ import {Tape} from "../classes/tape";
 import {Keyboard} from "../classes/keyboard";
 import {CPU} from "./cpu";
 import {TMS9901} from "../classes/tms9901";
-import {GoogleDrive} from "../classes/googledrive";
 import {TIPI} from "../classes/tipi";
-import {TIFDC} from "../classes/tifdc";
+import {TiFdc} from "../classes/ti-fdc";
+import {GenericFdc} from "../classes/generic-fdc";
+import {GoogleDriveFdc} from "../classes/google-drive-fdc";
 
 export interface Console {
     start(fast: boolean, skipBreakpoint?: boolean): void;
@@ -30,10 +31,11 @@ export interface Console {
     getKeyboard(): Keyboard;
     getTape(): Tape;
     getDiskDrives(): DiskDrive[];
-    getGoogleDrives(): GoogleDrive[];
+    getGenericFdc(): GenericFdc;
+    getTiFdc(): TiFdc;
+    getGoogleDrivesFDc(): GoogleDriveFdc;
     setGoogleDrive(): void;
     getTIPI(): TIPI | null;
-    getFDC(): TIFDC;
     setTIPI(): void;
     setVDP(): void;
     setPSG(): void;

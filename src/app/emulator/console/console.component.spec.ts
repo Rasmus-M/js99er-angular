@@ -29,7 +29,7 @@ import {TMS9900} from "../classes/tms9900";
 import {TMS5200} from "../classes/tms5200";
 import {TMS9918A} from "../classes/tms9918a";
 import {WasmService} from "../../services/wasm.service";
-import {TIFDC} from "../classes/tifdc";
+import {TiFdc} from "../classes/ti-fdc";
 
 class ConsoleMock implements Console {
 
@@ -96,8 +96,8 @@ class ConsoleMock implements Console {
     }
     setTIPI() {
     }
-    getFDC(): TIFDC {
-        return new TIFDC([]);
+    getTiFdc(): TiFdc {
+        return new TiFdc([]);
     }
 }
 

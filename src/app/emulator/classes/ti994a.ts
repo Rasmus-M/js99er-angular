@@ -26,7 +26,9 @@ import {WasmService} from "../../services/wasm.service";
 import $ from "jquery";
 import {V9938} from "./v9938";
 import {Forti} from "./forti";
-import {TIFDC} from "./tifdc";
+import {TiFdc} from "./ti-fdc";
+import {GenericFdc} from "./generic-fdc";
+import {GoogleDriveFdc} from "./google-drive-fdc";
 
 export class TI994A implements Console, Stateful {
 
@@ -48,9 +50,11 @@ export class TI994A implements Console, Stateful {
     private keyboard: Keyboard;
     private tape: Tape;
     private diskDrives: DiskDrive[];
+    private genericFdc: GenericFdc;
+    private tiFdc: TiFdc;
+    private googleFdc: GoogleDriveFdc;
     private googleDrives: GoogleDrive[];
     private tipi: TIPI | null;
-    private fdc: TIFDC;
 
     private running: boolean;
     private cpuSpeed: number;
@@ -119,13 +123,14 @@ export class TI994A implements Console, Stateful {
         this.tms9901 = new TMS9901(this);
         this.keyboard = new Keyboard(this.document, this.settings);
         this.diskDrives = [
-            new DiskDrive("DSK1", diskImages[0], this),
-            new DiskDrive("DSK2", diskImages[1], this),
-            new DiskDrive("DSK3", diskImages[2], this)
+            new DiskDrive("DSK1", diskImages[0]),
+            new DiskDrive("DSK2", diskImages[1]),
+            new DiskDrive("DSK3", diskImages[2])
         ];
+        this.genericFdc = new GenericFdc(this, this.diskDrives);
+        this.tiFdc = new TiFdc(this, this.diskDrives);
         this.setGoogleDrive();
         this.setTIPI();
-        this.fdc = new TIFDC(this, this.diskDrives);
         this.speech.isReady().subscribe(
             (ready) => {
                 this.cpu.setSuspended(!ready);
@@ -161,10 +166,11 @@ export class TI994A implements Console, Stateful {
     setGoogleDrive() {
         if (this.settings.isGoogleDriveEnabled()) {
             this.googleDrives = [
-                new GoogleDrive("GDR1", "Js99erDrives/GDR1", this),
-                new GoogleDrive("GDR2", "Js99erDrives/GDR2", this),
-                new GoogleDrive("GDR3", "Js99erDrives/GDR3", this)
+                new GoogleDrive("GDR1", "Js99erDrives/GDR1"),
+                new GoogleDrive("GDR2", "Js99erDrives/GDR2"),
+                new GoogleDrive("GDR3", "Js99erDrives/GDR3")
             ];
+            this.googleFdc = new GoogleDriveFdc(this, this.googleDrives);
         } else {
             this.googleDrives = [];
         }
@@ -223,16 +229,20 @@ export class TI994A implements Console, Stateful {
         return this.diskDrives;
     }
 
-    getGoogleDrives(): GoogleDrive[] {
-        return this.googleDrives;
+    getGenericFdc(): GenericFdc {
+        return this.genericFdc;
+    }
+
+    getTiFdc(): TiFdc {
+        return this.tiFdc;
+    }
+
+    getGoogleDrivesFDc(): GoogleDriveFdc {
+        return this.googleFdc;
     }
 
     getTIPI(): TIPI | null {
         return this.tipi;
-    }
-
-    getFDC() {
-        return this.fdc;
     }
 
     isRunning() {
@@ -253,9 +263,8 @@ export class TI994A implements Console, Stateful {
         this.tms9901.reset();
         this.keyboard.reset();
         this.tape.reset();
-        for (let i = 0; i < this.diskDrives.length; i++) {
-            this.diskDrives[i].reset();
-        }
+        this.tiFdc.reset();
+        this.genericFdc.reset();
         for (let i = 0; i < this.googleDrives.length; i++) {
             this.googleDrives[i].reset();
         }
