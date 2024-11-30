@@ -3,25 +3,28 @@ import {Stateful} from '../interfaces/stateful';
 import {Log} from '../../classes/log';
 import {DiskFile, FixedRecord, VariableRecord} from './disk-file';
 
+export type DiskImageEventType = 'FILE_ADDED' | 'FILE_REMOVED' | 'PHYSICAL_PROPERTIES_CHANGED';
+
 export class DiskImageEvent {
 
-    type: string;
+    type: DiskImageEventType;
     name: string;
     diskImage: DiskImage;
 
-    constructor(type: string, name: string) {
+    constructor(type: DiskImageEventType, name: string, diskImage: DiskImage) {
         this.type = type;
         this.name = name;
+        this.diskImage = diskImage;
     }
 }
 
 class PhysicalProperties {
 
-    totalSectors = 1440;
-    sectorsPerTrack = 18;
-    tracksPerSide = 2;
-    numberOfSides = 2;
-    density = 2;
+    totalSectors: number;
+    sectorsPerTrack: number;
+    tracksPerSide: number;
+    numberOfSides: number;
+    density: number;
 
     constructor(totalSectors: number, sectorsPerTrack: number, tracksPerSide: number, numberOfSides: number, density: number) {
         this.totalSectors = totalSectors;
@@ -36,7 +39,7 @@ export class DiskImage implements Stateful {
 
     private name: string;
     private files: {[name: string]: DiskFile};
-    private geometry: PhysicalProperties;
+    private physicalProperties: PhysicalProperties;
     private binaryImage: Uint8Array | null;
     private eventHandler: null | ((event: DiskImageEvent) => void);
     private log: Log;
@@ -44,7 +47,7 @@ export class DiskImage implements Stateful {
     constructor(name: string, eventHandler: null | ((event: DiskImageEvent) => void)) {
         this.name = name;
         this.files = {};
-        this.geometry = new PhysicalProperties(1440, 18, 2, 2, 2);
+        this.physicalProperties = new PhysicalProperties(720, 9, 40, 2, 1);
         this.binaryImage = null;
         this.eventHandler = eventHandler;
         this.log = Log.getLog();
@@ -59,6 +62,10 @@ export class DiskImage implements Stateful {
 
     getName(): string {
         return this.name;
+    }
+
+    getPhysicalProperties() {
+        return this.physicalProperties;
     }
 
     getFiles(): {[name: string]: DiskFile} {
@@ -78,7 +85,7 @@ export class DiskImage implements Stateful {
     putFile(file: DiskFile) {
         this.files[file.getName()] = file;
         this.invalidateBinaryImage();
-        this.fireEvent(new DiskImageEvent("fileAdded", file.getName()));
+        this.fireEvent(new DiskImageEvent('FILE_ADDED', file.getName(), this));
     }
 
     getFile(fileName: string): DiskFile {
@@ -88,7 +95,7 @@ export class DiskImage implements Stateful {
     deleteFile(fileName: string) {
         delete this.files[fileName];
         this.invalidateBinaryImage();
-        this.fireEvent(new DiskImageEvent("fileDeleted", fileName));
+        this.fireEvent(new DiskImageEvent('FILE_REMOVED', fileName, this));
     }
 
     loadTIFile(fileName: string, fileBuffer: Uint8Array, ignoreTIFileName: boolean): DiskFile | null {
@@ -336,7 +343,7 @@ export class DiskImage implements Stateful {
         const numberOfSides = fileBuffer[0x12];
         const density = fileBuffer[0x13];
         this.name = volumeName;
-        this.geometry = new PhysicalProperties(totalSectors, sectorsPerTrack, tracksPerSide, numberOfSides, density);
+        this.physicalProperties = new PhysicalProperties(totalSectors, sectorsPerTrack, tracksPerSide, numberOfSides, density);
         const sectorsPerAU = this.getSectorsPerAllocationUnit();
         this.log.info("Sectors per AU: " + sectorsPerAU);
         this.files = {};
@@ -386,10 +393,11 @@ export class DiskImage implements Stateful {
             }
         }
         this.binaryImage = fileBuffer;
+        this.fireEvent(new DiskImageEvent('PHYSICAL_PROPERTIES_CHANGED', '', this));
     }
 
     private createBinaryImage(): Uint8Array {
-        const totalSectors = this.geometry.totalSectors;
+        const totalSectors = this.physicalProperties.totalSectors;
         const sectorsPerAU = this.getSectorsPerAllocationUnit();
         this.log.info("Sectors per AU: " + sectorsPerAU);
         const sectorsPerCluster = this.getSectorsPerCluster();
@@ -399,12 +407,12 @@ export class DiskImage implements Stateful {
         let n = 0;
         n = this.writeString(dskImg, n, this.name, 10); // Volume name
         n = this.writeWord(dskImg, n, totalSectors); // Total sectors
-        n = this.writeByte(dskImg, n, this.geometry.sectorsPerTrack); // Sectors per track
+        n = this.writeByte(dskImg, n, this.physicalProperties.sectorsPerTrack); // Sectors per track
         n = this.writeString(dskImg, n, "DSK", 3); // ID
         n = this.writeByte(dskImg, n, 0x20); // Protection
-        n = this.writeByte(dskImg, n, this.geometry.tracksPerSide); // Tracks per side
-        n = this.writeByte(dskImg, n, this.geometry.numberOfSides); // Number of sides
-        n = this.writeByte(dskImg, n, this.geometry.density); // Density
+        n = this.writeByte(dskImg, n, this.physicalProperties.tracksPerSide); // Tracks per side
+        n = this.writeByte(dskImg, n, this.physicalProperties.numberOfSides); // Number of sides
+        n = this.writeByte(dskImg, n, this.physicalProperties.density); // Density
         // Allocation bit map
         this.writeByte(dskImg, 0x38, sectorsPerAU === 1 ? 0x03 : 0x01); // Reserve sectors 0 and 1
         for (let i = 0xEC; i <= 0xFF; i++) { // Unused map entries
@@ -646,7 +654,7 @@ export class DiskImage implements Stateful {
     }
 
     getSectorsPerCluster() {
-        const totalSectors = this.geometry.totalSectors;
+        const totalSectors = this.physicalProperties.totalSectors;
         if (totalSectors <= 3200) {
             return 1;
         }
@@ -657,7 +665,7 @@ export class DiskImage implements Stateful {
     }
 
     getSectorsPerAllocationUnit() {
-        const totalSectors = this.geometry.totalSectors;
+        const totalSectors = this.physicalProperties.totalSectors;
         if (totalSectors < 1600) {
             return 1;
         }

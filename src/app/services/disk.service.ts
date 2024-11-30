@@ -17,6 +17,7 @@ import {BlobReader, BlobWriter, Entry, ZipReader} from "@zip.js/zip.js";
 import {Software} from "../classes/software";
 import {HttpClient} from "@angular/common/http";
 import {Util} from "../classes/util";
+import {SettingsService} from "./settings.service";
 
 @Injectable()
 export class DiskService {
@@ -30,6 +31,7 @@ export class DiskService {
         private eventDispatcherService: EventDispatcherService,
         private objectLoaderService: ObjectLoaderService,
         private databaseService: DatabaseService,
+        private settingsService: SettingsService,
         private httpClient: HttpClient
     ) {
         this.commandDispatcherService.subscribe(this.onCommand.bind(this));
@@ -51,6 +53,11 @@ export class DiskService {
 
     onDiskImageChanged(event: DiskImageEvent) {
        this.eventDispatcherService.diskChanged(event.diskImage);
+       if (event.type === 'PHYSICAL_PROPERTIES_CHANGED' && this.settingsService.getDisk() === 'TIFDC' && event.diskImage) {
+           if (event.diskImage.getPhysicalProperties().totalSectors > 720) {
+               this.log.warn("Disk image too big for the TI Floppy Disk Controller");
+           }
+       }
     }
 
     loadDiskFiles(files: [File], diskDrive: DiskDrive): Observable<DiskImage | null> {
