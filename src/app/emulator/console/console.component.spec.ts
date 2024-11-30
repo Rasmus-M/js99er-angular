@@ -12,7 +12,7 @@ import {DiskImage} from "../classes/disk-image";
 import {Settings} from "../../classes/settings";
 import {Console} from "../interfaces/console";
 import {CPU} from "../interfaces/cpu";
-import {TMS9901} from "../classes/tms9901";
+import {Cru} from "../classes/cru";
 import {DiskDrive} from "../classes/disk-drive";
 import {Keyboard} from "../classes/keyboard";
 import {Memory} from "../classes/memory";
@@ -44,8 +44,8 @@ class ConsoleMock implements Console {
         return new TMS9900(this);
     }
 
-    getCRU(): TMS9901 {
-        return new TMS9901(this);
+    getCRU(): Cru {
+        return new Cru(this);
     }
 
     getDiskDrives(): DiskDrive[] {

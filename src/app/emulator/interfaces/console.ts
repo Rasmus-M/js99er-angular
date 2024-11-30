@@ -7,11 +7,12 @@ import {VDP} from "./vdp";
 import {Tape} from "../classes/tape";
 import {Keyboard} from "../classes/keyboard";
 import {CPU} from "./cpu";
-import {TMS9901} from "../classes/tms9901";
+import {Cru} from "../classes/cru";
 import {TIPI} from "../classes/tipi";
 import {TiFdc} from "../classes/ti-fdc";
 import {GenericFdc} from "../classes/generic-fdc";
 import {GoogleDriveFdc} from "../classes/google-drive-fdc";
+import {Observable} from "rxjs";
 
 export interface Console {
     start(fast: boolean, skipBreakpoint?: boolean): void;
@@ -26,7 +27,7 @@ export interface Console {
     getVDP(): VDP;
     getPSG(): PSG;
     getSpeech(): Speech;
-    getCRU(): TMS9901;
+    getCRU(): Cru;
     getMemory(): Memory;
     getKeyboard(): Keyboard;
     getTape(): Tape;
@@ -40,4 +41,5 @@ export interface Console {
     setVDP(): void;
     setPSG(): void;
     isRunning(): void;
+    getCyclesPassedObservable(): Observable<number>;
 }

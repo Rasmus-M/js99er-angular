@@ -1,6 +1,6 @@
 import {Stateful} from '../interfaces/stateful';
 import {TMS9919} from './tms9919';
-import {TMS9901} from './tms9901';
+import {Cru} from './cru';
 import {Tape} from './tape';
 import {Keyboard} from './keyboard';
 import {TMS5200} from './tms5200';
@@ -29,6 +29,7 @@ import {Forti} from "./forti";
 import {TiFdc} from "./ti-fdc";
 import {GenericFdc} from "./generic-fdc";
 import {GoogleDriveFdc} from "./google-drive-fdc";
+import {Observable, Subject} from "rxjs";
 
 export class TI994A implements Console, Stateful {
 
@@ -46,7 +47,7 @@ export class TI994A implements Console, Stateful {
     private vdp: VDP;
     private psg: PSG;
     private speech: Speech;
-    private tms9901: TMS9901;
+    private cru: Cru;
     private keyboard: Keyboard;
     private tape: Tape;
     private diskDrives: DiskDrive[];
@@ -69,14 +70,16 @@ export class TI994A implements Console, Stateful {
     private fpsFrameCount: number;
     private fpsInterval: number;
     private lastFpsTime: number | null;
+    private cyclesSubject: Subject<number>;
 
     private log: Log;
 
-    constructor(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: DiskImage[], settings: Settings, wasmService: WasmService, onBreakpoint: (cpu: CPU) => void) {
+    constructor(document: Document, canvas: HTMLCanvasElement, diskImages: DiskImage[], settings: Settings, wasmService: WasmService, onBreakpoint: (cpu: CPU) => void) {
         this.document = document;
         this.canvas = canvas;
         this.settings = settings;
         this.wasmService = wasmService;
+        this.cyclesSubject = new Subject<number>();
         this.onBreakpoint = onBreakpoint;
 
         this.assemble(diskImages);
@@ -120,7 +123,7 @@ export class TI994A implements Console, Stateful {
         this.tape = new Tape();
         this.setPSG();
         this.speech = new TMS5200(this.settings.isSpeechEnabled());
-        this.tms9901 = new TMS9901(this);
+        this.cru = new Cru(this);
         this.keyboard = new Keyboard(this.document, this, this.settings);
         this.diskDrives = [
             new DiskDrive("DSK1", diskImages[0]),
@@ -209,8 +212,8 @@ export class TI994A implements Console, Stateful {
         return this.speech;
     }
 
-    getCRU(): TMS9901 {
-        return this.tms9901;
+    getCRU(): Cru {
+        return this.cru;
     }
 
     getMemory(): Memory {
@@ -260,7 +263,7 @@ export class TI994A implements Console, Stateful {
         this.vdp.reset();
         this.psg.reset();
         this.speech.reset();
-        this.tms9901.reset();
+        this.cru.reset();
         this.keyboard.reset();
         this.tape.reset();
         this.tiFdc.reset();
@@ -329,8 +332,6 @@ export class TI994A implements Console, Stateful {
         const cyclesPerScanline = TMS9900.CYCLES_PER_SCANLINE * cpuSpeed;
         const f18ACyclesPerScanline = F18AGPU.CYCLES_PER_SCANLINE;
         let extraCycles = 0;
-        let cruTimerDecrementFrame = TMS9901.TIMER_DECREMENT_PER_FRAME;
-        const cruTimerDecrementScanline = TMS9901.TIMER_DECREMENT_PER_SCANLINE;
         let y = 0;
         this.vdp.initFrame();
         while (cyclesToRun > 0) {
@@ -366,13 +367,9 @@ export class TI994A implements Console, Stateful {
                     this.activeCPU = cpu;
                 }
             }
-            this.tms9901.decrementTimer(cruTimerDecrementScanline);
-            cruTimerDecrementFrame -= cruTimerDecrementScanline;
+            this.cyclesSubject.next(cyclesPerScanline);
             cyclesToRun -= cyclesPerScanline;
             skipBreakpoint = false;
-        }
-        if (cruTimerDecrementFrame >= 1) {
-            this.tms9901.decrementTimer(cruTimerDecrementFrame);
         }
         this.fpsFrameCount++;
         this.frameCount++;
@@ -430,7 +427,7 @@ export class TI994A implements Console, Stateful {
     }
 
     getStatusString(detailed: boolean) {
-        return this.activeCPU.getInternalRegsString(detailed) + " " + this.tms9901.getStatusString(detailed) + "\n" +
+        return this.activeCPU.getInternalRegsString(detailed) + " " + this.cru.getStatusString(detailed) + "\n" +
         this.activeCPU.getRegsStringFormatted(detailed) + this.vdp.getRegsString(detailed) + " " + this.memory.getStatusString(detailed) +
         (detailed ? "\nPSG: " + this.psg.getRegsString(detailed) : "");
     }
@@ -474,11 +471,15 @@ export class TI994A implements Console, Stateful {
         }
     }
 
+    getCyclesPassedObservable(): Observable<number> {
+        return this.cyclesSubject.asObservable();
+    }
+
     getState(): any {
         return {
             cpu: this.cpu.getState(),
             memory: this.memory.getState(),
-            cru: this.tms9901.getState(),
+            cru: this.cru.getState(),
             keyboard: this.keyboard.getState(),
             vdp: this.vdp.getState(),
             psg: this.psg.getState(),
@@ -495,8 +496,8 @@ export class TI994A implements Console, Stateful {
         if (state.memory) {
             this.memory.restoreState(state.memory);
         }
-        if (state.tms9901) {
-            this.tms9901.restoreState(state.tms9901);
+        if (state.cru) {
+            this.cru.restoreState(state.cru);
         }
         if (state.keyboard) {
             this.keyboard.restoreState(state.keyboard);

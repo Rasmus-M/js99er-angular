@@ -1,5 +1,5 @@
 import {VDP} from '../interfaces/vdp';
-import {TMS9901} from './tms9901';
+import {Cru} from './cru';
 import {PSG} from '../interfaces/psg';
 import {TI994A} from './ti994a';
 import {F18AGPU} from './f18a-gpu';
@@ -106,7 +106,7 @@ export class F18A implements VDP {
     private canvasContext: CanvasRenderingContext2D;
     private console: TI994A;
     private psg: PSG;
-    private cru: TMS9901;
+    private cru: Cru;
     private wasmService: WasmService;
 
     // Allocate full 64K, but actually only using 16K VDP RAM + 2K VDP GRAM

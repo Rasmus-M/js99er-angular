@@ -7,10 +7,9 @@ import {Util} from '../../classes/util';
 import {CPU} from '../interfaces/cpu';
 import {Console} from '../interfaces/console';
 
-export class TMS9901 implements Stateful {
+export class Cru implements Stateful {
 
-    static TIMER_DECREMENT_PER_FRAME = 781; // 50000 / 64;
-    static TIMER_DECREMENT_PER_SCANLINE = 2.8503;
+    static TIMER_CYCLES_PER_DECREMENT = 64;
 
     private console: Console;
     private keyboard: Keyboard;
@@ -31,6 +30,15 @@ export class TMS9901 implements Stateful {
 
     constructor(console: Console) {
         this.console = console;
+        this.init();
+    }
+
+    init() {
+        this.console.getCyclesPassedObservable().subscribe(
+            (cycles) => {
+                this.decrementTimer(cycles / Cru.TIMER_CYCLES_PER_DECREMENT)
+            }
+        );
     }
 
     reset() {
@@ -56,6 +64,7 @@ export class TMS9901 implements Stateful {
 
     readBit(addr: number): boolean {
         if (addr < 0x800) {
+            // TMS9901, etc.
             if (this.timerMode && addr < 16) {
                 return this.readBitTimerMode(addr);
             } else {
@@ -84,6 +93,7 @@ export class TMS9901 implements Stateful {
 
     writeBit(addr: number, value: boolean) {
         if (addr < 0x800) {
+            // TMS9901, etc.
             if (this.timerMode && this.writeBitTimerMode(addr, value)) {
                 return;
             }
@@ -204,7 +214,7 @@ export class TMS9901 implements Stateful {
         if (this.clockRegister !== 0) {
             this.decrementer -= value;
             if (this.decrementer <= 0) {
-                this.decrementer = this.clockRegister;
+                this.decrementer += this.clockRegister;
                 // this.log.info("Timer interrupt");
                 this.timerInterrupt = true;
                 this.timerInterruptCount++;

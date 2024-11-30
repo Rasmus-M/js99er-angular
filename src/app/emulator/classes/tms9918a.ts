@@ -1,4 +1,4 @@
-import {TMS9901} from './tms9901';
+import {Cru} from './cru';
 import {Util} from '../../classes/util';
 import {VDP} from '../interfaces/vdp';
 import {CPU} from '../interfaces/cpu';
@@ -26,7 +26,7 @@ export class TMS9918A implements VDP {
 
     private canvas: HTMLCanvasElement;
     private console: Console;
-    private cru: TMS9901;
+    private cru: Cru;
     private wasmService: WasmService;
 
     private ram: Uint8Array; // VDP RAM
