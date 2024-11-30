@@ -6,6 +6,8 @@ import {GFile, GoogleDrive} from "./google-drive";
 import {Console} from "../interfaces/console";
 import {Util} from "../../classes/util";
 import {DiskFile, FixedRecord, VariableRecord} from "./disk-file";
+import {Stateful} from "../interfaces/stateful";
+import {FDC} from "../interfaces/fdc";
 
 export const GOOGLE_DRIVE_FDC_DSR_ROM = [
     0xAA,                           // >4000 Standard header
@@ -50,7 +52,7 @@ export const GOOGLE_DRIVE_FDC_DSR_ROM = [
     0x04, 0x5B                      // >403E B *R11
 ];
 
-export class GoogleDriveFdc {
+export class GoogleDriveFdc implements FDC {
 
     static DSR_ROM_POWER_UP = 0x4032;
     static DSR_ROM_GDR1 = 0x4034;
@@ -83,7 +85,9 @@ export class GoogleDriveFdc {
                 this.executeHooks(pc);
             }
         });
+    }
 
+    reset(): void {
     }
 
     private executeHooks(pc: number): boolean {

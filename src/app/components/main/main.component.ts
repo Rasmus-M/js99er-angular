@@ -317,21 +317,20 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     saveState() {
-        const that = this;
         const database = this.databaseService;
         if (database.isSupported()) {
             database.deleteAllDiskImages().pipe(
-                map(() => that.diskService.saveDiskImages(that.diskImages))
+                map(() => this.diskService.saveDiskImages(this.diskImages))
             ).pipe(
                 map(() => {
-                    that.log.info('Disk images saved OK.');
-                    const diskDrives = that.ti994A.getDiskDrives();
-                    return that.diskService.saveDiskDrives(diskDrives);
+                    this.log.info('Disk images saved OK.');
+                    const diskDrives = this.ti994A.getDiskDrives();
+                    return this.diskService.saveDiskDrives(diskDrives);
                 })
             ).pipe(
                 mergeMap(() => {
-                    that.log.info('Disk drives saved OK.');
-                    const state = that.ti994A.getState();
+                    this.log.info('Disk drives saved OK.');
+                    const state = this.ti994A.getState();
                     return database.putMachineState('ti994a', state);
                 })
             ).subscribe({
@@ -339,7 +338,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.log.info("Machine state saved OK.");
                 },
                 error: (error) => {
-                    that.log.error(error);
+                    this.log.error(error);
                 }
             });
         }

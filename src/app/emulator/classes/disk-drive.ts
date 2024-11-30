@@ -33,12 +33,11 @@ export class DiskDrive implements Stateful {
     getState(): object {
         return {
             name: this.name,
-            diskImage: this.diskImage != null ? this.diskImage.getName() : null
+            diskImage: this.diskImage !== null ? this.diskImage.getName() : null
         };
     }
 
     restoreState(state: any) {
         this.name = state.name;
-        this.diskImage = state.diskImage;
     }
 }

@@ -377,9 +377,37 @@ export class TiFdc implements FDC, Stateful {
     }
 
     getState(): any {
+        return {
+            command: this.command,
+            drive: this.drive,
+            side: this.side,
+            track: this.track,
+            sector: this.sector,
+            direction: this.direction,
+            data: this.data,
+            busy: this.busy,
+            headLoadedRequested: this.headLoadedRequested,
+            headLoaded: this.headLoaded,
+            motorStrobe: this.motorStrobe,
+            readBuffer: this.readBuffer,
+            writeBuffer: this.writeBuffer
+        };
     }
 
     restoreState(state: any): void {
+        this.command = state.command;
+        this.drive = state.drive;
+        this.side = state.side;
+        this.track = state.track;
+        this.sector = state.sector;
+        this.direction = state.direction;
+        this.data = state.data;
+        this.busy = state.busy;
+        this.headLoadedRequested = state.headLoadedRequested;
+        this.headLoaded = state.headLoaded;
+        this.motorStrobe = state.motorStrobe;
+        this.readBuffer = state.readBuffer;
+        this.writeBuffer = state.writeBuffer;
     }
 }
 

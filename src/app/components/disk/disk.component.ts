@@ -8,7 +8,7 @@ import {TI994A} from '../../emulator/classes/ti994a';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {DiskDrive} from '../../emulator/classes/disk-drive';
 import {SelectionModel} from '@angular/cdk/collections';
-import { faHdd, faBan, faSave, faPlus, faDownload, faCaretUp } from '@fortawesome/free-solid-svg-icons';
+import {faBan, faCaretUp, faDownload, faHdd, faPlus, faSave} from '@fortawesome/free-solid-svg-icons';
 import {FileType} from "../../emulator/classes/disk";
 
 @Component({
@@ -80,7 +80,6 @@ export class DiskComponent implements OnInit, OnDestroy {
                 this.updateAllDiskImageDrives();
                 break;
             case ConsoleEventType.DISK_REMOVED:
-                // this.updateAllDiskImageDrives();
                 if (this.deletingDisk) {
                     this.commandDispatcherService.deleteDisk(this.diskImages[this.diskImageIndex]);
                 }
@@ -110,16 +109,7 @@ export class DiskComponent implements OnInit, OnDestroy {
 
     onDiskImageChanged(index: number) {
         this.diskImageIndex = index;
-        const files = [];
-        if (index >= 0) {
-            const filesObject = this.diskImages[index].getFiles();
-            for (const name in filesObject) {
-                if (filesObject.hasOwnProperty(name)) {
-                    files.push(filesObject[name]);
-                }
-            }
-        }
-        this.diskFiles = files;
+        this.diskFiles = index >= 0 ? this.diskImages[index].getFilesArray() : [];
         this.updateAllDiskImageDrives();
     }
 

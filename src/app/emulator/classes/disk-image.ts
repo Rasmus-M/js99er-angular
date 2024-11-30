@@ -42,6 +42,7 @@ export class DiskImage implements Stateful {
     private physicalProperties: PhysicalProperties;
     private binaryImage: Uint8Array | null;
     private eventHandler: null | ((event: DiskImageEvent) => void);
+    private timeout: number;
     private log: Log;
 
     constructor(name: string, eventHandler: null | ((event: DiskImageEvent) => void)) {
@@ -312,7 +313,20 @@ export class DiskImage implements Stateful {
     writeSector(sectorNo: number, data: Uint8Array) {
         const tiDiskImage = this.getBinaryImage();
         const sectorOffset = 256 * sectorNo;
+        this.scheduleFilesUpdate();
         return tiDiskImage.set(data, sectorOffset);
+    }
+
+    scheduleFilesUpdate() {
+        if (this.timeout) {
+            window.clearTimeout(this.timeout);
+        }
+        this.timeout = window.setTimeout(() => {
+            if (this.binaryImage) {
+                this.loadBinaryImage(this.binaryImage);
+            }
+            this.timeout = 0;
+        }, 2000);
     }
 
     getBinaryImage(): Uint8Array {
@@ -714,7 +728,8 @@ export class DiskImage implements Stateful {
         }
         return {
             name: this.name,
-            files: files
+            files: files,
+            binaryImage: this.binaryImage
         };
     }
 
@@ -729,5 +744,6 @@ export class DiskImage implements Stateful {
             }
         }
         this.files = files;
+        this.binaryImage = state.binaryImage;
     }
 }

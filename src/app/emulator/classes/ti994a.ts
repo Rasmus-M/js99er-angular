@@ -483,7 +483,8 @@ export class TI994A implements Console, Stateful {
             vdp: this.vdp.getState(),
             psg: this.psg.getState(),
             speech: this.speech.getState(),
-            tape: this.tape.getState()
+            tape: this.tape.getState(),
+            tiFdc: this.tiFdc.getState()
         };
     }
 
@@ -511,6 +512,9 @@ export class TI994A implements Console, Stateful {
         }
         if (state.tape) {
             this.tape.restoreState(state.tape);
+        }
+        if (state.tiFdc) {
+            this.tiFdc.restoreState(state.tiFdc);
         }
     }
 }

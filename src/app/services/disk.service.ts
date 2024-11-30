@@ -309,13 +309,8 @@ export class DiskService {
             (diskDriveState: any) => {
                 if (diskDriveState) {
                     if (diskDriveState.diskImage) {
-                        let diskImage: DiskImage | null = null;
-                        for (let i = 0; i < diskImages.length && !diskImage; i++) {
-                            if (diskImages[i].getName() === diskDriveState.diskImage) {
-                                diskImage = diskImages[i];
-                            }
-                        }
-                        diskDrive.setDiskImage(diskImage);
+                        const diskImage = diskImages.find(diskImage => diskImage.getName() === diskDriveState.diskImage);
+                        diskDrive.setDiskImage(diskImage || null);
                         this.log.info("Disk image " + diskDrive.getDiskImage()?.getName() + " restored to " + diskDrive.getName() + ".");
                     } else {
                         diskDrive.setDiskImage(null);

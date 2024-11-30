@@ -129,7 +129,7 @@ export const GENERIC_FDC_DSR_ROM: number[] = [
     0x04, 0x5B                      // >409E B *R11
 ];
 
-export class GenericFdc implements FDC, Stateful {
+export class GenericFdc implements FDC {
 
     static DSR_ROM_POWER_UP = 0x406E;
     static DSR_ROM_DSK1 = 0x4070;
@@ -803,11 +803,5 @@ export class GenericFdc implements FDC, Stateful {
             data[n++] = 0;
         }
         return n;
-    }
-
-    getState(): any {
-    }
-
-    restoreState(state: any): void {
     }
 }
