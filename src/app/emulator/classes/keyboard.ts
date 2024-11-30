@@ -2,12 +2,15 @@ import {Joystick} from './joystick';
 import {Stateful} from '../interfaces/stateful';
 import {Settings} from '../../classes/settings';
 import {Key, KeyMapper, TIKey} from "../../classes/key-mapper";
+import {Console} from '../interfaces/console';
+import {Memory} from "./memory";
 
 export class Keyboard implements Stateful {
 
     static readonly KEYPRESS_DURATION = 100;
 
     private document: Document;
+    private console: Console;
     private pcKeyboardEnabled: boolean;
     private mapArrowKeysToFctnSDEX: boolean;
     private mappedArrowKeyPressed: TIKey | null;
@@ -20,6 +23,7 @@ export class Keyboard implements Stateful {
     private keyCode: number;
     private alphaLock: boolean;
     private keyHandles: {[key: string]: number};
+    private pasteToggle: boolean;
     private pasteBuffer: string | null;
     private pasteIndex: number;
 
@@ -27,8 +31,9 @@ export class Keyboard implements Stateful {
     private keyupListener: ((evt: KeyboardEvent) => void) | null;
     private pasteListener: ((evt: ClipboardEvent) => void) | null;
 
-    constructor(document: Document, settings: Settings) {
+    constructor(document: Document, console: Console, settings: Settings) {
         this.document = document;
+        this.console = console;
         this.pcKeyboardEnabled = settings.isPCKeyboardEnabled();
         this.mapArrowKeysToFctnSDEX = settings.isMapArrowKeysEnabled();
         this.mappedArrowKeyPressed = null;
@@ -38,6 +43,13 @@ export class Keyboard implements Stateful {
             this.columns[col] = [];
         }
         this.keyHandles = {};
+        this.console.getCPU().getPcObservable().subscribe(
+            (pc) => {
+                if (pc === 0x478) {
+                    this.pasteHook();
+                }
+            }
+        );
     }
 
     reset() {
@@ -385,6 +397,37 @@ export class Keyboard implements Stateful {
             this.pasteBuffer = null;
         }
         return charCode;
+    }
+
+    pasteHook() {
+        // MOVB R0,@>8375
+        if (!this.pasteToggle) {
+            const memory = this.console.getMemory();
+            const charCode = this.getPasteCharCode();
+            if (charCode !== -1) {
+                const keyboardDevice: number = memory.getPADByte(0x8374);
+                if (keyboardDevice === 0 || keyboardDevice === 5) {
+                    const wp = this.console.getCPU().getWp();
+                    this.writeMemoryByte(memory, wp, charCode); // Set R0
+                    this.writeMemoryByte(memory, wp + 12, memory.getPADByte(0x837c) | 0x20); // Set R6 (status byte)
+                    // Detect Extended BASIC
+                    const groms = memory.getGROMs();
+                    if (groms && groms.length) {
+                        const grom = groms[0];
+                        if (grom.getByte(0x6343) === 0x45 && grom.getByte(0x6344) === 0x58 && grom.getByte(0x6345) === 0x54) {
+                            memory.setPADByte(0x835F, 0x5d); // Max length for BASIC continuously set
+                        }
+                    }
+                }
+                memory.setPADByte(0x837c, memory.getPADByte(0x837c) | 0x20);
+            }
+        }
+        this.pasteToggle = !this.pasteToggle;
+    }
+
+    writeMemoryByte(memory: Memory, addr: number, b: number) {
+        const w = memory.getWord(addr); // Read before write
+        memory.writeWord(addr, (addr & 1) !== 0 ? (w & 0xFF00) | b : (w & 0x00FF) | (b << 8), this.console.getCPU());
     }
 
     getState(): any {

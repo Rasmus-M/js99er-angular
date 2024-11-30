@@ -14,7 +14,6 @@ import {Console} from "../interfaces/console";
 import {CPU} from "../interfaces/cpu";
 import {TMS9901} from "../classes/tms9901";
 import {DiskDrive} from "../classes/disk-drive";
-import {GoogleDrive} from "../classes/googledrive";
 import {Keyboard} from "../classes/keyboard";
 import {Memory} from "../classes/memory";
 import {PSG} from "../interfaces/psg";
@@ -30,6 +29,9 @@ import {TMS5200} from "../classes/tms5200";
 import {TMS9918A} from "../classes/tms9918a";
 import {WasmService} from "../../services/wasm.service";
 import {TiFdc} from "../classes/ti-fdc";
+import {GoogleDrive} from "../classes/google-drive";
+import {GenericFdc} from "../classes/generic-fdc";
+import {GoogleDriveFdc} from "../classes/google-drive-fdc";
 
 class ConsoleMock implements Console {
 
@@ -37,33 +39,43 @@ class ConsoleMock implements Console {
 
     frame(skipBreakpoint?: boolean) {
     }
+
     getCPU(): CPU {
         return new TMS9900(this);
     }
+
     getCRU(): TMS9901 {
         return new TMS9901(this);
     }
+
     getDiskDrives(): DiskDrive[] {
         return [];
     }
+
     getGoogleDrives(): GoogleDrive[] {
         return [];
     }
+
     getKeyboard(): Keyboard {
         return new Keyboard({} as Document, this.settings);
     }
+
     getMemory(): Memory {
         return new Memory(this, this.settings);
     }
+
     getPSG(): PSG {
         return new TMS9919(this.getCPU(), this.getTape());
     }
+
     getSpeech(): Speech {
         return new TMS5200(true);
     }
+
     getTape(): Tape {
         return new Tape();
     }
+
     getVDP(): VDP {
         return new TMS9918A({
             getContext(contextId: "2d", options?: CanvasRenderingContext2DSettings): CanvasRenderingContext2D | null {
@@ -71,33 +83,54 @@ class ConsoleMock implements Console {
             }
         } as HTMLCanvasElement, this, {} as WasmService);
     }
+
     isRunning() {
     }
+
     loadSoftware(software: Software) {
     }
+
     reset(keepCart: boolean) {
     }
+
     setGoogleDrive() {
     }
+
     setVDP() {
     }
+
     setPSG() {
     }
+
     start(fast: boolean, skipBreakpoint?: boolean) {
     }
+
     step() {
     }
+
     stepOver() {
     }
+
     stop() {
     }
+
     getTIPI(): TIPI | null {
         return null;
     }
+
     setTIPI() {
     }
+
     getTiFdc(): TiFdc {
-        return new TiFdc([]);
+        return new TiFdc(this, []);
+    }
+
+    getGenericFdc(): GenericFdc {
+        return new GenericFdc(this, []);
+    }
+
+    getGoogleDrivesFdc(): GoogleDriveFdc {
+        return new GoogleDriveFdc(this, []);
     }
 }
 

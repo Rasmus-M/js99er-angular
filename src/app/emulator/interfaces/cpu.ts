@@ -1,10 +1,12 @@
 import {Stateful} from './stateful';
+import {Observable} from "rxjs";
 
 export interface CPU extends Stateful {
     reset(): void;
     run(cycles: number, skipBreakpoint?: boolean): number;
     getPc(): number;
     setPc(pc: number): void;
+    getWp(): number;
     setWp(number: number): void;
     getCycles(): number;
     addCycles(cycles: number): void;
@@ -21,4 +23,5 @@ export interface CPU extends Stateful {
     getCycleLog(): Int32Array;
     getCycleCount(): { start: number, end: number };
     setCycleCount(start: number, end: number): void;
+    getPcObservable(): Observable<number>;
 }

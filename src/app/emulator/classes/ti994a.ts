@@ -121,7 +121,7 @@ export class TI994A implements Console, Stateful {
         this.setPSG();
         this.speech = new TMS5200(this.settings.isSpeechEnabled());
         this.tms9901 = new TMS9901(this);
-        this.keyboard = new Keyboard(this.document, this.settings);
+        this.keyboard = new Keyboard(this.document, this, this.settings);
         this.diskDrives = [
             new DiskDrive("DSK1", diskImages[0]),
             new DiskDrive("DSK2", diskImages[1]),
@@ -237,7 +237,7 @@ export class TI994A implements Console, Stateful {
         return this.tiFdc;
     }
 
-    getGoogleDrivesFDc(): GoogleDriveFdc {
+    getGoogleDrivesFdc(): GoogleDriveFdc {
         return this.googleFdc;
     }
 

@@ -1,8 +1,8 @@
 import {Log} from '../../classes/log';
 import {VDP} from '../interfaces/vdp';
 import {SAMS} from './sams';
-import {DISK_DSR_ROM} from './generic-fdc';
-import {GDR_DSR_ROM} from './google-drive-fdc';
+import {GENERIC_FDC_DSR_ROM} from './generic-fdc';
+import {GOOGLE_DRIVE_FDC_DSR_ROM} from './google-drive-fdc';
 import {System} from './system';
 import {Util} from '../../classes/util';
 import {CPU} from '../interfaces/cpu';
@@ -14,9 +14,9 @@ import {MemoryDevice} from '../interfaces/memory-device';
 import {MemoryView} from "../../classes/memory-view";
 import {TIPI, TIPI_DSR_ROM} from "./tipi";
 import {Console} from '../interfaces/console';
-import {PCODE_GROM, PCODE_ROM} from "./pcode";
+import {PCODE_GROM, PCODE_DSR_ROM} from "./pcode";
 import {GROMArray} from "./grom-array";
-import {TI_FDC_ROM, TiFdc} from "./ti-fdc";
+import {TI_FDC_DSR_ROM, TiFdc} from "./ti-fdc";
 
 export class Memory implements Stateful, MemoryDevice {
 
@@ -158,10 +158,10 @@ export class Memory implements Stateful, MemoryDevice {
         }
         if (this.disk === 'GENERIC') {
             this.diskROMNumber = romNumber;
-            this.loadPeripheralROM(new Uint8Array(DISK_DSR_ROM), romNumber++);
+            this.loadPeripheralROM(new Uint8Array(GENERIC_FDC_DSR_ROM), romNumber++);
         } else if (this.disk === 'TIFDC') {
             this.diskROMNumber = romNumber;
-            this.loadPeripheralROM(new Uint8Array(TI_FDC_ROM), romNumber++);
+            this.loadPeripheralROM(new Uint8Array(TI_FDC_DSR_ROM), romNumber++);
         }
         if (this.tipiType === 'MOUSE' || this.tipiType === 'FULL' && this.disk === 'TIFDC') {
             this.tipiROMNumber = romNumber;
@@ -169,11 +169,11 @@ export class Memory implements Stateful, MemoryDevice {
         }
         if (this.settings.isGoogleDriveEnabled()) {
             this.gdrROMNumber = romNumber;
-            this.loadPeripheralROM(new Uint8Array(GDR_DSR_ROM), romNumber++);
+            this.loadPeripheralROM(new Uint8Array(GOOGLE_DRIVE_FDC_DSR_ROM), romNumber++);
         }
         if (this.pCodeEnabled) {
             this.pCodeROMNumber = 15;
-            this.loadPeripheralROM(new Uint8Array(PCODE_ROM), this.pCodeROMNumber);
+            this.loadPeripheralROM(new Uint8Array(PCODE_DSR_ROM), this.pCodeROMNumber);
         }
         this.buildMemoryMap();
     }

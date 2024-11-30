@@ -10,6 +10,125 @@ import {VDP} from "../interfaces/vdp";
 import {FDC} from "../interfaces/fdc";
 import {Stateful} from "../interfaces/stateful";
 
+export const GENERIC_FDC_DSR_ROM: number[] = [
+    0xAA,                           // >4000 Standard header
+    0x01,                           // >4001 Version
+    0x00,                           // >4002 No programs allowed in peripheral card ROMs
+    0x00,                           // >4003 Not used
+    0x40, 0x10,                     // >4004 Pointer to power-up list
+    0x00, 0x00,                     // >4006 Pointer to program list
+    0x40, 0x14,                     // >4008 Pointer to DSR list
+    0x40, 0x3A,                     // >400A Pointer to subprogram list
+    0x00, 0x00,                     // >400C Pointer to ISR list
+    0x00, 0x00,                     // >400E Pointer to ?
+    // Power-up list
+    0x00, 0x00,                     // >4010 Link to next power-up routine (no more)
+    0x40, 0x6E,                     // >4012 Address of this power-up routine
+    // DSR list
+    // DSK1
+    0x40, 0x1E,                     // >4014 Link to next DSR
+    0x40, 0x70,                     // >4016 Address of this DSR
+    0x04,                           // >4018 Name length
+    0x44, 0x53, 0x4B, 0x31,         // >4019 Name "DSK1"
+    0x00,                           // >401D Align to word
+    // DSK2
+    0x40, 0x28,                     // >401E Link to next DSR
+    0x40, 0x74,                     // >4020 Address of this DSR
+    0x04,                           // >4022 Name length
+    0x44, 0x53, 0x4B, 0x32,         // >4023 Name "DSK2"
+    0x00,                           // >4027 Align to word
+    // DSK3
+    0x40, 0x32,                     // >4028 Link to next DSR
+    0x40, 0x78,                     // >402A Address of this DSR
+    0x04,                           // >402C Name length
+    0x44, 0x53, 0x4B, 0x33,         // >402D Name "DSK3"
+    0x00,                           // >4031 Align to word
+    // DSK
+    0x00, 0x00,                     // >4032 Link to next DSR (no more)
+    0x40, 0x7C,                     // >4034 Address of this DSR
+    0x03,                           // >4036 Name length
+    0x44, 0x53, 0x4B,               // >4037 Name "DSK"
+    // Subprogram list
+    // FILES
+    0x40, 0x44,                     // >403A Link to next subprogram
+    0x40, 0x80,                     // >403C Address of FILES subprogram
+    0x05,                           // >403E Name length
+    0x46, 0x49, 0x4C, 0x45, 0x53,   // >403F Name "FILES"
+    // >10
+    0x40, 0x4A,                     // >4044 Link to next subprogram
+    0x40, 0x84,                     // >4046 Address of >10 subprogram
+    0x01,                           // >4048 Name length
+    0x10,                           // >4049 Name >10
+    // >11
+    0x40, 0x50,                     // >404A Link to next subprogram
+    0x40, 0x88,                     // >404C Address of >11 subprogram
+    0x01,                           // >405E Name length
+    0x11,                           // >405F Name >11
+    // >12
+    0x40, 0x56,                     // >4050 Link to next subprogram
+    0x40, 0x8C,                     // >4052 Address of >12 subprogram
+    0x01,                           // >4054 Name length
+    0x12,                           // >4055 Name >12
+    // >13
+    0x40, 0x5C,                     // >4056 Link to next subprogram
+    0x40, 0x90,                     // >4058 Address of >13 subprogram
+    0x01,                           // >405A Name length
+    0x13,                           // >405B Name >13
+    // >14
+    0x40, 0x62,                     // >405C Link to next subprogram
+    0x40, 0x94,                     // >405E Address of >14 subprogram
+    0x01,                           // >4060 Name length
+    0x14,                           // >4061 Name >14
+    // >15
+    0x40, 0x68,                     // >4062 Link to next subprogram
+    0x40, 0x98,                     // >4064 Address of >15 subprogram
+    0x01,                           // >4066 Name length
+    0x15,                           // >4067 Name >15
+    // >16
+    0x00, 0x00,                     // >4068 Link to next subprogram (no more)
+    0x40, 0x9C,                     // >406A Address of >16 subprogram
+    0x01,                           // >406C Name length
+    0x16,                           // >406D Name >16
+    // Power-up routine
+    0x04, 0x5B,                     // >406E B *R11
+    // DSK1 routine
+    0x05, 0xCB,                     // >4070 INCT R11
+    0x04, 0x5B,                     // >4072 B *R11
+    // DSK2 routine
+    0x05, 0xCB,                     // >4074 INCT R11
+    0x04, 0x5B,                     // >4076 B *R11
+    // DSK3 routine
+    0x05, 0xCB,                     // >4078 INCT R11
+    0x04, 0x5B,                     // >407A B *R11
+    // DSK routine
+    0x05, 0xCB,                     // >407C INCT R11
+    0x04, 0x5B,                     // >407E B *R11
+    // FILES subprogram
+    0x05, 0xCB,                     // >4080 INCT R11
+    0x04, 0x5B,                     // >4082 B *R11
+    // >10 subprogram
+    0x05, 0xCB,                     // >4084 INCT R11
+    0x04, 0x5B,                     // >4086 B *R11
+    // >11 subprogram
+    0x05, 0xCB,                     // >4088 INCT R11
+    0x04, 0x5B,                     // >408A B *R11
+    // >12 subprogram
+    0x05, 0xCB,                     // >408C INCT R11
+    0x04, 0x5B,                     // >408E B *R11
+    // >13 subprogram
+    0x05, 0xCB,                     // >4090 INCT R11
+    0x04, 0x5B,                     // >4092 B *R11
+    // >14 subprogram
+    0x05, 0xCB,                     // >4094 INCT R11
+    0x04, 0x5B,                     // >4096 B *R11
+    // >15 subprogram
+    0x05, 0xCB,                     // >4098 INCT R11
+    0x04, 0x5B,                     // >409A B *R11
+    // >16 subprogram
+    0x05, 0xCB,                     // >409C INCT R11
+    0x04, 0x5B                      // >409E B *R11
+];
+
 export class GenericFdc implements FDC, Stateful {
 
     static DSR_ROM_POWER_UP = 0x406E;
@@ -38,13 +157,22 @@ export class GenericFdc implements FDC, Stateful {
         private diskDrives: DiskDrive[]
     ) {
         this.memory = console.getMemory();
+        this.init();
     }
 
-    public execute(pc: number) {
+    init() {
+        this.console.getCPU().getPcObservable().subscribe((pc) => {
+            if (this.memory.isDiskROMEnabled() && this.memory.getDisk() === 'GENERIC' && pc >= GenericFdc.DSR_HOOK_START && pc <= GenericFdc.DSR_HOOK_END) {
+                this.executeHooks(pc);
+            }
+        });
+    }
+
+    private executeHooks(pc: number) {
         const diskDrives = this.diskDrives;
         let status = 0;
         let drive = 0;
-        // Log.getLog().info("Executing DSR at PC=" + Util.toHexWord(pc) + ".");
+        // this.log.info("Executing DSR at PC=" + Util.toHexWord(pc));
         switch (pc) {
             case GenericFdc.DSR_ROM_POWER_UP:
                 this.powerUp();
@@ -77,13 +205,13 @@ export class GenericFdc implements FDC, Stateful {
                 }
                 break;
             case GenericFdc.DSR_ROM_FORMAT_DISK_11:
-                Log.getLog().warn("Subprogram >11: Format Disk not implemented.");
+                this.log.warn("Subprogram >11: Format Disk not implemented");
                 break;
             case GenericFdc.DSR_ROM_FILE_PROTECTION_12:
-                Log.getLog().warn("Subprogram >12: File Protection not implemented.");
+                this.log.warn("Subprogram >12: File Protection not implemented");
                 break;
             case GenericFdc.DSR_ROM_RENAME_FILE_13:
-                Log.getLog().warn("Subprogram >13: Rename File not implemented.");
+                this.log.warn("Subprogram >13: Rename File not implemented");
                 break;
             case GenericFdc.DSR_ROM_FILE_INPUT_14:
                 drive = this.memory.getPADByte(0x834C) - 1;
@@ -92,20 +220,20 @@ export class GenericFdc implements FDC, Stateful {
                 }
                 break;
             case GenericFdc.DSR_ROM_FILE_OUTPUT_15:
-                Log.getLog().warn("Subprogram >15: File Output not implemented.");
+                this.log.warn("Subprogram >15: File Output not implemented");
                 break;
             case GenericFdc.DSR_ROM_FILES_16:
                 this.setFiles(this.memory.getPADByte(0x834C));
                 break;
             default:
-                // Log.getLog().warn("Subprogram at " + Util.toHexWord(pc) + " not found.");
+                // this.log.warn("Subprogram at " + Util.toHexWord(pc) + " not found");
                 break;
         }
         this.memory.setPADByte(0x837C, this.memory.getPADByte(0x837C) | status);
     }
 
     public powerUp() {
-        Log.getLog().info("Executing disk DSR power-up routine.");
+        this.log.info("Executing disk DSR power-up routine");
         this.setFiles(3);
     }
 
@@ -142,7 +270,7 @@ export class GenericFdc implements FDC, Stateful {
         if (nFiles === -1) {
             nFiles = 3;
         }
-        Log.getLog().info("Executing disk DSR FILES routine (n = " + nFiles + ").");
+        this.log.info("Executing disk DSR FILES routine (n = " + nFiles + ")");
         if (nFiles > 0) {
             let newTop = 0x3def - (256 + 256 + 6) * nFiles - 5 - 1;
             this.memory.setPADWord(0x8370, newTop);
@@ -162,7 +290,7 @@ export class GenericFdc implements FDC, Stateful {
     }
 
     private dsrRoutine(diskDrive: DiskDrive, pabAddr: number, checkDiskName: boolean): number {
-        this.log.info("Executing DSR routine for " + diskDrive.getName() + ", PAB in " + Util.toHexWord(pabAddr) + ".");
+        this.log.info("Executing DSR routine for " + diskDrive.getName() + ", PAB in " + Util.toHexWord(pabAddr));
         const vdp = this.console.getVDP();
         const opCode = vdp.getByte(pabAddr);
         const flagStatus = vdp.getByte(pabAddr + 1);
@@ -329,7 +457,7 @@ export class GenericFdc implements FDC, Stateful {
                                     errorCode = DiskError.ILLEGAL_OPERATION;
                                 }
                             } else {
-                                this.log.info("EOF - closing file.");
+                                this.log.info("EOF - closing file");
                                 file.close();
                                 errorCode = DiskError.READ_PAST_END;
                             }
@@ -539,7 +667,7 @@ export class GenericFdc implements FDC, Stateful {
                 memory.setPADWord(0x8350, 0);
             } else {
                 // Write not implemented:
-                this.log.warn("Sector write not implemented.");
+                this.log.warn("Sector write not implemented");
             }
         }
     }
@@ -570,7 +698,7 @@ export class GenericFdc implements FDC, Stateful {
                         }
                     }
                 } else {
-                    this.log.warn("File input only implemented for program files.");
+                    this.log.warn("File input only implemented for program files");
                 }
                 memory.setPADByte(0x834c, 0);
                 memory.setPADByte(0x834d, sectors);
@@ -683,122 +811,3 @@ export class GenericFdc implements FDC, Stateful {
     restoreState(state: any): void {
     }
 }
-
-export const DISK_DSR_ROM: number[] = [
-    0xAA,                           // >4000 Standard header
-    0x01,                           // >4001 Version
-    0x00,                           // >4002 No programs allowed in peripheral card ROMs
-    0x00,                           // >4003 Not used
-    0x40, 0x10,                     // >4004 Pointer to power-up list
-    0x00, 0x00,                     // >4006 Pointer to program list
-    0x40, 0x14,                     // >4008 Pointer to DSR list
-    0x40, 0x3A,                     // >400A Pointer to subprogram list
-    0x00, 0x00,                     // >400C Pointer to ISR list
-    0x00, 0x00,                     // >400E Pointer to ?
-    // Power-up list
-    0x00, 0x00,                     // >4010 Link to next power-up routine (no more)
-    0x40, 0x6E,                     // >4012 Address of this power-up routine
-    // DSR list
-    // DSK1
-    0x40, 0x1E,                     // >4014 Link to next DSR
-    0x40, 0x70,                     // >4016 Address of this DSR
-    0x04,                           // >4018 Name length
-    0x44, 0x53, 0x4B, 0x31,         // >4019 Name "DSK1"
-    0x00,                           // >401D Align to word
-    // DSK2
-    0x40, 0x28,                     // >401E Link to next DSR
-    0x40, 0x74,                     // >4020 Address of this DSR
-    0x04,                           // >4022 Name length
-    0x44, 0x53, 0x4B, 0x32,         // >4023 Name "DSK2"
-    0x00,                           // >4027 Align to word
-    // DSK3
-    0x40, 0x32,                     // >4028 Link to next DSR
-    0x40, 0x78,                     // >402A Address of this DSR
-    0x04,                           // >402C Name length
-    0x44, 0x53, 0x4B, 0x33,         // >402D Name "DSK3"
-    0x00,                           // >4031 Align to word
-    // DSK
-    0x00, 0x00,                     // >4032 Link to next DSR (no more)
-    0x40, 0x7C,                     // >4034 Address of this DSR
-    0x03,                           // >4036 Name length
-    0x44, 0x53, 0x4B,               // >4037 Name "DSK"
-    // Subprogram list
-    // FILES
-    0x40, 0x44,                     // >403A Link to next subprogram
-    0x40, 0x80,                     // >403C Address of FILES subprogram
-    0x05,                           // >403E Name length
-    0x46, 0x49, 0x4C, 0x45, 0x53,   // >403F Name "FILES"
-    // >10
-    0x40, 0x4A,                     // >4044 Link to next subprogram
-    0x40, 0x84,                     // >4046 Address of >10 subprogram
-    0x01,                           // >4048 Name length
-    0x10,                           // >4049 Name >10
-    // >11
-    0x40, 0x50,                     // >404A Link to next subprogram
-    0x40, 0x88,                     // >404C Address of >11 subprogram
-    0x01,                           // >405E Name length
-    0x11,                           // >405F Name >11
-    // >12
-    0x40, 0x56,                     // >4050 Link to next subprogram
-    0x40, 0x8C,                     // >4052 Address of >12 subprogram
-    0x01,                           // >4054 Name length
-    0x12,                           // >4055 Name >12
-    // >13
-    0x40, 0x5C,                     // >4056 Link to next subprogram
-    0x40, 0x90,                     // >4058 Address of >13 subprogram
-    0x01,                           // >405A Name length
-    0x13,                           // >405B Name >13
-    // >14
-    0x40, 0x62,                     // >405C Link to next subprogram
-    0x40, 0x94,                     // >405E Address of >14 subprogram
-    0x01,                           // >4060 Name length
-    0x14,                           // >4061 Name >14
-    // >15
-    0x40, 0x68,                     // >4062 Link to next subprogram
-    0x40, 0x98,                     // >4064 Address of >15 subprogram
-    0x01,                           // >4066 Name length
-    0x15,                           // >4067 Name >15
-    // >16
-    0x00, 0x00,                     // >4068 Link to next subprogram (no more)
-    0x40, 0x9C,                     // >406A Address of >16 subprogram
-    0x01,                           // >406C Name length
-    0x16,                           // >406D Name >16
-    // Power-up routine
-    0x04, 0x5B,                     // >406E B *R11
-    // DSK1 routine
-    0x05, 0xCB,                     // >4070 INCT R11
-    0x04, 0x5B,                     // >4072 B *R11
-    // DSK2 routine
-    0x05, 0xCB,                     // >4074 INCT R11
-    0x04, 0x5B,                     // >4076 B *R11
-    // DSK3 routine
-    0x05, 0xCB,                     // >4078 INCT R11
-    0x04, 0x5B,                     // >407A B *R11
-    // DSK routine
-    0x05, 0xCB,                     // >407C INCT R11
-    0x04, 0x5B,                     // >407E B *R11
-    // FILES subprogram
-    0x05, 0xCB,                     // >4080 INCT R11
-    0x04, 0x5B,                     // >4082 B *R11
-    // >10 subprogram
-    0x05, 0xCB,                     // >4084 INCT R11
-    0x04, 0x5B,                     // >4086 B *R11
-    // >11 subprogram
-    0x05, 0xCB,                     // >4088 INCT R11
-    0x04, 0x5B,                     // >408A B *R11
-    // >12 subprogram
-    0x05, 0xCB,                     // >408C INCT R11
-    0x04, 0x5B,                     // >408E B *R11
-    // >13 subprogram
-    0x05, 0xCB,                     // >4090 INCT R11
-    0x04, 0x5B,                     // >4092 B *R11
-    // >14 subprogram
-    0x05, 0xCB,                     // >4094 INCT R11
-    0x04, 0x5B,                     // >4096 B *R11
-    // >15 subprogram
-    0x05, 0xCB,                     // >4098 INCT R11
-    0x04, 0x5B,                     // >409A B *R11
-    // >16 subprogram
-    0x05, 0xCB,                     // >409C INCT R11
-    0x04, 0x5B                      // >409E B *R11
-];

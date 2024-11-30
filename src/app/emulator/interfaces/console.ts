@@ -33,7 +33,7 @@ export interface Console {
     getDiskDrives(): DiskDrive[];
     getGenericFdc(): GenericFdc;
     getTiFdc(): TiFdc;
-    getGoogleDrivesFDc(): GoogleDriveFdc;
+    getGoogleDrivesFdc(): GoogleDriveFdc;
     setGoogleDrive(): void;
     getTIPI(): TIPI | null;
     setTIPI(): void;

@@ -7,7 +7,7 @@ import {Console} from "../interfaces/console";
 import {Util} from "../../classes/util";
 import {DiskFile, FixedRecord, VariableRecord} from "./disk-file";
 
-export const GDR_DSR_ROM = [
+export const GOOGLE_DRIVE_FDC_DSR_ROM = [
     0xAA,                           // >4000 Standard header
     0x01,                           // >4001 Version
     0x00,                           // >4002 No programs allowed in peripheral card ROMs
@@ -74,15 +74,29 @@ export class GoogleDriveFdc {
         private googleDrives: GoogleDrive[]
     ) {
         this.memory = console.getMemory();
+        this.init();
     }
 
-    public execute(pc: number, callback: (value: boolean) => void): boolean {
+    init() {
+        this.console.getCPU().getPcObservable().subscribe((pc) => {
+            if (this.memory.isGoogleDriveROMEnabled() && pc >= GoogleDriveFdc.DSR_HOOK_START && pc <= GoogleDriveFdc.DSR_HOOK_END) {
+                this.executeHooks(pc);
+            }
+        });
+
+    }
+
+    private executeHooks(pc: number): boolean {
         this.ram = this.console.getVDP().getRAM();
         let googleDrive: GoogleDrive | null = null;
         switch (pc) {
             case GoogleDriveFdc.DSR_ROM_POWER_UP:
-                this.powerUp(callback);
-                return true; // Suspend CPU until callback
+                this.powerUp((result) => {
+                    this.console.getCPU().setSuspended(false);
+                });
+                // Suspend CPU until callback
+                this.console.getCPU().setSuspended(true);
+                return true;
             case GoogleDriveFdc.DSR_ROM_GDR1:
                 googleDrive = this.googleDrives[0];
                 break;
@@ -93,7 +107,7 @@ export class GoogleDriveFdc {
                 googleDrive = this.googleDrives[2];
                 break;
             default:
-                return false; // Continue
+                return false;
         }
         if (googleDrive !== null) {
             const pabAddr = this.memory.getPADWord(0x8356) - 14;
@@ -104,33 +118,34 @@ export class GoogleDriveFdc {
                     fdc.log.info("Returned error code: " + errorCode + "\n");
                     fdc.ram[pabAddr + 1] = (this.ram[pabAddr + 1] | (errorCode << 5)) & 0xFF;
                     fdc.memory.setPADByte(0x837C, this.memory.getPADByte(0x837C) | status);
-                    callback(true); // Resume CPU
+                    fdc.console.getCPU().setSuspended(false);
                 });
+                // Suspend CPU until callback
+                fdc.console.getCPU().setSuspended(true);
+                return true;
             } else {
                 fdc.log.warn("Not signed in to Google");
                 fdc.log.info("Failed opcode: " + opCode);
                 fdc.ram[pabAddr + 1] = (this.ram[pabAddr + 1] | (DiskError.DEVICE_ERROR << 5)) & 0xFF;
                 fdc.memory.setPADByte(0x837C, this.memory.getPADByte(0x837C) | 0x20);
-                callback(false); // Resume CPU
             }
-            return true; // Suspend CPU until callback
         }
-        return false; // Continue
+        return false;
     }
 
     private powerUp(callback: (result: boolean) => void) {
-        const log = Log.getLog();
-        log.info("Executing Google Drive DSR power-up routine.");
+        const log = this.log;
+        log.info("Executing Google Drive DSR power-up routine");
         gapi.load("client:auth2", () => {
             log.info("Google library loaded");
             gapi.client.init({
                 clientId: GoogleDriveFdc.CLIENT_ID,
                 scope: GoogleDriveFdc.SCOPES
             }).then(() => {
-                log.info("Google client init OK");
+                log.info("Google client initialized");
                 const authInstance = gapi.auth2.getAuthInstance();
                 if (authInstance.isSignedIn.get()) {
-                    log.info("Already signed in.");
+                    log.info("Already signed in");
                     this.authorized = true;
                     callback(true);
                 } else {
@@ -145,7 +160,7 @@ export class GoogleDriveFdc {
         });
     }
 
-    private dsrRoutine(googleDrive: GoogleDrive, pabAddr: number, callback: (statuc: number, error: DiskError) => void) {
+    private dsrRoutine(googleDrive: GoogleDrive, pabAddr: number, callback: (status: number, error: DiskError) => void) {
         this.log.info("Executing DSR routine for " + googleDrive.getName() + ", PAB in " + Util.toHexWord(pabAddr) + ".");
         const opCode = this.ram[pabAddr];
         const flagStatus = this.ram[pabAddr + 1];

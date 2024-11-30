@@ -1,14 +1,11 @@
 import {TMS9901} from './tms9901';
 import {Util} from '../../classes/util';
-import {Keyboard} from './keyboard';
 import {Memory} from './memory';
 import {CPU} from '../interfaces/cpu';
 import {Opcode} from "../../classes/opcode";
 import {Disassembler} from "../../classes/disassembler";
 import {CPUCommon} from "./cpu-common";
 import {Console} from "../interfaces/console";
-import {GenericFdc} from "./generic-fdc";
-import {GoogleDriveFdc} from "./google-drive-fdc";
 
 export class TMS9900 extends CPUCommon implements CPU {
 
@@ -19,14 +16,10 @@ export class TMS9900 extends CPUCommon implements CPU {
     private console: Console;
     private memory: Memory;
     private cru: TMS9901;
-    private keyboard: Keyboard;
-    private genericFdc: GenericFdc;
-    private googleDrivesFdc: GoogleDriveFdc;
 
     // Misc
     private suspended: boolean;
     private profile: Uint32Array;
-    private pasteToggle: boolean;
     private countStart: number;
     private maxCount: number;
     private disassembler: Disassembler;
@@ -47,9 +40,6 @@ export class TMS9900 extends CPUCommon implements CPU {
     reset() {
         this.memory = this.console.getMemory();
         this.cru = this.console.getCRU();
-        this.keyboard = this.console.getKeyboard();
-        this.genericFdc = this.console.getGenericFdc();
-        this.googleDrivesFdc = this.console.getGoogleDrivesFDc();
 
         this.pc = 0;
         this.wp = 0;
@@ -72,7 +62,6 @@ export class TMS9900 extends CPUCommon implements CPU {
         this.log.info("PC reset to " + Util.toHexWord(this.pc));
 
         this.suspended = false;
-        this.pasteToggle = false;
 
         this.disassembler.setMemory(this.console.getMemory());
         this.cycleLog = new Int32Array(0x10000);
@@ -95,8 +84,8 @@ export class TMS9900 extends CPUCommon implements CPU {
                 cyclesToRun = -1;
             } else {
                 // Execute instruction
-                this.executeHooks();
-                const tmpPC = this.getPc();
+                this.pcSubject.next(this.pc);
+                const tmpPC = this.pc;
                 const tmpCycles = this.getCycles();
                 const instruction = this.readMemoryWord(this.pc);
                 this.inctPc();
@@ -146,51 +135,6 @@ export class TMS9900 extends CPUCommon implements CPU {
             }
             this.illegalCount++;
             return 10;
-        }
-    }
-
-    executeHooks() {
-        if (this.pc >= 0x4000 && this.pc < 0x6000) {
-            // Hook into disk DSR
-            if (this.memory.isDiskROMEnabled() && this.memory.getDisk() === 'GENERIC') {
-                if (this.pc >= GenericFdc.DSR_HOOK_START && this.pc <= GenericFdc.DSR_HOOK_END) {
-                    this.genericFdc.execute(this.pc);
-                }
-            } else if (this.memory.isGoogleDriveROMEnabled()) {
-                if (this.pc >= GoogleDriveFdc.DSR_HOOK_START && this.pc <= GoogleDriveFdc.DSR_HOOK_END) {
-                    if (this.googleDrivesFdc.execute(this.pc, (success: boolean) => {
-                        this.log.debug("CPU resumed, success=" + success);
-                        this.setSuspended(false);
-                    })) {
-                        // A return value of true means an asynchronous action is taking place
-                        // We need to suspend and wait for the callback
-                        this.log.debug("CPU suspended");
-                        this.setSuspended(true);
-                    }
-                }
-            }
-        } else if (this.pc === 0x478) {
-            // MOVB R0,@>8375
-            if (!this.pasteToggle) {
-                const charCode = this.keyboard.getPasteCharCode();
-                if (charCode !== -1) {
-                    const keyboardDevice: number = this.memory.getPADByte(0x8374);
-                    if (keyboardDevice === 0 || keyboardDevice === 5) {
-                        this.writeMemoryByte(this.wp, charCode); // Set R0
-                        this.writeMemoryByte(this.wp + 12, this.memory.getPADByte(0x837c) | 0x20); // Set R6 (status byte)
-                        // Detect Extended BASIC
-                        const groms = this.memory.getGROMs();
-                        if (groms && groms.length) {
-                            const grom = groms[0];
-                            if (grom.getByte(0x6343) === 0x45 && grom.getByte(0x6344) === 0x58 && grom.getByte(0x6345) === 0x54) {
-                                this.memory.setPADByte(0x835F, 0x5d); // Max length for BASIC continuously set
-                            }
-                        }
-                    }
-                    this.memory.setPADByte(0x837c, this.memory.getPADByte(0x837c) | 0x20);
-                }
-            }
-            this.pasteToggle = !this.pasteToggle;
         }
     }
 

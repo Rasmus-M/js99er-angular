@@ -146,7 +146,7 @@ export class Tape implements Stateful {
     }
 
     setMotorOn(value: boolean) {
-        this.log.info("Cassette motor " + (value ? "on" : "off"));
+        // this.log.info("Cassette motor " + (value ? "on" : "off"));
         this.motorOn = value;
         this.recording = this.recordPressed;
         this.playing = this.playPressed;

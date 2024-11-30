@@ -48,7 +48,7 @@ export class Database {
             };
 
             request.onsuccess = () => {
-                this.log.info("Database opened OK.");
+                this.log.info("Database opened successfully");
                 this.db = request.result as IDBDatabase;
                 if (callback) { callback(true); }
             };
@@ -61,7 +61,7 @@ export class Database {
 
             return true;
         } else {
-            this.log.warn("IndexedDB not supported by this browser.");
+            this.log.warn("IndexedDB not supported by this browser");
             return false;
         }
     }

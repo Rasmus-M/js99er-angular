@@ -2,9 +2,11 @@ import {Decoder} from "../../classes/decoder";
 import {Util} from "../../classes/util";
 import {Opcode} from "../../classes/opcode";
 import {Log} from "../../classes/log";
+import {Observable, Subject} from "rxjs";
+import {CPU} from "../interfaces/cpu";
 
 // Based on code from Classic99
-export abstract class CPUCommon {
+export abstract class CPUCommon implements CPU {
 
     // Internal registers
     protected pc: number;
@@ -123,7 +125,26 @@ export abstract class CPUCommon {
     protected auxBreakpoint: number | null;
     protected stoppedAtBreakpoint: boolean;
     protected tracing: boolean;
+    protected pcSubject = new Subject<number>();
     protected log = Log.getLog();
+
+    abstract reset(): void;
+
+    abstract isIdle(): boolean;
+
+    abstract isSuspended(): boolean;
+
+    abstract setSuspended(suspended: boolean): void;
+
+    abstract run(cycles: number, skipBreakpoint?: boolean): number;
+
+    abstract setTracing(tracing: boolean): void;
+
+    abstract dumpProfile(): void;
+
+    getPcObservable(): Observable<number> {
+        return this.pcSubject.asObservable();
+    }
 
     // Build the word status lookup table
     buildWStatusLookupTable() {
@@ -185,11 +206,11 @@ export abstract class CPUCommon {
     }
 
     inctPc() {
-        this.pc = (this.pc + 2) & 0xFFFE;
+        this.setPc(this.pc + 2);
     }
 
     addPc(value: number) {
-        this.pc = (this.pc + value) & 0xFFFE;
+        this.setPc(this.pc + value);
     }
 
     getWp(): number {
@@ -1431,11 +1452,7 @@ export abstract class CPUCommon {
         return this.pc === this.breakpoint || this.pc === this.auxBreakpoint;
     }
 
-    logRegs() {
-        this.log.info(this.getRegsString() + this.getInternalRegsString(false));
-    }
-
-    getCycleLog() {
+    getCycleLog(): Int32Array {
         return this.cycleLog;
     }
 
@@ -1455,18 +1472,6 @@ export abstract class CPUCommon {
         return "PC :" + Util.toHexWord(this.pc) + " WP :" + Util.toHexWord(this.wp) + " ST :" + Util.toHexWord(this.st) +
             ((this.st & 0x8000) ? ' L>' : '   ') + ((this.st & 0x4000) ? ' A>' : '   ') + ((this.st & 0x2000) ? ' EQ' : '   ') + ((this.st & 0x1000) ? ' C' : '  ') +
             ((this.st & 0x0800) ? ' OV' : '   ') + ((this.st & 0x0400) ? ' OP' : '   ') + ((this.st & 0x0200) ? ' X' : '  ');
-    }
-
-    getRegsString(): string {
-        let s = "";
-        for (let i = 0; i < 16; i++) {
-            s += "R" + i + ":" + Util.toHexWord(this.getReg(i)) + " ";
-        }
-        return s;
-    }
-
-    getReg(i: number): number {
-        return this.getMemoryWord(this.wp + 2 * i);
     }
 
     getRegsStringFormatted(detailed: boolean): string {
