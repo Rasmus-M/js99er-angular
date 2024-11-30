@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, ElementRef, Input, NgZone, OnDestroy, OnInit} from '@angular/core';
-import {DiskImage} from '../classes/diskimage';
+import {DiskImage} from '../classes/disk-image';
 import {Setting} from '../../classes/settings';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {Subscription} from 'rxjs';
@@ -10,7 +10,7 @@ import {DiskService} from '../../services/disk.service';
 import {SettingsService} from '../../services/settings.service';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {CPU} from '../interfaces/cpu';
-import {DiskDrive} from '../classes/diskdrive';
+import {DiskDrive} from '../classes/disk-drive';
 import {Tape} from '../classes/tape';
 import {Software} from '../../classes/software';
 import {ConsoleFactoryService} from "../services/console-factory.service";

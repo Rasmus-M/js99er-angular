@@ -1,8 +1,8 @@
 import {Injectable} from '@angular/core';
 import {Observable, Subject, Subscription} from 'rxjs';
-import {ConsoleEvent, ConsoleEventType} from '../classes/consoleevent';
-import {DiskImage} from '../emulator/classes/diskimage';
-import {DiskDrive} from '../emulator/classes/diskdrive';
+import {ConsoleEvent, ConsoleEventType} from '../classes/console-event';
+import {DiskImage} from '../emulator/classes/disk-image';
+import {DiskDrive} from '../emulator/classes/disk-drive';
 import {Console} from "../emulator/interfaces/console";
 
 @Injectable({

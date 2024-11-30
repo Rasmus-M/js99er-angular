@@ -2,7 +2,7 @@ import {TMS9901} from './tms9901';
 import {Util} from '../../classes/util';
 import {VDP} from '../interfaces/vdp';
 import {CPU} from '../interfaces/cpu';
-import {MemoryView} from "../../classes/memoryview";
+import {MemoryView} from "../../classes/memory-view";
 import {WasmService} from "../../services/wasm.service";
 import {Console} from '../interfaces/console';
 import {VDPType} from "../../classes/settings";

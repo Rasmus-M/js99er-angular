@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {SettingsService} from '../../services/settings.service';
-import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
+import {ConsoleEvent, ConsoleEventType} from '../../classes/console-event';
 import {CommandDispatcherService} from "../../services/command-dispatcher.service";
 import {RAMType, PSGType, TIPIType, VDPType, DiskType} from "../../classes/settings";
 import {EventDispatcherService} from "../../services/event-dispatcher.service";

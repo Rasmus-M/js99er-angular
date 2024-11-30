@@ -1,5 +1,5 @@
 import {Software} from "../../classes/software";
-import {DiskDrive} from "../classes/diskdrive";
+import {DiskDrive} from "../classes/disk-drive";
 import {Memory} from "../classes/memory";
 import {Speech} from "./speech";
 import {PSG} from "./psg";

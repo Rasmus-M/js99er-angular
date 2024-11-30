@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit} from '@angular/core';
-import {DiskImage} from "../../emulator/classes/diskimage";
+import {DiskImage} from "../../emulator/classes/disk-image";
 import {TI994A} from "../../emulator/classes/ti994a";
 import {Subscription} from "rxjs";
 import {Log} from "../../classes/log";
@@ -16,7 +16,7 @@ import $ from "jquery";
 import {MatTabChangeEvent} from "@angular/material/tabs";
 import {Command, CommandType} from "../../classes/command";
 import {Setting, Settings} from "../../classes/settings";
-import {ConsoleEvent, ConsoleEventType} from "../../classes/consoleevent";
+import {ConsoleEvent, ConsoleEventType} from "../../classes/console-event";
 import {Software} from "../../classes/software";
 import {Js99erComponent} from "../../js99er.component";
 import {map, mergeMap} from "rxjs/operators";

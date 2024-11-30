@@ -1,6 +1,6 @@
 import gapi from 'gapi-client';
 import {Log} from '../../classes/log';
-import {DiskImage} from './diskimage';
+import {DiskImage} from './disk-image';
 
 export interface GFile {
     id: string;

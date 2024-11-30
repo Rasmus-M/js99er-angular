@@ -1,4 +1,4 @@
-import {DiskDrive} from "./diskdrive";
+import {DiskDrive} from "./disk-drive";
 import {Log} from "../../classes/log";
 import {Util} from "../../classes/util";
 import {Console} from "../interfaces/console";

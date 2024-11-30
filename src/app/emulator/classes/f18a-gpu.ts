@@ -1,9 +1,9 @@
 import {CPU} from '../interfaces/cpu';
 import {F18A} from './f18a';
-import {F18AFlash} from './f18aflash';
+import {F18AFlash} from './f18a-flash';
 import {Util} from '../../classes/util';
 import {Opcode} from "../../classes/opcode";
-import {CPUCommon} from "./cpuCommon";
+import {CPUCommon} from "./cpu-common";
 
 export class F18AGPU extends CPUCommon implements CPU {
 

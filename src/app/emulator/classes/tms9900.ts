@@ -2,14 +2,11 @@ import {TMS9901} from './tms9901';
 import {Util} from '../../classes/util';
 import {Keyboard} from './keyboard';
 import {Memory} from './memory';
-import {DiskDrive} from './diskdrive';
-import {GoogleDrive} from './googledrive';
 import {CPU} from '../interfaces/cpu';
 import {Opcode} from "../../classes/opcode";
 import {Disassembler} from "../../classes/disassembler";
-import {CPUCommon} from "./cpuCommon";
+import {CPUCommon} from "./cpu-common";
 import {Console} from "../interfaces/console";
-import {TiFdc} from "./ti-fdc";
 import {GenericFdc} from "./generic-fdc";
 import {GoogleDriveFdc} from "./google-drive-fdc";
 

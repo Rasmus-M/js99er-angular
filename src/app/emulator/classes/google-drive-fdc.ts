@@ -2,10 +2,10 @@ import {Memory} from "./memory";
 import {AccessType, DataType, Disk, DiskError, FileType, OpCode, OperationMode, RecordType, STATUS_EOF, STATUS_INTERNAL, STATUS_NO_SUCH_FILE, STATUS_PROGRAM, STATUS_VARIABLE} from "./disk";
 import {Log} from "../../classes/log";
 import gapi from "gapi-client";
-import {GFile, GoogleDrive} from "./googledrive";
+import {GFile, GoogleDrive} from "./google-drive";
 import {Console} from "../interfaces/console";
 import {Util} from "../../classes/util";
-import {DiskFile, FixedRecord, VariableRecord} from "./diskfile";
+import {DiskFile, FixedRecord, VariableRecord} from "./disk-file";
 
 export const GDR_DSR_ROM = [
     0xAA,                           // >4000 Standard header

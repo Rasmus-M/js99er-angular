@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {TI994A} from "../classes/ti994a";
-import {DiskImage} from "../classes/diskimage";
+import {DiskImage} from "../classes/disk-image";
 import {Settings} from "../../classes/settings";
 import {Console} from "../interfaces/console";
 import {WasmService} from "../../services/wasm.service";

@@ -1,11 +1,11 @@
-import {DiskImage} from "./diskimage";
-import {DiskFile, FixedRecord, Record, VariableRecord} from "./diskfile";
+import {DiskImage} from "./disk-image";
+import {DiskFile, FixedRecord, Record, VariableRecord} from "./disk-file";
 import {Log} from "../../classes/log";
 import {Memory} from "./memory";
 import {Util} from "../../classes/util";
 import {AccessType, DataType, Disk, DiskError, FileType, OpCode, OperationMode, RecordType, STATUS_EOF, STATUS_INTERNAL, STATUS_NO_SUCH_FILE, STATUS_PROGRAM, STATUS_VARIABLE} from "./disk";
 import {Console} from "../interfaces/console";
-import {DiskDrive} from "./diskdrive";
+import {DiskDrive} from "./disk-drive";
 import {VDP} from "../interfaces/vdp";
 import {FDC} from "../interfaces/fdc";
 import {Stateful} from "../interfaces/stateful";

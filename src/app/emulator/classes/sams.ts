@@ -1,7 +1,7 @@
 import {Log} from '../../classes/log';
 import {Stateful} from '../interfaces/stateful';
 import {Util} from '../../classes/util';
-import {MemoryView} from "../../classes/memoryview";
+import {MemoryView} from "../../classes/memory-view";
 import {MemoryDevice} from "../interfaces/memory-device";
 
 export class SAMS implements Stateful, MemoryDevice {

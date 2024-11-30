@@ -1,7 +1,7 @@
 import {AccessType, DataType, Disk, FileType, OperationMode, RecordType} from './disk';
 import {Stateful} from '../interfaces/stateful';
 import {Log} from '../../classes/log';
-import {DiskFile, FixedRecord, VariableRecord} from './diskfile';
+import {DiskFile, FixedRecord, VariableRecord} from './disk-file';
 
 export class DiskImageEvent {
 

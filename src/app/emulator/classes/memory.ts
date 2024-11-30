@@ -11,11 +11,11 @@ import {DiskType, RAMType, Settings, TIPIType} from '../../classes/settings';
 import {PSG} from '../interfaces/psg';
 import {Speech} from '../interfaces/speech';
 import {MemoryDevice} from '../interfaces/memory-device';
-import {MemoryView} from "../../classes/memoryview";
+import {MemoryView} from "../../classes/memory-view";
 import {TIPI, TIPI_DSR_ROM} from "./tipi";
 import {Console} from '../interfaces/console';
 import {PCODE_GROM, PCODE_ROM} from "./pcode";
-import {GROMArray} from "./gromArray";
+import {GROMArray} from "./grom-array";
 import {TI_FDC_ROM, TiFdc} from "./ti-fdc";
 
 export class Memory implements Stateful, MemoryDevice {

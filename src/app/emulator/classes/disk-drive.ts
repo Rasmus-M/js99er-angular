@@ -1,4 +1,4 @@
-import {DiskImage, DiskImageEvent} from './diskimage';
+import {DiskImage, DiskImageEvent} from './disk-image';
 import {Stateful} from "../interfaces/stateful";
 
 export class DiskDrive implements Stateful {

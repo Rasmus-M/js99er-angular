@@ -5,8 +5,8 @@ import {Command, CommandType} from '../classes/command';
 import {Subscription} from 'rxjs';
 import {Software} from '../classes/software';
 import {Setting} from '../classes/settings';
-import {DiskImage} from '../emulator/classes/diskimage';
-import {DiskFile} from '../emulator/classes/diskfile';
+import {DiskImage} from '../emulator/classes/disk-image';
+import {DiskFile} from '../emulator/classes/disk-file';
 
 
 @Injectable()

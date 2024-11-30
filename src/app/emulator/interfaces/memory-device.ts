@@ -1,4 +1,4 @@
-import {MemoryView} from "../../classes/memoryview";
+import {MemoryView} from "../../classes/memory-view";
 
 export interface MemoryDevice {
     getWord(addr: number): number;

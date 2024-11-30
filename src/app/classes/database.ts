@@ -1,6 +1,6 @@
 import {Log} from './log';
-import {DiskImage} from '../emulator/classes/diskimage';
-import {DiskDrive} from '../emulator/classes/diskdrive';
+import {DiskImage} from '../emulator/classes/disk-image';
+import {DiskDrive} from '../emulator/classes/disk-drive';
 import {MemoryBlock, Software} from "./software";
 
 export class Database {

@@ -2,7 +2,7 @@ import {Decoder} from "./decoder";
 import {Util} from "./util";
 import {MemoryDevice} from "../emulator/interfaces/memory-device";
 import {Opcode} from "./opcode";
-import {MemoryLine, MemoryView} from "./memoryview";
+import {MemoryLine, MemoryView} from "./memory-view";
 
 export class Disassembler {
 

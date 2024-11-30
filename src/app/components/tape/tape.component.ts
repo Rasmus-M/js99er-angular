@@ -4,7 +4,7 @@ import {TI994A} from '../../emulator/classes/ti994a';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {Subscription} from 'rxjs';
-import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
+import {ConsoleEvent, ConsoleEventType} from '../../classes/console-event';
 import {Tape} from '../../emulator/classes/tape';
 import {Log} from '../../classes/log';
 import { faUpload, faDownload, faCircle, faPlay, faBackward, faStop } from '@fortawesome/free-solid-svg-icons';

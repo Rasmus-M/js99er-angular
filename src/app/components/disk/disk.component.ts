@@ -1,12 +1,12 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {Subscription} from 'rxjs';
-import {DiskImage} from '../../emulator/classes/diskimage';
-import {DiskFile} from '../../emulator/classes/diskfile';
+import {DiskImage} from '../../emulator/classes/disk-image';
+import {DiskFile} from '../../emulator/classes/disk-file';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
-import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
+import {ConsoleEvent, ConsoleEventType} from '../../classes/console-event';
 import {TI994A} from '../../emulator/classes/ti994a';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
-import {DiskDrive} from '../../emulator/classes/diskdrive';
+import {DiskDrive} from '../../emulator/classes/disk-drive';
 import {SelectionModel} from '@angular/cdk/collections';
 import { faHdd, faBan, faSave, faPlus, faDownload, faCaretUp } from '@fortawesome/free-solid-svg-icons';
 import {FileType} from "../../emulator/classes/disk";

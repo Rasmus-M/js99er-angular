@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, ElementRef, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import {Subscription} from "rxjs";
 import {TI994A} from "../../emulator/classes/ti994a";
-import {ConsoleEvent, ConsoleEventType} from "../../classes/consoleevent";
+import {ConsoleEvent, ConsoleEventType} from "../../classes/console-event";
 import {EventDispatcherService} from "../../services/event-dispatcher.service";
 import {saveAs} from 'file-saver';
 import { faDownload } from '@fortawesome/free-solid-svg-icons';

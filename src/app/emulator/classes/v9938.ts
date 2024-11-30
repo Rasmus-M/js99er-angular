@@ -2,12 +2,12 @@
 
 import {VDP} from "../interfaces/vdp";
 import {CPU} from "../interfaces/cpu";
-import {MemoryView} from "../../classes/memoryview";
+import {MemoryView} from "../../classes/memory-view";
 import {Util} from "../../classes/util";
 import {Log} from "../../classes/log";
 import {Console} from '../interfaces/console';
 import {VDPType} from "../../classes/settings";
-import {GROMArray} from "./gromArray";
+import {GROMArray} from "./grom-array";
 
 declare type int = number;
 declare type int16_t = number;

@@ -1,7 +1,7 @@
 import {Joystick} from './joystick';
 import {Stateful} from '../interfaces/stateful';
 import {Settings} from '../../classes/settings';
-import {Key, KeyMapper, TIKey} from "../../classes/keymapper";
+import {Key, KeyMapper, TIKey} from "../../classes/key-mapper";
 
 export class Keyboard implements Stateful {
 

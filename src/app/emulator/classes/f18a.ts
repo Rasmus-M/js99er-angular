@@ -2,10 +2,10 @@ import {VDP} from '../interfaces/vdp';
 import {TMS9901} from './tms9901';
 import {PSG} from '../interfaces/psg';
 import {TI994A} from './ti994a';
-import {F18AGPU} from './f18agpu';
+import {F18AGPU} from './f18a-gpu';
 import {Log, LogLevel} from '../../classes/log';
 import {Util} from '../../classes/util';
-import {MemoryView} from "../../classes/memoryview";
+import {MemoryView} from "../../classes/memory-view";
 import {WasmService} from "../../services/wasm.service";
 import {VDPType} from "../../classes/settings";
 

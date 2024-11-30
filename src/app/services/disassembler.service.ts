@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {MemoryDevice} from '../emulator/interfaces/memory-device';
 import {Disassembler} from "../classes/disassembler";
-import {MemoryView} from "../classes/memoryview";
+import {MemoryView} from "../classes/memory-view";
 
 @Injectable({
     providedIn: 'root'

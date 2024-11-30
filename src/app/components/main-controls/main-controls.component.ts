@@ -2,7 +2,7 @@ import {Component, ElementRef, OnDestroy, OnInit} from '@angular/core';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {Subscription} from 'rxjs';
-import {ConsoleEvent, ConsoleEventType} from '../../classes/consoleevent';
+import {ConsoleEvent, ConsoleEventType} from '../../classes/console-event';
 import {
     faArrowCircleLeft,
     faArrowCircleRight,
