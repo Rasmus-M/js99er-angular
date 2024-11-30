@@ -125,7 +125,7 @@ export abstract class CPUCommon implements CPU {
     protected auxBreakpoint: number | null;
     protected stoppedAtBreakpoint: boolean;
     protected tracing: boolean;
-    protected pcSubject = new Subject<number>();
+    protected instructionSubject = new Subject<number>();
     protected log = Log.getLog();
 
     abstract reset(): void;
@@ -142,8 +142,8 @@ export abstract class CPUCommon implements CPU {
 
     abstract dumpProfile(): void;
 
-    getPcObservable(): Observable<number> {
-        return this.pcSubject.asObservable();
+    instructionExecuting(): Observable<number> {
+        return this.instructionSubject.asObservable();
     }
 
     // Build the word status lookup table

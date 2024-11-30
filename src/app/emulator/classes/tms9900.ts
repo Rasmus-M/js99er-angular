@@ -84,7 +84,7 @@ export class TMS9900 extends CPUCommon implements CPU {
                 cyclesToRun = -1;
             } else {
                 // Execute instruction
-                this.pcSubject.next(this.pc);
+                this.instructionSubject.next(this.pc);
                 const tmpPC = this.pc;
                 const tmpCycles = this.getCycles();
                 const instruction = this.readMemoryWord(this.pc);

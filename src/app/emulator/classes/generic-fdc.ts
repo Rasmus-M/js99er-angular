@@ -161,7 +161,7 @@ export class GenericFdc implements FDC {
     }
 
     init() {
-        this.console.getCPU().getPcObservable().subscribe((pc) => {
+        this.console.getCPU().instructionExecuting().subscribe((pc) => {
             if (this.memory.isDiskROMEnabled() && this.memory.getDisk() === 'GENERIC' && pc >= GenericFdc.DSR_HOOK_START && pc <= GenericFdc.DSR_HOOK_END) {
                 this.executeHooks(pc);
             }

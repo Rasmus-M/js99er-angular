@@ -41,5 +41,5 @@ export interface Console {
     setVDP(): void;
     setPSG(): void;
     isRunning(): void;
-    getCyclesPassedObservable(): Observable<number>;
+    cyclesPassed(): Observable<number>;
 }

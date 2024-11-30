@@ -80,7 +80,7 @@ export class GoogleDriveFdc implements FDC {
     }
 
     init() {
-        this.console.getCPU().getPcObservable().subscribe((pc) => {
+        this.console.getCPU().instructionExecuting().subscribe((pc) => {
             if (this.memory.isGoogleDriveROMEnabled() && pc >= GoogleDriveFdc.DSR_HOOK_START && pc <= GoogleDriveFdc.DSR_HOOK_END) {
                 this.executeHooks(pc);
             }

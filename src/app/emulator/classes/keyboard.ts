@@ -43,7 +43,7 @@ export class Keyboard implements Stateful {
             this.columns[col] = [];
         }
         this.keyHandles = {};
-        this.console.getCPU().getPcObservable().subscribe(
+        this.console.getCPU().instructionExecuting().subscribe(
             (pc) => {
                 if (pc === 0x478) {
                     this.pasteHook();

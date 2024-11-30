@@ -471,7 +471,7 @@ export class TI994A implements Console, Stateful {
         }
     }
 
-    getCyclesPassedObservable(): Observable<number> {
+    cyclesPassed(): Observable<number> {
         return this.cyclesSubject.asObservable();
     }
 

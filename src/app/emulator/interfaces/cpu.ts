@@ -23,5 +23,5 @@ export interface CPU extends Stateful {
     getCycleLog(): Int32Array;
     getCycleCount(): { start: number, end: number };
     setCycleCount(start: number, end: number): void;
-    getPcObservable(): Observable<number>;
+    instructionExecuting(): Observable<number>;
 }

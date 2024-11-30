@@ -34,7 +34,7 @@ export class Cru implements Stateful {
     }
 
     init() {
-        this.console.getCyclesPassedObservable().subscribe(
+        this.console.cyclesPassed().subscribe(
             (cycles) => {
                 this.decrementTimer(cycles / Cru.TIMER_CYCLES_PER_DECREMENT)
             }
