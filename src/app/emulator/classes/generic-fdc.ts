@@ -189,6 +189,9 @@ export class GenericFdc implements FDC, DsrCard {
     }
 
     public readCruBit(bit: number): boolean {
+        if (bit === 0) {
+            return this.isEnabled();
+        }
         return false;
     }
 

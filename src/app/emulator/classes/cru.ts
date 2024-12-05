@@ -44,12 +44,12 @@ export class Cru implements Stateful {
     }
 
     public registerCruDevice(cruDevice: CruDevice) {
-        this.log.info("Register CRU device: " + cruDevice.getId());
+        this.log.debug("Register CRU device: " + cruDevice.getId());
         this.cruDevices.push(cruDevice);
     }
 
     public deregisterCruDevice(cruDevice: CruDevice) {
-        this.log.info("Deregister CRU device: " + cruDevice.getId());
+        this.log.debug("Deregister CRU device: " + cruDevice.getId());
         const index = this.cruDevices.indexOf(cruDevice);
         if (index !== -1) {
             this.cruDevices.splice(index, 1);

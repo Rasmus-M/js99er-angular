@@ -8,7 +8,6 @@ import {Util} from "../../classes/util";
 import {DiskFile, FixedRecord, VariableRecord} from "./disk-file";
 import {FDC} from "../interfaces/fdc";
 import {DsrCard} from "../interfaces/dsr-card";
-import {GENERIC_FDC_DSR_ROM} from "./generic-fdc";
 
 export const GOOGLE_DRIVE_FDC_DSR_ROM = [
     0xAA,                           // >4000 Standard header
@@ -91,7 +90,7 @@ export class GoogleDriveFdc implements FDC, DsrCard {
     }
 
     public getROM(): number[] {
-        return GENERIC_FDC_DSR_ROM;
+        return GOOGLE_DRIVE_FDC_DSR_ROM;
     }
 
     public isEnabled() {
@@ -107,6 +106,9 @@ export class GoogleDriveFdc implements FDC, DsrCard {
     }
 
     public readCruBit(bit: number): boolean {
+        if (bit === 0) {
+            return this.isEnabled();
+        }
         return false;
     }
 
