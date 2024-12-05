@@ -1,13 +1,18 @@
 import {CPU} from "../interfaces/cpu";
 import {Log} from "../../classes/log";
+import {DsrCard} from "../interfaces/dsr-card";
+import {MemoryMappedCard} from "../interfaces/memory-mapped-card";
 
-export class TIPI {
+export class TIPI implements DsrCard, MemoryMappedCard {
+
+    static ID = 'TIPI';
 
     static TD_OUT = 0x5FFE; // TI Data (output)
     static TC_OUT = 0x5FFC; // TI Control Signal (output)
     static RD_IN = 0x5FFA;  // PI Data (input)
     static RC_IN = 0x5FF8;  // PI Control Signal (input)
 
+    private romEnabled = false;
     private readonly cpu: CPU;
     private readonly websocketURI: string;
     private readonly canvas: HTMLCanvasElement;
@@ -43,7 +48,7 @@ export class TIPI {
         this.canvas.addEventListener('mousedown', this.mouseHandler.bind(this));
     }
 
-    reset() {
+    public reset() {
         if (this.enableWebsocket && (!this.websocket || !this.websocketOpen)) {
             console.log("TIPI creating websocket");
             this.td = 0;
@@ -87,6 +92,62 @@ export class TIPI {
                     console.log("TIPI async mode enabled");
                 }
             };
+        }
+    }
+
+    public getId(): string {
+        return TIPI.ID;
+    }
+
+    public getROM(): number[] {
+        return TIPI_DSR_ROM;
+    }
+
+    public isEnabled() {
+        return this.romEnabled;
+    }
+
+    public getROMBank(): number {
+        return 0;
+    }
+
+    public getCruAddress(): number {
+        return this.fastMouseEmulation ? 0x1200 : 0x1000;
+    }
+
+    public readCruBit(bit: number): boolean {
+        return false;
+    }
+
+    public writeCruBit(bit: number, value: boolean): void {
+        if (bit === 0) {
+            this.romEnabled = value;
+        } else if (bit === 1 && value) {
+            this.signalReset();
+        }
+    }
+
+    readMemoryMapped(addr: number, cpu: CPU): number {
+        switch (addr) {
+            case TIPI.RC_IN:
+                return this.getRC();
+            case TIPI.RD_IN:
+                return this.getRD();
+            case TIPI.TC_OUT:
+                return this.getTC();
+            case TIPI.TD_OUT:
+                return this.getTD();
+            default:
+                const romAddr = addr - 0x4000;
+                return (TIPI_DSR_ROM[romAddr] << 8) + TIPI_DSR_ROM[romAddr + 1];
+        }
+    }
+
+    writeMemoryMapped(addr: number, word: number, cpu: CPU): void {
+        if (addr === TIPI.TC_OUT) {
+            this.setTC(word);
+        } else if (addr === TIPI.TD_OUT) {
+            this.setTD(word);
         }
     }
 

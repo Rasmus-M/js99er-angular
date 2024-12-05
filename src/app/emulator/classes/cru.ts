@@ -6,6 +6,7 @@ import {Stateful} from '../interfaces/stateful';
 import {Util} from '../../classes/util';
 import {CPU} from '../interfaces/cpu';
 import {Console} from '../interfaces/console';
+import {CruDevice} from "../interfaces/cru-device";
 
 export class Cru implements Stateful {
 
@@ -25,6 +26,7 @@ export class Cru implements Stateful {
     private vdpInterrupt: boolean;
     private timerInterrupt: boolean;
     private timerInterruptCount: number;
+    private cruDevices: CruDevice[] = [];
 
     private log: Log = Log.getLog();
 
@@ -33,15 +35,28 @@ export class Cru implements Stateful {
         this.init();
     }
 
-    init() {
+    private init() {
         this.console.cyclesPassed().subscribe(
             (cycles) => {
-                this.decrementTimer(cycles / Cru.TIMER_CYCLES_PER_DECREMENT)
+                this.decrementTimer(cycles / Cru.TIMER_CYCLES_PER_DECREMENT);
             }
         );
     }
 
-    reset() {
+    public registerCruDevice(cruDevice: CruDevice) {
+        this.log.info("Register CRU device: " + cruDevice.getId());
+        this.cruDevices.push(cruDevice);
+    }
+
+    public deregisterCruDevice(cruDevice: CruDevice) {
+        this.log.info("Deregister CRU device: " + cruDevice.getId());
+        const index = this.cruDevices.indexOf(cruDevice);
+        if (index !== -1) {
+            this.cruDevices.splice(index, 1);
+        }
+    }
+
+    public reset() {
         this.memory = this.console.getMemory();
         this.keyboard = this.console.getKeyboard();
         this.tape = this.console.getTape();
@@ -54,6 +69,7 @@ export class Cru implements Stateful {
         this.decrementer = 0;
         this.timerInterrupt = false;
         this.timerInterruptCount = 0;
+
         this.cru = [];
         for (let i = 0; i < 4096; i++) {
             this.cru[i] = i > 3;
@@ -81,11 +97,11 @@ export class Cru implements Stateful {
             }
         } else {
             // DSR space
-            const r12Addr = addr << 1;
-            // TI FDC
-            if (r12Addr >= 0x1100 && r12Addr < 0x1110 && this.memory.getDisk() === "TIFDC") {
-                // this.log.info("Read from CRU " + Util.toHexWord(r12Addr));
-                return this.console.getTiFdc().readCruBit((r12Addr & 0x000e) >> 1);
+            const r12BaseAddr = (addr << 1) & 0x1f00;
+            for (const cruDevice of this.cruDevices) {
+                if (cruDevice.getCruAddress() === r12BaseAddr) {
+                    return cruDevice.readCruBit(addr & 0xff);
+                }
             }
         }
         return this.cru[addr];
@@ -116,29 +132,11 @@ export class Cru implements Stateful {
             }
         } else {
             // DSR space
-            const r12Addr = addr << 1;
-            if ((r12Addr & 0xff) === 0) {
-                // Enable DSR ROM
-                const romNo = (r12Addr >> 8) & 0xf;
-                this.memory.setPeripheralROM(romNo, value);
-            }
-            // TI FDC
-            if (r12Addr >= 0x1100 && r12Addr < 0x1110 && this.memory.getDisk() === "TIFDC") {
-                // this.log.info("Write " + value + " to CRU " + Util.toHexWord(r12Addr));
-                this.console.getTiFdc().writeCruBit((r12Addr & 0x000e) >> 1, value);
-            }
-            // TIPI
-            if (r12Addr === 0x1002 + this.memory.getTIPIROMNumber() * 0x100 && value && this.memory.isTIPIEnabled()) {
-                this.console.getTIPI()?.signalReset();
-            }
-            // SAMS
-            if (r12Addr >= 0x1e00 && r12Addr < 0x1f00 && this.memory.isSAMSEnabled()) {
-                this.memory.getSAMS()!.writeCruBit((r12Addr & 0x000e) >> 1, value);
-            }
-            // P-Code
-            if (r12Addr === 0x1f80) {
-                // this.log.info("Set P-Code ROM bank " + (value ? 1 : 0));
-                this.memory.setCurrentPeripheralROMBank(value ? 1 : 0);
+            const r12BaseAddr = (addr << 1) & 0x1f00;
+            for (const cruDevice of this.cruDevices) {
+                if (cruDevice.getCruAddress() === r12BaseAddr) {
+                    cruDevice.writeCruBit(addr & 0x7f, value);
+                }
             }
         }
         this.cru[addr] = value;

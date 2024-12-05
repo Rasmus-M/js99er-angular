@@ -9,6 +9,7 @@ import {DiskDrive} from "./disk-drive";
 import {VDP} from "../interfaces/vdp";
 import {FDC} from "../interfaces/fdc";
 import {Stateful} from "../interfaces/stateful";
+import {DsrCard} from "../interfaces/dsr-card";
 
 export const GENERIC_FDC_DSR_ROM: number[] = [
     0xAA,                           // >4000 Standard header
@@ -129,7 +130,9 @@ export const GENERIC_FDC_DSR_ROM: number[] = [
     0x04, 0x5B                      // >409E B *R11
 ];
 
-export class GenericFdc implements FDC {
+export class GenericFdc implements FDC, DsrCard {
+
+    static ID = 'GENERIC_FDC';
 
     static DSR_ROM_POWER_UP = 0x406E;
     static DSR_ROM_DSK1 = 0x4070;
@@ -148,6 +151,7 @@ export class GenericFdc implements FDC {
     static DSR_HOOK_START = GenericFdc.DSR_ROM_POWER_UP;
     static DSR_HOOK_END = GenericFdc.DSR_ROM_FILES_16;
 
+    private romEnabled = false;
     private memory: Memory;
     private catalogFile: DiskFile | null;
     private log: Log = Log.getLog();
@@ -160,9 +164,43 @@ export class GenericFdc implements FDC {
         this.init();
     }
 
-    init() {
+    public reset() {
+        this.catalogFile = null;
+    }
+
+    public getId(): string {
+        return GenericFdc.ID;
+    }
+
+    public getROM(): number[] {
+        return GENERIC_FDC_DSR_ROM;
+    }
+
+    public isEnabled() {
+        return this.romEnabled;
+    }
+
+    public getROMBank(): number {
+        return 0;
+    }
+
+    public getCruAddress(): number {
+        return 0x1100;
+    }
+
+    public readCruBit(bit: number): boolean {
+        return false;
+    }
+
+    public writeCruBit(bit: number, value: boolean): void {
+        if (bit === 0) {
+            this.romEnabled = value;
+        }
+    }
+
+    private init() {
         this.console.getCPU().instructionExecuting().subscribe((pc) => {
-            if (this.memory.isDiskROMEnabled() && this.memory.getDisk() === 'GENERIC' && pc >= GenericFdc.DSR_HOOK_START && pc <= GenericFdc.DSR_HOOK_END) {
+            if (this.isEnabled() && this.memory.getDisk() === 'GENERIC' && pc >= GenericFdc.DSR_HOOK_START && pc <= GenericFdc.DSR_HOOK_END) {
                 this.executeHooks(pc);
             }
         });
@@ -283,10 +321,6 @@ export class GenericFdc implements FDC {
         } else {
             this.memory.setPADWord(0x8370, 0x3fff);
         }
-    }
-
-    reset() {
-        this.catalogFile = null;
     }
 
     private dsrRoutine(diskDrive: DiskDrive, pabAddr: number, checkDiskName: boolean): number {
@@ -803,5 +837,11 @@ export class GenericFdc implements FDC {
             data[n++] = 0;
         }
         return n;
+    }
+
+    getState(): any {
+    }
+
+    restoreState(state: any): void {
     }
 }

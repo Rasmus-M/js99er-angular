@@ -6,8 +6,9 @@ import {GFile, GoogleDrive} from "./google-drive";
 import {Console} from "../interfaces/console";
 import {Util} from "../../classes/util";
 import {DiskFile, FixedRecord, VariableRecord} from "./disk-file";
-import {Stateful} from "../interfaces/stateful";
 import {FDC} from "../interfaces/fdc";
+import {DsrCard} from "../interfaces/dsr-card";
+import {GENERIC_FDC_DSR_ROM} from "./generic-fdc";
 
 export const GOOGLE_DRIVE_FDC_DSR_ROM = [
     0xAA,                           // >4000 Standard header
@@ -52,7 +53,9 @@ export const GOOGLE_DRIVE_FDC_DSR_ROM = [
     0x04, 0x5B                      // >403E B *R11
 ];
 
-export class GoogleDriveFdc implements FDC {
+export class GoogleDriveFdc implements FDC, DsrCard {
+
+    static ID = 'GOOGLE_DRIVE_FDC';
 
     static DSR_ROM_POWER_UP = 0x4032;
     static DSR_ROM_GDR1 = 0x4034;
@@ -65,6 +68,7 @@ export class GoogleDriveFdc implements FDC {
     static CLIENT_ID = "101694421528-72cnh0nor5rvoj245fispof8hdaq47i4.apps.googleusercontent.com";
     static SCOPES = 'https://www.googleapis.com/auth/drive';
 
+    private romEnabled = false;
     private memory: Memory;
     private ram: Uint8Array;
     private authorized = false;
@@ -79,15 +83,45 @@ export class GoogleDriveFdc implements FDC {
         this.init();
     }
 
-    init() {
+    public reset(): void {
+    }
+
+    public getId(): string {
+        return GoogleDriveFdc.ID;
+    }
+
+    public getROM(): number[] {
+        return GENERIC_FDC_DSR_ROM;
+    }
+
+    public isEnabled() {
+        return this.romEnabled;
+    }
+
+    public getROMBank(): number {
+        return 0;
+    }
+
+    public getCruAddress(): number {
+        return 0x1300;
+    }
+
+    public readCruBit(bit: number): boolean {
+        return false;
+    }
+
+    public writeCruBit(bit: number, value: boolean): void {
+        if (bit === 0) {
+            this.romEnabled = value;
+        }
+    }
+
+    private init() {
         this.console.getCPU().instructionExecuting().subscribe((pc) => {
-            if (this.memory.isGoogleDriveROMEnabled() && pc >= GoogleDriveFdc.DSR_HOOK_START && pc <= GoogleDriveFdc.DSR_HOOK_END) {
+            if (this.isEnabled() && pc >= GoogleDriveFdc.DSR_HOOK_START && pc <= GoogleDriveFdc.DSR_HOOK_END) {
                 this.executeHooks(pc);
             }
         });
-    }
-
-    reset(): void {
     }
 
     private executeHooks(pc: number): boolean {
@@ -591,5 +625,11 @@ export class GoogleDriveFdc implements FDC {
             data[n++] = 0;
         }
         return n;
+    }
+
+    getState(): any {
+    }
+
+    restoreState(state: any): void {
     }
 }

@@ -1,8 +1,6 @@
 import {Log} from '../../classes/log';
 import {VDP} from '../interfaces/vdp';
 import {SAMS} from './sams';
-import {GENERIC_FDC_DSR_ROM} from './generic-fdc';
-import {GOOGLE_DRIVE_FDC_DSR_ROM} from './google-drive-fdc';
 import {System} from './system';
 import {Util} from '../../classes/util';
 import {CPU} from '../interfaces/cpu';
@@ -12,11 +10,12 @@ import {PSG} from '../interfaces/psg';
 import {Speech} from '../interfaces/speech';
 import {MemoryDevice} from '../interfaces/memory-device';
 import {MemoryView} from "../../classes/memory-view";
-import {TIPI, TIPI_DSR_ROM} from "./tipi";
 import {Console} from '../interfaces/console';
-import {PCODE_GROM, PCODE_DSR_ROM} from "./pcode";
+import {PCodeCard} from "./p-code-card";
 import {GROMArray} from "./grom-array";
-import {TI_FDC_DSR_ROM, TiFdc} from "./ti-fdc";
+import {DsrCard} from "../interfaces/dsr-card";
+import {PeripheralCard} from "../interfaces/peripheral-card";
+import {MemoryMappedCard} from "../interfaces/memory-mapped-card";
 
 export class Memory implements Stateful, MemoryDevice {
 
@@ -38,7 +37,6 @@ export class Memory implements Stateful, MemoryDevice {
     private vdp: VDP;
     private psg: PSG;
     private speech: Speech;
-    private fdc: TiFdc;
     private settings: Settings;
 
     private ramType: RAMType;
@@ -58,7 +56,6 @@ export class Memory implements Stateful, MemoryDevice {
 
     private rom: Uint8Array;
     private gromBases: GROMArray[];
-    private pCodeGroms: GROMArray;
 
     private cartImage: Uint8Array | null;
     private cartInverted: boolean;
@@ -70,14 +67,8 @@ export class Memory implements Stateful, MemoryDevice {
     private currentCartRAMBank: number;
     private cartAddrRAMOffset: number;
 
-    private peripheralROMs: Uint8Array[];
-    private peripheralROMBanks: number[];
-    private peripheralROMEnabled: boolean;
-    private peripheralROMNumber: number;
-    private diskROMNumber = -1;
-    private tipiROMNumber = -1;
-    private gdrROMNumber = -1;
-    private pCodeROMNumber = -1;
+    private peripheralCards: PeripheralCard[] = [];
+    private pCodeCard: PCodeCard;
 
     private memoryMap: Function[][];
 
@@ -88,14 +79,28 @@ export class Memory implements Stateful, MemoryDevice {
         this.settings = settings;
     }
 
-    reset(keepCart: boolean) {
+    public registerPeripheralCard(card: PeripheralCard) {
+        this.log.info("Register card: " + card.getId());
+        this.peripheralCards.push(card);
+        this.console.getCRU().registerCruDevice(card);
+    }
+
+    public deregisterPeripheralCard(card: PeripheralCard) {
+        this.log.info("Deregister card: " + card.getId());
+        const index = this.peripheralCards.indexOf(card);
+        if (index !== -1) {
+            this.peripheralCards.splice(index, 1);
+        }
+        this.console.getCRU().deregisterCruDevice(card);
+    }
+
+    public reset(keepCart: boolean) {
 
         this.vdp = this.console.getVDP();
         this.psg = this.console.getPSG();
         this.speech = this.console.getSpeech();
-        this.fdc = this.console.getTiFdc();
 
-        // RAM
+        // Settings
         this.ramType = this.settings.getRAM();
         this.samsSize = this.settings.getSAMSSize();
         this.gramEnabled = this.settings.isGRAMEnabled();
@@ -103,14 +108,22 @@ export class Memory implements Stateful, MemoryDevice {
         this.tipiType = this.settings.getTIPI();
         this.disk = this.settings.getDisk();
         this.debugReset = this.settings.isDebugResetEnabled();
+
+        // RAM
         this.ram = new Uint8Array(0x10000);
         if (this.debugReset) {
             for (let i = 0; i < this.ram.length; i++) {
                 this.ram[i] = i & 0xff;
             }
         }
+
+        // SAMS
+        if (this.sams) {
+            this.deregisterPeripheralCard(this.sams);
+        }
         if (this.settings.isSAMSEnabled()) {
             this.sams = new SAMS(this.samsSize, this.debugReset);
+            this.registerPeripheralCard(this.sams);
         } else {
             this.sams = null;
         }
@@ -119,13 +132,16 @@ export class Memory implements Stateful, MemoryDevice {
         this.rom = new Uint8Array(System.ROM);
         this.patchROMForTapeUsage();
 
+        // GROM
+        if (!keepCart) {
+            this.gromBases = [];
+            this.loadGROM(new Uint8Array(System.GROM), 0, 0);
+        }
+
+        // Cartridge
         if (!keepCart) {
             this.ramAt6000 = false;
             this.ramAt7000 = false;
-            // GROM
-            this.gromBases = [];
-            this.loadGROM(new Uint8Array(System.GROM), 0, 0);
-            // Cartridge
             this.cartImage = null;
             this.cartInverted = false;
             this.cartCRUBankSwitched = false;
@@ -137,48 +153,19 @@ export class Memory implements Stateful, MemoryDevice {
         this.currentCartRAMBank = 0;
         this.cartAddrRAMOffset = -0x6000;
 
+        // P-code
+        if (this.pCodeCard) {
+            this.deregisterPeripheralCard(this.pCodeCard);
+        }
         if (this.pCodeEnabled) {
-            this.pCodeGroms = new GROMArray();
-            this.pCodeGroms.setData(new Uint8Array(PCODE_GROM), 0);
+            this.pCodeCard = new PCodeCard();
+            this.registerPeripheralCard(this.pCodeCard);
         }
 
-        // Peripheral ROM
-        this.peripheralROMs = [];
-        this.peripheralROMBanks = [];
-        this.peripheralROMEnabled = false;
-        this.peripheralROMNumber = 0;
-        this.diskROMNumber = -1;
-        this.tipiROMNumber = -1;
-        this.gdrROMNumber = -1;
-        this.pCodeROMNumber = -1;
-        let romNumber = 1;
-        if (this.tipiType === 'FULL' && this.disk !== 'TIFDC') {
-            this.tipiROMNumber = romNumber;
-            this.loadPeripheralROM(new Uint8Array(TIPI_DSR_ROM), romNumber++);
-        }
-        if (this.disk === 'GENERIC') {
-            this.diskROMNumber = romNumber;
-            this.loadPeripheralROM(new Uint8Array(GENERIC_FDC_DSR_ROM), romNumber++);
-        } else if (this.disk === 'TIFDC') {
-            this.diskROMNumber = romNumber;
-            this.loadPeripheralROM(new Uint8Array(TI_FDC_DSR_ROM), romNumber++);
-        }
-        if (this.tipiType === 'MOUSE' || this.tipiType === 'FULL' && this.disk === 'TIFDC') {
-            this.tipiROMNumber = romNumber;
-            this.loadPeripheralROM(new Uint8Array(TIPI_DSR_ROM), romNumber++);
-        }
-        if (this.settings.isGoogleDriveEnabled()) {
-            this.gdrROMNumber = romNumber;
-            this.loadPeripheralROM(new Uint8Array(GOOGLE_DRIVE_FDC_DSR_ROM), romNumber++);
-        }
-        if (this.pCodeEnabled) {
-            this.pCodeROMNumber = 15;
-            this.loadPeripheralROM(new Uint8Array(PCODE_DSR_ROM), this.pCodeROMNumber);
-        }
         this.buildMemoryMap();
     }
 
-    patchROMForTapeUsage() {
+    public patchROMForTapeUsage() {
         this.rom[0x14a7] = 0x03; // Fix cassette sync (LI instead of CI)
         this.rom[0x14a9] = 0x37; // Cassette read time (original 0x1f)
         this.rom[0x1353] = 0x1f; // Cassette write time (original 0x23)
@@ -199,10 +186,6 @@ export class Memory implements Stateful, MemoryDevice {
         const speechWriteAccessors = [this.readNull, this.writeSpeech];
         const gromReadAccessors = [this.readGROM, this.writeNull];
         const gromWriteAccessors = [this.readNull, this.writeGROM];
-        const pCodeGROMReadAccessors = [this.readPCodeGROM, this.writeNull];
-        const pCodeGROMWriteAccessors = [this.readNull, this.writePCodeGROM];
-        const tifdcRegisterReadAccessors = [this.readTIFDCRegister, this.writeNull];
-        const tifdcRegisterWriteAccessors = [this.readNull, this.writeTIFDCRegister];
         let i: number;
         for (i = 0; i < 0x2000; i++) {
             this.memoryMap[i] = this.ramAt0000 ? ramAccessors : romAccessors;
@@ -245,21 +228,6 @@ export class Memory implements Stateful, MemoryDevice {
         }
         for (i = 0xA000; i < 0x10000; i++) {
             this.memoryMap[i] = ramAccessors;
-        }
-        if (this.pCodeEnabled) {
-            // GROMs map ONLY at addresses >5BFC (read data), >5BFE (read address), >5FFC (write data, not used) and >5FFE (write address).
-            this.memoryMap[0x5bfc] = pCodeGROMReadAccessors;
-            this.memoryMap[0x5bfe] = pCodeGROMReadAccessors;
-            this.memoryMap[0x5ffc] = pCodeGROMWriteAccessors;
-            this.memoryMap[0x5ffe] = pCodeGROMWriteAccessors;
-        }
-        if (this.disk === 'TIFDC') {
-            for (let i = 0x5ff0; i < 0x5ff8; i++) {
-                this.memoryMap[i] = tifdcRegisterReadAccessors;
-            }
-            for (let i = 0x5ff8; i < 0x6000; i++) {
-                this.memoryMap[i] = tifdcRegisterWriteAccessors;
-            }
         }
     }
 
@@ -314,32 +282,11 @@ export class Memory implements Stateful, MemoryDevice {
         this.buildMemoryMap();
     }
 
-    loadPeripheralROM(byteArray: Uint8Array, number: number) {
-        this.peripheralROMs[number] = new Uint8Array(byteArray.length);
-        for (let i = 0; i < byteArray.length; i++) {
-            this.peripheralROMs[number][i] = byteArray[i];
-        }
-    }
-
-    setPeripheralROM(romNo: number, enabled: boolean) {
-        // this.log.info("Toggle ROM " + romNo + " " + (enabled ? "on" : "off") + ".");
-        if (this.peripheralROMs[romNo]) {
-            this.peripheralROMNumber = romNo;
-            this.peripheralROMEnabled = enabled;
-        } else {
-            this.peripheralROMEnabled = false;
-        }
-    }
-
     setCRUCartBank(bank: number) {
         if (this.cartCRUBankSwitched) {
             // this.log.info("Set CRU cart bank " + bank);
             this.setCurrentCartBank(bank);
         }
-    }
-
-    setCurrentPeripheralROMBank(bank: number) {
-        this.peripheralROMBanks[this.peripheralROMNumber] = bank;
     }
 
     private setCurrentCartBank(bank: number) {
@@ -386,26 +333,15 @@ export class Memory implements Stateful, MemoryDevice {
 
     private readPeripheralROM(addr: number, cpu: CPU): number {
         cpu.addCycles(4);
-        if (this.sams && this.sams.hasRegisterAccess()) {
-            const w = this.sams.readRegister((addr & 0x1F) >> 1);
-            return ((w & 0xFF) << 8) | (w >> 8);
-        } else if (this.peripheralROMEnabled) {
-            const peripheralROM = this.peripheralROMs[this.peripheralROMNumber];
-            if (peripheralROM) {
-                const isTIPIROM = this.isTIPIROMEnabled();
-                if (isTIPIROM && addr === TIPI.RC_IN) {
-                    return this.console.getTIPI()!.getRC();
-                } else if (isTIPIROM && addr === TIPI.RD_IN) {
-                    return this.console.getTIPI()!.getRD();
-                } else if (isTIPIROM && addr === TIPI.TC_OUT) {
-                    return this.console.getTIPI()!.getTC();
-                } else if (isTIPIROM && addr === TIPI.TD_OUT) {
-                    return this.console.getTIPI()!.getTD();
-                } else {
-                    const romAddr = addr - 0x4000 + (this.peripheralROMBanks[this.peripheralROMNumber] << 13);
-                    // this.log.info("Read peripheral ROM " + addr.toHexWord() + ": " + (peripheralROM[romAddr] << 8 | peripheralROM[romAddr + 1]).toHexWord());
-                    return peripheralROM[romAddr] << 8 | peripheralROM[romAddr + 1];
-                }
+        const activeCard = this.peripheralCards.find(dsrDevice => dsrDevice.isEnabled());
+        if (activeCard) {
+            if (this.isMemoryMappedCard(activeCard)) {
+                return activeCard.readMemoryMapped(addr, cpu);
+            } else if (this.isDsrCard(activeCard)) {
+                const rom = activeCard.getROM();
+                const romAddr = addr - 0x4000 + (activeCard.getROMBank() << 13);
+                // this.log.info("Read peripheral ROM " + addr.toHexWord() + ": " + (rom[romAddr] << 8 | rom[romAddr + 1]).toHexWord());
+                return rom[romAddr] << 8 | rom[romAddr + 1];
             }
         }
         return 0;
@@ -413,13 +349,9 @@ export class Memory implements Stateful, MemoryDevice {
 
     private writePeripheralROM(addr: number, w: number, cpu: CPU) {
         cpu.addCycles(4);
-        const isTIPIROM = this.isTIPIROMEnabled();
-        if (this.sams && this.sams.hasRegisterAccess()) {
-            this.sams.writeRegister((addr & 0x1F) >> 1, ((w & 0xFF) << 8) | (w >> 8));
-        } else if (isTIPIROM && addr === TIPI.TC_OUT) {
-            this.console.getTIPI()!.setTC(w);
-        } else if (isTIPIROM && addr === TIPI.TD_OUT) {
-            this.console.getTIPI()!.setTD(w);
+        const activeCard = this.peripheralCards.find(dsrDevice => dsrDevice.isEnabled());
+        if (activeCard && this.isMemoryMappedCard(activeCard)) {
+            activeCard.writeMemoryMapped(addr, w, cpu);
         }
     }
 
@@ -570,66 +502,6 @@ export class Memory implements Stateful, MemoryDevice {
         }
     }
 
-    private readPCodeGROM(addr: number, cpu: CPU): number {
-        cpu.addCycles(17);
-        let value = 0;
-        if (addr === 0x5BFC) {
-            // Read data from GROM
-            cpu.addCycles(6);
-            value = this.pCodeGroms.readData();
-        } else if (addr === 0x5BFE) {
-            // Get GROM address
-            value = this.pCodeGroms.readAddress();
-        }
-        return value;
-    }
-
-    private writePCodeGROM(addr: number, w: number, cpu: CPU) {
-        cpu.addCycles(23 + 6);
-        if (addr === 0x5FFE) {
-            // Set GROM address
-            this.pCodeGroms.writeAddress(w);
-        }
-    }
-
-    private readTIFDCRegister(addr: number, cpu: CPU) {
-        let byte = 0;
-        switch (addr) {
-            case 0x5ff0:
-                byte = this.fdc.getStatus();
-                break;
-            case 0x5ff2:
-                byte = this.fdc.getTrack();
-                break;
-            case 0x5ff4:
-                byte = this.fdc.getSector();
-                break;
-            case 0x5ff6:
-                byte = this.fdc.getData();
-                break;
-        }
-        return (byte ^ 0xff) << 8; // Inverted data bus
-    }
-
-    private writeTIFDCRegister(addr: number, w: number, cpu: CPU) {
-        cpu.addCycles(4);
-        const byte = (w >> 8) ^ 0xff; // Inverted data bus
-        switch (addr) {
-            case 0x5ff8:
-                this.fdc.setCommand(byte);
-                break;
-            case 0x5ffa:
-                this.fdc.setTrack(byte);
-                break;
-            case 0x5ffc:
-                this.fdc.setSector(byte);
-                break;
-            case 0x5ffe:
-                this.fdc.setData(byte);
-                break;
-        }
-    }
-
     private readNull(addr: number, cpu: CPU): number {
         cpu.addCycles(4);
         return 0;
@@ -638,19 +510,19 @@ export class Memory implements Stateful, MemoryDevice {
     private writeNull(addr: number, w: number, cpu: CPU) {
     }
 
-    readWord(addr: number, cpu: CPU): number {
+    public readWord(addr: number, cpu: CPU): number {
         addr &= 0xFFFE;
         return this.memoryMap[addr][0].call(this, addr, cpu);
     }
 
-    writeWord(addr: number, w: number, cpu: CPU) {
+    public writeWord(addr: number, w: number, cpu: CPU) {
         addr &= 0xFFFE;
         this.memoryMap[addr][1].call(this, addr, w, cpu);
     }
 
     // Fast methods that don't produce wait states. For debugger etc.
 
-    getByte(addr: number): number {
+    private getByte(addr: number): number {
         if (addr < 0x2000) {
             return this.rom[addr];
         }
@@ -665,12 +537,15 @@ export class Memory implements Stateful, MemoryDevice {
             if (this.sams && this.sams.hasRegisterAccess()) {
                 const w = this.sams.readRegister((addr & 0x1F) >> 1);
                 return (addr & 1) === 0 ? (w & 0xFF) : (w >> 8);
-            } else if (this.peripheralROMEnabled) {
-                const peripheralROM = this.peripheralROMs[this.peripheralROMNumber];
-                const romAddr = addr - 0x4000 + (this.peripheralROMBanks[this.peripheralROMNumber] << 13);
-                return peripheralROM ? peripheralROM[romAddr] : 0;
             } else {
-                return 0;
+                const activeCard = this.peripheralCards.find(dsrDevice => dsrDevice.isEnabled());
+                if (activeCard && this.isDsrCard(activeCard)) {
+                    const peripheralROM = activeCard.getROM();
+                    const romAddr = addr - 0x4000 + (activeCard.getROMBank() << 13);
+                    return peripheralROM ? peripheralROM[romAddr] : 0;
+                } else {
+                    return 0;
+                }
             }
         }
         if (addr < 0x7000) {
@@ -700,51 +575,8 @@ export class Memory implements Stateful, MemoryDevice {
         return 0;
     }
 
-    getWord(addr: number): number {
-        if (addr < 0x2000) {
-            return (this.rom[addr] << 8) | this.rom[addr + 1];
-        }
-        if (addr < 0x4000) {
-            if (this.sams) {
-                return this.sams.readWord(addr);
-            } else {
-                return this.ram[addr] << 8 | this.ram[addr + 1];
-            }
-        }
-        if (addr < 0x6000) {
-            if (this.peripheralROMEnabled) {
-                const peripheralROM = this.peripheralROMs[this.peripheralROMNumber];
-                const romAddr = addr - 0x4000 + (this.peripheralROMBanks[this.peripheralROMNumber] << 13);
-                return peripheralROM ? peripheralROM[romAddr] << 8 | peripheralROM[romAddr + 1] : 0;
-            } else {
-                return 0;
-            }
-        }
-        if (addr < 0x7000) {
-            return this.cartImage ? (this.cartImage[addr + this.cartAddrOffset] << 8) | this.cartImage[addr + this.cartAddrOffset + 1] : 0;
-        }
-        if (addr < 0x8000) {
-            if (this.cartRAMFG99Paged) {
-                return this.cartImage ? (this.cartImage[addr + this.cartAddrRAMOffset] << 8) | this.cartImage[addr + this.cartAddrRAMOffset + 1] : 0;
-            } else {
-                return this.cartImage ? (this.cartImage[addr + this.cartAddrOffset] << 8) | this.cartImage[addr + this.cartAddrOffset + 1] : 0;
-            }
-        }
-        if (addr < 0x8400) {
-            addr = addr | 0x0300;
-            return this.ram[addr] << 8 | this.ram[addr + 1];
-        }
-        if (addr < 0xA000) {
-            return 0;
-        }
-        if (addr < 0x10000) {
-            if (this.sams) {
-                return this.sams.readWord(addr);
-            } else {
-                return this.ram[addr] << 8 | this.ram[addr + 1];
-            }
-        }
-        return 0;
+    public getWord(addr: number): number {
+        return (this.getByte(addr) << 8) | this.getByte(addr + 1);
     }
 
     // For disk IO etc. that's not faithfully emulated
@@ -842,14 +674,6 @@ export class Memory implements Stateful, MemoryDevice {
         return this.gromBases;
     }
 
-    isTIPIEnabled(): boolean {
-        return this.tipiType === 'FULL';
-    }
-
-    isSAMSEnabled(): boolean {
-        return this.sams !== null;
-    }
-
     getSAMS(): SAMS | null {
         return this.sams;
     }
@@ -858,20 +682,12 @@ export class Memory implements Stateful, MemoryDevice {
         return this.vdp;
     }
 
-    isDiskROMEnabled() {
-        return this.peripheralROMNumber === this.diskROMNumber;
+    isMemoryMappedCard(card: PeripheralCard): card is MemoryMappedCard {
+        return (card as MemoryMappedCard).readMemoryMapped !== undefined;
     }
 
-    isTIPIROMEnabled() {
-        return this.peripheralROMNumber === this.tipiROMNumber;
-    }
-
-    getTIPIROMNumber() {
-        return this.tipiROMNumber;
-    }
-
-    isGoogleDriveROMEnabled() {
-        return this.peripheralROMNumber === this.gdrROMNumber;
+    isDsrCard(card: PeripheralCard): card is DsrCard {
+        return (card as DsrCard).getROM !== undefined;
     }
 
     getState(): object {
@@ -896,13 +712,13 @@ export class Memory implements Stateful, MemoryDevice {
             cartRAMFG99Paged: this.cartRAMFG99Paged,
             currentCartRAMBank: this.currentCartRAMBank,
             cartAddrRAMOffset: this.cartAddrRAMOffset,
-            peripheralROMs: this.peripheralROMs,
-            peripheralROMEnabled: this.peripheralROMEnabled,
-            peripheralROMNumber: this.peripheralROMNumber,
-            peripheralROMBanks: this.peripheralROMBanks,
+            // peripheralROMs: this.peripheralROMs,
+            // peripheralROMEnabled: this.peripheralROMEnabled,
+            // peripheralROMNumber: this.peripheralROMNumber,
+            // peripheralROMBanks: this.peripheralROMBanks,
             sams: this.sams ? this.sams.getState() : null,
             pCodeEnabled: this.pCodeEnabled,
-            pCodeGroms: this.pCodeGroms ? this.pCodeGroms.getState() : null,
+            pCodeCard: this.pCodeCard ? this.pCodeCard.getState() : null,
         };
     }
 
@@ -933,18 +749,24 @@ export class Memory implements Stateful, MemoryDevice {
         this.cartRAMFG99Paged = state.cartRAMFG99Paged;
         this.currentCartRAMBank = state.currentCartRAMBank;
         this.cartAddrRAMOffset = state.cartAddrRAMOffset;
-        this.peripheralROMs = state.peripheralROMs;
-        this.peripheralROMEnabled = state.peripheralROMEnabled;
-        this.peripheralROMNumber = state.peripheralROMNumber;
-        this.peripheralROMBanks = state.peripheralROMBanks;
+        // this.peripheralROMs = state.peripheralROMs;
+        // this.peripheralROMEnabled = state.peripheralROMEnabled;
+        // this.peripheralROMNumber = state.peripheralROMNumber;
+        // this.peripheralROMBanks = state.peripheralROMBanks;
         if (state.sams) {
-            this.sams = new SAMS(this.samsSize, false);
+            if (!this.sams) {
+                this.sams = new SAMS(this.samsSize, false);
+                this.registerPeripheralCard(this.sams);
+            }
             this.sams.restoreState(state.sams);
         }
         this.pCodeEnabled = state.pCodeEnabled;
-        if (state.pCodeGroms) {
-            this.pCodeGroms = new GROMArray();
-            this.pCodeGroms.restoreState(state.pCodeGroms);
+        if (state.pCodeCard) {
+            if (!this.pCodeCard) {
+                this.pCodeCard = new PCodeCard();
+                this.registerPeripheralCard(this.pCodeCard);
+            }
+            this.pCodeCard.restoreState(state.pCodeCard);
         }
         this.buildMemoryMap();
     }

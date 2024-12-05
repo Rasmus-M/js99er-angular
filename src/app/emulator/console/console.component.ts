@@ -249,6 +249,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         break;
                     case Setting.DISK:
                         this.ti994A.getMemory().setDisk(value);
+                        this.ti994A.setFDC();
                         resetRequired = true;
                         break;
                     case Setting.PCODE:

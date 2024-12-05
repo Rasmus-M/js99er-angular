@@ -13,6 +13,7 @@ import {TiFdc} from "../classes/ti-fdc";
 import {GenericFdc} from "../classes/generic-fdc";
 import {GoogleDriveFdc} from "../classes/google-drive-fdc";
 import {Observable} from "rxjs";
+import {FDC} from "./fdc";
 
 export interface Console {
     start(fast: boolean, skipBreakpoint?: boolean): void;
@@ -32,8 +33,8 @@ export interface Console {
     getKeyboard(): Keyboard;
     getTape(): Tape;
     getDiskDrives(): DiskDrive[];
-    getGenericFdc(): GenericFdc;
-    getTiFdc(): TiFdc;
+    getFDC(): FDC | null;
+    setFDC(): void;
     getGoogleDrivesFdc(): GoogleDriveFdc;
     setGoogleDrive(): void;
     getTIPI(): TIPI | null;

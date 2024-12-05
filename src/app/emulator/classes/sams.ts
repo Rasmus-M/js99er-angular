@@ -3,8 +3,11 @@ import {Stateful} from '../interfaces/stateful';
 import {Util} from '../../classes/util';
 import {MemoryView} from "../../classes/memory-view";
 import {MemoryDevice} from "../interfaces/memory-device";
+import {PeripheralCard} from "../interfaces/peripheral-card";
+import {MemoryMappedCard} from "../interfaces/memory-mapped-card";
+import {CPU} from "../interfaces/cpu";
 
-export class SAMS implements Stateful, MemoryDevice {
+export class SAMS implements Stateful, MemoryDevice, PeripheralCard, MemoryMappedCard {
 
     static MAPPING_MODE = 0;
     static TRANSPARENT_MODE = 1;
@@ -42,6 +45,31 @@ export class SAMS implements Stateful, MemoryDevice {
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         ];
         this.setMode(SAMS.TRANSPARENT_MODE);
+    }
+
+    public getId(): string {
+        return 'SAMS';
+    }
+
+    public isEnabled(): boolean {
+        return this.registerAccess;
+    }
+
+    public getCruAddress(): number {
+        return 0x1e00;
+    }
+
+    public readMemoryMapped(addr: number, cpu: CPU): number {
+        const word = this.readRegister((addr & 0x1F) >> 1);
+        return ((word & 0xFF) << 8) | (word >> 8);
+    }
+
+    public writeMemoryMapped(addr: number, word: number, cpu: CPU): void {
+        this.writeRegister((addr & 0x1F) >> 1, ((word & 0xFF) << 8) | (word >> 8));
+    }
+
+    public readCruBit(bit: number): boolean {
+        return false;
     }
 
     public writeCruBit(bit: number, value: boolean) {

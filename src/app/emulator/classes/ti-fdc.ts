@@ -1,13 +1,16 @@
 import {DiskDrive} from "./disk-drive";
 import {Log} from "../../classes/log";
 import {Util} from "../../classes/util";
-import {Console} from "../interfaces/console";
 import {FDC} from "../interfaces/fdc";
-import {Stateful} from "../interfaces/stateful";
-import {data} from "jquery";
+import {DsrCard} from "../interfaces/dsr-card";
+import {MemoryMappedCard} from "../interfaces/memory-mapped-card";
+import {CPU} from "../interfaces/cpu";
 
-export class TiFdc implements FDC, Stateful {
+export class TiFdc implements FDC, DsrCard, MemoryMappedCard {
 
+    static ID = "TI_FDC";
+
+    private romEnabled = false;
     private command = 0;
     private drive = 0;
     private side = 0;
@@ -24,11 +27,10 @@ export class TiFdc implements FDC, Stateful {
     private log = Log.getLog();
 
     constructor(
-        private console: Console,
         private diskDrives: DiskDrive[]) {
     }
 
-    reset() {
+    public reset() {
         this.command = 0;
         this.drive = 0;
         this.side = 0;
@@ -44,8 +46,32 @@ export class TiFdc implements FDC, Stateful {
         this.writeBuffer = [];
     }
 
+    public getId(): string {
+        return TiFdc.ID;
+    }
+
+    public getROM(): number[] {
+        return TI_FDC_DSR_ROM;
+    }
+
+    public isEnabled() {
+        return this.romEnabled;
+    }
+
+    public getROMBank(): number {
+        return 0;
+    }
+
+    public getCruAddress(): number {
+        return 0x1100;
+    }
+
     public writeCruBit(bit: number, value: boolean) {
         switch (bit) {
+            case 0:
+                this.log.info("TI FDC ROM enabled: " + value);
+                this.romEnabled = value;
+                break;
             case 1:
                 this.log.debug("Strobe motor: " + value);
                 if (value) {
@@ -101,6 +127,48 @@ export class TiFdc implements FDC, Stateful {
                 return this.getSide() !== 0;
             default:
                 return false;
+        }
+    }
+
+    readMemoryMapped(addr: number, cpu: CPU): number {
+        if (addr >= 0x5ff0 && addr < 0x5ff8) {
+            let byte = 0;
+            switch (addr) {
+                case 0x5ff0:
+                    byte = this.getStatus();
+                    break;
+                case 0x5ff2:
+                    byte = this.getTrack();
+                    break;
+                case 0x5ff4:
+                    byte = this.getSector();
+                    break;
+                case 0x5ff6:
+                    byte = this.getData();
+                    break;
+            }
+            return (byte ^ 0xff) << 8; // Inverted data bus
+        } else {
+            const romAddr = addr - 0x4000;
+            return (TI_FDC_DSR_ROM[romAddr] << 8) | TI_FDC_DSR_ROM[romAddr + 1];
+        }
+    }
+
+    writeMemoryMapped(addr: number, word: number, cpu: CPU): void {
+        const byte = (word >> 8) ^ 0xff; // Inverted data bus
+        switch (addr) {
+            case 0x5ff8:
+                this.setCommand(byte);
+                break;
+            case 0x5ffa:
+                this.setTrack(byte);
+                break;
+            case 0x5ffc:
+                this.setSector(byte);
+                break;
+            case 0x5ffe:
+                this.setData(byte);
+                break;
         }
     }
 
@@ -272,7 +340,12 @@ export class TiFdc implements FDC, Stateful {
     }
 
     private readSector(multiple: boolean, flags: number) {
-        this.log.info("Cmd: Read sector " + Util.toHexWord(this.getSectorIndex()) + " (sector " + Util.toHexByte(this.sector) + ", track " + Util.toHexByte(this.track) + ", side " + Util.toHexByte(this.side) + ")" + (multiple ? " multiple" : ""));
+        this.log.info("Cmd: Read sector " + Util.toHexWord(this.getSectorIndex()) +
+            " (sector " + Util.toHexByte(this.sector) +
+            ", track " + Util.toHexByte(this.track) +
+            ", side " + Util.toHexByte(this.side) + ")" +
+            (multiple ? " multiple" : "")
+        );
         this.readSectorIntoBuffer();
         this.readByteFromBuffer();
         this.loadHead();

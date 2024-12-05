@@ -1,3 +1,91 @@
+import {DsrCard} from "../interfaces/dsr-card";
+import {MemoryMappedCard} from "../interfaces/memory-mapped-card";
+import {CPU} from "../interfaces/cpu";
+import {GROMArray} from "./grom-array";
+import {Stateful} from "../interfaces/stateful";
+
+export class PCodeCard implements DsrCard, MemoryMappedCard, Stateful {
+
+    static ID = 'P_CODE';
+
+    private groms: GROMArray;
+    private romEnabled = false;
+    private romBank = 0;
+
+    constructor() {
+        this.groms = new GROMArray();
+        this.groms.setData(new Uint8Array(PCODE_GROM), 0);
+    }
+
+    public getCruAddress(): number {
+        return 0x1f00;
+    }
+
+    public getId(): string {
+        return PCodeCard.ID;
+    }
+
+    public getROM(): number[] {
+        return PCODE_DSR_ROM;
+    }
+
+    public isEnabled() {
+        return this.romEnabled;
+    }
+
+    public getROMBank(): number {
+        return this.romBank;
+    }
+
+    public readCruBit(bit: number): boolean {
+        return false;
+    }
+
+    public writeCruBit(bit: number, value: boolean): void {
+        if (bit === 0x80) {
+            this.romBank = value ? 1 : 0;
+        }
+    }
+
+    // GROMs map ONLY at addresses >5BFC (read data), >5BFE (read address), >5FFC (write data, not used) and >5FFE (write address).
+    readMemoryMapped(addr: number, cpu: CPU): number {
+        cpu.addCycles(13);
+        let value = 0;
+        if (addr === 0x5BFC) {
+            // Read data from GROM
+            cpu.addCycles(6);
+            value = this.groms.readData();
+        } else if (addr === 0x5BFE) {
+            // Get GROM address
+            value = this.groms.readAddress();
+        } else {
+            const romAddr = addr - 0x4000;
+            value = (PCODE_DSR_ROM[romAddr] << 8) | PCODE_DSR_ROM[romAddr + 1];
+        }
+        return value;
+    }
+
+    writeMemoryMapped(addr: number, word: number, cpu: CPU): void {
+        cpu.addCycles(25);
+        if (addr === 0x5FFE) {
+            // Set GROM address
+            this.groms.writeAddress(word);
+        }
+    }
+
+    getState(): any {
+        return {
+            romEnabled: this.romEnabled,
+            romBank: this.romBank
+        }
+    }
+
+    restoreState(state: any): void {
+        this.romEnabled = state.romEnabled;
+        this.romBank = state.romBank;
+    }
+}
+
 export const PCODE_DSR_ROM = [
     0xAA, 0x01, 0x00, 0x00, 0x40, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x40, 0x38, 0x00, 0x00, 0xFF, 0xE0, 0x00, 0x06, 0x48, 0x4A, 0x2D, 0x6E, 0x2B, 0x6E,

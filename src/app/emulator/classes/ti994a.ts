@@ -30,6 +30,7 @@ import {TiFdc} from "./ti-fdc";
 import {GenericFdc} from "./generic-fdc";
 import {GoogleDriveFdc} from "./google-drive-fdc";
 import {Observable, Subject} from "rxjs";
+import {FDC} from "../interfaces/fdc";
 
 export class TI994A implements Console, Stateful {
 
@@ -51,8 +52,7 @@ export class TI994A implements Console, Stateful {
     private keyboard: Keyboard;
     private tape: Tape;
     private diskDrives: DiskDrive[];
-    private genericFdc: GenericFdc;
-    private tiFdc: TiFdc;
+    private fdc: FDC | null;
     private googleFdc: GoogleDriveFdc;
     private googleDrives: GoogleDrive[];
     private tipi: TIPI | null;
@@ -81,8 +81,10 @@ export class TI994A implements Console, Stateful {
         this.wasmService = wasmService;
         this.cyclesSubject = new Subject<number>();
         this.onBreakpoint = onBreakpoint;
+        this.log = Log.getLog();
 
         this.assemble(diskImages);
+        this.attachListeners();
 
         this.running = false;
         this.cpuSpeed = 1;
@@ -95,9 +97,33 @@ export class TI994A implements Console, Stateful {
         this.lastFrameTime = null;
         this.fpsFrameCount = 0;
         this.lastFpsTime = null;
+    }
 
-        this.log = Log.getLog();
+    private assemble(diskImages: DiskImage[]) {
+        this.cru = new Cru(this);
+        this.memory = new Memory(this, this.settings);
+        this.cpu = new TMS9900(this);
+        this.tape = new Tape();
+        this.setVDP();
+        this.setPSG();
+        this.speech = new TMS5200(this.settings.isSpeechEnabled());
+        this.keyboard = new Keyboard(this.document, this, this.settings);
+        this.diskDrives = [
+            new DiskDrive("DSK1", diskImages[0]),
+            new DiskDrive("DSK2", diskImages[1]),
+            new DiskDrive("DSK3", diskImages[2])
+        ];
+        this.setFDC();
+        this.setGoogleDrive();
+        this.setTIPI();
+    }
 
+    private attachListeners() {
+        this.speech.isReady().subscribe(
+            (ready) => {
+                this.cpu.setSuspended(!ready);
+            }
+        );
         $(window).on("blur", () => {
             if (this.settings.isPauseOnFocusLostEnabled() || this.useVsync) {
                 this.wasRunning = this.isRunning();
@@ -116,32 +142,7 @@ export class TI994A implements Console, Stateful {
         });
     }
 
-    assemble(diskImages: DiskImage[]) {
-        this.memory = new Memory(this, this.settings);
-        this.cpu = new TMS9900(this);
-        this.setVDP();
-        this.tape = new Tape();
-        this.setPSG();
-        this.speech = new TMS5200(this.settings.isSpeechEnabled());
-        this.cru = new Cru(this);
-        this.keyboard = new Keyboard(this.document, this, this.settings);
-        this.diskDrives = [
-            new DiskDrive("DSK1", diskImages[0]),
-            new DiskDrive("DSK2", diskImages[1]),
-            new DiskDrive("DSK3", diskImages[2])
-        ];
-        this.genericFdc = new GenericFdc(this, this.diskDrives);
-        this.tiFdc = new TiFdc(this, this.diskDrives);
-        this.setGoogleDrive();
-        this.setTIPI();
-        this.speech.isReady().subscribe(
-            (ready) => {
-                this.cpu.setSuspended(!ready);
-            }
-        );
-    }
-
-    setVDP() {
+    public setVDP() {
         switch (this.settings.getVDP()) {
             case 'TMS9918A':
                 this.vdp = new TMS9918A(this.canvas, this, this.wasmService);
@@ -155,7 +156,7 @@ export class TI994A implements Console, Stateful {
         }
     }
 
-    setPSG() {
+    public setPSG() {
         switch (this.settings.getPSG()) {
             case 'STANDARD':
                 this.psg = new TMS9919(this.cpu, this.tape);
@@ -166,7 +167,30 @@ export class TI994A implements Console, Stateful {
         }
     }
 
-    setGoogleDrive() {
+    public setFDC() {
+        if (this.fdc) {
+            this.memory.deregisterPeripheralCard(this.fdc);
+        }
+        switch (this.settings.getDisk()) {
+            case 'GENERIC':
+                this.fdc = new GenericFdc(this, this.diskDrives);
+                break;
+            case 'TIFDC':
+                this.fdc = new TiFdc(this.diskDrives);
+                break;
+            case 'NONE':
+                this.fdc = null;
+                break;
+        }
+        if (this.fdc) {
+            this.memory.registerPeripheralCard(this.fdc);
+        }
+    }
+
+    public setGoogleDrive() {
+        if (this.googleFdc) {
+            this.memory.deregisterPeripheralCard(this.googleFdc);
+        }
         if (this.settings.isGoogleDriveEnabled()) {
             this.googleDrives = [
                 new GoogleDrive("GDR1", "Js99erDrives/GDR1"),
@@ -174,14 +198,16 @@ export class TI994A implements Console, Stateful {
                 new GoogleDrive("GDR3", "Js99erDrives/GDR3")
             ];
             this.googleFdc = new GoogleDriveFdc(this, this.googleDrives);
+            this.memory.registerPeripheralCard(this.googleFdc);
         } else {
             this.googleDrives = [];
         }
     }
 
-    setTIPI() {
+    public setTIPI() {
         if (this.tipi) {
             this.tipi.close();
+            this.memory.deregisterPeripheralCard(this.tipi);
         }
         if (this.settings.getTIPI() !== 'NONE') {
             this.tipi = new TIPI(
@@ -191,69 +217,10 @@ export class TI994A implements Console, Stateful {
                 this.settings.getTIPI() === 'FULL',
                 this.settings.getTIPI() === 'MOUSE'
             );
+            this.memory.registerPeripheralCard(this.tipi);
         } else {
             this.tipi = null;
         }
-    }
-
-    getCPU(): CPU {
-        return this.cpu;
-    }
-
-    getVDP(): VDP {
-        return this.vdp;
-    }
-
-    getPSG(): PSG {
-        return this.psg;
-    }
-
-    getSpeech(): Speech {
-        return this.speech;
-    }
-
-    getCRU(): Cru {
-        return this.cru;
-    }
-
-    getMemory(): Memory {
-        return this.memory;
-    }
-
-    getKeyboard(): Keyboard {
-        return this.keyboard;
-    }
-
-    getTape(): Tape {
-        return this.tape;
-    }
-
-    getDiskDrives(): DiskDrive[] {
-        return this.diskDrives;
-    }
-
-    getGenericFdc(): GenericFdc {
-        return this.genericFdc;
-    }
-
-    getTiFdc(): TiFdc {
-        return this.tiFdc;
-    }
-
-    getGoogleDrivesFdc(): GoogleDriveFdc {
-        return this.googleFdc;
-    }
-
-    getTIPI(): TIPI | null {
-        return this.tipi;
-    }
-
-    isRunning() {
-        return this.running;
-    }
-
-    isFast() {
-        return this.cpuSpeed > 1;
     }
 
     reset(keepCart: boolean) {
@@ -266,8 +233,9 @@ export class TI994A implements Console, Stateful {
         this.cru.reset();
         this.keyboard.reset();
         this.tape.reset();
-        this.tiFdc.reset();
-        this.genericFdc.reset();
+        if (this.fdc) {
+            this.fdc.reset();
+        }
         for (let i = 0; i < this.googleDrives.length; i++) {
             this.googleDrives[i].reset();
         }
@@ -418,6 +386,62 @@ export class TI994A implements Console, Stateful {
         this.lastFpsTime = now;
     }
 
+    getCPU(): CPU {
+        return this.cpu;
+    }
+
+    getVDP(): VDP {
+        return this.vdp;
+    }
+
+    getPSG(): PSG {
+        return this.psg;
+    }
+
+    getSpeech(): Speech {
+        return this.speech;
+    }
+
+    getCRU(): Cru {
+        return this.cru;
+    }
+
+    getMemory(): Memory {
+        return this.memory;
+    }
+
+    getKeyboard(): Keyboard {
+        return this.keyboard;
+    }
+
+    getTape(): Tape {
+        return this.tape;
+    }
+
+    getDiskDrives(): DiskDrive[] {
+        return this.diskDrives;
+    }
+
+    getFDC(): FDC | null {
+        return this.fdc;
+    }
+
+    getGoogleDrivesFdc(): GoogleDriveFdc {
+        return this.googleFdc;
+    }
+
+    getTIPI(): TIPI | null {
+        return this.tipi;
+    }
+
+    isRunning() {
+        return this.running;
+    }
+
+    isFast() {
+        return this.cpuSpeed > 1;
+    }
+
     getPC() {
         return this.activeCPU.getPc();
     }
@@ -485,7 +509,7 @@ export class TI994A implements Console, Stateful {
             psg: this.psg.getState(),
             speech: this.speech.getState(),
             tape: this.tape.getState(),
-            tiFdc: this.tiFdc.getState()
+            fdc: this.fdc ? this.fdc.getState() : null
         };
     }
 
@@ -514,8 +538,11 @@ export class TI994A implements Console, Stateful {
         if (state.tape) {
             this.tape.restoreState(state.tape);
         }
-        if (state.tiFdc) {
-            this.tiFdc.restoreState(state.tiFdc);
+        if (state.fdc) {
+            this.setVDP();
+            if (this.fdc) {
+                this.fdc.restoreState(state.fdc);
+            }
         }
     }
 }
