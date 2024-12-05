@@ -139,7 +139,7 @@ export class TIPI implements DsrCard, MemoryMappedCard {
                 return this.getTD();
             default:
                 const romAddr = addr - 0x4000;
-                return (TIPI_DSR_ROM[romAddr] << 8) + TIPI_DSR_ROM[romAddr + 1];
+                return (TIPI_DSR_ROM[romAddr] << 8) | TIPI_DSR_ROM[romAddr + 1];
         }
     }
 
@@ -224,6 +224,7 @@ export class TIPI implements DsrCard, MemoryMappedCard {
     }
 
     processMsg() {
+        console.log("process");
         if (this.tc === 0xf1) {
             // TSRSET (reset-sync)
             this.rc = this.tc; // ack reset
@@ -264,6 +265,7 @@ export class TIPI implements DsrCard, MemoryMappedCard {
             this.txIdx++;
             if (this.txMsg && this.txIdx === this.txLen) {
                 if (this.fastMouseEmulation && this.txLen === 1 && this.txMsg[0] === 0x20) {
+                    console.log("MouseRequityes");
                     this.mouseRequested = true;
                 } else {
                     if (this.websocketOpen) {
