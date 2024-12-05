@@ -17,6 +17,7 @@ import {ConsoleFactoryService} from "../services/console-factory.service";
 import {Console} from "../interfaces/console";
 import {AudioService} from "../../services/audio.service";
 import {DatabaseService} from "../../services/database.service";
+import {ConsoleEvent, ConsoleEventType} from "../../classes/console-event";
 
 @Component({
     selector: 'app-console',
@@ -36,7 +37,8 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
     private canvas: HTMLCanvasElement;
     private mediaRecorder: MediaRecorder;
     private recordings: Blob[];
-    private subscription: Subscription;
+    private commandSubscription: Subscription;
+    private eventSubscription: Subscription;
     private pointerLocked = false;
     private log: Log = Log.getLog();
 
@@ -55,7 +57,8 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngOnInit() {
-        this.subscription = this.commandDispatcherService.subscribe(this.onCommand.bind(this));
+        this.commandSubscription = this.commandDispatcherService.subscribe(this.onCommand.bind(this));
+        this.eventSubscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
         this.canvasStretchX = this.settingsService.getVDP() === 'V9938';
         this.canvasPixelated = this.settingsService.isPixelatedEnabled();
     }
@@ -208,7 +211,6 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         this.ti994A.getSpeech().setEnabled(value);
                         break;
                     case Setting.RAM:
-                        this.ti994A.getMemory().setRAMType(value);
                         resetRequired = true;
                         break;
                     case Setting.VDP:
@@ -236,7 +238,6 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         // Handled by main component
                         break;
                     case Setting.TIPI:
-                        this.ti994A.getMemory().setTIPIType(value);
                         this.ti994A.setTIPI();
                         resetRequired = true;
                         break;
@@ -248,12 +249,10 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         this.ti994A.getMemory().setDebugResetEnabled(value);
                         break;
                     case Setting.DISK:
-                        this.ti994A.getMemory().setDisk(value);
                         this.ti994A.setFDC();
                         resetRequired = true;
                         break;
                     case Setting.PCODE:
-                        this.ti994A.getMemory().setPCodeEnabled(value);
                         resetRequired = true;
                         break;
                 }
@@ -355,6 +354,24 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
+    onEvent(event: ConsoleEvent) {
+        if (event.type === ConsoleEventType.SETTINGS_RESTORED) {
+            const settings = this.settingsService.getSettings();
+            this.ti994A.getMemory().setDebugResetEnabled(settings.isDebugResetEnabled());
+            this.ti994A.getMemory().setGRAMEnabled(settings.isGRAMEnabled());
+            this.ti994A.getSpeech().setEnabled(settings.isSpeechEnabled());
+            this.ti994A.setVDP();
+            this.ti994A.setFDC();
+            this.ti994A.setTIPI();
+            this.ti994A.setGoogleDrive();
+            this.ti994A.getKeyboard().setPCKeyboardEnabled(settings.isPCKeyboardEnabled());
+            this.ti994A.getKeyboard().setMapArrowKeysToFctnSDEXEnabled(settings.isMapArrowKeysEnabled());
+            this.canvasPixelated = settings.isPixelatedEnabled();
+            this.canvasStretchX = settings.getVDP() === 'V9938';
+            this.reset();
+        }
+    }
+
     saveLatestSoftware(software: Software) {
         this.databaseService.putSoftware(ConsoleComponent.LATEST_SOFTWARE, software);
     }
@@ -416,6 +433,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngOnDestroy() {
         this.ti994A.stop();
-        this.subscription.unsubscribe();
+        this.commandSubscription.unsubscribe();
+        this.eventSubscription.unsubscribe();
     }
 }

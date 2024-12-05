@@ -42,7 +42,9 @@ export class PCodeCard implements DsrCard, MemoryMappedCard, Stateful {
     }
 
     public writeCruBit(bit: number, value: boolean): void {
-        if (bit === 0x80) {
+        if (bit === 0) {
+            this.romEnabled = value;
+        } else if (bit === 0x40) {
             this.romBank = value ? 1 : 0;
         }
     }
@@ -59,7 +61,7 @@ export class PCodeCard implements DsrCard, MemoryMappedCard, Stateful {
             // Get GROM address
             value = this.groms.readAddress();
         } else {
-            const romAddr = addr - 0x4000;
+            const romAddr = addr - 0x4000 + (this.romBank << 13);
             value = (PCODE_DSR_ROM[romAddr] << 8) | PCODE_DSR_ROM[romAddr + 1];
         }
         return value;
@@ -77,7 +79,7 @@ export class PCodeCard implements DsrCard, MemoryMappedCard, Stateful {
         return {
             romEnabled: this.romEnabled,
             romBank: this.romBank
-        }
+        };
     }
 
     restoreState(state: any): void {

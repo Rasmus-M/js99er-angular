@@ -200,7 +200,7 @@ export class GenericFdc implements FDC, DsrCard {
 
     private init() {
         this.console.getCPU().instructionExecuting().subscribe((pc) => {
-            if (this.isEnabled() && this.memory.getDisk() === 'GENERIC' && pc >= GenericFdc.DSR_HOOK_START && pc <= GenericFdc.DSR_HOOK_END) {
+            if (this.isEnabled() && pc >= GenericFdc.DSR_HOOK_START && pc <= GenericFdc.DSR_HOOK_END) {
                 this.executeHooks(pc);
             }
         });

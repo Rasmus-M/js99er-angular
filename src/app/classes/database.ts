@@ -2,14 +2,16 @@ import {Log} from './log';
 import {DiskImage} from '../emulator/classes/disk-image';
 import {DiskDrive} from '../emulator/classes/disk-drive';
 import {MemoryBlock, Software} from "./software";
+import {Settings} from "./settings";
 
 export class Database {
 
     static NAME = "js99er";
-    static VERSION = 5;
+    static VERSION = 6;
     static DISK_DRIVES_STORE = "diskDrives";
     static DISK_IMAGES_STORE = "diskImages";
     static BINARY_FILE_STORE = "binaryFiles";
+    static SETTINGS_STORE = "settings";
     static MACHINE_STATE_STORE = "machineStates";
     static SOFTWARE_STORE = "software";
 
@@ -38,6 +40,9 @@ export class Database {
                 }
                 if (!db.objectStoreNames.contains(Database.BINARY_FILE_STORE)) {
                     db.createObjectStore(Database.BINARY_FILE_STORE, {keyPath: "name"});
+                }
+                if (!db.objectStoreNames.contains(Database.SETTINGS_STORE)) {
+                    db.createObjectStore(Database.SETTINGS_STORE, {keyPath: "name"});
                 }
                 if (!db.objectStoreNames.contains(Database.MACHINE_STATE_STORE)) {
                     db.createObjectStore(Database.MACHINE_STATE_STORE, {keyPath: "name"});
@@ -263,6 +268,55 @@ export class Database {
             const store: IDBObjectStore = trans.objectStore(Database.BINARY_FILE_STORE);
 
             const request: IDBRequest = store.put({name: name, binaryFile: binaryFile});
+
+            request.onsuccess = () => {
+                if (callback) { callback(true); }
+            };
+
+            request.onerror = () => {
+                this.logError(request);
+                if (callback) { callback(false); }
+            };
+        } else {
+            if (callback) { callback(false); }
+        }
+    }
+
+    getSettings(name: string, callback: (result: false | Settings) => void) {
+        if (this.db != null && name != null) {
+            const trans: IDBTransaction = this.db.transaction([Database.SETTINGS_STORE], "readonly");
+            const store: IDBObjectStore = trans.objectStore(Database.SETTINGS_STORE);
+
+            const request: IDBRequest = store.get(name);
+
+            request.onsuccess = () => {
+                const obj = request.result;
+                if (obj) {
+                    if (callback) {
+                        const settings = new Settings();
+                        settings.copyFrom(obj.settings);
+                        callback(settings);
+                    }
+                } else {
+                    if (callback) { callback(false); }
+                }
+            };
+
+            request.onerror = () => {
+                this.logError(request);
+                if (callback) { callback(false); }
+            };
+        } else {
+            if (callback) { callback(false); }
+        }
+    }
+
+    putSettings(name: string, settings: Settings, callback: (result: boolean) => void) {
+        if (this.db != null) {
+            const trans: IDBTransaction = this.db.transaction([Database.SETTINGS_STORE], "readwrite");
+            const store: IDBObjectStore = trans.objectStore(Database.SETTINGS_STORE);
+
+            const request: IDBRequest = store.put({name: name, settings: settings});
 
             request.onsuccess = () => {
                 if (callback) { callback(true); }

@@ -5,6 +5,7 @@ import {DiskDrive} from '../emulator/classes/disk-drive';
 import {Subject} from "rxjs";
 import {Observable} from "rxjs";
 import {Software} from "../classes/software";
+import {Settings} from "../classes/settings";
 
 @Injectable({
     providedIn: 'root'
@@ -95,6 +96,34 @@ export class DatabaseService {
                     subject.next();
                 } else {
                     subject.error("Failed to put disk drive " + diskDrive.getName());
+                }
+            }
+        );
+        return subject.asObservable();
+    }
+
+    getSettings(name: string): Observable<Settings> {
+        const subject = new Subject<Settings>();
+        this.database.getSettings(name,
+            (result: Settings | false) => {
+                if (result) {
+                    subject.next(result);
+                } else {
+                    subject.error("Failed to get settings");
+                }
+            }
+        );
+        return subject.asObservable();
+    }
+
+    putSettings(name: string, settings: Settings): Observable<void> {
+        const subject = new Subject<void>();
+        this.database.putSettings(name, settings,
+            (success: boolean) => {
+                if (success) {
+                    subject.next();
+                } else {
+                    subject.error("Failed to put settings");
                 }
             }
         );

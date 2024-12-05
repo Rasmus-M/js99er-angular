@@ -66,10 +66,12 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         private databaseService: DatabaseService,
         private moduleService: ModuleService,
         private moreSoftwareService: MoreSoftwareService,
-        private configService: ConfigService
+        private configService: ConfigService,
+        private dialogService: DialogService
     ) {}
 
     ngOnInit() {
+        this.dialogService.init();
         this.configure();
         this.diskImages = this.diskService.createDefaultDiskImages();
         this.commandSubscription = this.commandDispatcherService.subscribe((command) => {
@@ -317,9 +319,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     saveState() {
-        const database = this.databaseService;
-        if (database.isSupported()) {
-            database.deleteAllDiskImages().pipe(
+        if (this.databaseService.isSupported()) {
+            this.databaseService.deleteAllDiskImages().pipe(
                 map(() => this.diskService.saveDiskImages(this.diskImages))
             ).pipe(
                 map(() => {
@@ -330,8 +331,13 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
             ).pipe(
                 mergeMap(() => {
                     this.log.info('Disk drives saved OK.');
+                    return this.databaseService.putSettings('settings', this.settingsService.getSettings());
+                })
+            ).pipe(
+                map(() => {
+                    this.log.info('Settings saved OK.');
                     const state = this.ti994A.getState();
-                    return database.putMachineState('ti994a', state);
+                    return this.databaseService.putMachineState('ti994a', state);
                 })
             ).subscribe({
                 next: () => {
@@ -345,12 +351,11 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     restoreState() {
-        const database = this.databaseService;
         const wasRunning = this.ti994A.isRunning();
         if (wasRunning) {
             this.commandDispatcherService.stop();
         }
-        database.getDiskImages().pipe(
+        this.databaseService.getDiskImages().pipe(
             map((diskImages: DiskImage[]) => {
                 this.diskImages = diskImages;
                 this.log.info("Disk images restored OK.");
@@ -360,75 +365,40 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         ).pipe(
             mergeMap(() => {
                 this.log.info("Disk drives restored OK.");
-                return database.getMachineState("ti994a");
+                return this.databaseService.getSettings('settings');
+            })
+        ).pipe(
+            mergeMap((settings: Settings) => {
+                if (settings) {
+                    this.settingsService.restoreSettings(settings);
+                }
+                return this.databaseService.getMachineState("ti994a");
             })
         ).subscribe(
-            (state: any) => {
-                const f18AEnabled = typeof(state.vdp.gpu) === "object";
-                const v9938Enabled = typeof(state.vdp.mmc) === "object";
-                if (f18AEnabled && this.settingsService.getVDP() !== 'F18A') {
-                    this.log.error("Please enable F18A VDP before restoring the state");
-                    return;
-                } else if (v9938Enabled && this.settingsService.getVDP() !== 'V9938') {
-                    this.log.error("Please enable V9938 VDP before restoring the state");
-                    return;
-                } else if (!f18AEnabled && !v9938Enabled && this.settingsService.getVDP() !== 'TMS9918A') {
-                    this.log.error("Please enable TMS9918A VDP before restoring the state");
-                    return;
+            {
+                next: (state: any) => {
+                    this.ti994A.restoreState(state);
+                    this.log.info("Console state restored");
+                    if (state.tape.recordPressed) {
+                        this.eventDispatcherService.tapeRecording();
+                    } else if (state.tape.playPressed) {
+                        this.eventDispatcherService.tapePlaying();
+                    } else {
+                        const tape = this.ti994A.getTape();
+                        this.eventDispatcherService.tapeStopped(tape.isPlayEnabled(), tape.isRewindEnabled());
+                    }
+                    this.commandDispatcherService.setBreakpointAddress(state.cpu.breakpoint);
+                    if (wasRunning) {
+                        this.commandDispatcherService.start();
+                    } else {
+                        this.ti994A.getPSG().mute();
+                    }
+                    this.eventDispatcherService.stateRestored();
+                    this.log.info("Machine state restored OK.");
+                },
+                error: (error) => {
+                    this.log.error(error);
                 }
-                const fortiEnabled = Array.isArray(state.psg);
-                if (fortiEnabled && this.settingsService.getPSG() !== 'FORTI') {
-                    this.log.error("Please enable FORTi PSG before restoring the state");
-                    return;
-                } else if (!f18AEnabled && this.settingsService.getPSG() !== 'STANDARD') {
-                    this.log.error("Please enable Standard PSG before restoring the state");
-                    return;
-                }
-                this.ti994A.restoreState(state);
-                this.log.info("Console state restored");
-
-                const settings: Settings = new Settings();
-                settings.setSoundEnabled(this.settingsService.isSoundEnabled());
-                settings.setPSG(this.settingsService.getPSG());
-                settings.setSpeechEnabled(state.speech.enabled);
-                settings.setRAM(state.memory.ramType);
-                settings.setVDP(this.settingsService.getVDP());
-                settings.setTIPI(this.settingsService.getTIPI());
-                settings.setTIPIWebsocketURI(this.settingsService.getTIPIWebsocketURI());
-                settings.setPCKeyboardEnabled(state.keyboard.pcKeyboardEnabled);
-                settings.setMapArrowKeysEnabled(state.keyboard.mapArrowKeysToFctnSDEX);
-                settings.setGoogleDriveEnabled(this.settingsService.isGoogleDriveEnabled());
-                settings.setGRAMEnabled(state.memory.enableGRAM);
-                settings.setPixelatedEnabled(this.settingsService.isPixelatedEnabled());
-                settings.setPauseOnFocusLostEnabled(this.settingsService.isPauseOnFocusLostEnabled());
-                settings.setDebugResetEnabled(this.settingsService.isDebugResetEnabled());
-                settings.setH264CodecEnabled(this.settingsService.isH264CodecEnabled());
-                settings.setDisk(this.settingsService.getDisk());
-                this.settingsService.restoreSettings(settings);
-
-                if (state.tape.recordPressed) {
-                    this.eventDispatcherService.tapeRecording();
-                } else if (state.tape.playPressed) {
-                    this.eventDispatcherService.tapePlaying();
-                } else {
-                    const tape = this.ti994A.getTape();
-                    this.eventDispatcherService.tapeStopped(tape.isPlayEnabled(), tape.isRewindEnabled());
-                }
-
-                this.commandDispatcherService.setBreakpointAddress(state.cpu.breakpoint);
-
-                if (wasRunning) {
-                    this.commandDispatcherService.start();
-                } else {
-                    this.ti994A.getPSG().mute();
-                }
-
-                this.eventDispatcherService.stateRestored();
-
-                this.log.info("Machine state restored OK.");
-            },
-            (error) => {
-                this.log.error(error);
             }
         );
     }

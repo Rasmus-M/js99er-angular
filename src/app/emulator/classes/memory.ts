@@ -5,7 +5,7 @@ import {System} from './system';
 import {Util} from '../../classes/util';
 import {CPU} from '../interfaces/cpu';
 import {Stateful} from '../interfaces/stateful';
-import {DiskType, RAMType, Settings, TIPIType} from '../../classes/settings';
+import {RAMType, Settings} from '../../classes/settings';
 import {PSG} from '../interfaces/psg';
 import {Speech} from '../interfaces/speech';
 import {MemoryDevice} from '../interfaces/memory-device';
@@ -42,13 +42,6 @@ export class Memory implements Stateful, MemoryDevice {
     private ramType: RAMType;
     private samsSize: number;
     private gramEnabled: boolean;
-    private pCodeEnabled: boolean;
-    private tipiType: TIPIType;
-    private disk: DiskType;
-    private ramAt0000: boolean;
-    private ramAt4000: boolean;
-    private ramAt6000: boolean;
-    private ramAt7000: boolean;
     private debugReset: boolean;
 
     private ram: Uint8Array;
@@ -56,6 +49,11 @@ export class Memory implements Stateful, MemoryDevice {
 
     private rom: Uint8Array;
     private gromBases: GROMArray[];
+
+    private ramAt0000: boolean;
+    private ramAt4000: boolean;
+    private ramAt6000: boolean;
+    private ramAt7000: boolean;
 
     private cartImage: Uint8Array | null;
     private cartInverted: boolean;
@@ -68,7 +66,7 @@ export class Memory implements Stateful, MemoryDevice {
     private cartAddrRAMOffset: number;
 
     private peripheralCards: PeripheralCard[] = [];
-    private pCodeCard: PCodeCard;
+    private pCodeCard: PCodeCard | null;
 
     private memoryMap: Function[][];
 
@@ -104,9 +102,6 @@ export class Memory implements Stateful, MemoryDevice {
         this.ramType = this.settings.getRAM();
         this.samsSize = this.settings.getSAMSSize();
         this.gramEnabled = this.settings.isGRAMEnabled();
-        this.pCodeEnabled = this.settings.isPCodeEnabled();
-        this.tipiType = this.settings.getTIPI();
-        this.disk = this.settings.getDisk();
         this.debugReset = this.settings.isDebugResetEnabled();
 
         // RAM
@@ -157,9 +152,11 @@ export class Memory implements Stateful, MemoryDevice {
         if (this.pCodeCard) {
             this.deregisterPeripheralCard(this.pCodeCard);
         }
-        if (this.pCodeEnabled) {
+        if (this.settings.isPCodeEnabled()) {
             this.pCodeCard = new PCodeCard();
             this.registerPeripheralCard(this.pCodeCard);
+        } else {
+            this.pCodeCard = null;
         }
 
         this.buildMemoryMap();
@@ -606,18 +603,14 @@ export class Memory implements Stateful, MemoryDevice {
             (this.sams ? '\nSAMS Regs: ' + this.sams.getStatusString(detailed) : '');
     }
 
-    hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
+    public hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
         return MemoryView.hexView(start, length, width, anchorAddr, (addr: number) => {
             return this.getByte(addr);
         });
     }
 
-    getMemorySize(): number {
+    public getMemorySize(): number {
         return 0x10000;
-    }
-
-    setRAMType(ramType: RAMType) {
-        this.ramType = ramType;
     }
 
     setRAMAt0000(enabled: boolean) {
@@ -632,27 +625,11 @@ export class Memory implements Stateful, MemoryDevice {
         this.gramEnabled = enabled;
     }
 
-    setPCodeEnabled(enabled: boolean) {
-        this.pCodeEnabled = enabled;
-    }
-
-    setTIPIType(tipiType: TIPIType) {
-        this.tipiType = tipiType;
-    }
-
     setDebugResetEnabled(enabled: boolean) {
         this.debugReset = enabled;
         if (this.sams) {
             this.sams.setDebugResetEnabled(enabled);
         }
-    }
-
-    getDisk() {
-        return this.disk;
-    }
-
-    setDisk(disk: DiskType) {
-        this.disk = disk;
     }
 
     getCartridgeROM(): MemoryDevice {
@@ -695,8 +672,6 @@ export class Memory implements Stateful, MemoryDevice {
             ramType: this.ramType,
             samsSize: this.samsSize,
             enableGRAM: this.gramEnabled,
-            tipiType: this.tipiType,
-            enableDisk: this.disk,
             ramAt0000: this.ramAt0000,
             ramAt4000: this.ramAt4000,
             ramAt6000: this.ramAt6000,
@@ -712,12 +687,7 @@ export class Memory implements Stateful, MemoryDevice {
             cartRAMFG99Paged: this.cartRAMFG99Paged,
             currentCartRAMBank: this.currentCartRAMBank,
             cartAddrRAMOffset: this.cartAddrRAMOffset,
-            // peripheralROMs: this.peripheralROMs,
-            // peripheralROMEnabled: this.peripheralROMEnabled,
-            // peripheralROMNumber: this.peripheralROMNumber,
-            // peripheralROMBanks: this.peripheralROMBanks,
             sams: this.sams ? this.sams.getState() : null,
-            pCodeEnabled: this.pCodeEnabled,
             pCodeCard: this.pCodeCard ? this.pCodeCard.getState() : null,
         };
     }
@@ -726,8 +696,6 @@ export class Memory implements Stateful, MemoryDevice {
         this.ramType = state.ramType;
         this.samsSize = state.samsSize;
         this.gramEnabled = state.gramEnabled;
-        this.tipiType = state.tipiType;
-        this.disk = state.disk;
         this.ramAt0000 = state.ramAt0000;
         this.ramAt4000 = state.ramAt4000;
         this.ramAt6000 = state.ramAt6000;
@@ -749,10 +717,6 @@ export class Memory implements Stateful, MemoryDevice {
         this.cartRAMFG99Paged = state.cartRAMFG99Paged;
         this.currentCartRAMBank = state.currentCartRAMBank;
         this.cartAddrRAMOffset = state.cartAddrRAMOffset;
-        // this.peripheralROMs = state.peripheralROMs;
-        // this.peripheralROMEnabled = state.peripheralROMEnabled;
-        // this.peripheralROMNumber = state.peripheralROMNumber;
-        // this.peripheralROMBanks = state.peripheralROMBanks;
         if (state.sams) {
             if (!this.sams) {
                 this.sams = new SAMS(this.samsSize, false);
@@ -760,7 +724,6 @@ export class Memory implements Stateful, MemoryDevice {
             }
             this.sams.restoreState(state.sams);
         }
-        this.pCodeEnabled = state.pCodeEnabled;
         if (state.pCodeCard) {
             if (!this.pCodeCard) {
                 this.pCodeCard = new PCodeCard();

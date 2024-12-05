@@ -10,9 +10,11 @@ export class DialogService {
     static dialog: MatDialog;
 
     constructor(
-        public dlg: MatDialog
-    ) {
-        DialogService.dialog = dlg;
+        private dlg: MatDialog
+    ) {}
+
+    public init() {
+        DialogService.dialog = this.dlg;
     }
 
     public static showErrorDialog(error: any) {
