@@ -51,14 +51,14 @@ export class PCodeCard implements DsrCard, MemoryMappedCard, Stateful {
 
     // GROMs map ONLY at addresses >5BFC (read data), >5BFE (read address), >5FFC (write data, not used) and >5FFE (write address).
     readMemoryMapped(addr: number, cpu: CPU): number {
-        cpu.addCycles(13);
-        let value = 0;
+        let value;
         if (addr === 0x5BFC) {
             // Read data from GROM
-            cpu.addCycles(6);
+            cpu.addCycles(19);
             value = this.groms.readData();
         } else if (addr === 0x5BFE) {
             // Get GROM address
+            cpu.addCycles(13);
             value = this.groms.readAddress();
         } else {
             const romAddr = addr - 0x4000 + (this.romBank << 13);
@@ -68,9 +68,9 @@ export class PCodeCard implements DsrCard, MemoryMappedCard, Stateful {
     }
 
     writeMemoryMapped(addr: number, word: number, cpu: CPU): void {
-        cpu.addCycles(25);
         if (addr === 0x5FFE) {
             // Set GROM address
+            cpu.addCycles(25);
             this.groms.writeAddress(word);
         }
     }

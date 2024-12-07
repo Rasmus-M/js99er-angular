@@ -14,6 +14,7 @@ import {GenericFdc} from "../classes/generic-fdc";
 import {GoogleDriveFdc} from "../classes/google-drive-fdc";
 import {Observable} from "rxjs";
 import {FDC} from "./fdc";
+import {PeripheralCard} from "./peripheral-card";
 
 export interface Console {
     start(fast: boolean, skipBreakpoint?: boolean): void;
@@ -22,7 +23,7 @@ export interface Console {
     step(): void;
     stepOver(): void;
     stop(): void;
-    loadSoftware(software: Software): void;
+    loadSoftware(software?: Software): void;
     getDiskDrives(): DiskDrive[];
     getCPU(): CPU;
     getVDP(): VDP;
@@ -43,4 +44,5 @@ export interface Console {
     setPSG(): void;
     isRunning(): void;
     cyclesPassed(): Observable<number>;
+    getCardById(id: string): PeripheralCard | null;
 }

@@ -9,6 +9,7 @@ import {CPU} from "../interfaces/cpu";
 
 export class SAMS implements Stateful, MemoryDevice, PeripheralCard, MemoryMappedCard {
 
+    static ID = 'SAMS';
     static MAPPING_MODE = 0;
     static TRANSPARENT_MODE = 1;
 
@@ -48,7 +49,7 @@ export class SAMS implements Stateful, MemoryDevice, PeripheralCard, MemoryMappe
     }
 
     public getId(): string {
-        return 'SAMS';
+        return SAMS.ID;
     }
 
     public isEnabled(): boolean {

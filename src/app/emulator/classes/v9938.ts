@@ -729,7 +729,7 @@ export class V9938 implements VDP {
     }
 
     reset(): void {
-        this.patch_groms(this.console.getMemory().getGROMs());
+        this.patch_groms(this.console.getMemory().getGROM());
         this.device_reset();
         this.canvas.width = V9938.HVISIBLE;
         this.canvas.height = 2 * V9938.VVISIBLE_NTSC;
@@ -1118,17 +1118,12 @@ export class V9938 implements VDP {
 
      ***************************************************************************/
 
-    private patch_groms(groms: GROMArray[]) {
+    private patch_groms(grom: GROMArray) {
         const vdpRegisterData = 0x0451;
-        if (groms && groms.length) {
-            const grom = groms[0];
-            grom.setByte(vdpRegisterData + 2, grom.getByte(vdpRegisterData + 2) & 0x0f); // Name table
-            grom.setByte(vdpRegisterData + 4, grom.getByte(vdpRegisterData + 4) & 0x07); // Pattern table
-            grom.setByte(vdpRegisterData + 5, grom.getByte(vdpRegisterData + 5) & 0x7f); // Sprite attribute table
-            grom.setByte(vdpRegisterData + 6, grom.getByte(vdpRegisterData + 6) & 0x07); // Sprite pattern table
-        } else {
-            console.error("GROM patching failed");
-        }
+        grom.setByte(vdpRegisterData + 2, grom.getByte(vdpRegisterData + 2) & 0x0f); // Name table
+        grom.setByte(vdpRegisterData + 4, grom.getByte(vdpRegisterData + 4) & 0x07); // Pattern table
+        grom.setByte(vdpRegisterData + 5, grom.getByte(vdpRegisterData + 5) & 0x7f); // Sprite attribute table
+        grom.setByte(vdpRegisterData + 6, grom.getByte(vdpRegisterData + 6) & 0x07); // Sprite pattern table
     }
 
     private colorTableAddress() {

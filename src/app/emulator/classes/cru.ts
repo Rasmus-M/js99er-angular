@@ -1,6 +1,5 @@
 import {Log} from '../../classes/log';
 import {Keyboard} from './keyboard';
-import {Memory} from './memory';
 import {Tape} from './tape';
 import {Stateful} from '../interfaces/stateful';
 import {Util} from '../../classes/util';
@@ -15,7 +14,6 @@ export class Cru implements Stateful {
     private console: Console;
     private keyboard: Keyboard;
     private tape: Tape;
-    private memory: Memory;
     private cpu: CPU;
 
     private cru: boolean[];
@@ -57,7 +55,6 @@ export class Cru implements Stateful {
     }
 
     public reset() {
-        this.memory = this.console.getMemory();
         this.keyboard = this.console.getKeyboard();
         this.tape = this.console.getTape();
         this.cpu = this.console.getCPU();
@@ -79,8 +76,8 @@ export class Cru implements Stateful {
     }
 
     readBit(addr: number): boolean {
-        if (addr < 0x800) {
-            // TMS9901, etc.
+        if (addr < 0x400) {
+            // TMS9901
             if (this.timerMode && addr < 16) {
                 return this.readBitTimerMode(addr);
             } else {
@@ -108,8 +105,8 @@ export class Cru implements Stateful {
     }
 
     writeBit(addr: number, value: boolean) {
-        if (addr < 0x800) {
-            // TMS9901, etc.
+        if (addr < 0x400) {
+            // TMS9901
             if (this.timerMode && this.writeBitTimerMode(addr, value)) {
                 return;
             }
@@ -123,12 +120,6 @@ export class Cru implements Stateful {
                 this.tape.setAudioGate(value, this.cpu.getCycles());
             } else if (addr === 25) {
                 this.tape.write(value, this.timerInterruptCount);
-            } else if (addr >= 0x0400) {
-                const bit = (addr & 0x000f);
-                if (value && bit > 0) {
-                    const bank = (bit - 1) >> 1;
-                    this.memory.setCRUCartBank(bank);
-                }
             }
         } else {
             // DSR space
@@ -243,7 +234,8 @@ export class Cru implements Stateful {
             readRegister: this.readRegister,
             decrementer: this.decrementer,
             timerInterrupt: this.timerInterrupt,
-            timerInterruptCount: this.timerInterruptCount
+            timerInterruptCount: this.timerInterruptCount,
+            cruDevices: this.cruDevices.map(cruDevice => cruDevice.getId())
         };
     }
 
@@ -256,5 +248,8 @@ export class Cru implements Stateful {
         this.decrementer = state.decrementer;
         this.timerInterrupt = state.timerInterrupt;
         this.timerInterruptCount = state.timerInterruptCount;
+        if (state.cruDevices) {
+            this.cruDevices = state.cruDevices.map((id: string) => this.console.getMemory().getCardById(id));
+        }
     }
 }

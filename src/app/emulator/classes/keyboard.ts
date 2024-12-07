@@ -411,12 +411,9 @@ export class Keyboard implements Stateful {
                     this.writeMemoryByte(memory, wp, charCode); // Set R0
                     this.writeMemoryByte(memory, wp + 12, memory.getPADByte(0x837c) | 0x20); // Set R6 (status byte)
                     // Detect Extended BASIC
-                    const groms = memory.getGROMs();
-                    if (groms && groms.length) {
-                        const grom = groms[0];
-                        if (grom.getByte(0x6343) === 0x45 && grom.getByte(0x6344) === 0x58 && grom.getByte(0x6345) === 0x54) {
-                            memory.setPADByte(0x835F, 0x5d); // Max length for BASIC continuously set
-                        }
+                    const cartridge = this.console.getMemory().getCartridge();
+                    if (cartridge && cartridge.isExtendedBasic()) {
+                        memory.setPADByte(0x835F, 0x5d); // Max length for BASIC continuously set
                     }
                 }
                 memory.setPADByte(0x837c, memory.getPADByte(0x837c) | 0x20);

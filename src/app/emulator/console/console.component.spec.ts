@@ -32,6 +32,9 @@ import {TiFdc} from "../classes/ti-fdc";
 import {GoogleDrive} from "../classes/google-drive";
 import {GenericFdc} from "../classes/generic-fdc";
 import {GoogleDriveFdc} from "../classes/google-drive-fdc";
+import {FDC} from "../interfaces/fdc";
+import {Observable} from "rxjs";
+import {PeripheralCard} from "../interfaces/peripheral-card";
 
 class ConsoleMock implements Console {
 
@@ -52,12 +55,8 @@ class ConsoleMock implements Console {
         return [];
     }
 
-    getGoogleDrives(): GoogleDrive[] {
-        return [];
-    }
-
     getKeyboard(): Keyboard {
-        return new Keyboard({} as Document, this.settings);
+        return new Keyboard({} as Document, this, this.settings);
     }
 
     getMemory(): Memory {
@@ -87,7 +86,7 @@ class ConsoleMock implements Console {
     isRunning() {
     }
 
-    loadSoftware(software: Software) {
+    loadSoftware(software?: Software) {
     }
 
     reset(keepCart: boolean) {
@@ -121,16 +120,23 @@ class ConsoleMock implements Console {
     setTIPI() {
     }
 
-    getTiFdc(): TiFdc {
-        return new TiFdc(this, []);
+    getFDC(): FDC {
+        return new GenericFdc(this, []);
     }
 
-    getGenericFdc(): GenericFdc {
-        return new GenericFdc(this, []);
+    setFDC(): void {
     }
 
     getGoogleDrivesFdc(): GoogleDriveFdc {
         return new GoogleDriveFdc(this, []);
+    }
+
+    cyclesPassed(): Observable<number> {
+        return new Observable();
+    }
+
+    getCardById(id: string): PeripheralCard | null {
+        return null;
     }
 }
 

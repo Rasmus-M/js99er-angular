@@ -16,6 +16,8 @@ import {GROMArray} from "./grom-array";
 import {DsrCard} from "../interfaces/dsr-card";
 import {PeripheralCard} from "../interfaces/peripheral-card";
 import {MemoryMappedCard} from "../interfaces/memory-mapped-card";
+import {Cartridge} from "./cartridge";
+import {Software} from "../../classes/software";
 
 export class Memory implements Stateful, MemoryDevice {
 
@@ -48,22 +50,14 @@ export class Memory implements Stateful, MemoryDevice {
     private sams: SAMS | null;
 
     private rom: Uint8Array;
-    private gromBases: GROMArray[];
+    private grom: GROMArray;
 
     private ramAt0000: boolean;
     private ramAt4000: boolean;
     private ramAt6000: boolean;
     private ramAt7000: boolean;
 
-    private cartImage: Uint8Array | null;
-    private cartInverted: boolean;
-    private cartCRUBankSwitched: boolean;
-    private cartBankCount: number;
-    private currentCartBank: number;
-    private cartAddrOffset: number;
-    private cartRAMFG99Paged: boolean;
-    private currentCartRAMBank: number;
-    private cartAddrRAMOffset: number;
+    private cartridge: Cartridge | null;
 
     private peripheralCards: PeripheralCard[] = [];
     private pCodeCard: PCodeCard | null;
@@ -92,8 +86,33 @@ export class Memory implements Stateful, MemoryDevice {
         this.console.getCRU().deregisterCruDevice(card);
     }
 
-    public reset(keepCart: boolean) {
+    public getCartridge() {
+        return this.cartridge;
+    }
 
+    public setCartridge(cartridge: Cartridge | null) {
+        if (this.cartridge) {
+            this.console.getCRU().deregisterCruDevice(this.cartridge);
+        }
+        this.cartridge = cartridge;
+        if (cartridge) {
+            this.console.getCRU().registerCruDevice(cartridge);
+        }
+        this.buildMemoryMap();
+    }
+
+    public loadRAM(addr: number, byteArray: Uint8Array) {
+        for (let i = 0; i < byteArray.length; i++) {
+            const a = addr + i;
+            if (this.sams && (a >= 0x2000 && a < 0x4000 || a >= 0xa000 && a < 0x10000)) {
+                this.sams.setByte(a, byteArray[i]);
+            } else if (this.ramType === '32K') {
+                this.ram[a] = byteArray[i];
+            }
+        }
+    }
+
+    public reset(keepCart: boolean) {
         this.vdp = this.console.getVDP();
         this.psg = this.console.getPSG();
         this.speech = this.console.getSpeech();
@@ -128,25 +147,17 @@ export class Memory implements Stateful, MemoryDevice {
         this.patchROMForTapeUsage();
 
         // GROM
-        if (!keepCart) {
-            this.gromBases = [];
-            this.loadGROM(new Uint8Array(System.GROM), 0, 0);
-        }
+        this.grom = new GROMArray();
+        this.grom.setData(new Uint8Array(System.GROM), 0);
 
         // Cartridge
-        if (!keepCart) {
-            this.ramAt6000 = false;
-            this.ramAt7000 = false;
-            this.cartImage = null;
-            this.cartInverted = false;
-            this.cartCRUBankSwitched = false;
-            this.cartBankCount = 0;
-            this.cartRAMFG99Paged = false;
+        if (keepCart) {
+            if (this.cartridge) {
+                this.cartridge.reset();
+            }
+        } else {
+            this.cartridge = null;
         }
-        this.currentCartBank = 0;
-        this.cartAddrOffset = -0x6000;
-        this.currentCartRAMBank = 0;
-        this.cartAddrRAMOffset = -0x6000;
 
         // P-code
         if (this.pCodeCard) {
@@ -162,7 +173,7 @@ export class Memory implements Stateful, MemoryDevice {
         this.buildMemoryMap();
     }
 
-    public patchROMForTapeUsage() {
+    private patchROMForTapeUsage() {
         this.rom[0x14a7] = 0x03; // Fix cassette sync (LI instead of CI)
         this.rom[0x14a9] = 0x37; // Cassette read time (original 0x1f)
         this.rom[0x1353] = 0x1f; // Cassette write time (original 0x23)
@@ -173,8 +184,7 @@ export class Memory implements Stateful, MemoryDevice {
         const romAccessors = [this.readROM, this.writeROM];
         const ramAccessors = [this.readRAM, this.writeRAM];
         const peripheralROMAccessors = [this.readPeripheralROM, this.writePeripheralROM];
-        const cartridgeROMAccessors = [this.readCartridgeROM, this.writeCartridgeROM];
-        const cartridgeRAMAccessors = [this.readCartridgeRAM, this.writeCartridgeRAM];
+        const cartridgeAccessors = [this.readCartridge, this.writeCartridge];
         const padAccessors = [this.readPAD, this.writePAD];
         const soundAccessors = [this.readSound, this.writeSound];
         const vdpReadAccessors = [this.readVDP, this.writeNull];
@@ -183,6 +193,7 @@ export class Memory implements Stateful, MemoryDevice {
         const speechWriteAccessors = [this.readNull, this.writeSpeech];
         const gromReadAccessors = [this.readGROM, this.writeNull];
         const gromWriteAccessors = [this.readNull, this.writeGROM];
+        const nullAccessors = [this.readNull, this.writeNull];
         let i: number;
         for (i = 0; i < 0x2000; i++) {
             this.memoryMap[i] = this.ramAt0000 ? ramAccessors : romAccessors;
@@ -194,10 +205,22 @@ export class Memory implements Stateful, MemoryDevice {
             this.memoryMap[i] = this.ramAt4000 ? ramAccessors : peripheralROMAccessors;
         }
         for (i = 0x6000; i < 0x7000; i++) {
-            this.memoryMap[i] = this.ramAt6000 ? cartridgeRAMAccessors : cartridgeROMAccessors;
+            if (this.cartridge) {
+                this.memoryMap[i] = cartridgeAccessors;
+            } else if (this.ramAt6000) {
+                this.memoryMap[i] = ramAccessors;
+            } else {
+                this.memoryMap[i] = nullAccessors;
+            }
         }
         for (i = 0x7000; i < 0x8000; i++) {
-            this.memoryMap[i] = this.ramAt7000 ? cartridgeRAMAccessors : cartridgeROMAccessors;
+            if (this.cartridge) {
+                this.memoryMap[i] = cartridgeAccessors;
+            } else if (this.ramAt7000) {
+                this.memoryMap[i] = ramAccessors;
+            } else {
+                this.memoryMap[i] = nullAccessors;
+            }
         }
         for (i = 0x8000; i < Memory.SOUND; i++) {
             this.memoryMap[i] = padAccessors;
@@ -226,79 +249,6 @@ export class Memory implements Stateful, MemoryDevice {
         for (i = 0xA000; i < 0x10000; i++) {
             this.memoryMap[i] = ramAccessors;
         }
-    }
-
-    loadRAM(addr: number, byteArray: Uint8Array) {
-        for (let i = 0; i < byteArray.length; i++) {
-            const a = addr + i;
-            if (this.sams && (a >= 0x2000 && a < 0x4000 || a >= 0xa000 && a < 0x10000)) {
-                this.sams.setByte(a, byteArray[i]);
-            } else if (this.cartImage && a >= 0x6000 && a < 0x8000) {
-                this.cartImage[a + this.cartAddrRAMOffset] = byteArray[i];
-            } else if (this.ramType === '32K') {
-                this.ram[a] = byteArray[i];
-            }
-        }
-    }
-
-    loadGROM(byteArray: Uint8Array, bank: number, base: number) {
-        let grom = this.gromBases[base];
-        if (!grom) {
-            grom = new GROMArray();
-            this.gromBases[base] = grom;
-        }
-        grom.setData(byteArray, bank << 13);
-    }
-
-    setCartridgeImage(byteArray: Uint8Array, inverted: boolean, cruBankSwitched: boolean, ramAt6000: boolean, ramAt7000: boolean, ramFG99Paged: boolean) {
-        let i;
-        const length = Math.ceil(byteArray.length / 0x2000) * 0x2000;
-        this.log.info('Cartridge size: ' + Util.toHexWord(length));
-        this.cartImage = new Uint8Array(length);
-        for (i = 0; i < this.cartImage.length; i++) {
-            this.cartImage[i] = i < byteArray.length ? byteArray[i] : 0;
-        }
-        this.cartInverted = inverted;
-        this.cartCRUBankSwitched = cruBankSwitched;
-        this.cartBankCount = this.cartImage.length / 0x2000;
-        this.setCurrentCartBank(!inverted ? 0 : this.cartBankCount - 1);
-        this.cartRAMFG99Paged = ramFG99Paged;
-        if (ramFG99Paged) {
-            this.log.info('Paged RAM cart found.');
-            this.currentCartRAMBank = 0;
-            this.cartAddrRAMOffset = -0x6000;
-        }
-        this.ramAt6000 = ramAt6000;
-        if (this.ramAt6000) {
-            this.log.info('RAM at >6000');
-        }
-        this.ramAt7000 = ramAt7000;
-        if (this.ramAt7000) {
-            this.log.info('RAM at >7000');
-        }
-        this.buildMemoryMap();
-    }
-
-    setCRUCartBank(bank: number) {
-        if (this.cartCRUBankSwitched) {
-            // this.log.info("Set CRU cart bank " + bank);
-            this.setCurrentCartBank(bank);
-        }
-    }
-
-    private setCurrentCartBank(bank: number) {
-        this.currentCartBank = bank;
-        this.cartAddrOffset = (this.currentCartBank << 13) - 0x6000;
-        if (!this.cartRAMFG99Paged) {
-            this.setCurrentCartRAMBank(bank);
-        }
-        // this.log.info("Cartridge ROM bank selected: " + this.currentCartBank);
-    }
-
-    private setCurrentCartRAMBank(bank: number) {
-        this.currentCartRAMBank = bank;
-        this.cartAddrRAMOffset = (this.currentCartRAMBank << 13) - 0x6000;
-        // this.log.info("Cartridge RAM bank selected: " + this.currentCartRAMBank);
     }
 
     private readROM(addr: number, cpu: CPU): number {
@@ -352,38 +302,15 @@ export class Memory implements Stateful, MemoryDevice {
         }
     }
 
-    private readCartridgeROM(addr: number, cpu: CPU): number {
+    private readCartridge(addr: number, cpu: CPU): number {
         cpu.addCycles(4);
-        return this.cartImage ? (this.cartImage[addr + this.cartAddrOffset] << 8) | this.cartImage[addr + this.cartAddrOffset + 1] : 0;
+        return this.cartridge ? this.cartridge.read(addr, cpu) : 0;
     }
 
-    private writeCartridgeROM(addr: number, w: number, cpu: CPU) {
+    private writeCartridge(addr: number, w: number, cpu: CPU) {
         cpu.addCycles(4);
-        if (!this.cartCRUBankSwitched) {
-            let bank = (addr >> 1) & (this.cartBankCount - 1);
-            if (!this.cartRAMFG99Paged || addr < 0x6800) {
-                if (this.cartInverted) {
-                    bank = this.cartBankCount - bank - 1;
-                }
-                this.setCurrentCartBank(bank);
-            } else {
-                this.setCurrentCartRAMBank(bank);
-            }
-        }
-    }
-
-    private readCartridgeRAM(addr: number, cpu: CPU): number {
-        // this.log.info("Read cartridge RAM: " + addr.toHexWord());
-        cpu.addCycles(4);
-        return this.cartImage ? (this.cartImage[addr + this.cartAddrRAMOffset] << 8) | this.cartImage[addr + this.cartAddrRAMOffset + 1] : 0;
-    }
-
-    private writeCartridgeRAM(addr: number, w: number, cpu: CPU) {
-        // this.log.info("Write cartridge RAM: " + addr.toHexWord());
-        cpu.addCycles(4);
-        if (this.cartImage) {
-            this.cartImage[addr + this.cartAddrRAMOffset] = w >> 8;
-            this.cartImage[addr + this.cartAddrRAMOffset + 1] = w & 0xFF;
+        if (this.cartridge) {
+            this.cartridge.write(addr, w, cpu);
         }
     }
 
@@ -448,54 +375,41 @@ export class Memory implements Stateful, MemoryDevice {
     }
 
     private readGROM(addr: number, cpu: CPU): number {
-        cpu.addCycles(17);
-        const base = this.gromBases.length === 1 || this.gromBases[0].getAddress() - 1 < 0x6000 ? 0 : (addr & 0x003C) >> 2;
         let value = 0;
-        addr = addr & 0x9802;
-        if (addr === Memory.GRMRD) {
+        const gromAddr = this.grom.getAddress();
+        cpu.addCycles(17);
+        const maskedAddr = addr & 0x9802;
+        if (maskedAddr === Memory.GRMRD) {
             // Read data from GROM
             cpu.addCycles(6);
-            this.gromBases.forEach((gromBase, i) => {
-                if (gromBase) {
-                    const w = gromBase.readData();
-                    if (i === base) {
-                        value = w;
-                    }
-                }
-            });
-        } else if (addr === Memory.GRMRA) {
+            value = this.grom.readData();
+        } else if (maskedAddr === Memory.GRMRA) {
             // Get GROM address
-            this.gromBases.forEach((gromBase, i) => {
-                if (gromBase) {
-                    const w = gromBase.readAddress();
-                    if (i === base) {
-                        value = w;
-                    }
-                }
-            });
+            value = this.grom.readAddress();
+        }
+        if (this.cartridge && this.cartridge.hasGROM()) {
+            const cartValue = this.cartridge.readGROM(addr, cpu);
+            if (gromAddr >= 0x6001) {
+                value = cartValue;
+            }
         }
         return value;
     }
 
     private writeGROM(addr: number, w: number, cpu: CPU) {
         cpu.addCycles(23 + 6);
-        addr = addr & 0x9C02;
-        if (addr === Memory.GRMWD) {
+        const maskedAddr = addr & 0x9C02;
+        if (maskedAddr === Memory.GRMWD) {
             if (this.gramEnabled) {
                 // Write data to GROM
-                this.gromBases.forEach((grom, i) => {
-                    if (grom) {
-                        grom.writeData(w);
-                    }
-                });
+                this.grom.writeData(w);
             }
-        } else if (addr === Memory.GRMWA) {
+        } else if (maskedAddr === Memory.GRMWA) {
             // Set GROM address
-            this.gromBases.forEach((grom) => {
-                if (grom) {
-                    grom.writeAddress(w);
-                }
-            });
+            this.grom.writeAddress(w);
+        }
+        if (this.cartridge) {
+            this.cartridge.writeGROM(addr, w, cpu);
         }
     }
 
@@ -545,15 +459,8 @@ export class Memory implements Stateful, MemoryDevice {
                 }
             }
         }
-        if (addr < 0x7000) {
-            return this.cartImage ? this.cartImage[addr + this.cartAddrOffset] || 0 : 0;
-        }
         if (addr < 0x8000) {
-            if (this.cartRAMFG99Paged) {
-                return this.cartImage ? this.cartImage[addr + this.cartAddrRAMOffset] : 0;
-            } else {
-                return this.cartImage ? this.cartImage[addr + this.cartAddrOffset] : 0;
-            }
+            return this.cartridge ? this.cartridge.getByte(addr) : 0;
         }
         if (addr < 0x8400) {
             addr = addr | 0x0300;
@@ -596,10 +503,10 @@ export class Memory implements Stateful, MemoryDevice {
     }
 
     getStatusString(detailed: boolean): string {
-        const gromAddress = this.gromBases[0].getAddress();
+        const gromAddress = this.grom.getAddress();
         return 'GROM:' + Util.toHexWord(gromAddress) + ' (bank:' + ((gromAddress & 0xE000) >> 13) +
             ', addr:' + Util.toHexWord(gromAddress & 0x1FFF) + ') ' +
-            (this.cartImage ? 'CART: bank ' + this.currentCartBank + (this.cartRAMFG99Paged ? '/' + this.currentCartRAMBank : '') + ' of ' + this.cartBankCount : '') +
+            (this.cartridge ? 'Cart:' + this.cartridge.getStatus() : '') +
             (this.sams ? '\nSAMS Regs: ' + this.sams.getStatusString(detailed) : '');
     }
 
@@ -633,22 +540,21 @@ export class Memory implements Stateful, MemoryDevice {
     }
 
     getCartridgeROM(): MemoryDevice {
-        const cartImage = this.cartImage;
-        return {
+        return this.cartridge || {
             getMemorySize(): number {
-                return cartImage ? cartImage.length : 0;
+                return 0;
             }, getWord(addr: number): number {
-                return cartImage ? (cartImage[addr] << 8) | cartImage[addr + 1] : 0;
+                return 0;
             }, hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
                 return MemoryView.hexView(start, length, width, anchorAddr, (addr: number) => {
-                    return cartImage ? cartImage[addr] : 0;
+                    return 0;
                 });
             }
         };
     }
 
-    getGROMs(): GROMArray[] {
-        return this.gromBases;
+    getGROM(): GROMArray {
+        return this.grom;
     }
 
     getSAMS(): SAMS | null {
@@ -667,6 +573,17 @@ export class Memory implements Stateful, MemoryDevice {
         return (card as DsrCard).getROM !== undefined;
     }
 
+    getCardById(id: string): PeripheralCard | null {
+        switch (id) {
+            case SAMS.ID:
+                return this.sams;
+            case PCodeCard.ID:
+                return this.pCodeCard;
+            default:
+                return this.console.getCardById(id);
+        }
+    }
+
     getState(): object {
         return {
             ramType: this.ramType,
@@ -678,17 +595,11 @@ export class Memory implements Stateful, MemoryDevice {
             ramAt7000: this.ramAt7000,
             ram: this.ram,
             rom: this.rom,
-            gromBases: this.gromBases.map(gromBase => gromBase ? gromBase.getState() : null),
-            cartImage: this.cartImage,
-            cartInverted: this.cartInverted,
-            cartBankCount: this.cartBankCount,
-            currentCartBank: this.currentCartBank,
-            cartAddrOffset: this.cartAddrOffset,
-            cartRAMFG99Paged: this.cartRAMFG99Paged,
-            currentCartRAMBank: this.currentCartRAMBank,
-            cartAddrRAMOffset: this.cartAddrRAMOffset,
+            grom: this.grom.getState(),
+            cartridge: this.cartridge ? this.cartridge.getState() : null,
             sams: this.sams ? this.sams.getState() : null,
             pCodeCard: this.pCodeCard ? this.pCodeCard.getState() : null,
+            peripheralCarts: this.peripheralCards.map(card => card.getId())
         };
     }
 
@@ -702,21 +613,15 @@ export class Memory implements Stateful, MemoryDevice {
         this.ramAt7000 = state.ramAt7000;
         this.ram = state.ram;
         this.rom = state.rom;
-        this.gromBases = [];
-        state.gromBases.forEach((gromBaseState: any, i: number) => {
-            if (gromBaseState) {
-                this.gromBases[i] = new GROMArray();
-                this.gromBases[i].restoreState(gromBaseState);
+        this.grom.restoreState(state.grom);
+        if (state.cartridge) {
+            if (!this.cartridge) {
+                this.cartridge = new Cartridge(new Software(), this.settings);
             }
-        });
-        this.cartImage = state.cartImage;
-        this.cartInverted = state.cartInverted;
-        this.cartBankCount = state.cartBankCount;
-        this.currentCartBank = state.currentCartBank;
-        this.cartAddrOffset = state.cartAddrOffset;
-        this.cartRAMFG99Paged = state.cartRAMFG99Paged;
-        this.currentCartRAMBank = state.currentCartRAMBank;
-        this.cartAddrRAMOffset = state.cartAddrRAMOffset;
+            this.cartridge!.restoreState(state.cartridge);
+        } else {
+            this.cartridge = null;
+        }
         if (state.sams) {
             if (!this.sams) {
                 this.sams = new SAMS(this.samsSize, false);
@@ -730,6 +635,9 @@ export class Memory implements Stateful, MemoryDevice {
                 this.registerPeripheralCard(this.pCodeCard);
             }
             this.pCodeCard.restoreState(state.pCodeCard);
+        }
+        if (state.peripheralCards) {
+            this.peripheralCards = state.peripheralCards.map((id: string) => this.getCardById(id));
         }
         this.buildMemoryMap();
     }

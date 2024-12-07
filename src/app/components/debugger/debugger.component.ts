@@ -278,7 +278,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             case MemoryType.CART:
                 return memory.getCartridgeROM();
             case MemoryType.GROM:
-                return memory.getGROMs()[0];
+                return memory.getGROM();
             default:
                 return memory;
         }

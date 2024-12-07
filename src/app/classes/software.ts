@@ -40,7 +40,7 @@ export class Software {
     private _ramAt4000 = false;
     private _ramAt6000 = false;
     private _ramAt7000 = false;
-    private _ramFG99Paged: boolean;
+    private _ramFG99Paged = false;
     private _startAddress: number;
     private _workspaceAddress: number;
     private _memoryBlocks: MemoryBlock[];
@@ -54,8 +54,8 @@ export class Software {
     }
 
     parseData(data: any) {
-        this.inverted = data.inverted;
-        this.cruBankSwitched = data.cruBankSwitched;
+        this.inverted = !!data.inverted;
+        this.cruBankSwitched = !!data.cruBankSwitched;
         if (data.startAddress) {
             this.startAddress = Util.parseNumber(data.startAddress);
         }
@@ -80,10 +80,11 @@ export class Software {
                 );
             }
         }
-        this.ramAt0000 = data.ramAt0000;
-        this.ramAt4000 = data.ramAt4000;
-        this.ramAt6000 = data.ramAt6000;
-        this.ramAt7000 = data.ramAt7000;
+        this.ramAt0000 = !!data.ramAt0000;
+        this.ramAt4000 = !!data.ramAt4000;
+        this.ramAt6000 = !!data.ramAt6000;
+        this.ramAt7000 = !!data.ramAt7000;
+        this.ramFG99Paged = !!data.ramFG99Paged;
     }
 
     get name(): string {

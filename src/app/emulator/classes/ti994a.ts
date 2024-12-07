@@ -31,6 +31,8 @@ import {GenericFdc} from "./generic-fdc";
 import {GoogleDriveFdc} from "./google-drive-fdc";
 import {Observable, Subject} from "rxjs";
 import {FDC} from "../interfaces/fdc";
+import {Cartridge} from "./cartridge";
+import {PeripheralCard} from "../interfaces/peripheral-card";
 
 export class TI994A implements Console, Stateful {
 
@@ -456,40 +458,32 @@ export class TI994A implements Console, Stateful {
         (detailed ? "\nPSG: " + this.psg.getRegsString(detailed) : "");
     }
 
-    loadSoftware(sw: Software) {
+    loadSoftware(software?: Software) {
         const wasRunning = this.isRunning();
         if (wasRunning) {
             this.stop();
         }
-        this.reset(!!sw.memoryBlocks);
-        if (sw.memoryBlocks) {
-            for (let i = 0; i < sw.memoryBlocks.length; i++) {
-                const memoryBlock = sw.memoryBlocks[i];
-                this.memory.loadRAM(memoryBlock.address, memoryBlock.data);
+        this.memory.setRAMAt0000(false);
+        this.memory.setRAMAt4000(false);
+        if (software) {
+            if (software.memoryBlocks) {
+                this.reset(true);
+                this.memory.setRAMAt0000(software.ramAt0000);
+                this.memory.setRAMAt4000(software.ramAt4000);
+                for (let i = 0; i < software.memoryBlocks.length; i++) {
+                    const memoryBlock = software.memoryBlocks[i];
+                    this.memory.loadRAM(memoryBlock.address, memoryBlock.data);
+                }
+                this.cpu.setWp(software.workspaceAddress ? software.workspaceAddress : (System.ROM[0] << 8 | System.ROM[1]));
+                this.cpu.setPc(software.startAddress ? software.startAddress : (System.ROM[2] << 8 | System.ROM[3]));
+            } else {
+                this.reset(false);
+                const cartridge = new Cartridge(software, this.settings);
+                this.memory.setCartridge(cartridge);
             }
+        } else {
+            this.reset(false);
         }
-        this.memory.setRAMAt0000(sw.ramAt0000);
-        this.memory.setRAMAt4000(sw.ramAt4000);
-        if (sw.rom) {
-            this.memory.setCartridgeImage(
-                sw.rom,
-                sw.inverted,
-                sw.cruBankSwitched,
-                sw.ramAt6000,
-                sw.ramAt7000,
-                sw.ramFG99Paged
-            );
-        }
-        if (sw.grom) {
-            this.memory.loadGROM(sw.grom, 3, 0);
-        }
-        if (sw.groms) {
-            for (let g = 0; g < sw.groms.length; g++) {
-                this.memory.loadGROM(sw.groms[g], 3, g);
-            }
-        }
-        this.cpu.setWp(sw.workspaceAddress ? sw.workspaceAddress : (System.ROM[0] << 8 | System.ROM[1]));
-        this.cpu.setPc(sw.startAddress ? sw.startAddress : (System.ROM[2] << 8 | System.ROM[3]));
         if (wasRunning) {
             this.start(false);
         }
@@ -497,6 +491,20 @@ export class TI994A implements Console, Stateful {
 
     cyclesPassed(): Observable<number> {
         return this.cyclesSubject.asObservable();
+    }
+
+    getCardById(id: string): PeripheralCard | null {
+        switch (id) {
+            case GenericFdc.ID:
+                return this.fdc;
+            case TiFdc.ID:
+                return this.fdc;
+            case GoogleDriveFdc.ID:
+                return this.googleFdc;
+            case TIPI.ID:
+                return this.tipi;
+        }
+        return null;
     }
 
     getState(): any {
@@ -516,12 +524,6 @@ export class TI994A implements Console, Stateful {
     restoreState(state: any) {
         if (state.cpu) {
             this.cpu.restoreState(state.cpu);
-        }
-        if (state.memory) {
-            this.memory.restoreState(state.memory);
-        }
-        if (state.cru) {
-            this.cru.restoreState(state.cru);
         }
         if (state.keyboard) {
             this.keyboard.restoreState(state.keyboard);
@@ -543,6 +545,12 @@ export class TI994A implements Console, Stateful {
             if (this.fdc) {
                 this.fdc.restoreState(state.fdc);
             }
+        }
+        if (state.memory) {
+            this.memory.restoreState(state.memory);
+        }
+        if (state.cru) {
+            this.cru.restoreState(state.cru);
         }
     }
 }
