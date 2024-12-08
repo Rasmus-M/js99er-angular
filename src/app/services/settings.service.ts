@@ -266,6 +266,7 @@ export class SettingsService {
 
     restoreSettings(settings: Settings) {
         this.settings.copyFrom(settings);
+        this.commandDispatcherService.changeSettings(settings);
         this.eventDispatcherService.settingsRestored();
     }
 

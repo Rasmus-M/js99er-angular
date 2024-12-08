@@ -196,29 +196,12 @@ export class Settings {
         this.disk = disk;
     }
 
-    isSAMSEnabled() {
-        return this.ram === 'SAMS1M' || this.ram === 'SAMS4M' || this.ram === 'SAMS16M';
-    }
-
     isPCodeEnabled() {
         return this.enablePCode;
     }
 
     setPCodeEnabled(enabled: boolean) {
         this.enablePCode = enabled;
-    }
-
-    getSAMSSize() {
-        switch (this.ram) {
-            case 'SAMS1M':
-                return 1024;
-            case 'SAMS4M':
-                return 4096;
-            case 'SAMS16M':
-                return 16384;
-            default:
-                return 0;
-        }
     }
 
     copyFrom(otherSettings: any) {

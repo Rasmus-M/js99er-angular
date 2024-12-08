@@ -4,7 +4,7 @@ import {Observable} from 'rxjs';
 import {Command, CommandType} from '../classes/command';
 import {Subscription} from 'rxjs';
 import {Software} from '../classes/software';
-import {Setting} from '../classes/settings';
+import {Setting, Settings} from '../classes/settings';
 import {DiskImage} from '../emulator/classes/disk-image';
 import {DiskFile} from '../emulator/classes/disk-file';
 
@@ -69,6 +69,10 @@ export class CommandDispatcherService {
 
     changeSetting(setting: Setting, value: boolean | string | number) {
         this.commandSubject.next(new Command(CommandType.CHANGE_SETTING, {setting: setting, value: value}));
+    }
+
+    changeSettings(settings: Settings) {
+        this.commandSubject.next(new Command(CommandType.CHANGE_SETTINGS, {settings: settings}));
     }
 
     pressKey(keyCode: number) {

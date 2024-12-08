@@ -18,6 +18,7 @@ import {PeripheralCard} from "../interfaces/peripheral-card";
 import {MemoryMappedCard} from "../interfaces/memory-mapped-card";
 import {Cartridge} from "./cartridge";
 import {Software} from "../../classes/software";
+import {RAM32K} from "./ram-32k";
 
 export class Memory implements Stateful, MemoryDevice {
 
@@ -41,13 +42,9 @@ export class Memory implements Stateful, MemoryDevice {
     private speech: Speech;
     private settings: Settings;
 
-    private ramType: RAMType;
-    private samsSize: number;
-    private gramEnabled: boolean;
-    private debugReset: boolean;
-
     private ram: Uint8Array;
     private sams: SAMS | null;
+    private ram32K: RAM32K | null;
 
     private rom: Uint8Array;
     private grom: GROMArray;
@@ -101,13 +98,15 @@ export class Memory implements Stateful, MemoryDevice {
         this.buildMemoryMap();
     }
 
-    public loadRAM(addr: number, byteArray: Uint8Array) {
+    public loadRAM(baseAddr: number, byteArray: Uint8Array) {
         for (let i = 0; i < byteArray.length; i++) {
-            const a = addr + i;
-            if (this.sams && (a >= 0x2000 && a < 0x4000 || a >= 0xa000 && a < 0x10000)) {
-                this.sams.setByte(a, byteArray[i]);
-            } else if (this.ramType === '32K') {
-                this.ram[a] = byteArray[i];
+            const addr = baseAddr + i;
+            if (addr < 0x2000 && this.ramAt0000 || addr >= 0x4000 && addr < 0x6000 && this.ramAt4000) {
+                this.ram[addr] = byteArray[i];
+            } else if (this.ram32K) {
+                this.ram32K.setByte(addr, byteArray[i]);
+            } else if (this.sams) {
+                this.sams.setByte(addr, byteArray[i]);
             }
         }
     }
@@ -117,30 +116,45 @@ export class Memory implements Stateful, MemoryDevice {
         this.psg = this.console.getPSG();
         this.speech = this.console.getSpeech();
 
-        // Settings
-        this.ramType = this.settings.getRAM();
-        this.samsSize = this.settings.getSAMSSize();
-        this.gramEnabled = this.settings.isGRAMEnabled();
-        this.debugReset = this.settings.isDebugResetEnabled();
-
         // RAM
         this.ram = new Uint8Array(0x10000);
-        if (this.debugReset) {
+        if (this.settings.isDebugResetEnabled()) {
             for (let i = 0; i < this.ram.length; i++) {
                 this.ram[i] = i & 0xff;
             }
         }
-
-        // SAMS
         if (this.sams) {
             this.deregisterPeripheralCard(this.sams);
         }
-        if (this.settings.isSAMSEnabled()) {
-            this.sams = new SAMS(this.samsSize, this.debugReset);
-            this.registerPeripheralCard(this.sams);
-        } else {
-            this.sams = null;
+        switch (this.settings.getRAM()) {
+            case 'NONE':
+                this.ram32K = null;
+                this.sams = null;
+                break;
+            case '32K':
+                this.ram32K = new RAM32K();
+                this.sams = null;
+                break;
+            case 'SAMS1M':
+                this.sams = new SAMS(1024, this.settings);
+                this.registerPeripheralCard(this.sams);
+                this.ram32K = null;
+                break;
+            case 'SAMS4M':
+                this.sams = new SAMS(4096, this.settings);
+                this.registerPeripheralCard(this.sams);
+                this.ram32K = null;
+                break;
+            case 'SAMS16M':
+                this.sams = new SAMS(16384, this.settings);
+                this.registerPeripheralCard(this.sams);
+                this.ram32K = null;
+                break;
         }
+        this.ramAt0000 = false;
+        this.ramAt4000 = false;
+        this.ramAt6000 = false;
+        this.ramAt7000 = false;
 
         // ROM
         this.rom = new Uint8Array(System.ROM);
@@ -199,25 +213,25 @@ export class Memory implements Stateful, MemoryDevice {
             this.memoryMap[i] = this.ramAt0000 ? ramAccessors : romAccessors;
         }
         for (i = 0x2000; i < 0x4000; i++) {
-            this.memoryMap[i] = ramAccessors;
+            this.memoryMap[i] = this.ram32K || this.sams ? ramAccessors : nullAccessors;
         }
         for (i = 0x4000; i < 0x6000; i++) {
             this.memoryMap[i] = this.ramAt4000 ? ramAccessors : peripheralROMAccessors;
         }
         for (i = 0x6000; i < 0x7000; i++) {
-            if (this.cartridge) {
-                this.memoryMap[i] = cartridgeAccessors;
-            } else if (this.ramAt6000) {
+            if (this.ramAt6000) {
                 this.memoryMap[i] = ramAccessors;
+            } else if (this.cartridge) {
+                this.memoryMap[i] = cartridgeAccessors;
             } else {
                 this.memoryMap[i] = nullAccessors;
             }
         }
         for (i = 0x7000; i < 0x8000; i++) {
-            if (this.cartridge) {
-                this.memoryMap[i] = cartridgeAccessors;
-            } else if (this.ramAt7000) {
+            if (this.ramAt7000) {
                 this.memoryMap[i] = ramAccessors;
+            } else if (this.cartridge) {
+                this.memoryMap[i] = cartridgeAccessors;
             } else {
                 this.memoryMap[i] = nullAccessors;
             }
@@ -247,7 +261,7 @@ export class Memory implements Stateful, MemoryDevice {
             this.memoryMap[i] = gromWriteAccessors;
         }
         for (i = 0xA000; i < 0x10000; i++) {
-            this.memoryMap[i] = ramAccessors;
+            this.memoryMap[i] = this.ram32K || this.sams ? ramAccessors : nullAccessors;
         }
     }
 
@@ -260,19 +274,22 @@ export class Memory implements Stateful, MemoryDevice {
 
     private readRAM(addr: number, cpu: CPU): number {
         cpu.addCycles(4);
-        if (this.sams) {
+        if (this.ram32K) {
+            return this.ram32K.readWord(addr);
+        } else if (this.sams) {
             return this.sams.readWord(addr);
-        } else if (this.ramType === '32K') {
+        } else {
             return (this.ram[addr] << 8) | this.ram[addr + 1];
         }
-        return 0;
     }
 
     private writeRAM(addr: number, w: number, cpu: CPU) {
         cpu.addCycles(4);
-        if (this.sams) {
+        if (this.ram32K) {
+            this.ram32K.writeWord(addr, w);
+        } else if (this.sams) {
             this.sams.writeWord(addr, w);
-        } else if (this.ramType === '32K') {
+        } else {
             this.ram[addr] = w >> 8;
             this.ram[addr + 1] = w & 0xFF;
         }
@@ -304,13 +321,13 @@ export class Memory implements Stateful, MemoryDevice {
 
     private readCartridge(addr: number, cpu: CPU): number {
         cpu.addCycles(4);
-        return this.cartridge ? this.cartridge.read(addr, cpu) : 0;
+        return this.cartridge ? this.cartridge.read(addr) : 0;
     }
 
     private writeCartridge(addr: number, w: number, cpu: CPU) {
         cpu.addCycles(4);
         if (this.cartridge) {
-            this.cartridge.write(addr, w, cpu);
+            this.cartridge.write(addr, w);
         }
     }
 
@@ -388,7 +405,7 @@ export class Memory implements Stateful, MemoryDevice {
             value = this.grom.readAddress();
         }
         if (this.cartridge && this.cartridge.hasGROM()) {
-            const cartValue = this.cartridge.readGROM(addr, cpu);
+            const cartValue = this.cartridge.readGROM(addr);
             if (gromAddr >= 0x6001) {
                 value = cartValue;
             }
@@ -400,7 +417,7 @@ export class Memory implements Stateful, MemoryDevice {
         cpu.addCycles(23 + 6);
         const maskedAddr = addr & 0x9C02;
         if (maskedAddr === Memory.GRMWD) {
-            if (this.gramEnabled) {
+            if (this.settings.isGRAMEnabled()) {
                 // Write data to GROM
                 this.grom.writeData(w);
             }
@@ -409,7 +426,7 @@ export class Memory implements Stateful, MemoryDevice {
             this.grom.writeAddress(w);
         }
         if (this.cartridge) {
-            this.cartridge.writeGROM(addr, w, cpu);
+            this.cartridge.writeGROM(addr, w);
         }
     }
 
@@ -419,6 +436,7 @@ export class Memory implements Stateful, MemoryDevice {
     }
 
     private writeNull(addr: number, w: number, cpu: CPU) {
+        cpu.addCycles(4);
     }
 
     public readWord(addr: number, cpu: CPU): number {
@@ -435,7 +453,7 @@ export class Memory implements Stateful, MemoryDevice {
 
     private getByte(addr: number): number {
         if (addr < 0x2000) {
-            return this.rom[addr];
+            return this.ramAt0000 ? this.ram[addr] : this.rom[addr];
         }
         if (addr < 0x4000) {
             if (this.sams) {
@@ -445,7 +463,9 @@ export class Memory implements Stateful, MemoryDevice {
             }
         }
         if (addr < 0x6000) {
-            if (this.sams && this.sams.hasRegisterAccess()) {
+            if (this.ramAt4000) {
+                return this.ram[addr];
+            } else if (this.sams && this.sams.isEnabled()) {
                 const w = this.sams.readRegister((addr & 0x1F) >> 1);
                 return (addr & 1) === 0 ? (w & 0xFF) : (w >> 8);
             } else {
@@ -459,21 +479,25 @@ export class Memory implements Stateful, MemoryDevice {
                 }
             }
         }
+        if (addr < 0x7000) {
+            return this.ramAt6000 ? this.ram[addr] : (this.cartridge ? this.cartridge.getByte(addr) : 0);
+        }
         if (addr < 0x8000) {
-            return this.cartridge ? this.cartridge.getByte(addr) : 0;
+            return this.ramAt7000 ? this.ram[addr] : (this.cartridge ? this.cartridge.getByte(addr) : 0);
         }
         if (addr < 0x8400) {
-            addr = addr | 0x0300;
-            return this.ram[addr];
+            return this.ram[addr | 0x0300];
         }
         if (addr < 0xA000) {
             return 0;
         }
         if (addr < 0x10000) {
-            if (this.sams) {
+            if (this.ram32K) {
+                return this.ram32K.getByte(addr);
+            } else if (this.sams) {
                 return this.sams.getByte(addr);
             } else {
-                return this.ram[addr];
+                return 0;
             }
         }
         return 0;
@@ -482,8 +506,6 @@ export class Memory implements Stateful, MemoryDevice {
     public getWord(addr: number): number {
         return (this.getByte(addr) << 8) | this.getByte(addr + 1);
     }
-
-    // For disk IO etc. that's not faithfully emulated
 
     getPADByte(addr: number): number {
         return this.ram[addr];
@@ -528,15 +550,12 @@ export class Memory implements Stateful, MemoryDevice {
         this.ramAt4000 = enabled;
     }
 
-    setGRAMEnabled(enabled: boolean) {
-        this.gramEnabled = enabled;
+    setRAMAt6000(enabled: boolean) {
+        this.ramAt6000 = enabled;
     }
 
-    setDebugResetEnabled(enabled: boolean) {
-        this.debugReset = enabled;
-        if (this.sams) {
-            this.sams.setDebugResetEnabled(enabled);
-        }
+    setRAMAt7000(enabled: boolean) {
+        this.ramAt7000 = enabled;
     }
 
     getCartridgeROM(): MemoryDevice {
@@ -561,10 +580,6 @@ export class Memory implements Stateful, MemoryDevice {
         return this.sams;
     }
 
-    getVDP(): VDP {
-        return this.vdp;
-    }
-
     isMemoryMappedCard(card: PeripheralCard): card is MemoryMappedCard {
         return (card as MemoryMappedCard).readMemoryMapped !== undefined;
     }
@@ -586,9 +601,6 @@ export class Memory implements Stateful, MemoryDevice {
 
     getState(): object {
         return {
-            ramType: this.ramType,
-            samsSize: this.samsSize,
-            enableGRAM: this.gramEnabled,
             ramAt0000: this.ramAt0000,
             ramAt4000: this.ramAt4000,
             ramAt6000: this.ramAt6000,
@@ -597,6 +609,7 @@ export class Memory implements Stateful, MemoryDevice {
             rom: this.rom,
             grom: this.grom.getState(),
             cartridge: this.cartridge ? this.cartridge.getState() : null,
+            ram32K: this.ram32K ? this.ram32K.getState() : null,
             sams: this.sams ? this.sams.getState() : null,
             pCodeCard: this.pCodeCard ? this.pCodeCard.getState() : null,
             peripheralCarts: this.peripheralCards.map(card => card.getId())
@@ -604,9 +617,6 @@ export class Memory implements Stateful, MemoryDevice {
     }
 
     restoreState(state: any) {
-        this.ramType = state.ramType;
-        this.samsSize = state.samsSize;
-        this.gramEnabled = state.gramEnabled;
         this.ramAt0000 = state.ramAt0000;
         this.ramAt4000 = state.ramAt4000;
         this.ramAt6000 = state.ramAt6000;
@@ -622,9 +632,15 @@ export class Memory implements Stateful, MemoryDevice {
         } else {
             this.cartridge = null;
         }
+        if (state.ram32K) {
+            if (!this.ram32K) {
+                this.ram32K = new RAM32K();
+            }
+            this.ram32K.restoreState(state.ram32K);
+        }
         if (state.sams) {
             if (!this.sams) {
-                this.sams = new SAMS(this.samsSize, false);
+                this.sams = new SAMS(state.sams.size, this.settings);
                 this.registerPeripheralCard(this.sams);
             }
             this.sams.restoreState(state.sams);

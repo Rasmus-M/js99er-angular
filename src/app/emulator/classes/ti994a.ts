@@ -463,13 +463,13 @@ export class TI994A implements Console, Stateful {
         if (wasRunning) {
             this.stop();
         }
-        this.memory.setRAMAt0000(false);
-        this.memory.setRAMAt4000(false);
         if (software) {
             if (software.memoryBlocks) {
                 this.reset(true);
                 this.memory.setRAMAt0000(software.ramAt0000);
                 this.memory.setRAMAt4000(software.ramAt4000);
+                this.memory.setRAMAt6000(software.ramAt6000);
+                this.memory.setRAMAt7000(software.ramAt7000);
                 for (let i = 0; i < software.memoryBlocks.length; i++) {
                     const memoryBlock = software.memoryBlocks[i];
                     this.memory.loadRAM(memoryBlock.address, memoryBlock.data);
@@ -540,11 +540,8 @@ export class TI994A implements Console, Stateful {
         if (state.tape) {
             this.tape.restoreState(state.tape);
         }
-        if (state.fdc) {
-            this.setVDP();
-            if (this.fdc) {
-                this.fdc.restoreState(state.fdc);
-            }
+        if (state.fdc && this.fdc) {
+            this.fdc.restoreState(state.fdc);
         }
         if (state.memory) {
             this.memory.restoreState(state.memory);

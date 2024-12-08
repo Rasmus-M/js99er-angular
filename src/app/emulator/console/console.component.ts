@@ -1,6 +1,6 @@
 import {AfterViewInit, Component, ElementRef, Input, NgZone, OnDestroy, OnInit} from '@angular/core';
 import {DiskImage} from '../classes/disk-image';
-import {Setting} from '../../classes/settings';
+import {Setting, Settings} from '../../classes/settings';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {Subscription} from 'rxjs';
 import {Command, CommandType} from '../../classes/command';
@@ -229,7 +229,6 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         resetRequired = true;
                         break;
                     case Setting.GRAM:
-                        this.ti994A.getMemory().setGRAMEnabled(value);
                         break;
                     case Setting.PIXELATED:
                         this.canvasPixelated = value;
@@ -243,10 +242,9 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         break;
                     case Setting.TIPI_WEBSOCKET_URI:
                         this.ti994A.setTIPI();
-                        resetRequired = this.settingsService.getTIPI() === 'FULL';
+                        resetRequired = true;
                         break;
                     case Setting.DEBUG_RESET:
-                        this.ti994A.getMemory().setDebugResetEnabled(value);
                         break;
                     case Setting.DISK:
                         this.ti994A.setFDC();
@@ -259,6 +257,16 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                 if (resetRequired) {
                     this.reset();
                 }
+                break;
+            case CommandType.CHANGE_SETTINGS:
+                const settings: Settings = command.data.settings;
+                this.ti994A.getSpeech().setEnabled(settings.isSpeechEnabled());
+                this.ti994A.setVDP();
+                this.ti994A.setFDC();
+                this.ti994A.setTIPI();
+                this.ti994A.setGoogleDrive();
+                this.ti994A.getKeyboard().setPCKeyboardEnabled(settings.isPCKeyboardEnabled());
+                this.ti994A.getKeyboard().setMapArrowKeysToFctnSDEXEnabled(settings.isMapArrowKeysEnabled());
                 break;
             case CommandType.PRESS_KEY:
                 this.ti994A.getKeyboard().virtualKeyPress(command.data);
@@ -357,15 +365,6 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
     onEvent(event: ConsoleEvent) {
         if (event.type === ConsoleEventType.SETTINGS_RESTORED) {
             const settings = this.settingsService.getSettings();
-            this.ti994A.getMemory().setDebugResetEnabled(settings.isDebugResetEnabled());
-            this.ti994A.getMemory().setGRAMEnabled(settings.isGRAMEnabled());
-            this.ti994A.getSpeech().setEnabled(settings.isSpeechEnabled());
-            this.ti994A.setVDP();
-            this.ti994A.setFDC();
-            this.ti994A.setTIPI();
-            this.ti994A.setGoogleDrive();
-            this.ti994A.getKeyboard().setPCKeyboardEnabled(settings.isPCKeyboardEnabled());
-            this.ti994A.getKeyboard().setMapArrowKeysToFctnSDEXEnabled(settings.isMapArrowKeysEnabled());
             this.canvasPixelated = settings.isPixelatedEnabled();
             this.canvasStretchX = settings.getVDP() === 'V9938';
             this.reset();

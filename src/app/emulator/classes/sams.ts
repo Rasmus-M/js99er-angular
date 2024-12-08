@@ -6,6 +6,7 @@ import {MemoryDevice} from "../interfaces/memory-device";
 import {PeripheralCard} from "../interfaces/peripheral-card";
 import {MemoryMappedCard} from "../interfaces/memory-mapped-card";
 import {CPU} from "../interfaces/cpu";
+import {Settings} from "../../classes/settings";
 
 export class SAMS implements Stateful, MemoryDevice, PeripheralCard, MemoryMappedCard {
 
@@ -15,18 +16,18 @@ export class SAMS implements Stateful, MemoryDevice, PeripheralCard, MemoryMappe
 
     private size: number;
     private pages: number;
+    private settings: Settings;
     private registerAccess: boolean;
     private ram: Uint8Array;
     private transparentMap: (number | null)[];
     private registerMap: number[];
     private map: (number | null)[];
     private log: Log;
-    private debugReset: boolean;
 
-    constructor(size: number, debugReset: boolean) {
+    constructor(size: number, settings: Settings) {
         this.size = size;
         this.pages = size >> 2;
-        this.debugReset = debugReset;
+        this.settings = settings;
         this.log = Log.getLog();
         this.reset();
     }
@@ -34,7 +35,7 @@ export class SAMS implements Stateful, MemoryDevice, PeripheralCard, MemoryMappe
     reset() {
         this.registerAccess = false;
         this.ram = new Uint8Array(this.size * 1024);
-        if (this.debugReset) {
+        if (this.settings.isDebugResetEnabled()) {
             for (let i = 0; i < this.ram.length; i++) {
                 this.ram[i] = i & 0xff;
             }
@@ -81,14 +82,6 @@ export class SAMS implements Stateful, MemoryDevice, PeripheralCard, MemoryMappe
             // Toggles between mapping mode and transparent mode
             this.setMode(value ? SAMS.MAPPING_MODE : SAMS.TRANSPARENT_MODE);
         }
-    }
-
-    setDebugResetEnabled(enabled: boolean) {
-        this.debugReset = enabled;
-    }
-
-    hasRegisterAccess(): boolean {
-        return this.registerAccess;
     }
 
     setRegisterAccess(enabled: boolean) {

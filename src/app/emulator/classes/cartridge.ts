@@ -49,19 +49,19 @@ constructor(software: Software, private settings: Settings) {
         this.setCurrentCartBank(!this.inverted ? 0 : this.bankCount - 1);
     }
 
-    public read(addr: number, cpu: CPU): number {
+    public read(addr: number): number {
         if (addr < 0x7000) {
-            return this.ramAt6000 ? this.readRAM(addr, cpu) : this.readROM(addr, cpu);
+            return this.ramAt6000 ? this.readRAM(addr) : this.readROM(addr);
         } else {
-            return this.ramAt7000 ? this.readRAM(addr, cpu) : this.readROM(addr, cpu);
+            return this.ramAt7000 ? this.readRAM(addr) : this.readROM(addr);
         }
     }
 
-    public write(addr: number, word: number, cpu: CPU): void {
+    public write(addr: number, word: number): void {
         if (addr < 0x7000) {
-            this.ramAt6000 ? this.writeRAM(addr, word, cpu) : this.writeROM(addr, word, cpu);
+            this.ramAt6000 ? this.writeRAM(addr, word) : this.writeROM(addr, word);
         } else {
-            this.ramAt7000 ? this.writeRAM(addr, word, cpu) : this.writeROM(addr, word, cpu);
+            this.ramAt7000 ? this.writeRAM(addr, word) : this.writeROM(addr, word);
         }
     }
 
@@ -84,11 +84,11 @@ constructor(software: Software, private settings: Settings) {
         }
     }
 
-    private readROM(addr: number, cpu: CPU): number {
+    private readROM(addr: number): number {
         return this.cartImage ? (this.cartImage[addr + this.addrOffset] << 8) | this.cartImage[addr + this.addrOffset + 1] : 0;
     }
 
-    private writeROM(addr: number, w: number, cpu: CPU) {
+    private writeROM(addr: number, w: number) {
         if (!this.cruBankSwitched) {
             let bank = (addr >> 1) & (this.bankCount - 1);
             if (!this.ramFG99Paged || addr < 0x6800) {
@@ -102,12 +102,12 @@ constructor(software: Software, private settings: Settings) {
         }
     }
 
-    private readRAM(addr: number, cpu: CPU): number {
+    private readRAM(addr: number): number {
         // this.log.info("Read cartridge RAM: " + addr.toHexWord());
         return this.cartImage ? (this.cartImage[addr + this.addrRAMOffset] << 8) | this.cartImage[addr + this.addrRAMOffset + 1] : 0;
     }
 
-    private writeRAM(addr: number, w: number, cpu: CPU) {
+    private writeRAM(addr: number, w: number) {
         // this.log.info("Write cartridge RAM: " + addr.toHexWord());
         if (this.cartImage) {
             this.cartImage[addr + this.addrRAMOffset] = w >> 8;
@@ -119,10 +119,9 @@ constructor(software: Software, private settings: Settings) {
         return this.gromBases.length > 0;
     }
 
-    public readGROM(addr: number, cpu: CPU): number {
+    public readGROM(addr: number): number {
         let value = 0;
         if (this.gromBases.length) {
-            // cpu.addCycles(17);
             const base = this.gromBases.length === 1 ? 0 : (addr & 0x003C) >> 2;
             if (base !== 0) {
                 console.log("Base=" + base);
@@ -130,7 +129,6 @@ constructor(software: Software, private settings: Settings) {
             addr = addr & 0x9802;
             if (addr === Memory.GRMRD) {
                 // Read data from GROM
-                // cpu.addCycles(6);
                 this.gromBases.forEach((gromBase, i) => {
                     if (gromBase) {
                         const w = gromBase.readData();
@@ -154,9 +152,8 @@ constructor(software: Software, private settings: Settings) {
         return value;
     }
 
-    public writeGROM(addr: number, w: number, cpu: CPU) {
+    public writeGROM(addr: number, w: number) {
         if (this.gromBases.length) {
-            // cpu.addCycles(23 + 6);
             addr = addr & 0x9C02;
             if (addr === Memory.GRMWD) {
                 if (this.settings.isGRAMEnabled()) {
@@ -231,7 +228,6 @@ constructor(software: Software, private settings: Settings) {
     }
 
     getState(): any {
-        // TODO
         return {
             cartImage: this.cartImage,
             gromBases: this.gromBases.map(gb => gb.getState()),

@@ -287,7 +287,7 @@ export class GenericFdc implements FDC, DsrCard {
             // Skip "FILES"
             x += 7;
             // Get the VDP RAM
-            const vdp = this.memory.getVDP();
+            const vdp = this.console.getVDP();
             // Get two bytes (size of string)
             let y = (vdp.getByte(x) << 8) | vdp.getByte(x + 1);
             // c8 means unquoted string, 1 is the length
@@ -315,7 +315,7 @@ export class GenericFdc implements FDC, DsrCard {
         if (nFiles > 0) {
             let newTop = 0x3def - (256 + 256 + 6) * nFiles - 5 - 1;
             this.memory.setPADWord(0x8370, newTop);
-            const vdp = this.memory.getVDP();
+            const vdp = this.console.getVDP();
             vdp.setByte(++newTop, 0xaa); // Valid header
             vdp.setByte(++newTop, 0x3f); // Top of VRAM, MSB
             vdp.setByte(++newTop, 0xff); // Top of VRAM, LSB
@@ -711,10 +711,10 @@ export class GenericFdc implements FDC, DsrCard {
 
     fileInput(diskDrive: DiskDrive) {
         const memory = this.memory;
+        const vdp = this.console.getVDP();
         const sectors = memory.getPADWord(0x834C) & 0xFF;
         const fileNameAddr = memory.getPADWord(0x834E);
         let fileName = "";
-        const vdp = memory.getVDP();
         for (let i = 0; i < 10; i++) {
             fileName += String.fromCharCode(vdp.getByte(fileNameAddr + i));
         }
