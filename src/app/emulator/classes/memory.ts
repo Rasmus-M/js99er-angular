@@ -456,7 +456,9 @@ export class Memory implements Stateful, MemoryDevice {
             return this.ramAt0000 ? this.ram[addr] : this.rom[addr];
         }
         if (addr < 0x4000) {
-            if (this.sams) {
+            if (this.ram32K) {
+                return this.ram32K.getByte(addr);
+            } else if (this.sams) {
                 return this.sams.getByte(addr);
             } else {
                 return this.ram[addr];
