@@ -181,7 +181,7 @@ export class SAMS implements Stateful, MemoryDevice, PeripheralCard, MemoryMappe
         this.size = state.size;
         this.pages = state.pages;
         this.registerAccess = state.registerAccess;
-        this.ram = state.ram;
+        this.ram.set(state.ram);
         this.transparentMap = state.transparentMap;
         this.registerMap = state.registerMap;
         this.map = state.map;
