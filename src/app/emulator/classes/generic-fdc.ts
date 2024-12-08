@@ -8,7 +8,6 @@ import {Console} from "../interfaces/console";
 import {DiskDrive} from "./disk-drive";
 import {VDP} from "../interfaces/vdp";
 import {FDC} from "../interfaces/fdc";
-import {Stateful} from "../interfaces/stateful";
 import {DSRCard} from "../interfaces/dsr-card";
 
 export const GENERIC_FDC_DSR_ROM: number[] = [

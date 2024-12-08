@@ -1,7 +1,6 @@
 import {Stateful} from "../interfaces/stateful";
 import {MemoryView} from "../../classes/memory-view";
 import {MemoryDevice} from "../interfaces/memory-device";
-import {Util} from "../../classes/util";
 
 export class GROMArray implements Stateful, MemoryDevice {
 

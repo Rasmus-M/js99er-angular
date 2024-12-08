@@ -5,7 +5,7 @@ import {System} from './system';
 import {Util} from '../../classes/util';
 import {CPU} from '../interfaces/cpu';
 import {Stateful} from '../interfaces/stateful';
-import {RAMType, Settings} from '../../classes/settings';
+import {Settings} from '../../classes/settings';
 import {PSG} from '../interfaces/psg';
 import {Speech} from '../interfaces/speech';
 import {MemoryDevice} from '../interfaces/memory-device';
@@ -556,20 +556,6 @@ export class Memory implements Stateful, MemoryDevice {
 
     setRAMAt7000(enabled: boolean) {
         this.ramAt7000 = enabled;
-    }
-
-    getCartridgeROM(): MemoryDevice {
-        return this.cartridge || {
-            getMemorySize(): number {
-                return 0;
-            }, getWord(addr: number): number {
-                return 0;
-            }, hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
-                return MemoryView.hexView(start, length, width, anchorAddr, (addr: number) => {
-                    return 0;
-                });
-            }
-        };
     }
 
     getGROM(): GROMArray {

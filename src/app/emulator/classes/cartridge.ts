@@ -1,7 +1,6 @@
 import {Software} from "../../classes/software";
 import {MemoryDevice} from "../interfaces/memory-device";
 import {MemoryView} from "../../classes/memory-view";
-import {CPU} from "../interfaces/cpu";
 import {GROMArray} from "./grom-array";
 import {Memory} from "./memory";
 import {Settings} from "../../classes/settings";

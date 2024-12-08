@@ -1,7 +1,6 @@
 import {AccessType, DataType, Disk, FileType, OperationMode, RecordType} from './disk';
 import {Stateful} from '../interfaces/stateful';
 import {Util} from '../../classes/util';
-import {Log} from "../../classes/log";
 
 export class DiskFile implements Stateful {
 
