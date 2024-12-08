@@ -1,6 +1,6 @@
 import {Stateful} from '../interfaces/stateful';
 import {TMS9919} from './tms9919';
-import {Cru} from './cru';
+import {CRU} from './cru';
 import {Tape} from './tape';
 import {Keyboard} from './keyboard';
 import {TMS5200} from './tms5200';
@@ -26,9 +26,9 @@ import {WasmService} from "../../services/wasm.service";
 import $ from "jquery";
 import {V9938} from "./v9938";
 import {Forti} from "./forti";
-import {TiFdc} from "./ti-fdc";
+import {TiFDC} from "./ti-fdc";
 import {GenericFdc} from "./generic-fdc";
-import {GoogleDriveFdc} from "./google-drive-fdc";
+import {GoogleDriveFDC} from "./google-drive-fdc";
 import {Observable, Subject} from "rxjs";
 import {FDC} from "../interfaces/fdc";
 import {Cartridge} from "./cartridge";
@@ -50,12 +50,12 @@ export class TI994A implements Console, Stateful {
     private vdp: VDP;
     private psg: PSG;
     private speech: Speech;
-    private cru: Cru;
+    private cru: CRU;
     private keyboard: Keyboard;
     private tape: Tape;
     private diskDrives: DiskDrive[];
     private fdc: FDC | null;
-    private googleFdc: GoogleDriveFdc;
+    private googleFdc: GoogleDriveFDC;
     private googleDrives: GoogleDrive[];
     private tipi: TIPI | null;
 
@@ -102,7 +102,7 @@ export class TI994A implements Console, Stateful {
     }
 
     private assemble(diskImages: DiskImage[]) {
-        this.cru = new Cru(this);
+        this.cru = new CRU(this);
         this.memory = new Memory(this, this.settings);
         this.cpu = new TMS9900(this);
         this.tape = new Tape();
@@ -178,7 +178,7 @@ export class TI994A implements Console, Stateful {
                 this.fdc = new GenericFdc(this, this.diskDrives);
                 break;
             case 'TIFDC':
-                this.fdc = new TiFdc(this.diskDrives);
+                this.fdc = new TiFDC(this.diskDrives);
                 break;
             case 'NONE':
                 this.fdc = null;
@@ -199,7 +199,7 @@ export class TI994A implements Console, Stateful {
                 new GoogleDrive("GDR2", "Js99erDrives/GDR2"),
                 new GoogleDrive("GDR3", "Js99erDrives/GDR3")
             ];
-            this.googleFdc = new GoogleDriveFdc(this, this.googleDrives);
+            this.googleFdc = new GoogleDriveFDC(this, this.googleDrives);
             this.memory.registerPeripheralCard(this.googleFdc);
         } else {
             this.googleDrives = [];
@@ -404,7 +404,7 @@ export class TI994A implements Console, Stateful {
         return this.speech;
     }
 
-    getCRU(): Cru {
+    getCRU(): CRU {
         return this.cru;
     }
 
@@ -428,7 +428,7 @@ export class TI994A implements Console, Stateful {
         return this.fdc;
     }
 
-    getGoogleDrivesFdc(): GoogleDriveFdc {
+    getGoogleDrivesFdc(): GoogleDriveFDC {
         return this.googleFdc;
     }
 
@@ -497,9 +497,9 @@ export class TI994A implements Console, Stateful {
         switch (id) {
             case GenericFdc.ID:
                 return this.fdc;
-            case TiFdc.ID:
+            case TiFDC.ID:
                 return this.fdc;
-            case GoogleDriveFdc.ID:
+            case GoogleDriveFDC.ID:
                 return this.googleFdc;
             case TIPI.ID:
                 return this.tipi;

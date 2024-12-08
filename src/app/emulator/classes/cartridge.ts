@@ -5,10 +5,10 @@ import {CPU} from "../interfaces/cpu";
 import {GROMArray} from "./grom-array";
 import {Memory} from "./memory";
 import {Settings} from "../../classes/settings";
-import {CruDevice} from "../interfaces/cru-device";
+import {CRUDevice} from "../interfaces/cru-device";
 import {Stateful} from "../interfaces/stateful";
 
-export class Cartridge implements MemoryDevice, CruDevice, Stateful  {
+export class Cartridge implements MemoryDevice, CRUDevice, Stateful  {
 
     private cartImage?: Uint8Array;
     private gromBases: GROMArray[];

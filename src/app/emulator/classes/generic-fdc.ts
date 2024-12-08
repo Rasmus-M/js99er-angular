@@ -9,7 +9,7 @@ import {DiskDrive} from "./disk-drive";
 import {VDP} from "../interfaces/vdp";
 import {FDC} from "../interfaces/fdc";
 import {Stateful} from "../interfaces/stateful";
-import {DsrCard} from "../interfaces/dsr-card";
+import {DSRCard} from "../interfaces/dsr-card";
 
 export const GENERIC_FDC_DSR_ROM: number[] = [
     0xAA,                           // >4000 Standard header
@@ -130,7 +130,7 @@ export const GENERIC_FDC_DSR_ROM: number[] = [
     0x04, 0x5B                      // >409E B *R11
 ];
 
-export class GenericFdc implements FDC, DsrCard {
+export class GenericFdc implements FDC, DSRCard {
 
     static ID = 'GENERIC_FDC';
 

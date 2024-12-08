@@ -2,11 +2,11 @@ import {DiskDrive} from "./disk-drive";
 import {Log} from "../../classes/log";
 import {Util} from "../../classes/util";
 import {FDC} from "../interfaces/fdc";
-import {DsrCard} from "../interfaces/dsr-card";
+import {DSRCard} from "../interfaces/dsr-card";
 import {MemoryMappedCard} from "../interfaces/memory-mapped-card";
 import {CPU} from "../interfaces/cpu";
 
-export class TiFdc implements FDC, DsrCard, MemoryMappedCard {
+export class TiFDC implements FDC, DSRCard, MemoryMappedCard {
 
     static ID = "TI_FDC";
 
@@ -47,7 +47,7 @@ export class TiFdc implements FDC, DsrCard, MemoryMappedCard {
     }
 
     public getId(): string {
-        return TiFdc.ID;
+        return TiFDC.ID;
     }
 
     public getROM(): number[] {

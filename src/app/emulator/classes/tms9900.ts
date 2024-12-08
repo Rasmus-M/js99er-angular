@@ -1,4 +1,4 @@
-import {Cru} from './cru';
+import {CRU} from './cru';
 import {Util} from '../../classes/util';
 import {Memory} from './memory';
 import {CPU} from '../interfaces/cpu';
@@ -15,7 +15,7 @@ export class TMS9900 extends CPUCommon implements CPU {
 
     private console: Console;
     private memory: Memory;
-    private cru: Cru;
+    private cru: CRU;
 
     // Misc
     private suspended: boolean;

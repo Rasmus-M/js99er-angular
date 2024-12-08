@@ -1,9 +1,9 @@
 import {CPU} from "../interfaces/cpu";
 import {Log} from "../../classes/log";
-import {DsrCard} from "../interfaces/dsr-card";
+import {DSRCard} from "../interfaces/dsr-card";
 import {MemoryMappedCard} from "../interfaces/memory-mapped-card";
 
-export class TIPI implements DsrCard, MemoryMappedCard {
+export class TIPI implements DSRCard, MemoryMappedCard {
 
     static ID = 'TIPI';
 

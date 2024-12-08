@@ -12,7 +12,7 @@ import {DiskImage} from "../classes/disk-image";
 import {Settings} from "../../classes/settings";
 import {Console} from "../interfaces/console";
 import {CPU} from "../interfaces/cpu";
-import {Cru} from "../classes/cru";
+import {CRU} from "../classes/cru";
 import {DiskDrive} from "../classes/disk-drive";
 import {Keyboard} from "../classes/keyboard";
 import {Memory} from "../classes/memory";
@@ -28,10 +28,10 @@ import {TMS9900} from "../classes/tms9900";
 import {TMS5200} from "../classes/tms5200";
 import {TMS9918A} from "../classes/tms9918a";
 import {WasmService} from "../../services/wasm.service";
-import {TiFdc} from "../classes/ti-fdc";
+import {TiFDC} from "../classes/ti-fdc";
 import {GoogleDrive} from "../classes/google-drive";
 import {GenericFdc} from "../classes/generic-fdc";
-import {GoogleDriveFdc} from "../classes/google-drive-fdc";
+import {GoogleDriveFDC} from "../classes/google-drive-fdc";
 import {FDC} from "../interfaces/fdc";
 import {Observable} from "rxjs";
 import {PeripheralCard} from "../interfaces/peripheral-card";
@@ -47,8 +47,8 @@ class ConsoleMock implements Console {
         return new TMS9900(this);
     }
 
-    getCRU(): Cru {
-        return new Cru(this);
+    getCRU(): CRU {
+        return new CRU(this);
     }
 
     getDiskDrives(): DiskDrive[] {
@@ -127,8 +127,8 @@ class ConsoleMock implements Console {
     setFDC(): void {
     }
 
-    getGoogleDrivesFdc(): GoogleDriveFdc {
-        return new GoogleDriveFdc(this, []);
+    getGoogleDrivesFdc(): GoogleDriveFDC {
+        return new GoogleDriveFDC(this, []);
     }
 
     cyclesPassed(): Observable<number> {

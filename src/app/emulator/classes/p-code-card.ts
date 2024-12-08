@@ -1,10 +1,10 @@
-import {DsrCard} from "../interfaces/dsr-card";
+import {DSRCard} from "../interfaces/dsr-card";
 import {MemoryMappedCard} from "../interfaces/memory-mapped-card";
 import {CPU} from "../interfaces/cpu";
 import {GROMArray} from "./grom-array";
 import {Stateful} from "../interfaces/stateful";
 
-export class PCodeCard implements DsrCard, MemoryMappedCard, Stateful {
+export class PCodeCard implements DSRCard, MemoryMappedCard, Stateful {
 
     static ID = 'P_CODE';
 

@@ -1,5 +1,5 @@
-import {CruDevice} from "./cru-device";
+import {CRUDevice} from "./cru-device";
 
-export interface PeripheralCard extends CruDevice {
+export interface PeripheralCard extends CRUDevice {
     isEnabled(): boolean;
 }

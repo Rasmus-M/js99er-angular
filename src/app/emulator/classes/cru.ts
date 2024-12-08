@@ -5,9 +5,9 @@ import {Stateful} from '../interfaces/stateful';
 import {Util} from '../../classes/util';
 import {CPU} from '../interfaces/cpu';
 import {Console} from '../interfaces/console';
-import {CruDevice} from "../interfaces/cru-device";
+import {CRUDevice} from "../interfaces/cru-device";
 
-export class Cru implements Stateful {
+export class CRU implements Stateful {
 
     static TIMER_CYCLES_PER_DECREMENT = 64;
 
@@ -24,7 +24,7 @@ export class Cru implements Stateful {
     private vdpInterrupt: boolean;
     private timerInterrupt: boolean;
     private timerInterruptCount: number;
-    private cruDevices: CruDevice[] = [];
+    private cruDevices: CRUDevice[] = [];
 
     private log: Log = Log.getLog();
 
@@ -36,17 +36,17 @@ export class Cru implements Stateful {
     private init() {
         this.console.cyclesPassed().subscribe(
             (cycles) => {
-                this.decrementTimer(cycles / Cru.TIMER_CYCLES_PER_DECREMENT);
+                this.decrementTimer(cycles / CRU.TIMER_CYCLES_PER_DECREMENT);
             }
         );
     }
 
-    public registerCruDevice(cruDevice: CruDevice) {
+    public registerCruDevice(cruDevice: CRUDevice) {
         this.log.debug("Register CRU device: " + cruDevice.getId());
         this.cruDevices.push(cruDevice);
     }
 
-    public deregisterCruDevice(cruDevice: CruDevice) {
+    public deregisterCruDevice(cruDevice: CRUDevice) {
         this.log.debug("Deregister CRU device: " + cruDevice.getId());
         const index = this.cruDevices.indexOf(cruDevice);
         if (index !== -1) {

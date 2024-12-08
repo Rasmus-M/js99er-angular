@@ -1,4 +1,3 @@
-import {CPU} from './cpu';
 import {Stateful} from './stateful';
 import {Observable} from "rxjs";
 

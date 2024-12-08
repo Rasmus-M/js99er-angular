@@ -7,7 +7,7 @@ import {Console} from "../interfaces/console";
 import {Util} from "../../classes/util";
 import {DiskFile, FixedRecord, VariableRecord} from "./disk-file";
 import {FDC} from "../interfaces/fdc";
-import {DsrCard} from "../interfaces/dsr-card";
+import {DSRCard} from "../interfaces/dsr-card";
 
 export const GOOGLE_DRIVE_FDC_DSR_ROM = [
     0xAA,                           // >4000 Standard header
@@ -52,7 +52,7 @@ export const GOOGLE_DRIVE_FDC_DSR_ROM = [
     0x04, 0x5B                      // >403E B *R11
 ];
 
-export class GoogleDriveFdc implements FDC, DsrCard {
+export class GoogleDriveFDC implements FDC, DSRCard {
 
     static ID = 'GOOGLE_DRIVE_FDC';
 
@@ -61,8 +61,8 @@ export class GoogleDriveFdc implements FDC, DsrCard {
     static DSR_ROM_GDR2 = 0x4038;
     static DSR_ROM_GDR3 = 0x403C;
 
-    static DSR_HOOK_START = GoogleDriveFdc.DSR_ROM_POWER_UP;
-    static DSR_HOOK_END = GoogleDriveFdc.DSR_ROM_GDR3;
+    static DSR_HOOK_START = GoogleDriveFDC.DSR_ROM_POWER_UP;
+    static DSR_HOOK_END = GoogleDriveFDC.DSR_ROM_GDR3;
 
     static CLIENT_ID = "101694421528-72cnh0nor5rvoj245fispof8hdaq47i4.apps.googleusercontent.com";
     static SCOPES = 'https://www.googleapis.com/auth/drive';
@@ -86,7 +86,7 @@ export class GoogleDriveFdc implements FDC, DsrCard {
     }
 
     public getId(): string {
-        return GoogleDriveFdc.ID;
+        return GoogleDriveFDC.ID;
     }
 
     public getROM(): number[] {
@@ -120,7 +120,7 @@ export class GoogleDriveFdc implements FDC, DsrCard {
 
     private init() {
         this.console.getCPU().instructionExecuting().subscribe((pc) => {
-            if (this.isEnabled() && pc >= GoogleDriveFdc.DSR_HOOK_START && pc <= GoogleDriveFdc.DSR_HOOK_END) {
+            if (this.isEnabled() && pc >= GoogleDriveFDC.DSR_HOOK_START && pc <= GoogleDriveFDC.DSR_HOOK_END) {
                 this.executeHooks(pc);
             }
         });
@@ -130,20 +130,20 @@ export class GoogleDriveFdc implements FDC, DsrCard {
         this.ram = this.console.getVDP().getRAM();
         let googleDrive: GoogleDrive | null = null;
         switch (pc) {
-            case GoogleDriveFdc.DSR_ROM_POWER_UP:
+            case GoogleDriveFDC.DSR_ROM_POWER_UP:
                 this.powerUp((result) => {
                     this.console.getCPU().setSuspended(false);
                 });
                 // Suspend CPU until callback
                 this.console.getCPU().setSuspended(true);
                 return true;
-            case GoogleDriveFdc.DSR_ROM_GDR1:
+            case GoogleDriveFDC.DSR_ROM_GDR1:
                 googleDrive = this.googleDrives[0];
                 break;
-            case GoogleDriveFdc.DSR_ROM_GDR2:
+            case GoogleDriveFDC.DSR_ROM_GDR2:
                 googleDrive = this.googleDrives[1];
                 break;
-            case GoogleDriveFdc.DSR_ROM_GDR3:
+            case GoogleDriveFDC.DSR_ROM_GDR3:
                 googleDrive = this.googleDrives[2];
                 break;
             default:
@@ -179,8 +179,8 @@ export class GoogleDriveFdc implements FDC, DsrCard {
         gapi.load("client:auth2", () => {
             log.info("Google library loaded");
             gapi.client.init({
-                clientId: GoogleDriveFdc.CLIENT_ID,
-                scope: GoogleDriveFdc.SCOPES
+                clientId: GoogleDriveFDC.CLIENT_ID,
+                scope: GoogleDriveFDC.SCOPES
             }).then(() => {
                 log.info("Google client initialized");
                 const authInstance = gapi.auth2.getAuthInstance();

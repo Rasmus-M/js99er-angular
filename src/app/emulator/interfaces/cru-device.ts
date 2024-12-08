@@ -1,4 +1,4 @@
-export interface CruDevice {
+export interface CRUDevice {
     getId(): string;
     getCruAddress(): number;
     readCruBit(bit: number): boolean;

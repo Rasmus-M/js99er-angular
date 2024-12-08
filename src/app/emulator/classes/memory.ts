@@ -13,7 +13,7 @@ import {MemoryView} from "../../classes/memory-view";
 import {Console} from '../interfaces/console';
 import {PCodeCard} from "./p-code-card";
 import {GROMArray} from "./grom-array";
-import {DsrCard} from "../interfaces/dsr-card";
+import {DSRCard} from "../interfaces/dsr-card";
 import {PeripheralCard} from "../interfaces/peripheral-card";
 import {MemoryMappedCard} from "../interfaces/memory-mapped-card";
 import {Cartridge} from "./cartridge";
@@ -584,8 +584,8 @@ export class Memory implements Stateful, MemoryDevice {
         return (card as MemoryMappedCard).readMemoryMapped !== undefined;
     }
 
-    isDsrCard(card: PeripheralCard): card is DsrCard {
-        return (card as DsrCard).getROM !== undefined;
+    isDsrCard(card: PeripheralCard): card is DSRCard {
+        return (card as DSRCard).getROM !== undefined;
     }
 
     getCardById(id: string): PeripheralCard | null {
