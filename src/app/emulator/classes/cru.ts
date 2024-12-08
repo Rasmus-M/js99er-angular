@@ -249,7 +249,13 @@ export class Cru implements Stateful {
         this.timerInterrupt = state.timerInterrupt;
         this.timerInterruptCount = state.timerInterruptCount;
         if (state.cruDevices) {
-            this.cruDevices = state.cruDevices.map((id: string) => this.console.getMemory().getCardById(id));
+            this.cruDevices = [];
+            state.cruDevices.forEach((id: string) => {
+                const cruDevice = this.console.getMemory().getCardById(id);
+                if (cruDevice) {
+                    this.cruDevices.push(cruDevice);
+                }
+            });
         }
     }
 }

@@ -228,11 +228,11 @@ export class TI994A implements Console, Stateful {
     reset(keepCart: boolean) {
         // Components
         this.memory.reset(keepCart);
+        this.cru.reset();
         this.cpu.reset();
         this.vdp.reset();
         this.psg.reset();
         this.speech.reset();
-        this.cru.reset();
         this.keyboard.reset();
         this.tape.reset();
         if (this.fdc) {

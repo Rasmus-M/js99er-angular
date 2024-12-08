@@ -641,19 +641,23 @@ export class Memory implements Stateful, MemoryDevice {
         if (state.sams) {
             if (!this.sams) {
                 this.sams = new SAMS(state.sams.size, this.settings);
-                this.registerPeripheralCard(this.sams);
             }
             this.sams.restoreState(state.sams);
         }
         if (state.pCodeCard) {
             if (!this.pCodeCard) {
                 this.pCodeCard = new PCodeCard();
-                this.registerPeripheralCard(this.pCodeCard);
             }
             this.pCodeCard.restoreState(state.pCodeCard);
         }
         if (state.peripheralCards) {
-            this.peripheralCards = state.peripheralCards.map((id: string) => this.getCardById(id));
+            this.peripheralCards = [];
+            state.peripheralCards.forEach((id: string) => {
+                const card = this.getCardById(id);
+                if (card) {
+                    this.peripheralCards.push(card);
+                }
+            });
         }
         this.buildMemoryMap();
     }
