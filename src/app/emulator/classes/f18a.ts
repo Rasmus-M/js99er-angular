@@ -353,6 +353,12 @@ export class F18A implements VDP {
         this.writePaletteEntryToWasm(index);
     }
 
+    writePaletteToWasm() {
+        for (let i = 0; i < 64; i++) {
+            this.writePaletteEntryToWasm(i);
+        }
+    }
+
     writePaletteEntryToWasm(index: number) {
         const paletteMemory = new Uint8Array(this.wasmService.getMemoryBuffer(), paletteAddr + (index << 2), 4);
         const paletteEntry = this.palette[index];
@@ -1580,5 +1586,6 @@ export class F18A implements VDP {
         this.lastTime = state.lastTime;
         this.gpu.restoreState(state.gpu);
         this.setDimensions(true);
+        this.writePaletteToWasm();
     }
 }
