@@ -35,6 +35,9 @@ import {GoogleDriveFDC} from "../classes/google-drive-fdc";
 import {FDC} from "../interfaces/fdc";
 import {Observable} from "rxjs";
 import {PeripheralCard} from "../interfaces/peripheral-card";
+import {RAMDisk} from "../interfaces/ram-disk";
+import {Horizon} from "../classes/horizon";
+import {DatabaseService} from "../../services/database.service";
 
 class ConsoleMock implements Console {
 
@@ -137,6 +140,20 @@ class ConsoleMock implements Console {
 
     getCardById(id: string): PeripheralCard | null {
         return null;
+    }
+
+    getRAMDisk(): RAMDisk | null {
+        return new Horizon(this);
+    }
+
+    setRAMDisk(): void {
+    }
+
+    getDatabaseService(): DatabaseService {
+        return new DatabaseService();
+    }
+
+    destroy() {
     }
 }
 

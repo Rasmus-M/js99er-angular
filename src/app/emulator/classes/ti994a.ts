@@ -33,6 +33,9 @@ import {Observable, Subject} from "rxjs";
 import {FDC} from "../interfaces/fdc";
 import {Cartridge} from "./cartridge";
 import {PeripheralCard} from "../interfaces/peripheral-card";
+import {RAMDisk} from "../interfaces/ram-disk";
+import {Horizon} from "./horizon";
+import {DatabaseService} from "../../services/database.service";
 
 export class TI994A implements Console, Stateful {
 
@@ -42,6 +45,7 @@ export class TI994A implements Console, Stateful {
     private canvas: HTMLCanvasElement;
     private document: HTMLDocument;
     private settings: Settings;
+    private databaseService: DatabaseService;
     private wasmService: WasmService;
     private onBreakpoint: (cpu: CPU) => void;
 
@@ -58,6 +62,7 @@ export class TI994A implements Console, Stateful {
     private googleFdc: GoogleDriveFDC;
     private googleDrives: GoogleDrive[];
     private tipi: TIPI | null;
+    private ramDisk: RAMDisk | null;
 
     private running: boolean;
     private cpuSpeed: number;
@@ -76,10 +81,19 @@ export class TI994A implements Console, Stateful {
 
     private log: Log;
 
-    constructor(document: Document, canvas: HTMLCanvasElement, diskImages: DiskImage[], settings: Settings, wasmService: WasmService, onBreakpoint: (cpu: CPU) => void) {
+    constructor(
+        document: Document,
+        canvas: HTMLCanvasElement,
+        diskImages: DiskImage[],
+        settings: Settings,
+        databaseService: DatabaseService,
+        wasmService: WasmService,
+        onBreakpoint: (cpu: CPU) => void
+    ) {
         this.document = document;
         this.canvas = canvas;
         this.settings = settings;
+        this.databaseService = databaseService;
         this.wasmService = wasmService;
         this.cyclesSubject = new Subject<number>();
         this.onBreakpoint = onBreakpoint;
@@ -109,6 +123,11 @@ export class TI994A implements Console, Stateful {
         this.setVDP();
         this.setPSG();
         this.speech = new TMS5200(this.settings.isSpeechEnabled());
+        this.speech.isReady().subscribe(
+            (ready) => {
+                this.cpu.setSuspended(!ready);
+            }
+        );
         this.keyboard = new Keyboard(this.document, this, this.settings);
         this.diskDrives = [
             new DiskDrive("DSK1", diskImages[0]),
@@ -118,14 +137,10 @@ export class TI994A implements Console, Stateful {
         this.setFDC();
         this.setGoogleDrive();
         this.setTIPI();
+        this.setRAMDisk();
     }
 
     private attachListeners() {
-        this.speech.isReady().subscribe(
-            (ready) => {
-                this.cpu.setSuspended(!ready);
-            }
-        );
         $(window).on("blur", () => {
             if (this.settings.isPauseOnFocusLostEnabled() || this.useVsync) {
                 this.wasRunning = this.isRunning();
@@ -142,6 +157,30 @@ export class TI994A implements Console, Stateful {
                 }
             }
         });
+    }
+
+    reset(keepCart: boolean) {
+        // Components
+        this.memory.reset(keepCart);
+        this.cru.reset();
+        this.cpu.reset();
+        this.vdp.reset();
+        this.psg.reset();
+        this.speech.reset();
+        this.keyboard.reset();
+        this.tape.reset();
+        if (this.fdc) {
+            this.fdc.reset();
+        }
+        for (let i = 0; i < this.googleDrives.length; i++) {
+            this.googleDrives[i].reset();
+        }
+        if (this.tipi) {
+            this.tipi.reset();
+        }
+        // Other
+        this.resetFps();
+        this.cpuSpeed = 1;
     }
 
     public setVDP() {
@@ -225,28 +264,21 @@ export class TI994A implements Console, Stateful {
         }
     }
 
-    reset(keepCart: boolean) {
-        // Components
-        this.memory.reset(keepCart);
-        this.cru.reset();
-        this.cpu.reset();
-        this.vdp.reset();
-        this.psg.reset();
-        this.speech.reset();
-        this.keyboard.reset();
-        this.tape.reset();
-        if (this.fdc) {
-            this.fdc.reset();
+    public setRAMDisk() {
+        if (this.ramDisk) {
+            this.memory.deregisterPeripheralCard(this.ramDisk);
         }
-        for (let i = 0; i < this.googleDrives.length; i++) {
-            this.googleDrives[i].reset();
+        switch (this.settings.getRAMDisk()) {
+            case 'HORIZON':
+                this.ramDisk = new Horizon(this);
+                break;
+            case 'NONE':
+                this.ramDisk = null;
+                break;
         }
-        if (this.tipi) {
-            this.tipi.reset();
+        if (this.ramDisk) {
+            this.memory.registerPeripheralCard(this.ramDisk);
         }
-        // Other
-        this.resetFps();
-        this.cpuSpeed = 1;
     }
 
     start(fast: boolean, skipBreakpoint?: boolean) {
@@ -436,6 +468,14 @@ export class TI994A implements Console, Stateful {
         return this.tipi;
     }
 
+    getRAMDisk(): RAMDisk | null {
+        return this.ramDisk;
+    }
+
+    getDatabaseService(): DatabaseService {
+        return this.databaseService;
+    }
+
     isRunning() {
         return this.running;
     }
@@ -517,7 +557,8 @@ export class TI994A implements Console, Stateful {
             psg: this.psg.getState(),
             speech: this.speech.getState(),
             tape: this.tape.getState(),
-            fdc: this.fdc ? this.fdc.getState() : null
+            fdc: this.fdc ? this.fdc.getState() : null,
+            ramDisk: this.ramDisk ? this.ramDisk.getState() : null
         };
     }
 
@@ -549,5 +590,12 @@ export class TI994A implements Console, Stateful {
         if (state.cru) {
             this.cru.restoreState(state.cru);
         }
+        if (state.ramDisk && this.ramDisk) {
+            this.ramDisk.restoreState(state.ramDisk);
+        }
+    }
+
+    destroy() {
+        this.stop();
     }
 }

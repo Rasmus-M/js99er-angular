@@ -15,7 +15,8 @@ export enum Setting {
     DEBUG_RESET,
     H264_CODEC,
     DISK,
-    PCODE
+    PCODE,
+    RAM_DISK
 }
 
 export type PSGType = 'STANDARD' | 'FORTI';
@@ -27,6 +28,8 @@ export type VDPType = 'TMS9918A' | 'F18A' | 'V9938';
 export type TIPIType = 'NONE' | 'MOUSE' | 'FULL';
 
 export type DiskType = 'NONE' | 'TIFDC' | 'GENERIC';
+
+export type RAMDiskType = 'NONE' | 'HORIZON';
 
 export class Settings {
 
@@ -47,6 +50,7 @@ export class Settings {
     private enableH264Codec: boolean;
     private disk: DiskType;
     private enablePCode: boolean;
+    private ramDisk: RAMDiskType;
 
     constructor() {
         this.enableSound = true;
@@ -66,6 +70,7 @@ export class Settings {
         this.enableH264Codec = false;
         this.disk = 'GENERIC';
         this.enablePCode = false;
+        this.ramDisk = 'NONE';
     }
 
     isSoundEnabled(): boolean {
@@ -204,6 +209,14 @@ export class Settings {
         this.enablePCode = enabled;
     }
 
+    getRAMDisk() {
+        return this.ramDisk;
+    }
+
+    setRAMDisk(ramDisk: RAMDiskType) {
+        this.ramDisk = ramDisk;
+    }
+
     copyFrom(otherSettings: any) {
         if (otherSettings.enableSound !== undefined) {
             this.enableSound = otherSettings.enableSound;
@@ -255,6 +268,9 @@ export class Settings {
         }
         if (otherSettings.enablePCode !== undefined) {
             this.enablePCode = otherSettings.enablePCode;
+        }
+        if (otherSettings.ramDisk !== undefined) {
+            this.ramDisk = otherSettings.ramDisk;
         }
     }
 }

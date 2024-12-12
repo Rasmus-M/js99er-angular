@@ -19,6 +19,7 @@ import {MemoryMappedCard} from "../interfaces/memory-mapped-card";
 import {Cartridge} from "./cartridge";
 import {Software} from "../../classes/software";
 import {RAM32K} from "./ram-32k";
+import {Horizon} from "./horizon";
 
 export class Memory implements Stateful, MemoryDevice {
 
@@ -58,6 +59,7 @@ export class Memory implements Stateful, MemoryDevice {
 
     private peripheralCards: PeripheralCard[] = [];
     private pCodeCard: PCodeCard | null;
+    private horizonCard: Horizon | null = null;
 
     private memoryMap: Function[][];
 
@@ -72,6 +74,9 @@ export class Memory implements Stateful, MemoryDevice {
         this.log.info("Register card: " + card.getId());
         this.peripheralCards.push(card);
         this.console.getCRU().registerCruDevice(card);
+        if (card instanceof Horizon) {
+            this.horizonCard = card;
+        }
     }
 
     public deregisterPeripheralCard(card: PeripheralCard) {
@@ -81,6 +86,9 @@ export class Memory implements Stateful, MemoryDevice {
             this.peripheralCards.splice(index, 1);
         }
         this.console.getCRU().deregisterCruDevice(card);
+        if (card instanceof Horizon) {
+            this.horizonCard = null;
+        }
     }
 
     public getCartridge() {
@@ -302,8 +310,8 @@ export class Memory implements Stateful, MemoryDevice {
             if (this.isMemoryMappedCard(activeCard)) {
                 return activeCard.readMemoryMapped(addr, cpu);
             } else if (this.isDsrCard(activeCard)) {
-                const rom = activeCard.getROM();
-                const romAddr = addr - 0x4000 + (activeCard.getROMBank() << 13);
+                const rom = activeCard.getDSR();
+                const romAddr = addr - 0x4000 + (activeCard.getDSRBank() << 13);
                 // this.log.info("Read peripheral ROM " + addr.toHexWord() + ": " + (rom[romAddr] << 8 | rom[romAddr + 1]).toHexWord());
                 return rom[romAddr] << 8 | rom[romAddr + 1];
             }
@@ -321,12 +329,18 @@ export class Memory implements Stateful, MemoryDevice {
 
     private readCartridge(addr: number, cpu: CPU): number {
         cpu.addCycles(4);
-        return this.cartridge ? this.cartridge.read(addr) : 0;
+        if (this.horizonCard && this.horizonCard.isRamboEnabled()) {
+            return this.horizonCard.readCartridgeSpace(addr);
+        } else {
+            return this.cartridge ? this.cartridge.read(addr) : 0;
+        }
     }
 
     private writeCartridge(addr: number, w: number, cpu: CPU) {
         cpu.addCycles(4);
-        if (this.cartridge) {
+        if (this.horizonCard && this.horizonCard.isRamboEnabled()) {
+            this.horizonCard.writeCartridgeSpace(addr, w);
+        } else if (this.cartridge) {
             this.cartridge.write(addr, w);
         }
     }
@@ -473,8 +487,8 @@ export class Memory implements Stateful, MemoryDevice {
             } else {
                 const activeCard = this.peripheralCards.find(dsrDevice => dsrDevice.isEnabled());
                 if (activeCard && this.isDsrCard(activeCard)) {
-                    const peripheralROM = activeCard.getROM();
-                    const romAddr = addr - 0x4000 + (activeCard.getROMBank() << 13);
+                    const peripheralROM = activeCard.getDSR();
+                    const romAddr = addr - 0x4000 + (activeCard.getDSRBank() << 13);
                     return peripheralROM ? peripheralROM[romAddr] : 0;
                 } else {
                     return 0;
@@ -573,7 +587,7 @@ export class Memory implements Stateful, MemoryDevice {
     }
 
     isDsrCard(card: PeripheralCard): card is DSRCard {
-        return (card as DSRCard).getROM !== undefined;
+        return (card as DSRCard).getDSR !== undefined;
     }
 
     getCardById(id: string): PeripheralCard | null {

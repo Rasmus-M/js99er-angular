@@ -171,7 +171,7 @@ export class GenericFdc implements FDC, DSRCard {
         return GenericFdc.ID;
     }
 
-    public getROM(): number[] {
+    public getDSR(): number[] {
         return GENERIC_FDC_DSR_ROM;
     }
 
@@ -179,7 +179,7 @@ export class GenericFdc implements FDC, DSRCard {
         return this.romEnabled;
     }
 
-    public getROMBank(): number {
+    public getDSRBank(): number {
         return 0;
     }
 

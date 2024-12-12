@@ -2,7 +2,7 @@ import {AfterViewInit, Component, ElementRef, Input, NgZone, OnDestroy, OnInit} 
 import {DiskImage} from '../classes/disk-image';
 import {Setting, Settings} from '../../classes/settings';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
-import {Subscription} from 'rxjs';
+import {firstValueFrom, Subscription} from 'rxjs';
 import {Command, CommandType} from '../../classes/command';
 import {ModuleService} from '../../services/module.service';
 import {Log} from '../../classes/log';
@@ -65,10 +65,26 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngAfterViewInit() {
         this.canvas = this.elementRef.nativeElement.querySelector('canvas');
-        this.ti994A = this.consoleFactoryService.create(document, this.canvas, this.diskImages, this.settingsService.getSettings(), this.onBreakpoint.bind(this));
-        this.ti994A.reset(false);
-        this.eventDispatcherService.ready(this.ti994A);
+        this.ti994A = this.consoleFactoryService.create(document, this.canvas, this.diskImages, this.onBreakpoint.bind(this));
         document.addEventListener('pointerlockchange', this.lockChangeAlert.bind(this), false);
+        firstValueFrom(this.databaseService.whenReady()).then(
+            (success) => {
+                if (success) {
+                    const ramDisk = this.ti994A.getRAMDisk();
+                    if (ramDisk) {
+                        return this.databaseService.restoreRAMDisk(ramDisk);
+                    } else {
+                        return true;
+                    }
+                } else {
+                    return false;
+                }
+            }
+        ).then(
+            () => {
+                this.eventDispatcherService.ready(this.ti994A);
+            }
+        );
     }
 
     reset() {
@@ -253,6 +269,10 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                     case Setting.PCODE:
                         resetRequired = true;
                         break;
+                    case Setting.RAM_DISK:
+                        this.ti994A.setRAMDisk();
+                        resetRequired = true;
+                        break;
                 }
                 if (resetRequired) {
                     this.reset();
@@ -431,7 +451,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngOnDestroy() {
-        this.ti994A.stop();
+        this.ti994A.destroy();
         this.commandSubscription.unsubscribe();
         this.eventSubscription.unsubscribe();
     }

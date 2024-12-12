@@ -89,7 +89,7 @@ export class GoogleDriveFDC implements FDC, DSRCard {
         return GoogleDriveFDC.ID;
     }
 
-    public getROM(): number[] {
+    public getDSR(): number[] {
         return GOOGLE_DRIVE_FDC_DSR_ROM;
     }
 
@@ -97,7 +97,7 @@ export class GoogleDriveFDC implements FDC, DSRCard {
         return this.romEnabled;
     }
 
-    public getROMBank(): number {
+    public getDSRBank(): number {
         return 0;
     }
 

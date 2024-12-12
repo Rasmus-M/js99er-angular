@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {RAMType, Setting, Settings, PSGType, TIPIType, VDPType, DiskType} from '../classes/settings';
+import {RAMType, Setting, Settings, PSGType, TIPIType, VDPType, DiskType, RAMDiskType} from '../classes/settings';
 import {CommandDispatcherService} from './command-dispatcher.service';
 import {EventDispatcherService} from './event-dispatcher.service';
 
@@ -71,6 +71,9 @@ export class SettingsService {
             }
             if (storage.getItem('enablePCode') != null) {
                 this.settings.setPCodeEnabled(storage.getItem('enablePCode') === 'true');
+            }
+            if (storage.getItem('ramDisk') != null) {
+                this.settings.setRAMDisk(storage.getItem('ramDisk') as RAMDiskType);
             }
             this.storage = storage;
         }
@@ -322,6 +325,20 @@ export class SettingsService {
             if (this.persistent && this.storage) {
                 this.storage.setItem('enablePCode', enabled ? 'true' : 'false');
                 this.commandDispatcherService.changeSetting(Setting.PCODE, enabled);
+            }
+        }
+    }
+
+    getRAMDisk() {
+        return this.settings.getRAMDisk();
+    }
+
+    setRAMDisk(ramDisk: RAMDiskType) {
+        if (ramDisk !== this.settings.getRAMDisk()) {
+            this.settings.setRAMDisk(ramDisk);
+            if (this.persistent && this.storage) {
+                this.storage.setItem('ramDisk', ramDisk);
+                this.commandDispatcherService.changeSetting(Setting.RAM_DISK, ramDisk);
             }
         }
     }

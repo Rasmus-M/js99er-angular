@@ -2,10 +2,12 @@ import {Injectable} from '@angular/core';
 import {Database} from '../classes/database';
 import {DiskImage} from '../emulator/classes/disk-image';
 import {DiskDrive} from '../emulator/classes/disk-drive';
-import {Subject} from "rxjs";
+import {firstValueFrom, ReplaySubject, Subject} from "rxjs";
 import {Observable} from "rxjs";
 import {Software} from "../classes/software";
 import {Settings} from "../classes/settings";
+import {RAMDisk} from "../emulator/interfaces/ram-disk";
+import {Util} from "../classes/util";
 
 @Injectable({
     providedIn: 'root'
@@ -14,7 +16,7 @@ export class DatabaseService {
 
     private database: Database;
     private supported: boolean;
-    private ready = new Subject<boolean>();
+    private ready = new ReplaySubject<boolean>();
 
     constructor() {
         const service = this;
@@ -184,5 +186,43 @@ export class DatabaseService {
             }
         );
         return subject.asObservable();
+    }
+
+    saveRAMDisk(ramDisk: RAMDisk): Promise<boolean> {
+        const subject = new Subject<boolean>();
+        this.database?.putBinaryFile(ramDisk.getId() + '_DSR', new Uint8Array(ramDisk.getDSR()), (dsrResult) => {
+            if (dsrResult) {
+                this.database?.putBinaryFile(ramDisk.getId() + '_RAM', ramDisk.getRAM(), (ramResult) => {
+                    if (ramResult) {
+                        subject.next(true);
+                    } else {
+                        subject.next(false);
+                    }
+                });
+            } else {
+                subject.next(false);
+            }
+        });
+        return firstValueFrom(subject);
+    }
+
+    restoreRAMDisk(ramDisk: RAMDisk): Promise<boolean> {
+        const subject = new Subject<boolean>();
+        this.database.getBinaryFile(ramDisk.getId() + '_DSR', (dsrResult) => {
+            if (dsrResult) {
+                this.database.getBinaryFile(ramDisk.getId() + '_RAM', (ramResult) => {
+                    if (ramResult) {
+                        ramDisk.setDSR(Util.byteArrayToNumberArray(dsrResult));
+                        ramDisk.setRAM(ramResult);
+                        subject.next(true);
+                    } else {
+                        subject.next(false);
+                    }
+                });
+            } else {
+                subject.next(false);
+            }
+        });
+        return firstValueFrom(subject);
     }
 }

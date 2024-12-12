@@ -29,7 +29,7 @@ export class SAMS implements Stateful, MemoryDevice, PeripheralCard, MemoryMappe
         this.pages = size >> 2;
         this.settings = settings;
         this.log = Log.getLog();
-        this.reset();
+        this.reset(); // Not called anywhere else
     }
 
     reset() {

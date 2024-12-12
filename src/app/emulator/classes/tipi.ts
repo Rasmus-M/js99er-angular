@@ -99,7 +99,7 @@ export class TIPI implements DSRCard, MemoryMappedCard {
         return TIPI.ID;
     }
 
-    public getROM(): number[] {
+    public getDSR(): number[] {
         return TIPI_DSR_ROM;
     }
 
@@ -107,7 +107,7 @@ export class TIPI implements DSRCard, MemoryMappedCard {
         return this.romEnabled;
     }
 
-    public getROMBank(): number {
+    public getDSRBank(): number {
         return 0;
     }
 

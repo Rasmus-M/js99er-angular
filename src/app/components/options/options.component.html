@@ -38,11 +38,19 @@
         <mat-checkbox [ngModel]="enableSpeech" (ngModelChange)="onEnableSpeechChanged($event)">Speech enabled</mat-checkbox>
     </div>
     <mat-form-field class="setting">
-        <mat-label>Disk</mat-label>
+        <mat-label>Floppy disk</mat-label>
         <mat-select [(ngModel)]="disk" (ngModelChange)="onDiskChanged($event)">
             <mat-option [value]="'NONE'">No disk</mat-option>
             <mat-option [value]="'GENERIC'">Generic</mat-option>
             <mat-option [value]="'TIFDC'">TI Floppy Disk Controller</mat-option>
+        </mat-select>
+    </mat-form-field>
+    <br>
+    <mat-form-field class="setting">
+        <mat-label>RAM disk</mat-label>
+        <mat-select [(ngModel)]="ramDisk" (ngModelChange)="onRAMDiskChanged($event)">
+            <mat-option [value]="'NONE'">No RAM disk</mat-option>
+            <mat-option [value]="'HORIZON'">Horizon</mat-option>
         </mat-select>
     </mat-form-field>
     <br>

@@ -50,7 +50,7 @@ export class TiFDC implements FDC, DSRCard, MemoryMappedCard {
         return TiFDC.ID;
     }
 
-    public getROM(): number[] {
+    public getDSR(): number[] {
         return TI_FDC_DSR_ROM;
     }
 
@@ -58,7 +58,7 @@ export class TiFDC implements FDC, DSRCard, MemoryMappedCard {
         return this.romEnabled;
     }
 
-    public getROMBank(): number {
+    public getDSRBank(): number {
         return 0;
     }
 

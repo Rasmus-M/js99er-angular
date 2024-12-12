@@ -25,7 +25,7 @@ export class PCodeCard implements DSRCard, MemoryMappedCard, Stateful {
         return PCodeCard.ID;
     }
 
-    public getROM(): number[] {
+    public getDSR(): number[] {
         return PCODE_DSR_ROM;
     }
 
@@ -33,7 +33,7 @@ export class PCodeCard implements DSRCard, MemoryMappedCard, Stateful {
         return this.romEnabled;
     }
 
-    public getROMBank(): number {
+    public getDSRBank(): number {
         return this.romBank;
     }
 

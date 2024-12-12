@@ -2,7 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {SettingsService} from '../../services/settings.service';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/console-event';
 import {CommandDispatcherService} from "../../services/command-dispatcher.service";
-import {RAMType, PSGType, TIPIType, VDPType, DiskType} from "../../classes/settings";
+import {RAMType, PSGType, TIPIType, VDPType, DiskType, RAMDiskType} from "../../classes/settings";
 import {EventDispatcherService} from "../../services/event-dispatcher.service";
 
 @Component({
@@ -29,6 +29,7 @@ export class OptionsComponent implements OnInit {
     enableH264Codec: boolean;
     disk: DiskType;
     enablePCode: boolean;
+    ramDisk: RAMDiskType;
 
     constructor(
         private settingsService: SettingsService,
@@ -62,6 +63,7 @@ export class OptionsComponent implements OnInit {
         this.enableH264Codec = this.settingsService.isH264CodecEnabled();
         this.disk = this.settingsService.getDisk();
         this.enablePCode = this.settingsService.isPCodeEnabled();
+        this.ramDisk = this.settingsService.getRAMDisk();
     }
 
     onEvent(event: ConsoleEvent) {
@@ -146,5 +148,9 @@ export class OptionsComponent implements OnInit {
 
     onEnablePCodeChanged(value: boolean) {
         this.settingsService.setPCodeEnabled(value);
+    }
+
+    onRAMDiskChanged(value: RAMDiskType) {
+        this.settingsService.setRAMDisk(value);
     }
 }

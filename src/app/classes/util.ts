@@ -92,6 +92,14 @@ export class Util {
         return new Uint8Array(binArray);
     }
 
+    static byteArrayToNumberArray(byteArray: Uint8Array) {
+        const arr: number[] = [];
+        for (let i = 0; i < byteArray.length; i++) {
+            arr[i] = byteArray[i];
+        }
+        return arr;
+    }
+
     static fileListToFileArray(fileList: FileList | null) {
         const files: File[] = [];
         if (fileList) {

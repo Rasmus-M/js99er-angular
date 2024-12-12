@@ -5,6 +5,8 @@ import {Settings} from "../../classes/settings";
 import {Console} from "../interfaces/console";
 import {WasmService} from "../../services/wasm.service";
 import {CPU} from "../interfaces/cpu";
+import {DatabaseService} from "../../services/database.service";
+import {SettingsService} from "../../services/settings.service";
 
 @Injectable({
   providedIn: 'root'
@@ -12,10 +14,14 @@ import {CPU} from "../interfaces/cpu";
 export class ConsoleFactoryService {
 
   constructor(
-      private wasmService: WasmService
+      private settingsService: SettingsService,
+      private wasmService: WasmService,
+      private databaseService: DatabaseService
   ) { }
 
-  create(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: DiskImage[], settings: Settings, onBreakpoint: (cpu: CPU) => void): Console {
-     return new TI994A(document, canvas, diskImages, settings, this.wasmService, onBreakpoint);
+  create(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: DiskImage[], onBreakpoint: (cpu: CPU) => void): Console {
+     const ti994A = new TI994A(document, canvas, diskImages, this.settingsService.getSettings(), this.databaseService, this.wasmService, onBreakpoint);
+     ti994A.reset(false);
+     return ti994A;
   }
 }

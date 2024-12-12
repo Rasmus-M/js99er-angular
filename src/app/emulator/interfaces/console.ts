@@ -15,6 +15,10 @@ import {GoogleDriveFDC} from "../classes/google-drive-fdc";
 import {Observable} from "rxjs";
 import {FDC} from "./fdc";
 import {PeripheralCard} from "./peripheral-card";
+import {RAMDiskType} from "../../classes/settings";
+import {RAMDisk} from "./ram-disk";
+import {DiskImage} from "../classes/disk-image";
+import {DatabaseService} from "../../services/database.service";
 
 export interface Console {
     start(fast: boolean, skipBreakpoint?: boolean): void;
@@ -36,6 +40,8 @@ export interface Console {
     getDiskDrives(): DiskDrive[];
     getFDC(): FDC | null;
     setFDC(): void;
+    getRAMDisk(): RAMDisk | null;
+    setRAMDisk(): void;
     getGoogleDrivesFdc(): GoogleDriveFDC;
     setGoogleDrive(): void;
     getTIPI(): TIPI | null;
@@ -45,4 +51,6 @@ export interface Console {
     isRunning(): void;
     cyclesPassed(): Observable<number>;
     getCardById(id: string): PeripheralCard | null;
+    getDatabaseService(): DatabaseService;
+    destroy(): void;
 }
