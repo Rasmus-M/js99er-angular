@@ -53,7 +53,8 @@ The settings object may contain the following properties, shown here with the de
     "enableDebugReset": false,
     "enableH264Codec": false,
     "enableDisk": true,
-    "enablePCode": false
+    "enablePCode": false,
+    "ramDisk": "NONE"               // "NONE" | "HORIZON"
 }
 ```
 
