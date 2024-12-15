@@ -8,6 +8,7 @@ export interface ConfigObject {
     cartName?: string;
     diskURL?: string;
     cartridgeURL?: string;
+    ramDiskDSRURL?: string;
 }
 
 @Injectable({

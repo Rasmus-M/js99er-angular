@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit} from '@angular/core';
 import {DiskImage} from "../../emulator/classes/disk-image";
 import {TI994A} from "../../emulator/classes/ti994a";
-import {Subscription} from "rxjs";
+import {firstValueFrom, Subscription} from "rxjs";
 import {Log} from "../../classes/log";
 import {ActivatedRoute, Params, Router, UrlSegment} from "@angular/router";
 import {AudioService} from "../../services/audio.service";
@@ -25,6 +25,7 @@ import {ConsoleComponent} from "../../emulator/console/console.component";
 import {Util} from "../../classes/util";
 import {Location} from "@angular/common";
 import {DialogService} from "../../services/dialog.service";
+import {HttpClient} from "@angular/common/http";
 
 @Component({
   selector: 'app-main',
@@ -46,6 +47,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     private diskURL: string;
     private cartURL: string;
     private cartName = MainComponent.DEFAULT_CART_NAME;
+    private ramDiskDSRURL: string;
     private started = false;
     private autoRun = false;
     public sidePanelVisible = true;
@@ -67,7 +69,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         private moduleService: ModuleService,
         private moreSoftwareService: MoreSoftwareService,
         private configService: ConfigService,
-        private dialogService: DialogService
+        private dialogService: DialogService,
+        private httpClient: HttpClient
     ) {}
 
     ngOnInit() {
@@ -113,6 +116,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
             }
             if (config.cartridgeURL) {
                 this.cartURL = config.cartridgeURL;
+            }
+            if (config.ramDiskDSRURL) {
+                this.ramDiskDSRURL = config.ramDiskDSRURL;
             }
         }
     }
@@ -231,31 +237,19 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
             case ConsoleEventType.READY:
                 this.ti994A = event.data;
                 this.audioService.init(this.settingsService.isSoundEnabled(), this.ti994A.getPSG(), this.ti994A.getSpeech(), this.ti994A.getTape());
-                if (this.diskURL) {
-                    this.loadDiskFromUrl(this.diskURL);
-                }
-                if (this.cartURL) {
-                    this.loadCartridgeFromURL(this.cartURL);
-                } else if (this.cartName !== MainComponent.DEFAULT_CART_NAME) {
-                    this.loadCartridge(this.cartName);
-                } else  {
-                    this.databaseService.whenReady().subscribe((supported) => {
-                        if (supported) {
-                            this.databaseService.getSoftware(ConsoleComponent.LATEST_SOFTWARE).subscribe({
-                                next: (software: Software) => {
-                                    this.commandDispatcherService.loadSoftware(software);
-                                },
-                                error: () => {
-                                    console.log("Failed to load latest software from database");
-                                    if (this.cartName) {
-                                        this.loadCartridge(this.cartName);
-                                    }
-                                }
-                            });
-                        }
-                    });
-                }
-                this.commandDispatcherService.start();
+                this.loadDefaultDisk().then(
+                    () => {
+                        return this.loadDefaultCartridge();
+                    }
+                ).then(
+                    () => {
+                        return this.restoreRAMDisk();
+                    }
+                ).then(
+                    () => {
+                        this.commandDispatcherService.start();
+                    }
+                );
                 break;
             case ConsoleEventType.STARTED:
                 if (this.autoRun) {
@@ -271,9 +265,35 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
-    loadDiskFromUrl(url: string) {
-        this.diskService.fetchDiskFileFromURL(url).subscribe({
-            next: (file) => {
+    loadDefaultDisk() {
+        return this.diskURL ? this.loadDiskFromUrl(this.diskURL) : Promise.resolve();
+    }
+
+    loadDefaultCartridge() {
+        if (this.cartURL) {
+            return this.loadCartridgeFromURL(this.cartURL);
+        } else if (this.cartName !== MainComponent.DEFAULT_CART_NAME) {
+            return this.loadCartridge(this.cartName);
+        } else  {
+            return firstValueFrom(
+                this.databaseService.whenReady()
+            ).then(
+                (supported) => {
+                    if (supported) {
+                        return this.loadLatestSoftware();
+                    } else {
+                        return Promise.resolve();
+                    }
+                }
+            );
+        }
+    }
+
+    loadDiskFromUrl(url: string): Promise<void> {
+        return firstValueFrom(
+            this.diskService.fetchDiskFileFromURL(url)
+        ).then(
+            (file) => {
                 file.arrayBuffer().then(
                     (value) => {
                         const bytes = new Uint8Array(value);
@@ -284,36 +304,100 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                         }
                     }
                 );
-            },
-            error: (error) => {
+            }
+        ).catch(
+            (error) => {
                 this.log.error(error);
             }
-        });
+        );
     }
 
-    loadCartridge(cartName: string) {
+    loadCartridge(cartName: string): Promise<void> {
         this.log.info("Load cart: " + cartName);
         if (cartName.startsWith('software/')) {
-            this.loadCartridgeFromURL(cartName);
+            return this.loadCartridgeFromURL(cartName);
         } else {
-            this.moreSoftwareService.getByName(cartName.replace(/_/g, ' ')).subscribe({
-                next: (cart: Software) => {
+            return firstValueFrom(
+                this.moreSoftwareService.getByName(cartName.replace(/_/g, ' '))
+            ).then(
+                (cart: Software) => {
                     this.loadCartridgeFromURL(cart.url);
-                },
-                error: (error) => {
+                }
+            ).catch(
+                (error) => {
                     this.log.error(error);
                 }
-            });
+            );
         }
     }
 
-    loadCartridgeFromURL(url: string) {
-        this.moduleService.loadModuleFromURL(url).subscribe(
+    loadCartridgeFromURL(url: string): Promise<void> {
+        return firstValueFrom(
+            this.moduleService.loadModuleFromURL(url)
+        ).then(
             (software: Software) => {
                 this.commandDispatcherService.loadSoftware(software);
-            },
+            }
+        ).catch(
             (error) => {
                 this.log.error(error);
+            }
+        );
+    }
+
+    loadLatestSoftware(): Promise<void> {
+        return firstValueFrom(
+            this.databaseService.getSoftware(ConsoleComponent.LATEST_SOFTWARE)
+        ).then(
+            (software: Software) => {
+                return this.commandDispatcherService.loadSoftware(software);
+            }
+        ).catch(
+            (error) => {
+                console.log("Failed to load latest software from database");
+                if (this.cartName) {
+                    return this.loadCartridge(this.cartName);
+                } else {
+                    return Promise.resolve();
+                }
+            }
+        );
+    }
+
+    restoreRAMDisk(): Promise<void> {
+        return firstValueFrom(
+            this.databaseService.whenReady()
+        ).then(
+            (supported) => {
+                if (supported) {
+                    const ramDisk = this.ti994A.getRAMDisk();
+                    if (ramDisk) {
+                        return this.databaseService.restoreRAMDisk(ramDisk);
+                    }
+                }
+                return Promise.resolve(true);
+            }
+        ).then(
+            (ramdiskRestoredOrNotAvailable) => {
+                if (!ramdiskRestoredOrNotAvailable && this.ramDiskDSRURL) {
+                    let url = this.ramDiskDSRURL;
+                    if (url.startsWith('http')) {
+                        url = 'proxy?url=' + url;
+                    } else {
+                        url = 'assets/' + url;
+                    }
+                    return this.httpClient.get(url, {responseType: 'arraybuffer'});
+                } else {
+                    return false;
+                }
+            }
+        ).then(
+            (result) => {
+                if (result) {
+                    result.subscribe((dsr) => {
+                        this.ti994A.getRAMDisk()?.setDSR(Util.byteArrayToNumberArray(new Uint8Array(dsr)));
+                    });
+                }
             }
         );
     }

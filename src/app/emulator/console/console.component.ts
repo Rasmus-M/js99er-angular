@@ -2,7 +2,7 @@ import {AfterViewInit, Component, ElementRef, Input, NgZone, OnDestroy, OnInit} 
 import {DiskImage} from '../classes/disk-image';
 import {Setting, Settings} from '../../classes/settings';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
-import {firstValueFrom, Subscription} from 'rxjs';
+import {Subscription} from 'rxjs';
 import {Command, CommandType} from '../../classes/command';
 import {ModuleService} from '../../services/module.service';
 import {Log} from '../../classes/log';
@@ -67,24 +67,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         this.canvas = this.elementRef.nativeElement.querySelector('canvas');
         this.ti994A = this.consoleFactoryService.create(document, this.canvas, this.diskImages, this.onBreakpoint.bind(this));
         document.addEventListener('pointerlockchange', this.lockChangeAlert.bind(this), false);
-        firstValueFrom(this.databaseService.whenReady()).then(
-            (success) => {
-                if (success) {
-                    const ramDisk = this.ti994A.getRAMDisk();
-                    if (ramDisk) {
-                        return this.databaseService.restoreRAMDisk(ramDisk);
-                    } else {
-                        return true;
-                    }
-                } else {
-                    return false;
-                }
-            }
-        ).then(
-            () => {
-                this.eventDispatcherService.ready(this.ti994A);
-            }
-        );
+        this.eventDispatcherService.ready(this.ti994A);
     }
 
     reset() {
