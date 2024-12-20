@@ -97,7 +97,7 @@ export class GoogleDriveFDC implements FDC, DSRCard {
         return this.romEnabled;
     }
 
-    public getDSRBank(): number {
+    public getDSRBankOffset(): number {
         return 0;
     }
 

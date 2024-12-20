@@ -5,6 +5,8 @@ import {FDC} from "../interfaces/fdc";
 import {DSRCard} from "../interfaces/dsr-card";
 import {MemoryMappedCard} from "../interfaces/memory-mapped-card";
 import {CPU} from "../interfaces/cpu";
+import {data} from "jquery";
+import {state} from "@angular/animations";
 
 export class TiFDC implements FDC, DSRCard, MemoryMappedCard {
 
@@ -58,7 +60,7 @@ export class TiFDC implements FDC, DSRCard, MemoryMappedCard {
         return this.romEnabled;
     }
 
-    public getDSRBank(): number {
+    public getDSRBankOffset(): number {
         return 0;
     }
 
@@ -170,6 +172,11 @@ export class TiFDC implements FDC, DSRCard, MemoryMappedCard {
                 this.setData(byte);
                 break;
         }
+    }
+
+    getByte(addr: number): number {
+        const romAddr = addr - 0x4000;
+        return TI_FDC_DSR_ROM[romAddr];
     }
 
     public getDrive() {

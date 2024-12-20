@@ -27,7 +27,7 @@ export type VDPType = 'TMS9918A' | 'F18A' | 'V9938';
 
 export type TIPIType = 'NONE' | 'MOUSE' | 'FULL';
 
-export type DiskType = 'NONE' | 'TIFDC' | 'GENERIC';
+export type DiskType = 'NONE' | 'TIFDC' | 'MYARC' | 'GENERIC';
 
 export type RAMDiskType = 'NONE' | 'HORIZON';
 

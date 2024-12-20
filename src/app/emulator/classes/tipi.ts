@@ -107,7 +107,7 @@ export class TIPI implements DSRCard, MemoryMappedCard {
         return this.romEnabled;
     }
 
-    public getDSRBank(): number {
+    public getDSRBankOffset(): number {
         return 0;
     }
 
@@ -149,6 +149,11 @@ export class TIPI implements DSRCard, MemoryMappedCard {
         } else if (addr === TIPI.TD_OUT) {
             this.setTD(word);
         }
+    }
+
+    getByte(addr: number): number {
+        const romAddr = addr - 0x4000;
+        return TIPI_DSR_ROM[romAddr];
     }
 
     /*

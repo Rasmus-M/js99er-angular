@@ -179,7 +179,7 @@ export class GenericFdc implements FDC, DSRCard {
         return this.romEnabled;
     }
 
-    public getDSRBank(): number {
+    public getDSRBankOffset(): number {
         return 0;
     }
 

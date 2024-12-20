@@ -311,7 +311,7 @@ export class Memory implements Stateful, MemoryDevice {
                 return activeCard.readMemoryMapped(addr, cpu);
             } else if (this.isDsrCard(activeCard)) {
                 const rom = activeCard.getDSR();
-                const romAddr = addr - 0x4000 + (activeCard.getDSRBank() << 13);
+                const romAddr = addr - 0x4000 + activeCard.getDSRBankOffset();
                 // this.log.info("Read peripheral ROM " + addr.toHexWord() + ": " + (rom[romAddr] << 8 | rom[romAddr + 1]).toHexWord());
                 return rom[romAddr] << 8 | rom[romAddr + 1];
             }
@@ -486,13 +486,16 @@ export class Memory implements Stateful, MemoryDevice {
                 return (addr & 1) === 0 ? (w & 0xFF) : (w >> 8);
             } else {
                 const activeCard = this.peripheralCards.find(dsrDevice => dsrDevice.isEnabled());
-                if (activeCard && this.isDsrCard(activeCard)) {
-                    const peripheralROM = activeCard.getDSR();
-                    const romAddr = addr - 0x4000 + (activeCard.getDSRBank() << 13);
-                    return peripheralROM ? peripheralROM[romAddr] : 0;
-                } else {
-                    return 0;
+                if (activeCard) {
+                    if (this.isMemoryMappedCard(activeCard)) {
+                        return activeCard.getByte(addr);
+                    } else if (this.isDsrCard(activeCard)) {
+                        const peripheralROM = activeCard.getDSR();
+                        const romAddr = addr - 0x4000 + activeCard.getDSRBankOffset();
+                        return peripheralROM ? peripheralROM[romAddr] : 0;
+                    }
                 }
+                return 0;
             }
         }
         if (addr < 0x7000) {

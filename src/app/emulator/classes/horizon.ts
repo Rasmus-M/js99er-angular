@@ -4,7 +4,6 @@ import {RAMDisk} from "../interfaces/ram-disk";
 import {Console} from '../interfaces/console';
 import {Log} from "../../classes/log";
 import {DatabaseService} from "../../services/database.service";
-import {Util} from "../../classes/util";
 
 export class Horizon implements RAMDisk, MemoryMappedCard {
 
@@ -57,8 +56,8 @@ export class Horizon implements RAMDisk, MemoryMappedCard {
         this.dsrRAM = dsr;
     }
 
-    getDSRBank(): number {
-        return 0;
+    getDSRBankOffset(): number {
+        return this.dsrPage << 13;
     }
 
     isEnabled(): boolean {
@@ -154,6 +153,16 @@ export class Horizon implements RAMDisk, MemoryMappedCard {
                 console.log("RAMBO mode " + (value ? "enabled" : "disabled"));
                 this.ramboMode = value;
                 break;
+        }
+    }
+
+    getByte(addr: number): number {
+        if (addr < 0x5800 || this.ramboMode) {
+            const dsrAddr = (addr - 0x4000) + (this.dsrPage << 13);
+            return this.dsrRAM[dsrAddr];
+        } else {
+            const ramAddr = (addr & 0x7ff) + (this.ramPage << 11);
+            return this.ram[ramAddr];
         }
     }
 

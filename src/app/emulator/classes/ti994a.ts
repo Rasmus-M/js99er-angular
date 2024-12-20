@@ -36,6 +36,7 @@ import {PeripheralCard} from "../interfaces/peripheral-card";
 import {RAMDisk} from "../interfaces/ram-disk";
 import {Horizon} from "./horizon";
 import {DatabaseService} from "../../services/database.service";
+import {MyarcFDC} from "./myarc-fdc";
 
 export class TI994A implements Console, Stateful {
 
@@ -218,6 +219,9 @@ export class TI994A implements Console, Stateful {
                 break;
             case 'TIFDC':
                 this.fdc = new TiFDC(this.diskDrives);
+                break;
+            case 'MYARC':
+                this.fdc = new MyarcFDC(this.diskDrives);
                 break;
             case 'NONE':
                 this.fdc = null;

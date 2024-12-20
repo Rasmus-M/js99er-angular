@@ -33,8 +33,8 @@ export class PCodeCard implements DSRCard, MemoryMappedCard, Stateful {
         return this.romEnabled;
     }
 
-    public getDSRBank(): number {
-        return this.romBank;
+    public getDSRBankOffset(): number {
+        return this.romBank << 13;
     }
 
     public readCruBit(bit: number): boolean {
@@ -73,6 +73,11 @@ export class PCodeCard implements DSRCard, MemoryMappedCard, Stateful {
             cpu.addCycles(25);
             this.groms.writeAddress(word);
         }
+    }
+
+    getByte(addr: number): number {
+        const romAddr = addr - 0x4000 + (this.romBank << 13);
+        return PCODE_DSR_ROM[romAddr];
     }
 
     getState(): any {
