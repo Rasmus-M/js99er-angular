@@ -1,5 +1,5 @@
 <div class="options">
-    <mat-form-field class="setting">
+    <mat-form-field class="dropdown-setting">
         <mat-label>Video (VDP)</mat-label>
         <mat-select [(ngModel)]="vdp" (ngModelChange)="onVDPChanged($event)">
             <mat-option [value]="'TMS9918A'">TMS9918A</mat-option>
@@ -8,7 +8,7 @@
         </mat-select>
     </mat-form-field>
     <br>
-    <mat-form-field class="setting">
+    <mat-form-field class="dropdown-setting">
         <mat-label>RAM expansion</mat-label>
         <mat-select [(ngModel)]="ram" (ngModelChange)="onRAMExpansionChanged($event)">
             <mat-option [value]="'NONE'">No RAM expansion</mat-option>
@@ -27,7 +27,7 @@
     <div class="checkbox-setting">
         <mat-checkbox [ngModel]="enableSound" (ngModelChange)="onEnableSoundChanged($event)">Sound enabled (general)</mat-checkbox>
     </div>
-    <mat-form-field class="setting">
+    <mat-form-field class="dropdown-setting">
         <mat-label>PSG</mat-label>
         <mat-select [(ngModel)]="psg" (ngModelChange)="onPSGChanged($event)">
             <mat-option [value]="'STANDARD'">Standard (TMS9919)</mat-option>
@@ -37,7 +37,7 @@
     <div class="checkbox-setting">
         <mat-checkbox [ngModel]="enableSpeech" (ngModelChange)="onEnableSpeechChanged($event)">Speech enabled</mat-checkbox>
     </div>
-    <mat-form-field class="setting">
+    <mat-form-field class="dropdown-setting">
         <mat-label>Floppy disk</mat-label>
         <mat-select [(ngModel)]="disk" (ngModelChange)="onDiskChanged($event)">
             <mat-option [value]="'NONE'">No disk</mat-option>
@@ -47,7 +47,7 @@
         </mat-select>
     </mat-form-field>
     <br>
-    <mat-form-field class="setting">
+    <mat-form-field class="dropdown-setting">
         <mat-label>RAM disk</mat-label>
         <mat-select [(ngModel)]="ramDisk" (ngModelChange)="onRAMDiskChanged($event)">
             <mat-option [value]="'NONE'">No RAM disk</mat-option>
@@ -55,7 +55,7 @@
         </mat-select>
     </mat-form-field>
     <br>
-    <mat-form-field class="setting">
+    <mat-form-field class="dropdown-setting">
         <mat-label>TIPI emulation</mat-label>
         <mat-select [(ngModel)]="tipi" (ngModelChange)="onTIPIEmulationChanged($event)">
             <mat-option [value]="'NONE'">No TIPI emulation</mat-option>
@@ -63,7 +63,7 @@
             <mat-option [value]="'FULL'">Full TIPI emulation</mat-option>
         </mat-select>
     </mat-form-field>
-    <mat-form-field class="setting" *ngIf="tipi === 'FULL'">
+    <mat-form-field class="dropdown-setting" *ngIf="tipi === 'FULL'">
         <mat-label>RPi emulator, e.g. QEMU</mat-label>
         <input matInput placeholder="Websocket URI" [ngModel]="tipiWebsocketURI" (ngModelChange)="onTIPIWebsocketURIChanged($event)" [ngModelOptions]="{updateOn: 'blur'}" (focus)="onTextFocus()" (blur)="onTextBlur()">
     </mat-form-field>

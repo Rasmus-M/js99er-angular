@@ -3,8 +3,9 @@
     overflow-y: scroll;
 }
 
-.setting {
+.dropdown-setting {
     margin-left: 16px;
+    width: 260px;
 }
 
 .checkbox-setting {
