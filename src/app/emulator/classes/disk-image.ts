@@ -304,6 +304,14 @@ export class DiskImage implements Stateful {
         }
     }
 
+    getSectorIndex(side: number, track: number, sector: number): number {
+        if (side === 0) {
+            return track * this.physicalProperties.sectorsPerTrack + sector;
+        } else {
+            return (this.physicalProperties.totalSectors / 2) + (this.physicalProperties.tracksPerSide - 1 - track) * this.physicalProperties.sectorsPerTrack + sector;
+        }
+    }
+
     readSector(sectorNo: number): Uint8Array {
         const tiDiskImage = this.getBinaryImage();
         const sectorOffset = 256 * sectorNo;

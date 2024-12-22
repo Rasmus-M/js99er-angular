@@ -19,8 +19,9 @@ export class MyarcFDC implements FDC, DSRCard, MemoryMappedCard {
     private track = 0;
     private sector = 0;
     private direction = 1;
-    private data = 0;
     private doubleDensity = true;
+    private data = 0;
+    private readyForData = true;
     private busy = false;
     private headLoaded = false;
     private readBuffer: number[] = [];
@@ -71,7 +72,7 @@ export class MyarcFDC implements FDC, DSRCard, MemoryMappedCard {
         bit = bit & 0x07;
         switch (bit) {
             case 0:
-                this.log.info("Myarc FDC ROM enabled: " + value);
+                this.log.debug("Myarc FDC ROM enabled: " + value);
                 this.romEnabled = value;
                 this.romBank = 0;
                 break;
@@ -103,13 +104,17 @@ export class MyarcFDC implements FDC, DSRCard, MemoryMappedCard {
         bit = bit & 0x07;
         switch (bit) {
             case 0:
-                // false means busy
-                this.log.info("Read busy: " + this.busy);
-                return !this.busy;
+                // true means not busy
+                this.log.debug("Read busy: " + this.busy);
+                const busy = this.busy;
+                this.busy = false;
+                return !busy;
             case 1:
-                // false means data ready
-                this.log.info("Read data ready");
-                return false;
+                // true means ready to process data
+                this.log.debug("Read ready for data: " + this.readyForData);
+                const ready = this.readyForData;
+                this.readyForData = true;
+                return ready;
             case 2:
                 return true;
             case 3:
@@ -138,20 +143,20 @@ export class MyarcFDC implements FDC, DSRCard, MemoryMappedCard {
         } else if (addr < 0x5800) {
             const ramAddr = addr - 0x5000;
             return (this.ram[ramAddr] << 8) + this.ram[ramAddr + 1];
-        } else if (addr >= 0x5ff0) {
+        } else if (addr >= 0x5f00) {
             addr = addr & 0x5f07;
             let byte = 0;
             switch (addr) {
-                case 0x5ff0:
+                case 0x5f00:
                     byte = this.getStatus();
                     break;
-                case 0x5ff2:
+                case 0x5f02:
                     byte = this.getTrack();
                     break;
-                case 0x5ff4:
-                    byte = this.getSector(); // TODO: no read?
+                case 0x5f04:
+                    byte = this.getSector();
                     break;
-                case 0x5ff6:
+                case 0x5f06:
                     byte = this.getData();
                     break;
             }
@@ -168,12 +173,13 @@ export class MyarcFDC implements FDC, DSRCard, MemoryMappedCard {
             const ramAddr = addr - 0x5000;
             this.ram[ramAddr] = word >> 8;
             this.ram[ramAddr + 1] = word & 0xff;
-        } else if (addr >= 0x5ff0) {
-            this.log.info("Write " + Util.toHexWord(word) + " to " + Util.toHexWord(addr));
+        } else if (addr >= 0x5f00) {
+            this.log.debug("Write " + Util.toHexWord(word) + " to " + Util.toHexWord(addr));
             addr = addr & 0x5f07;
             const byte = word & 0xff;
             switch (addr) {
                 case 0x5f00:
+                    this.log.debug("Command: " + Util.toHexByte(byte) + " from PC=" + Util.toHexWord(cpu.getPc()));
                     this.setCommand(byte);
                     break;
                 case 0x5f02:
@@ -202,13 +208,13 @@ export class MyarcFDC implements FDC, DSRCard, MemoryMappedCard {
     }
 
     public getDrive() {
-        this.log.info("Get drive: " + this.drive);
+        this.log.debug("Get drive: " + this.drive);
         return this.drive;
     }
 
     public setDrive(drive: number, enabled: boolean) {
         if (enabled) {
-            this.log.info("Select drive: " + drive);
+            this.log.debug("Select drive: " + drive);
             this.drive = drive;
         } else if (this.drive === drive) {
             this.drive = 0;
@@ -216,47 +222,49 @@ export class MyarcFDC implements FDC, DSRCard, MemoryMappedCard {
     }
 
     public getSide() {
-        this.log.info("Get side: " + Util.toHexByte(this.side));
+        this.log.debug("Get side: " + Util.toHexByte(this.side));
         return this.side;
     }
 
     public setSide(side: number) {
-        this.log.info("Set side " + Util.toHexByte(side));
+        this.log.debug("Set side " + Util.toHexByte(side));
         this.side = side;
     }
 
     public getTrack() {
-        this.log.info("Get track: " + Util.toHexByte(this.track));
+        this.log.debug("Get track: " + Util.toHexByte(this.track));
         return this.track;
     }
 
     public setTrack(track: number) {
-        this.log.info("Set track: " + Util.toHexByte(track));
+        this.log.debug("Set track: " + Util.toHexByte(track));
         this.track = track;
     }
 
     public getSector() {
-        this.log.info("Get sector: " + Util.toHexByte(this.sector));
+        this.log.debug("Get sector: " + Util.toHexByte(this.sector));
         return this.sector;
     }
 
     public setSector(sector: number) {
-        this.log.info("Set sector: " + Util.toHexByte(sector));
+        this.log.debug("Set sector: " + Util.toHexByte(sector));
         this.sector = sector;
     }
 
     public getData() {
-        // this.log.info("Get data: " + Util.toHexByte(this.data));
+        this.log.debug("Get data: " + Util.toHexByte(this.data));
         const byte = this.data;
         if (this.readBuffer.length > 0) {
             this.readByteFromBuffer();
+            this.readyForData = true;
+        } else {
+            this.readyForData = false;
         }
-        this.busy = true;
         return byte;
     }
 
     public setData(data: number) {
-        this.log.info("Set data " + Util.toHexByte(data));
+        this.log.debug("Set data " + Util.toHexByte(data));
         this.data = data;
         this.writeByteToBuffer(data);
     }
@@ -277,7 +285,6 @@ export class MyarcFDC implements FDC, DSRCard, MemoryMappedCard {
      */
 
     public setCommand(command: number) {
-        this.log.info("Command: " + Util.toHexByte(command));
         this.command = command;
         const flag = (command & 0x10) !== 0;
         const flags = command & 0x0f;
@@ -324,16 +331,17 @@ export class MyarcFDC implements FDC, DSRCard, MemoryMappedCard {
     }
 
     private restore(flags: number) {
-        this.log.info("Cmd: Restore");
+        this.log.debug("Cmd: Restore");
         this.track = 0;
         if (flags & 0x08) {
             this.loadHead();
         }
         this.busy = true;
+        // this.readyForData = false;
     }
 
     private seek(flags: number) {
-        this.log.info("Cmd: Seek track " + Util.toHexByte(this.data));
+        this.log.debug("Cmd: Seek track " + Util.toHexByte(this.data));
         this.track = this.data;
         if (flags & 0x08) {
             this.loadHead();
@@ -342,7 +350,7 @@ export class MyarcFDC implements FDC, DSRCard, MemoryMappedCard {
     }
 
     private step(updateTrackRegister: boolean, flags: number) {
-        this.log.info("Cmd: Step: " + updateTrackRegister);
+        this.log.debug("Cmd: Step: " + updateTrackRegister);
         if (updateTrackRegister) {
             if (this.direction > 0) {
                 this.track = Math.min(this.track + 1, 255);
@@ -357,20 +365,20 @@ export class MyarcFDC implements FDC, DSRCard, MemoryMappedCard {
     }
 
     private stepIn(updateTrackRegister: boolean, flags: number) {
-        this.log.info("Cmd: Step in: " + updateTrackRegister);
+        this.log.debug("Cmd: Step in: " + updateTrackRegister);
         this.direction = 1;
         this.step(updateTrackRegister, flags);
     }
 
     private stepOut(updateTrackRegister: boolean, flags: number) {
-        this.log.info("Cmd: Step out: " + updateTrackRegister);
+        this.log.debug("Cmd: Step out: " + updateTrackRegister);
         this.direction = -1;
         this.step(updateTrackRegister, flags);
     }
 
     private readSector(multiple: boolean, flags: number) {
-        this.log.info("Cmd: Read sector " + Util.toHexWord(this.getSectorIndex()) +
-            " (sector " + Util.toHexByte(this.sector) +
+        this.log.info("Cmd: Read sector " +
+            "(sector " + Util.toHexByte(this.sector) +
             ", track " + Util.toHexByte(this.track) +
             ", side " + Util.toHexByte(this.side) + ")" +
             (multiple ? " multiple" : "")
@@ -381,12 +389,17 @@ export class MyarcFDC implements FDC, DSRCard, MemoryMappedCard {
     }
 
     private writeSector(multiple: boolean, flags: number) {
-        this.log.info("Cmd: Write sector " + Util.toHexWord(this.getSectorIndex()) + (multiple ? " multiple" : ""));
+        this.log.info("Cmd: Write sector " +
+            "(sector " + Util.toHexByte(this.sector) +
+            ", track " + Util.toHexByte(this.track) +
+            ", side " + Util.toHexByte(this.side) + ")" +
+            (multiple ? " multiple" : "")
+        );
         this.writeBuffer = [];
     }
 
     private readId(flags: number) {
-        this.log.info("Cmd: Read ID");
+        this.log.debug("Cmd: Read ID");
         this.readBuffer.push(this.track);
         this.readBuffer.push(this.side);
         this.readBuffer.push(this.sector);
@@ -399,21 +412,21 @@ export class MyarcFDC implements FDC, DSRCard, MemoryMappedCard {
     }
 
     private forceInterrupt(flags: number) {
-        this.log.info("Cmd: Force interrupt");
+        this.log.debug("Cmd: Force interrupt");
         this.busy = false;
     }
 
     private readTrack(flags: number) {
-        this.log.info("Cmd: Read track (not implemented)");
+        this.log.debug("Cmd: Read track (not implemented)");
     }
 
     private writeTrack(flags: number) {
-        this.log.info("Cmd: Write track (not implemented)");
+        this.log.debug("Cmd: Write track (not implemented)");
     }
 
     public getStatus() {
         const track0 = this.track === 0 && ((this.command & 0x80) === 0 || (this.command & 0xf0) === 0xd0);
-        this.log.info("Read status: " +
+        this.log.debug("Read status: " +
             (this.headLoaded ? "head loaded, " : "") +
             (track0 ? "track 0, " : "") +
             (this.busy ? "busy" : "not busy")
@@ -432,23 +445,18 @@ export class MyarcFDC implements FDC, DSRCard, MemoryMappedCard {
         return status;
     }
 
-    private getSectorIndex() {
-        if (this.side === 0) {
-            return this.track * 9 + this.sector;
-        } else {
-            return 360 + (39 - this.track) * 9 + this.sector;
-        }
-    }
-
     private loadHead() {
         this.headLoaded = true;
     }
 
     private readSectorIntoBuffer() {
-        const sector = this.getSectorIndex();
-        const sectorBytes = this.diskDrives[this.drive - 1].getDiskImage()?.readSector(sector) || [];
-        for (const byte of sectorBytes) {
-            this.readBuffer.push(byte);
+        const diskImage = this.diskDrives[this.drive - 1].getDiskImage();
+        if (diskImage) {
+            const sectorIndex = diskImage.getSectorIndex(this.side, this.track, this.sector);
+            const sectorBytes = diskImage.readSector(sectorIndex);
+            for (const byte of sectorBytes) {
+                this.readBuffer.push(byte);
+            }
         }
     }
 
@@ -462,8 +470,11 @@ export class MyarcFDC implements FDC, DSRCard, MemoryMappedCard {
     }
 
     private writeBufferToSector() {
-        const sector = this.getSectorIndex();
-        this.diskDrives[this.drive - 1].getDiskImage()?.writeSector(sector, new Uint8Array(this.writeBuffer));
+        const diskImage = this.diskDrives[this.drive - 1].getDiskImage();
+        if (diskImage) {
+            const sectorIndex = diskImage.getSectorIndex(this.side, this.track, this.sector);
+            diskImage.writeSector(sectorIndex, new Uint8Array(this.writeBuffer));
+        }
     }
 
     private writeByteToBuffer(data: number) {
@@ -485,8 +496,10 @@ export class MyarcFDC implements FDC, DSRCard, MemoryMappedCard {
             track: this.track,
             sector: this.sector,
             direction: this.direction,
+            doubleDensity: this.doubleDensity,
             data: this.data,
             busy: this.busy,
+            readyForData: this.readyForData,
             headLoaded: this.headLoaded,
             readBuffer: this.readBuffer,
             writeBuffer: this.writeBuffer
@@ -500,8 +513,10 @@ export class MyarcFDC implements FDC, DSRCard, MemoryMappedCard {
         this.track = state.track;
         this.sector = state.sector;
         this.direction = state.direction;
+        this.doubleDensity = state.doubleDensity;
         this.data = state.data;
         this.busy = state.busy;
+        this.readyForData = state.readyForData;
         this.headLoaded = state.headLoaded;
         this.readBuffer = state.readBuffer;
         this.writeBuffer = state.writeBuffer;

@@ -347,8 +347,8 @@ export class TiFDC implements FDC, DSRCard, MemoryMappedCard {
     }
 
     private readSector(multiple: boolean, flags: number) {
-        this.log.info("Cmd: Read sector " + Util.toHexWord(this.getSectorIndex()) +
-            " (sector " + Util.toHexByte(this.sector) +
+        this.log.info("Cmd: Read sector " +
+            "(sector " + Util.toHexByte(this.sector) +
             ", track " + Util.toHexByte(this.track) +
             ", side " + Util.toHexByte(this.side) + ")" +
             (multiple ? " multiple" : "")
@@ -359,7 +359,12 @@ export class TiFDC implements FDC, DSRCard, MemoryMappedCard {
     }
 
     private writeSector(multiple: boolean, flags: number) {
-        this.log.info("Cmd: Write sector " + Util.toHexWord(this.getSectorIndex()) + (multiple ? " multiple" : ""));
+        this.log.info("Cmd: Write sector " +
+            "(sector " + Util.toHexByte(this.sector) +
+            ", track " + Util.toHexByte(this.track) +
+            ", side " + Util.toHexByte(this.side) + ")" +
+            (multiple ? " multiple" : "")
+        );
         this.writeBuffer = [];
     }
 
@@ -410,26 +415,21 @@ export class TiFDC implements FDC, DSRCard, MemoryMappedCard {
         return status;
     }
 
-    private getSectorIndex() {
-        if (this.side === 0) {
-            return this.track * 9 + this.sector;
-        } else {
-            return 360 + (39 - this.track) * 9 + this.sector;
-        }
-    }
-
     private loadHead() {
         this.headLoadedRequested = true;
         this.headLoaded = true;
     }
 
     private readSectorIntoBuffer() {
-        const sector = this.getSectorIndex();
-        const sectorBytes = this.diskDrives[this.drive - 1].getDiskImage()?.readSector(sector) || [];
-        for (const byte of sectorBytes) {
-            this.readBuffer.push(byte);
+        const diskImage = this.diskDrives[this.drive - 1].getDiskImage();
+        if (diskImage) {
+            const sectorIndex = diskImage.getSectorIndex(this.side, this.track, this.sector);
+            const sectorBytes = diskImage.readSector(sectorIndex);
+            for (const byte of sectorBytes) {
+                this.readBuffer.push(byte);
+            }
         }
-    }
+   }
 
     private readByteFromBuffer() {
         this.data = this.readBuffer.shift() || 0x00;
@@ -441,8 +441,11 @@ export class TiFDC implements FDC, DSRCard, MemoryMappedCard {
     }
 
     private writeBufferToSector() {
-        const sector = this.getSectorIndex();
-        this.diskDrives[this.drive - 1].getDiskImage()?.writeSector(sector, new Uint8Array(this.writeBuffer));
+        const diskImage = this.diskDrives[this.drive - 1].getDiskImage();
+        if (diskImage) {
+            const sectorIndex = diskImage.getSectorIndex(this.side, this.track, this.sector);
+            diskImage.writeSector(sectorIndex, new Uint8Array(this.writeBuffer));
+        }
     }
 
     private writeByteToBuffer(data: number) {
