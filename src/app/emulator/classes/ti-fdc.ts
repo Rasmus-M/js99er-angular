@@ -1,51 +1,29 @@
 import {DiskDrive} from "./disk-drive";
 import {Log} from "../../classes/log";
-import {Util} from "../../classes/util";
 import {FDC} from "../interfaces/fdc";
 import {DSRCard} from "../interfaces/dsr-card";
 import {MemoryMappedCard} from "../interfaces/memory-mapped-card";
 import {CPU} from "../interfaces/cpu";
-import {data} from "jquery";
-import {state} from "@angular/animations";
+import {WD177x} from "./wd177x";
 
 export class TiFDC implements FDC, DSRCard, MemoryMappedCard {
 
     static ID = "TI_FDC";
 
+    private wd1771: WD177x;
     private romEnabled = false;
-    private command = 0;
-    private drive = 0;
-    private side = 0;
-    private track = 0;
-    private sector = 0;
-    private direction = 1;
-    private data = 0;
-    private busy = false;
-    private headLoadedRequested = false;
-    private headLoaded = false;
     private motorStrobe = false;
-    private readBuffer: number[] = [];
-    private writeBuffer: number[] = [];
     private log = Log.getLog();
 
     constructor(
-        private diskDrives: DiskDrive[]) {
+        diskDrives: DiskDrive[]
+    ) {
+        this.wd1771 = new WD177x(diskDrives);
     }
 
     public reset() {
-        this.command = 0;
-        this.drive = 0;
-        this.side = 0;
-        this.track = 0;
-        this.sector = 0;
-        this.direction = 1;
-        this.data = 0;
-        this.busy = false;
-        this.headLoadedRequested = false;
-        this.headLoaded = false;
         this.motorStrobe = false;
-        this.readBuffer = [];
-        this.writeBuffer = [];
+        this.wd1771.reset();
     }
 
     public getId(): string {
@@ -87,20 +65,20 @@ export class TiFDC implements FDC, DSRCard, MemoryMappedCard {
             case 3:
                 this.log.debug("Signal head loaded: " + value);
                 if (value) {
-                    this.loadHead();
+                    this.wd1771.loadHead();
                 }
                 break;
             case 4:
-                this.setDrive(1, value);
+                this.wd1771.setDrive(1, value);
                 break;
             case 5:
-                this.setDrive(2 , value);
+                this.wd1771.setDrive(2 , value);
                 break;
             case 6:
-                this.setDrive(3 , value);
+                this.wd1771.setDrive(3 , value);
                 break;
             case 7:
-                this.setSide(value ? 1 : 0);
+                this.wd1771.setSide(value ? 1 : 0);
                 break;
         }
     }
@@ -108,14 +86,15 @@ export class TiFDC implements FDC, DSRCard, MemoryMappedCard {
     public readCruBit(bit: number): boolean {
         switch (bit) {
             case 0:
-                this.log.debug("Read load head requested: " + this.headLoadedRequested);
-                return this.headLoadedRequested;
+                const headLoadRequested = this.wd1771.isHeadLoadRequested();
+                this.log.debug("Read load head requested: " + headLoadRequested);
+                return headLoadRequested;
             case 1:
-                return this.getDrive() === 1;
+                return this.wd1771.getDrive() === 1;
             case 2:
-                return this.getDrive() === 2;
+                return this.wd1771.getDrive() === 2;
             case 3:
-                return this.getDrive() === 3;
+                return this.wd1771.getDrive() === 3;
             case 4:
                 this.log.debug("Read motor strobe on: " + this.motorStrobe);
                 return !this.motorStrobe;
@@ -126,7 +105,7 @@ export class TiFDC implements FDC, DSRCard, MemoryMappedCard {
                 this.log.debug("Read true");
                 return true;
             case 7:
-                return this.getSide() !== 0;
+                return this.wd1771.getSide() !== 0;
             default:
                 return false;
         }
@@ -137,16 +116,16 @@ export class TiFDC implements FDC, DSRCard, MemoryMappedCard {
             let byte = 0;
             switch (addr) {
                 case 0x5ff0:
-                    byte = this.getStatus();
+                    byte = this.wd1771.getStatus();
                     break;
                 case 0x5ff2:
-                    byte = this.getTrack();
+                    byte = this.wd1771.getTrack();
                     break;
                 case 0x5ff4:
-                    byte = this.getSector();
+                    byte = this.wd1771.getSector();
                     break;
                 case 0x5ff6:
-                    byte = this.getData();
+                    byte = this.wd1771.getData();
                     break;
             }
             return (byte ^ 0xff) << 8; // Inverted data bus
@@ -160,16 +139,16 @@ export class TiFDC implements FDC, DSRCard, MemoryMappedCard {
         const byte = (word >> 8) ^ 0xff; // Inverted data bus
         switch (addr) {
             case 0x5ff8:
-                this.setCommand(byte);
+                this.wd1771.setCommand(byte);
                 break;
             case 0x5ffa:
-                this.setTrack(byte);
+                this.wd1771.setTrack(byte);
                 break;
             case 0x5ffc:
-                this.setSector(byte);
+                this.wd1771.setSector(byte);
                 break;
             case 0x5ffe:
-                this.setData(byte);
+                this.wd1771.setData(byte);
                 break;
         }
     }
@@ -179,318 +158,16 @@ export class TiFDC implements FDC, DSRCard, MemoryMappedCard {
         return TI_FDC_DSR_ROM[romAddr];
     }
 
-    public getDrive() {
-        this.log.debug("Get drive: " + this.drive);
-        return this.drive;
-    }
-
-    public setDrive(drive: number, enabled: boolean) {
-        if (enabled) {
-            this.log.debug("Select drive: " + drive);
-            this.drive = drive;
-        } else if (this.drive === drive) {
-            this.drive = 0;
-        }
-    }
-
-    public getSide() {
-        this.log.debug("Get side: " + Util.toHexByte(this.side));
-        return this.side;
-    }
-
-    public setSide(side: number) {
-        this.log.debug("Set side " + Util.toHexByte(side));
-        this.side = side;
-    }
-
-    public getTrack() {
-        this.log.debug("Get track: " + Util.toHexByte(this.track));
-        return this.track;
-    }
-
-    public setTrack(track: number) {
-        this.log.debug("Set track: " + Util.toHexByte(track));
-        this.track = track;
-    }
-
-    public getSector() {
-        this.log.debug("Get sector: " + Util.toHexByte(this.sector));
-        return this.sector;
-    }
-
-    public setSector(sector: number) {
-        this.log.debug("Set sector: " + Util.toHexByte(sector));
-        this.sector = sector;
-    }
-
-    public getData() {
-        // this.log.debug("Get data: " + Util.toHexByte(this.data));
-        const byte = this.data;
-        if (this.readBuffer.length > 0) {
-            this.readByteFromBuffer();
-        }
-        this.busy = true;
-        return byte;
-    }
-
-    public setData(data: number) {
-        this.log.debug("Set data " + Util.toHexByte(data));
-        this.data = data;
-        this.writeByteToBuffer(data);
-    }
-
-    /*
-        Command	        >80	>40	>20	>10	>08	>04	>02  >01
-        Restore	        0	0	0	0	h	V	r1	 r0
-        Seek	        0	0	0	1	h	V	r1	 r0
-        Step	        0	0	1	T	h	V	r1	 r0
-        Step-in	        0	1	0	T	h	V	r1	 r0
-        Step-out	    0	1	1	T	h	V	r1	 r0
-        Read sector	    1	0	0	m	S	E	C/0  0
-        Write sector	1	0	1	m	S	E	C/a1 a0
-        Read ID	        1	1	0	0	0	E'	0	 0
-        Read track	    1	1	1	0	0	E'	0	 s*
-        Write track	    1	1	1	1	0	E'	0	 0
-        Force interrupt	1	1	0	1	I3	I2	I1 	 I0
-     */
-
-    public setCommand(command: number) {
-        // this.log.debug("Command: " + Util.toHexByte(command));
-        this.command = command;
-        const flag = (command & 0x10) !== 0;
-        const flags = command & 0x0f;
-        switch (command & 0xf0) {
-            case 0x00:
-                this.restore(flags);
-                break;
-            case 0x10:
-                this.seek(flags);
-                break;
-            case 0x20:
-            case 0x30:
-                this.step(flag, flags);
-                break;
-            case 0x40:
-            case 0x50:
-                this.stepIn(flag, flags);
-                break;
-            case 0x60:
-            case 0x70:
-                this.stepOut(flag, flags);
-                break;
-            case 0x80:
-            case 0x90:
-                this.readSector(flag, flags);
-                break;
-            case 0xa0:
-            case 0xb0:
-                this.writeSector(flag, flags);
-                break;
-            case 0xc0:
-                this.readId(flags);
-                break;
-            case 0xd0:
-                this.forceInterrupt(flags);
-                break;
-            case 0xe0:
-                this.readTrack(flags);
-                break;
-            case 0xf0:
-                this.writeTrack(flags);
-                break;
-        }
-    }
-
-    private restore(flags: number) {
-        this.log.info("Cmd: Restore");
-        this.track = 0;
-        if (flags & 0x08) {
-            this.loadHead();
-        }
-        this.busy = true;
-    }
-
-    private seek(flags: number) {
-        this.log.info("Cmd: Seek track " + Util.toHexByte(this.data));
-        this.track = this.data;
-        if (flags & 0x08) {
-            this.loadHead();
-        }
-        this.busy = true;
-    }
-
-    private step(updateTrackRegister: boolean, flags: number) {
-        this.log.info("Cmd: Step: " + updateTrackRegister);
-        if (updateTrackRegister) {
-            if (this.direction > 0) {
-                this.track = Math.min(this.track + 1, 255);
-            } else {
-                this.track = Math.max(this.track - 1, 0);
-            }
-        }
-        if (flags & 0x08) {
-            this.loadHead();
-        }
-        this.busy = true;
-    }
-
-    private stepIn(updateTrackRegister: boolean, flags: number) {
-        this.log.info("Cmd: Step in: " + updateTrackRegister);
-        this.direction = 1;
-        this.step(updateTrackRegister, flags);
-    }
-
-    private stepOut(updateTrackRegister: boolean, flags: number) {
-        this.log.info("Cmd: Step out: " + updateTrackRegister);
-        this.direction = -1;
-        this.step(updateTrackRegister, flags);
-    }
-
-    private readSector(multiple: boolean, flags: number) {
-        this.log.info("Cmd: Read sector " +
-            "(sector " + Util.toHexByte(this.sector) +
-            ", track " + Util.toHexByte(this.track) +
-            ", side " + Util.toHexByte(this.side) + ")" +
-            (multiple ? " multiple" : "")
-        );
-        this.readSectorIntoBuffer();
-        this.readByteFromBuffer();
-        this.loadHead();
-    }
-
-    private writeSector(multiple: boolean, flags: number) {
-        this.log.info("Cmd: Write sector " +
-            "(sector " + Util.toHexByte(this.sector) +
-            ", track " + Util.toHexByte(this.track) +
-            ", side " + Util.toHexByte(this.side) + ")" +
-            (multiple ? " multiple" : "")
-        );
-        this.writeBuffer = [];
-    }
-
-    private readId(flags: number) {
-        this.log.debug("Cmd: Read ID");
-        this.readBuffer.push(this.track);
-        this.readBuffer.push(this.side);
-        this.readBuffer.push(this.sector);
-        this.readBuffer.push(0x01);
-        this.readBuffer.push(0x00);
-        this.readBuffer.push(0x00);
-        this.readByteFromBuffer();
-        this.loadHead();
-        this.busy = true;
-    }
-
-    private forceInterrupt(flags: number) {
-        this.log.debug("Cmd: Force interrupt");
-        this.busy = false;
-    }
-
-    private readTrack(flags: number) {
-        this.log.info("Cmd: Read track (not implemented)");
-    }
-
-    private writeTrack(flags: number) {
-        this.log.info("Cmd: Write track (not implemented)");
-    }
-
-    public getStatus() {
-        const track0 = this.track === 0 && ((this.command & 0x80) === 0 || (this.command & 0xf0) === 0xd0);
-        this.log.debug("Read status: " +
-            (this.headLoaded ? "head loaded, " : "") +
-            (track0 ? "track 0, " : "") +
-            (this.busy ? "busy" : "not busy")
-        );
-        let status = 0;
-        if (this.headLoaded) {
-            status |= 0x20;
-        }
-        if (track0) {
-            status |= 0x04;
-        }
-        if (this.busy) {
-            status |= 0x01;
-        }
-        this.busy = false;
-        return status;
-    }
-
-    private loadHead() {
-        this.headLoadedRequested = true;
-        this.headLoaded = true;
-    }
-
-    private readSectorIntoBuffer() {
-        const diskImage = this.diskDrives[this.drive - 1].getDiskImage();
-        if (diskImage) {
-            const sectorIndex = diskImage.getSectorIndex(this.side, this.track, this.sector);
-            const sectorBytes = diskImage.readSector(sectorIndex);
-            for (const byte of sectorBytes) {
-                this.readBuffer.push(byte);
-            }
-        }
-   }
-
-    private readByteFromBuffer() {
-        this.data = this.readBuffer.shift() || 0x00;
-        if (this.readBuffer.length === 0 && (this.command & 0xf0) === 0x90) {
-            // Read sector multiple
-            this.sector++;
-            this.readSectorIntoBuffer();
-        }
-    }
-
-    private writeBufferToSector() {
-        const diskImage = this.diskDrives[this.drive - 1].getDiskImage();
-        if (diskImage) {
-            const sectorIndex = diskImage.getSectorIndex(this.side, this.track, this.sector);
-            diskImage.writeSector(sectorIndex, new Uint8Array(this.writeBuffer));
-        }
-    }
-
-    private writeByteToBuffer(data: number) {
-        this.writeBuffer.push(data);
-        if (this.writeBuffer.length === 256) {
-            this.writeBufferToSector();
-            this.writeBuffer = [];
-            if (this.command === 0xb0) {
-                this.sector++;
-            }
-        }
-    }
-
     getState(): any {
         return {
-            command: this.command,
-            drive: this.drive,
-            side: this.side,
-            track: this.track,
-            sector: this.sector,
-            direction: this.direction,
-            data: this.data,
-            busy: this.busy,
-            headLoadedRequested: this.headLoadedRequested,
-            headLoaded: this.headLoaded,
             motorStrobe: this.motorStrobe,
-            readBuffer: this.readBuffer,
-            writeBuffer: this.writeBuffer
+            wd1771: this.wd1771.getState()
         };
     }
 
     restoreState(state: any): void {
-        this.command = state.command;
-        this.drive = state.drive;
-        this.side = state.side;
-        this.track = state.track;
-        this.sector = state.sector;
-        this.direction = state.direction;
-        this.data = state.data;
-        this.busy = state.busy;
-        this.headLoadedRequested = state.headLoadedRequested;
-        this.headLoaded = state.headLoaded;
         this.motorStrobe = state.motorStrobe;
-        this.readBuffer = state.readBuffer;
-        this.writeBuffer = state.writeBuffer;
+        this.wd1771.restoreState(state.wd1771);
     }
 }
 
