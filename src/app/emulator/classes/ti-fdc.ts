@@ -49,7 +49,7 @@ export class TiFDC implements FDC, DSRCard, MemoryMappedCard {
     public writeCruBit(bit: number, value: boolean) {
         switch (bit) {
             case 0:
-                this.log.info("TI FDC ROM enabled: " + value);
+                this.log.debug("TI FDC ROM enabled: " + value);
                 this.romEnabled = value;
                 break;
             case 1:
