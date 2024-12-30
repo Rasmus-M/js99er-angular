@@ -2,7 +2,7 @@ import {Log} from '../../classes/log';
 import {Speech} from '../interfaces/speech';
 import {System} from './system';
 import {Util} from '../../classes/util';
-import {Observable, Subject} from "rxjs";
+import {firstValueFrom, Observable, Subject} from "rxjs";
 
 /**********************************************************************************************
 
@@ -378,7 +378,6 @@ export class TMS5200 implements Speech {
     };
 
     private enabled: boolean;
-    private ready: Subject<boolean>;
 
     private m_coeff: any = TMS5200.coeff;
     private m_speak_external: boolean;
@@ -417,8 +416,8 @@ export class TMS5200 implements Speech {
     private m_ROM_bits_count: number;
     private m_irq_pin: number;
     private m_io_ready: boolean;
-    private m_irq_handler: (value: boolean) => void;
-    private m_readyq_handler: (value: boolean) => void;
+    private m_irq_handler = new Subject<boolean>();
+    private m_ready_handler = new Subject<boolean>();
     private m_fifo_bits_taken: number;
     private m_fifo_head: number;
     private m_pitch_count: number;
@@ -434,7 +433,6 @@ export class TMS5200 implements Speech {
 
     constructor(enabled: boolean) {
         this.enabled = enabled;
-        this.ready = new Subject<boolean>();
     }
 
     /**********************************************************************************************
@@ -505,7 +503,11 @@ export class TMS5200 implements Speech {
     }
 
     public isReady(): Observable<boolean> {
-        return this.ready.asObservable();
+        return this.m_ready_handler.asObservable();
+    }
+
+    public isIrq(): Observable<boolean> {
+        return this.m_irq_handler.asObservable();
     }
 
     /**********************************************************************************************
@@ -550,8 +552,20 @@ export class TMS5200 implements Speech {
                 // at this point, /READY should remain HIGH/inactive until the fifo has at least one byte open in it.
             }
         } else { // (! m_speak_external)
-            // R Nabet : we parse commands at once.  It is necessary for such commands as read.
-            this.process_command(data);
+            // RM added
+            // If already speaking, suspend the CPU until ready, then execute the command
+            if (this.m_talk_status) {
+                this.m_io_ready = false;
+                this.update_ready_state();
+                firstValueFrom(this.m_ready_handler).then(
+                    (ready) => {
+                        this.process_command(data);
+                    }
+                );
+            } else {
+                // R Nabet : we parse commands at once.  It is necessary for such commands as read.
+                this.process_command(data);
+            }
         }
     }
 
@@ -694,7 +708,9 @@ export class TMS5200 implements Speech {
      ***********************************************************************************************/
 
     private ready_read(): boolean {
-        return ((this.m_fifo_count < TMS5200.FIFO_SIZE) || (!this.m_speak_external)) && this.m_io_ready;
+        const notReady = !this.m_io_ready
+            || this.m_fifo_count >= TMS5200.FIFO_SIZE && this.m_speak_external;
+        return !notReady;
     }
 
     /**********************************************************************************************
@@ -764,6 +780,7 @@ export class TMS5200 implements Speech {
                     const NEW_FRAME_STOP_FLAG = (this.m_new_frame_energy_idx === 0xF);     // 1 if this is a stop (Energy = 0xF) frame
                     if (NEW_FRAME_STOP_FLAG) {
                         this.m_talk_status = this.m_speak_external = false;
+                        this.m_io_ready = true; // RM added
                         this.set_interrupt_state(1);
                         this.update_status_and_ints();
                     }
@@ -1304,7 +1321,7 @@ export class TMS5200 implements Speech {
 
     private set_interrupt_state(state: number) {
         if (this.m_irq_handler && state !== this.m_irq_pin) {
-            this.m_irq_handler(!state);
+            this.m_irq_handler.next(!state);
         }
         this.m_irq_pin = state;
     }
@@ -1317,11 +1334,10 @@ export class TMS5200 implements Speech {
 
     private update_ready_state() {
         const state = this.ready_read();
-        if (this.m_readyq_handler && state !== this.m_ready_pin) {
-            this.m_readyq_handler(!state);
+        if (state !== this.m_ready_pin) {
+            this.m_ready_handler.next(state);
         }
         this.m_ready_pin = state;
-        this.ready.next(this.m_ready_pin);
     }
 
     // -------------------------------------------------
@@ -1488,9 +1504,7 @@ export class TMS5200 implements Speech {
             m_load_pointer: this.m_load_pointer,
             m_ROM_bits_count: this.m_ROM_bits_count,
             m_irq_pin: this.m_irq_pin,
-            m_io_ready: this.m_io_ready,
-            m_irq_handler: this.m_irq_handler,
-            m_readyq_handler: this.m_readyq_handler
+            m_io_ready: this.m_io_ready
         };
     }
 
@@ -1532,7 +1546,5 @@ export class TMS5200 implements Speech {
         this.m_ROM_bits_count = state.m_ROM_bits_count;
         this.m_irq_pin = state.m_irq_pin;
         this.m_io_ready = state.m_io_ready;
-        this.m_irq_handler = state.m_irq_handler;
-        this.m_readyq_handler = state.m_readyq_handler;
     }
 }
