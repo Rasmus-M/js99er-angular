@@ -510,14 +510,7 @@ export class TI994A implements Console, Stateful {
         if (software) {
             if (software.memoryBlocks) {
                 this.reset(true);
-                this.memory.setRAMAt0000(software.ramAt0000);
-                this.memory.setRAMAt4000(software.ramAt4000);
-                this.memory.setRAMAt6000(software.ramAt6000);
-                this.memory.setRAMAt7000(software.ramAt7000);
-                for (let i = 0; i < software.memoryBlocks.length; i++) {
-                    const memoryBlock = software.memoryBlocks[i];
-                    this.memory.loadRAM(memoryBlock.address, memoryBlock.data);
-                }
+                this.memory.loadSoftware(software);
                 this.cpu.setWp(software.workspaceAddress ? software.workspaceAddress : (System.ROM[0] << 8 | System.ROM[1]));
                 this.cpu.setPc(software.startAddress ? software.startAddress : (System.ROM[2] << 8 | System.ROM[3]));
             } else {

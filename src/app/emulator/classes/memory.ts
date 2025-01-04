@@ -106,6 +106,18 @@ export class Memory implements Stateful, MemoryDevice {
         this.buildMemoryMap();
     }
 
+    public loadSoftware(software: Software) {
+        this.setRAMAt0000(software.ramAt0000);
+        this.setRAMAt4000(software.ramAt4000);
+        this.setRAMAt6000(software.ramAt6000);
+        this.setRAMAt7000(software.ramAt7000);
+        for (let i = 0; i < software.memoryBlocks.length; i++) {
+            const memoryBlock = software.memoryBlocks[i];
+            this.loadRAM(memoryBlock.address, memoryBlock.data);
+        }
+        this.buildMemoryMap();
+    }
+
     public loadRAM(baseAddr: number, byteArray: Uint8Array) {
         for (let i = 0; i < byteArray.length; i++) {
             const addr = baseAddr + i;
@@ -202,10 +214,12 @@ export class Memory implements Stateful, MemoryDevice {
     }
 
     private buildMemoryMap() {
+        console.log(this.getState());
         this.memoryMap = [];
         const romAccessors = [this.readROM, this.writeROM];
         const ramAccessors = [this.readRAM, this.writeRAM];
-        const peripheralROMAccessors = [this.readPeripheralROM, this.writePeripheralROM];
+        const expansionRAMAccessors = [this.readExpansionRAM, this.writeExpansionRAM];
+        const peripheralCardAccessors = [this.readPeripheralCard, this.writePeripheralCard];
         const cartridgeAccessors = [this.readCartridge, this.writeCartridge];
         const padAccessors = [this.readPAD, this.writePAD];
         const soundAccessors = [this.readSound, this.writeSound];
@@ -221,10 +235,10 @@ export class Memory implements Stateful, MemoryDevice {
             this.memoryMap[i] = this.ramAt0000 ? ramAccessors : romAccessors;
         }
         for (i = 0x2000; i < 0x4000; i++) {
-            this.memoryMap[i] = this.ram32K || this.sams ? ramAccessors : nullAccessors;
+            this.memoryMap[i] = this.ram32K || this.sams ? expansionRAMAccessors : nullAccessors;
         }
         for (i = 0x4000; i < 0x6000; i++) {
-            this.memoryMap[i] = this.ramAt4000 ? ramAccessors : peripheralROMAccessors;
+            this.memoryMap[i] = this.ramAt4000 ? ramAccessors : peripheralCardAccessors;
         }
         for (i = 0x6000; i < 0x7000; i++) {
             if (this.ramAt6000) {
@@ -269,7 +283,7 @@ export class Memory implements Stateful, MemoryDevice {
             this.memoryMap[i] = gromWriteAccessors;
         }
         for (i = 0xA000; i < 0x10000; i++) {
-            this.memoryMap[i] = this.ram32K || this.sams ? ramAccessors : nullAccessors;
+            this.memoryMap[i] = this.ram32K || this.sams ? expansionRAMAccessors : nullAccessors;
         }
     }
 
@@ -282,28 +296,36 @@ export class Memory implements Stateful, MemoryDevice {
 
     private readRAM(addr: number, cpu: CPU): number {
         cpu.addCycles(4);
+        return (this.ram[addr] << 8) | this.ram[addr + 1];
+    }
+
+    private writeRAM(addr: number, w: number, cpu: CPU) {
+        cpu.addCycles(4);
+        this.ram[addr] = w >> 8;
+        this.ram[addr + 1] = w & 0xFF;
+    }
+
+    private readExpansionRAM(addr: number, cpu: CPU): number {
+        cpu.addCycles(4);
         if (this.ram32K) {
             return this.ram32K.readWord(addr);
         } else if (this.sams) {
             return this.sams.readWord(addr);
         } else {
-            return (this.ram[addr] << 8) | this.ram[addr + 1];
+            return 0;
         }
     }
 
-    private writeRAM(addr: number, w: number, cpu: CPU) {
+    private writeExpansionRAM(addr: number, w: number, cpu: CPU) {
         cpu.addCycles(4);
         if (this.ram32K) {
             this.ram32K.writeWord(addr, w);
         } else if (this.sams) {
             this.sams.writeWord(addr, w);
-        } else {
-            this.ram[addr] = w >> 8;
-            this.ram[addr + 1] = w & 0xFF;
         }
     }
 
-    private readPeripheralROM(addr: number, cpu: CPU): number {
+    private readPeripheralCard(addr: number, cpu: CPU): number {
         cpu.addCycles(4);
         const activeCard = this.peripheralCards.find(dsrDevice => dsrDevice.isEnabled());
         if (activeCard) {
@@ -319,7 +341,7 @@ export class Memory implements Stateful, MemoryDevice {
         return 0;
     }
 
-    private writePeripheralROM(addr: number, w: number, cpu: CPU) {
+    private writePeripheralCard(addr: number, w: number, cpu: CPU) {
         cpu.addCycles(4);
         const activeCard = this.peripheralCards.find(dsrDevice => dsrDevice.isEnabled());
         if (activeCard && this.isMemoryMappedCard(activeCard)) {
@@ -475,7 +497,7 @@ export class Memory implements Stateful, MemoryDevice {
             } else if (this.sams) {
                 return this.sams.getByte(addr);
             } else {
-                return this.ram[addr];
+                return 0;
             }
         }
         if (addr < 0x6000) {
