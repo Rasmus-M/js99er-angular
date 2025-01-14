@@ -286,7 +286,7 @@ export class TMS5200 implements Speech {
 
     static USE_JAVASCRIPT_RNG = true;
 
-    static SAMPLE_RATE = 7800;
+    static SAMPLE_RATE = 8000;
 
     // Sample count reload for 5220c and cd2501ecd only; 5200 and 5220 always reload with 0;
     // keep in mind this is loaded on IP=0 PC=12 subcycle=1 so it immediately will increment after one sample,
@@ -426,6 +426,7 @@ export class TMS5200 implements Speech {
     private m_current_energy: number;
     private m_ready_pin: boolean;
 
+    private parse_frame_attempts = 0;
     private tmp_fifo_head: number;
     private tmp_fifo_bits_taken: number;
 
@@ -552,7 +553,7 @@ export class TMS5200 implements Speech {
                 // at this point, /READY should remain HIGH/inactive until the fifo has at least one byte open in it.
             }
         } else { // (! m_speak_external)
-            // RM added
+            // RM: Added
             // If already speaking, suspend the CPU until ready, then execute the command
             if (this.m_talk_status) {
                 this.m_io_ready = false;
@@ -697,7 +698,7 @@ export class TMS5200 implements Speech {
             this.set_interrupt_state(0);
             const status = ((this.m_talk_status ? 1 : 0) << 7) | ((this.m_buffer_low ? 1 : 0) << 6) | ((this.m_buffer_empty ? 1 : 0) << 5);
             this.log.debug("Speech: read status " + Util.toHexByte(status));
-            return ((this.m_talk_status ? 1 : 0) << 7) | ((this.m_buffer_low ? 1 : 0) << 6) | ((this.m_buffer_empty ? 1 : 0) << 5);
+            return status;
         }
     }
 
@@ -780,7 +781,7 @@ export class TMS5200 implements Speech {
                     const NEW_FRAME_STOP_FLAG = (this.m_new_frame_energy_idx === 0xF);     // 1 if this is a stop (Energy = 0xF) frame
                     if (NEW_FRAME_STOP_FLAG) {
                         this.m_talk_status = this.m_speak_external = false;
-                        this.m_io_ready = true; // RM added
+                        this.m_io_ready = true; // RM: Added
                         this.set_interrupt_state(1);
                         this.update_status_and_ints();
                     }
@@ -1202,9 +1203,15 @@ export class TMS5200 implements Speech {
             // console.log("Frame requires", requiredBits, ". Bits left=", bitsLeft);
             if (requiredBits > 4 && requiredBits >= bitsLeft || requiredBits === 4 && requiredBits > bitsLeft) {
                 this.log.warn("Frame requires " + requiredBits + ". Bits left=" + bitsLeft);
+                this.parse_frame_attempts++;
+                if (this.parse_frame_attempts > 8) {
+                    this.m_talk_status = false;
+                    this.m_buffer_empty = true;
+                }
                 return 0;
             }
         }
+        this.parse_frame_attempts = 0;
 
         let indx, i, rep_flag;
 

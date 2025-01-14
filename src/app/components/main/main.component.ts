@@ -3,7 +3,7 @@ import {DiskImage} from "../../emulator/classes/disk-image";
 import {TI994A} from "../../emulator/classes/ti994a";
 import {firstValueFrom, Subscription} from "rxjs";
 import {Log} from "../../classes/log";
-import {ActivatedRoute, Params, Router, UrlSegment} from "@angular/router";
+import {ActivatedRoute, Params, UrlSegment} from "@angular/router";
 import {AudioService} from "../../services/audio.service";
 import {CommandDispatcherService} from "../../services/command-dispatcher.service";
 import {EventDispatcherService} from "../../services/event-dispatcher.service";
@@ -252,6 +252,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                 );
                 break;
             case ConsoleEventType.STARTED:
+                this.audioService.setSoundEnabled(this.settingsService.isSoundEnabled());
                 if (this.autoRun) {
                     window.setTimeout(
                         () => {
@@ -261,6 +262,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                     );
                     this.autoRun = false;
                 }
+                break;
+            case ConsoleEventType.STOPPED:
+                this.audioService.setSoundEnabled(false);
                 break;
         }
     }

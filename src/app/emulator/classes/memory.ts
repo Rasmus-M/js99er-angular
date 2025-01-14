@@ -214,7 +214,6 @@ export class Memory implements Stateful, MemoryDevice {
     }
 
     private buildMemoryMap() {
-        console.log(this.getState());
         this.memoryMap = [];
         const romAccessors = [this.readROM, this.writeROM];
         const ramAccessors = [this.readRAM, this.writeRAM];

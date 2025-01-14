@@ -41,7 +41,6 @@ constructor(software: Software, private settings: Settings) {
             gromBase.setData(data, 0x6000);
             this.gromBases.push(gromBase);
         }
-        console.log(this);
     }
 
     public reset() {
@@ -122,9 +121,6 @@ constructor(software: Software, private settings: Settings) {
         let value = 0;
         if (this.gromBases.length) {
             const base = this.gromBases.length === 1 ? 0 : (addr & 0x003C) >> 2;
-            if (base !== 0) {
-                console.log("Base=" + base);
-            }
             addr = addr & 0x9802;
             if (addr === Memory.GRMRD) {
                 // Read data from GROM
