@@ -278,6 +278,11 @@
                     "type": "ITEM",
                     "name": "West Bank",
                     "url": "software/westbank-v2.rpk"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Manic Miner",
+                    "url": "software/manicminer8.bin"
                 }
             ]
         },        {
