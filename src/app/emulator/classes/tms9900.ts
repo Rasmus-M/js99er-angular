@@ -10,7 +10,7 @@ import {Console} from "../interfaces/console";
 export class TMS9900 extends CPUCommon implements CPU {
 
     static readonly CYCLES_PER_FRAME = 50000;
-    static readonly CYCLES_PER_SCANLINE = 183;
+    static readonly CYCLES_PER_SCANLINE = 194; // 50,000 / 194 = 258 lines on the screen.
     static readonly PROFILE = false;
 
     private console: Console;
