@@ -228,10 +228,11 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         } else {
             // Stopped
             const viewAddress = this.getViewAddress(this.ti994A.getPC());
-            const size = Math.min(memoryDevice.getMemorySize(), 0x10000);
             const offset = viewAddress % width;
-            const start = Math.max(viewAddress - size / 2, 0) + offset;
-            memoryView = memoryDevice.hexView(start, size + offset, width, viewAddress);
+            const start = offset ? offset - width : 0;
+            const length = memoryDevice.getMemorySize() + offset + (offset ? width : 0);
+            console.log(length);
+            memoryView = memoryDevice.hexView(start, length, width, viewAddress);
         }
         return memoryView;
     }

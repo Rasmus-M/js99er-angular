@@ -37,11 +37,11 @@ export class MemoryView {
                 anchorLine = lineNo;
             }
             if ((i & mask) === 0) {
-                line += Util.toHexWord(addr) + ': ';
+                line += (addr >= 0 ? Util.toHexWord(addr) : '>----') + ': ';
             }
-            const byte = getByte(addr);
+            const byte = addr >= 0 ? getByte(addr) : undefined;
             line += byte !== undefined ? Util.toHexByteShort(byte) : '--';
-            ascii += byte >= 32 && byte < 127 ? String.fromCharCode(byte) : "\u25a1";
+            ascii += byte !== undefined && byte >= 32 && byte < 127 ? String.fromCharCode(byte) : "\u25a1";
             if ((i & mask) === mask) {
                 line += " " + ascii;
                 lines.push({addr: addr, text: line});
