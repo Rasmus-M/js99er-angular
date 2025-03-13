@@ -177,7 +177,7 @@
         },
         {
             "type": "SUBMENU",
-            "name": "My games",
+            "name": "My games and ports",
             "items": [
                 {
                     "type": "ITEM",
@@ -283,6 +283,11 @@
                     "type": "ITEM",
                     "name": "Manic Miner",
                     "url": "software/manicminer8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Atic Atac",
+                    "url": "software/aticatac8.bin"
                 }
             ]
         },        {
