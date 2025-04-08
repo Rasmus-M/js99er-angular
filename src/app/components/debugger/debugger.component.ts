@@ -322,13 +322,22 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             const lineAddr = line.addr !== null ? line.addr : NaN;
             const breakpoint = this.breakpoints.find(bp => bp.addr === line.addr);
             if (!breakpoint) {
-                if (isNaN(this.breakpoint.addr)) {
-                    this.breakpoint.addr = lineAddr;
-                } else {
+                let found = false;
+                for (const breakpoint of this.breakpoints) {
+                    if (isNaN(breakpoint.addr)) {
+                        breakpoint.addr = lineAddr;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
                     this.breakpoints.push(new Breakpoint(BreakpointType.INSTRUCTION, lineAddr , 0xffff));
                 }
             } else {
                 breakpoint.addr = NaN;
+                while (this.breakpoints.length > 1 && isNaN(this.breakpoints[this.breakpoints.length - 1].addr)) {
+                    this.breakpoints.pop();
+                }
             }
             this.onBreakpointAddressChanged();
         }
