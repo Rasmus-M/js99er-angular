@@ -25,8 +25,8 @@
             </mat-select>
         </mat-form-field>
         <hex-input-field class="address-field" [digits]="addressDigits" [(model)]="viewAddress" [placeholder]="'View Address'" (modelChange)="onViewAddressChanged()"></hex-input-field>
-        <hex-input-field class="address-field" [digits]="addressDigits" [(model)]="breakpointAddress" [placeholder]="'Breakpoint'" (modelChange)="onBreakpointAddressChanged()"></hex-input-field>
-        <button mat-button (click)="openDialog()"><fa-icon [icon]="faCogs"></fa-icon></button>
+        <hex-input-field class="address-field" [digits]="addressDigits" [(model)]="breakpoint.addr" [placeholder]="'Breakpoint'" (modelChange)="onBreakpointAddressChanged()"></hex-input-field>
+        <button mat-mini-fab color="default" (click)="openDialog()"><fa-icon [icon]="faCogs"></fa-icon></button>
     </div>
     <pre [hidden]="memoryViewType===2" class="memory-view mat-elevation-z1" id="memory" (click)="onMemoryViewClicked($event)">{{memoryString}}</pre>
     <pre [hidden]="memoryViewType!==2" class="memory-view-1 mat-elevation-z1" id="memory1" (click)="onMemoryViewClicked($event)">{{memoryString}}</pre>

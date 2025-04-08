@@ -1,9 +1,21 @@
 <h1 mat-dialog-title>Debugger properties</h1>
 <div mat-dialog-content>
-    <hex-input-field [(model)]="data.cycleCountStart" [placeholder]="'Cycle count start address'"></hex-input-field>
-    <hex-input-field [(model)]="data.cycleCountEnd" [placeholder]="'Cycle count end address'"></hex-input-field>
+    <div class="row">
+        <hex-input-field [(model)]="data.cycleCountStart" [placeholder]="'Cycle count start address'"></hex-input-field>
+        <hex-input-field [(model)]="data.cycleCountEnd" [placeholder]="'Cycle count end address'"></hex-input-field>
+    </div>
+    <mat-divider></mat-divider>
+    @for (breakpoint of data.breakpoints; track $index) {
+        <div class="row">
+            <hex-input-field class="address-field" [digits]="4" [(model)]="breakpoint.addr" [placeholder]="'Breakpoint ' + ($index + 1)"></hex-input-field>
+            @if ($index > 0) {
+                <button mat-mini-fab color="warn" class="delete-button" (click)="deleteBreakpoint(breakpoint)"><fa-icon [icon]="deleteIcon"></fa-icon></button>
+            }
+        </div>
+    }
+    <button mat-raised-button color="default" class="add-button" (click)="addBreakpoint()">Add breakpoint</button>
 </div>
-<div mat-dialog-actions>
+<div mat-dialog-actions [align]="'end'">
     <button mat-stroked-button (click)="cancel()">Cancel</button>
     <button mat-stroked-button color="primary" [mat-dialog-close]="data">Ok</button>
 </div>

@@ -19,7 +19,8 @@ export enum ConsoleEventType {
     RECORDING_STARTED = "Recording started",
     RECORDING_STOPPED = "Recording stopped",
     POINTER_LOCKED = "Pointer locked",
-    POINTER_UNLOCKED = "Pointer unlocked"
+    POINTER_UNLOCKED = "Pointer unlocked",
+    BREAKPOINTS_RESTORED = "Breakpoints restored"
 }
 
 export class ConsoleEvent {

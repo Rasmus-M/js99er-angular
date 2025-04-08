@@ -4,6 +4,8 @@ import {ConsoleEvent, ConsoleEventType} from '../classes/console-event';
 import {DiskImage} from '../emulator/classes/disk-image';
 import {DiskDrive} from '../emulator/classes/disk-drive';
 import {Console} from "../emulator/interfaces/console";
+import {Command, CommandType} from "../classes/command";
+import {Breakpoint} from "../classes/breakpoint";
 
 @Injectable({
     providedIn: 'root'
@@ -103,6 +105,10 @@ export class EventDispatcherService {
 
     pointerUnlocked() {
         this.sendAsyncEvent(ConsoleEventType.POINTER_UNLOCKED, null);
+    }
+
+    breakpointsRestored(breakpoints: Breakpoint[]) {
+        this.sendAsyncEvent(ConsoleEventType.BREAKPOINTS_RESTORED, breakpoints);
     }
 
     sendAsyncEvent(eventType: ConsoleEventType, data: any) {

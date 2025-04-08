@@ -4,6 +4,7 @@ import {Opcode} from "../../classes/opcode";
 import {Log} from "../../classes/log";
 import {Observable, Subject} from "rxjs";
 import {CPU} from "../interfaces/cpu";
+import {Breakpoint, BreakpointType} from "../../classes/breakpoint";
 
 // Based on code from Classic99
 export abstract class CPUCommon implements CPU {
@@ -121,12 +122,16 @@ export abstract class CPUCommon implements CPU {
     };
 
     // Misc
-    protected breakpoint: number;
+    protected breakpoints: Breakpoint[];
     protected auxBreakpoint: number | null;
     protected stoppedAtBreakpoint: boolean;
     protected tracing: boolean;
     protected instructionSubject = new Subject<number>();
     protected log = Log.getLog();
+
+    constructor() {
+        this.breakpoints = [];
+    }
 
     abstract reset(): void;
 
@@ -1374,12 +1379,8 @@ export abstract class CPUCommon implements CPU {
     resetEQ_LGT_AGT_C_OV() { this.st &= 0x7ff; }
     resetEQ_LGT_AGT_C_OV_OP() { this.st &= 0x3ff; }
 
-    getBreakpoint(): number {
-        return this.pc === this.breakpoint ? this.breakpoint : (this.pc === this.auxBreakpoint ? this.auxBreakpoint : this.breakpoint);
-    }
-
-    setBreakpoint(addr: number) {
-        this.breakpoint = addr;
+    setBreakpoints(breakpoints: Breakpoint[]) {
+        this.breakpoints = breakpoints;
     }
 
     breakAfterNext(): void {
@@ -1449,7 +1450,12 @@ export abstract class CPUCommon implements CPU {
     }
 
     atBreakpoint(): boolean {
-        return this.pc === this.breakpoint || this.pc === this.auxBreakpoint;
+        for (const breakpoint of this.breakpoints) {
+            if (this.pc === breakpoint.addr) {
+                return true;
+            }
+        }
+        return this.pc === this.auxBreakpoint;
     }
 
     getCycleLog(): Int32Array {
@@ -1489,7 +1495,7 @@ export abstract class CPUCommon implements CPU {
             st: this.st,
             flagX: this.flagX,
             cycles: this.cycles,
-            breakpoint: this.breakpoint,
+            breakpoints: this.breakpoints,
             auxBreakpoint: this.auxBreakpoint,
             illegalCount: this.illegalCount,
             cycleCountStart: this.cycleCountStart,
@@ -1504,7 +1510,7 @@ export abstract class CPUCommon implements CPU {
         this.st = state.st;
         this.flagX = state.flagX;
         this.cycles = state.cycles;
-        this.breakpoint = state.breakpoint;
+        this.breakpoints = state.breakpoints;
         this.auxBreakpoint = state.auxBreakpoint;
         this.illegalCount = state.illegalCount;
         this.cycleCountStart = state.cycleCountStart;

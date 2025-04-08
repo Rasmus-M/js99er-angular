@@ -7,12 +7,12 @@ import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/console-event';
 import {Util} from '../../classes/util';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
-import {Command, CommandType} from '../../classes/command';
 import {MemoryLine, MemoryView} from "../../classes/memory-view";
 import {faCogs} from "@fortawesome/free-solid-svg-icons";
-import {MatDialog} from "@angular/material/dialog";
-import {DebuggerDialogComponent, DebuggerDialogData} from "../debugger-dialog/debugger-dialog.component";
+import {DebuggerDialogData} from "../debugger-dialog/debugger-dialog.component";
 import {MemoryDevice} from "../../emulator/interfaces/memory-device";
+import {DialogService} from "../../services/dialog.service";
+import {Breakpoint, BreakpointType} from "../../classes/breakpoint";
 
 enum MemoryViewType {
     DISASSEMBLY,
@@ -41,7 +41,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     memoryViewType: MemoryViewType = MemoryViewType.SPLIT;
     memoryType: MemoryType = MemoryType.CPU;
     viewAddress: number;
-    breakpointAddress: number;
+    breakpoint: Breakpoint;
     addressDigits = 4;
     statusString: string;
     memoryString: string;
@@ -55,11 +55,11 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     private timerHandle: number | null;
     private scrollTimeoutHandles: {[key: string]: number} = {};
     private eventSubscription: Subscription;
-    private commandSubscription: Subscription;
     private listView: MemoryView;
     private listViewMap: Map<number, MemoryLine>;
     private lastAnchorLine: MemoryLine | null = null;
-    private lastBreakpointLine: MemoryLine | null = null;
+    private lastBreakpointLines: MemoryLine[] = [];
+    private breakpoints: Breakpoint[] = [];
 
     private readonly nullMemoryDevice: MemoryDevice = {
         getMemorySize(): number {
@@ -67,7 +67,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         }, getWord(addr: number): number {
             return 0;
         }, hexView(start: number, length: number, width: number, anchorAddr: number): MemoryView {
-            return new MemoryView([], null, null);
+            return new MemoryView([], null, []);
         }
     };
 
@@ -76,16 +76,15 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         private disassemblerService: DisassemblerService,
         private eventDispatcherService: EventDispatcherService,
         private commandDispatcherService: CommandDispatcherService,
-        private matDialog: MatDialog
+        private dialogService: DialogService
     ) {}
 
     ngOnInit() {
         this.eventSubscription = this.eventDispatcherService.subscribe((event) => {
             this.onEvent(event);
         });
-        this.commandSubscription = this.commandDispatcherService.subscribe((event) => {
-            this.onCommand(event);
-        });
+        this.breakpoint = new Breakpoint(BreakpointType.INSTRUCTION, NaN, 0xffff);
+        this.breakpoints.push(this.breakpoint);
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -97,7 +96,6 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     ngOnDestroy() {
         this.stopUpdate();
         this.eventSubscription.unsubscribe();
-        this.commandSubscription.unsubscribe();
     }
 
     startUpdate() {
@@ -128,17 +126,9 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             case ConsoleEventType.STATE_RESTORED:
                 this.updateDebugger(true);
                 break;
-        }
-    }
-
-    private onCommand(command: Command) {
-        if (command.type === CommandType.SET_BREAKPOINT_ADDRESS) {
-            const addr = command.data;
-            if (addr === undefined || addr === null) {
-                this.breakpointAddress = 0;
-            } else {
-                this.breakpointAddress = addr;
-            }
+            case ConsoleEventType.BREAKPOINTS_RESTORED:
+                this.breakpoints = event.data;
+                break;
         }
     }
 
@@ -190,19 +180,18 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
 
     private getDisassemblyView(memoryType: MemoryType): MemoryView {
         let memoryView: MemoryView;
-        const breakpointAddress = this.getBreakpointAddress(NaN);
         const pc = this.ti994A.getPC();
         const cycleLog = this.ti994A.getCPU().getCycleLog();
         const memoryDevice = this.getMemoryDevice(memoryType);
         if (this.ti994A.isRunning()) {
             // Running
             this.disassemblerService.setMemory(memoryDevice);
-            memoryView = this.disassemblerService.disassemble(pc, null, 32, pc, breakpointAddress);
+            memoryView = this.disassemblerService.disassemble(pc, null, 32, pc, this.breakpoints);
         } else {
             // Stopped
             const viewAddress = this.memoryViewType === MemoryViewType.SPLIT ? pc : this.getViewAddress(pc);
             this.disassemblerService.setMemory(memoryDevice);
-            memoryView = this.disassemblerService.disassemble(Math.max(viewAddress - 0x800, 0), 0x1000, null, viewAddress, breakpointAddress);
+            memoryView = this.disassemblerService.disassemble(Math.max(viewAddress - 0x800, 0), 0x1000, null, viewAddress, this.breakpoints);
             if (memoryType === MemoryType.CPU) {
                 memoryView.lines.forEach((memoryLine) => {
                     if (memoryLine.addr !== null) {
@@ -231,7 +220,6 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             const offset = viewAddress % width;
             const start = offset ? offset - width : 0;
             const length = memoryDevice.getMemorySize() + offset + (offset ? width : 0);
-            console.log(length);
             memoryView = memoryDevice.hexView(start, length, width, viewAddress);
         }
         return memoryView;
@@ -243,10 +231,10 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                 this.lastAnchorLine.text = ' ' + this.lastAnchorLine.text.substring(1);
                 this.lastAnchorLine = null;
             }
-            if (this.lastBreakpointLine != null) {
-                this.lastBreakpointLine.text = this.lastBreakpointLine.text.charAt(0) + ' ' + this.lastBreakpointLine.text.substring(2);
-                this.lastBreakpointLine = null;
+            for (const lastBreakpointLine of this.lastBreakpointLines) {
+                lastBreakpointLine.text = lastBreakpointLine.text.charAt(0) + ' ' + lastBreakpointLine.text.substring(2);
             }
+            this.lastBreakpointLines = [];
             const viewAddress = this.getViewAddress(this.ti994A.getPC());
             const anchorLine = this.listViewMap.get(viewAddress);
             if (anchorLine) {
@@ -254,16 +242,16 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                 this.lastAnchorLine = anchorLine;
             }
             this.listView.anchorLine = this.lastAnchorLine?.index || null;
-            const breakpointAddress = this.getBreakpointAddress(NaN);
-            const breakpointLine = this.listViewMap.get(breakpointAddress);
-            if (breakpointLine) {
-                breakpointLine.text = breakpointLine.text.charAt(0) + '\u25cf' + breakpointLine.text.substring(2);
-                this.lastBreakpointLine = breakpointLine;
+            for (const breakpoint of this.breakpoints) {
+                const breakpointLine = this.listViewMap.get(breakpoint.addr);
+                if (breakpointLine) {
+                    breakpointLine.text = breakpointLine.text.charAt(0) + '\u25cf' + breakpointLine.text.substring(2);
+                    this.lastBreakpointLines.push(breakpointLine);
+                }
             }
-            this.listView.breakpointLine = this.lastBreakpointLine?.index || null;
             return this.listView;
         } else {
-            return {lines: [], anchorLine: null, breakpointLine: null};
+            return {lines: [], anchorLine: null, breakpointLines: []};
         }
     }
 
@@ -289,16 +277,12 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         return isNaN(this.viewAddress) ? defaultValue : this.viewAddress;
     }
 
-    private getBreakpointAddress(defaultValue: number) {
-        return isNaN(this.breakpointAddress) ? defaultValue : this.breakpointAddress;
-    }
-
     protected onViewAddressChanged() {
         this.updateDebugger(true);
     }
 
     protected onBreakpointAddressChanged() {
-        this.commandDispatcherService.setBreakpoint(this.breakpointAddress);
+        this.commandDispatcherService.setBreakpoints(this.breakpoints);
         this.updateDebugger(true);
     }
 
@@ -335,10 +319,16 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             const lineHeight = $memory.prop('scrollHeight') / this.memoryView.lines.length;
             const lineNo = Math.floor(($memory.prop('scrollTop') + event.offsetY) / lineHeight);
             const line = this.memoryView.lines[lineNo];
-            if (line.addr !== this.breakpointAddress) {
-                this.breakpointAddress = line.addr !== null ? line.addr : NaN;
+            const lineAddr = line.addr !== null ? line.addr : NaN;
+            const breakpoint = this.breakpoints.find(bp => bp.addr === line.addr);
+            if (!breakpoint) {
+                if (isNaN(this.breakpoint.addr)) {
+                    this.breakpoint.addr = lineAddr;
+                } else {
+                    this.breakpoints.push(new Breakpoint(BreakpointType.INSTRUCTION, lineAddr , 0xffff));
+                }
             } else {
-                this.breakpointAddress = NaN;
+                breakpoint.addr = NaN;
             }
             this.onBreakpointAddressChanged();
         }
@@ -371,7 +361,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                 });
                 this.listView = {
                     lines: memoryLines,
-                    breakpointLine: null,
+                    breakpointLines: [],
                     anchorLine: null
                 };
                 this.memoryString = '';
@@ -391,14 +381,19 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         const cycleCount = this.ti994A.getCPU().getCycleCount();
         const data: DebuggerDialogData = {
             cycleCountStart: cycleCount.start,
-            cycleCountEnd: cycleCount.end
+            cycleCountEnd: cycleCount.end,
+            breakpoints: this.breakpoints
         };
-        const dialogRef = this.matDialog.open<DebuggerDialogComponent, DebuggerDialogData, DebuggerDialogData>(DebuggerDialogComponent, { data: data });
-        dialogRef.afterClosed().subscribe(
+        this.dialogService.showDebuggerDialog(data).then(
             (value) => {
                 if (value) {
                     this.ti994A.getCPU().setCycleCount(value.cycleCountStart, value.cycleCountEnd);
+                    this.updateDebugger(true);
                 }
+            }
+        ).catch(
+            (error) => {
+                console.error(error);
             }
         );
     }

@@ -18,6 +18,7 @@ import {Console} from "../interfaces/console";
 import {AudioService} from "../../services/audio.service";
 import {DatabaseService} from "../../services/database.service";
 import {ConsoleEvent, ConsoleEventType} from "../../classes/console-event";
+import {Breakpoint} from "../../classes/breakpoint";
 
 @Component({
     selector: 'app-console',
@@ -277,12 +278,12 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
             case CommandType.TAKE_SCREENSHOT:
                 this.eventDispatcherService.screenshot(this.canvas.toDataURL());
                 break;
-            case CommandType.SET_BREAKPOINT:
-                const addr = command.data;
-                this.ti994A.getCPU().setBreakpoint(addr);
+            case CommandType.SET_BREAKPOINTS:
+                const breakpoints: Breakpoint[] = command.data;
+                this.ti994A.getCPU().setBreakpoints(breakpoints);
                 const gpu = this.ti994A.getVDP().getGPU();
                 if (gpu) {
-                    gpu.setBreakpoint(addr);
+                    gpu.setBreakpoints(breakpoints);
                 }
                 break;
             case CommandType.INSERT_DISK: {

@@ -26,6 +26,7 @@ import {Util} from "../../classes/util";
 import {Location} from "@angular/common";
 import {DialogService} from "../../services/dialog.service";
 import {HttpClient} from "@angular/common/http";
+import {Breakpoint} from "../../classes/breakpoint";
 
 @Component({
   selector: 'app-main',
@@ -475,7 +476,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                         const tape = this.ti994A.getTape();
                         this.eventDispatcherService.tapeStopped(tape.isPlayEnabled(), tape.isRewindEnabled());
                     }
-                    this.commandDispatcherService.setBreakpointAddress(state.cpu.breakpoint);
+                    const breakpoints: Breakpoint[] = state.cpu.breakpoints;
+                    if (breakpoints) {
+                        this.eventDispatcherService.breakpointsRestored(breakpoints);
+                    }
                     if (wasRunning) {
                         this.commandDispatcherService.start();
                     } else {

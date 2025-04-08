@@ -16,12 +16,12 @@ export class MemoryView {
 
     lines: MemoryLine[];
     anchorLine: number | null;
-    breakpointLine: number | null;
+    breakpointLines: number[];
 
-    constructor(lines: MemoryLine[], anchorLine: number | null, breakpointLine: number | null) {
+    constructor(lines: MemoryLine[], anchorLine: number | null, breakpointLines: number[]) {
         this.lines = lines;
         this.anchorLine = anchorLine;
-        this.breakpointLine = breakpointLine;
+        this.breakpointLines = breakpointLines;
     }
 
     static hexView(start: number, length: number, width: number, anchorAddr: number, getByte: (addr: number) => number): MemoryView {
@@ -52,7 +52,7 @@ export class MemoryView {
                 line += ' ';
             }
         }
-        return new MemoryView(lines, anchorLine, 0);
+        return new MemoryView(lines, anchorLine, []);
     }
 
 }

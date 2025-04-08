@@ -76,7 +76,7 @@ export class TMS9900 extends CPUCommon implements CPU {
             const atBreakpoint = this.atBreakpoint() && !skipBreakpoint;
             if (atBreakpoint) {
                 // Handle breakpoint
-                this.log.info("At breakpoint " + Util.toHexWord(this.getBreakpoint()));
+                this.log.info("At breakpoint " + Util.toHexWord(this.pc));
                 if (this.pc === this.auxBreakpoint) {
                     this.auxBreakpoint = null;
                 }

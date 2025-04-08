@@ -7,6 +7,7 @@ import {Software} from '../classes/software';
 import {Setting, Settings} from '../classes/settings';
 import {DiskImage} from '../emulator/classes/disk-image';
 import {DiskFile} from '../emulator/classes/disk-file';
+import {Breakpoint} from "../classes/breakpoint";
 
 
 @Injectable()
@@ -83,12 +84,8 @@ export class CommandDispatcherService {
         this.commandSubject.next(new Command(CommandType.TAKE_SCREENSHOT, null));
     }
 
-    setBreakpoint(addr: number | null) {
-        this.commandSubject.next(new Command(CommandType.SET_BREAKPOINT, addr));
-    }
-
-    setBreakpointAddress(addr: number) {
-        this.commandSubject.next(new Command(CommandType.SET_BREAKPOINT_ADDRESS, addr));
+    setBreakpoints(breakpoints: Breakpoint[]) {
+        this.commandSubject.next(new Command(CommandType.SET_BREAKPOINTS, breakpoints));
     }
 
     addDisk() {

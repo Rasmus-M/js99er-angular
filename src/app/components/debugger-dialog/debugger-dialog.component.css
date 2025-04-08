@@ -3,3 +3,19 @@ hex-input-field {
     width: 45%;
     padding-right: 8px;
 }
+
+mat-divider {
+    margin-top: 8px;
+    margin-bottom: 12px;
+}
+
+.row {
+}
+
+.delete-button {
+}
+
+.add-button {
+    margin-top: 8px;
+}
+

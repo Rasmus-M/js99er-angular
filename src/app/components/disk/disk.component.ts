@@ -8,7 +8,7 @@ import {TI994A} from '../../emulator/classes/ti994a';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {DiskDrive} from '../../emulator/classes/disk-drive';
 import {SelectionModel} from '@angular/cdk/collections';
-import {faBan, faCaretUp, faDownload, faHdd, faPlus, faSave} from '@fortawesome/free-solid-svg-icons';
+import {faBan, faCaretUp, faDownload, faHdd, faPlus, faSave, faTrash} from '@fortawesome/free-solid-svg-icons';
 import {FileType} from "../../emulator/classes/disk";
 
 @Component({
@@ -34,7 +34,7 @@ export class DiskComponent implements OnInit, OnDestroy {
     emptyIcon = faBan;
     diskIcon = faSave;
     addDiskIcon = faPlus;
-    deleteIcon = faBan;
+    deleteIcon = faTrash;
     saveDiskIcon = faDownload;
     insertDiskIcon = faCaretUp;
 

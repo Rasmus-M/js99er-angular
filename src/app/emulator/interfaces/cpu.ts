@@ -1,5 +1,6 @@
 import {Stateful} from './stateful';
 import {Observable} from "rxjs";
+import {Breakpoint} from "../../classes/breakpoint";
 
 export interface CPU extends Stateful {
     reset(): void;
@@ -14,7 +15,7 @@ export interface CPU extends Stateful {
     setSuspended(suspended: boolean): void;
     isIdle(): boolean;
     isStoppedAtBreakpoint(): boolean;
-    setBreakpoint(addr: number): void;
+    setBreakpoints(breakpoint: Breakpoint[]): void;
     breakAfterNext(): void;
     getInternalRegsString(detailed: boolean): string;
     getRegsStringFormatted(detailed: boolean): string;
