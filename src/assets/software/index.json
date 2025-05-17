@@ -501,6 +501,11 @@
                     "type": "ITEM",
                     "name": "Stealth Runner demo",
                     "url": "software/StealthRunner.rpk"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Commando music demo (by newcoleco)",
+                    "url": "software/commando-music-60hz-8.bin"
                 }
             ]
         },
