@@ -26,7 +26,7 @@ Run `ng build` to build the project. The build artifacts will be stored in the `
 First build the project. Then edit the dist/index.html file and insert a config attribute into the js99er element, e.g.:
 
 ```
-<js99er config='{"sidePanelVisible": false, "toolbarVisible": false, "cartridgeURL": "my-folder/my-cart.rpk", "diskURL": "", "ramDiskDSRURL": "", settings": {}}'></js99er>
+<js99er config='{"sidePanelVisible": false, "toolbarVisible": false, "cartridgeURL": "my-folder/my-cart.rpk", "diskURL": "", "ramDiskDSRURL": "", "settings": {}}'></js99er>
 ```
 
 The config attribute is formatted as a JSON object. Setting both sidePanelVisible and toolbarVisible to false will disable the JS99er UI, leaving only the console canvas.
