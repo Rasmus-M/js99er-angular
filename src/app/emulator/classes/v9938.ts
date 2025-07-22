@@ -1228,6 +1228,13 @@ export class V9938 implements VDP {
     }
 
     timer_callback_member(update_line: number) {
+
+        // RM added since the code at the end of this function is never executed
+        if (this.scanline === 0) {
+            this.offset_y = this.position_offset(this.cont_reg[18] >> 4);
+            this.set_screen_parameters();
+        }
+
         const scanline: int = (this.scanline - (this.scanline_start + this.offset_y));
 
         this.update_command();
