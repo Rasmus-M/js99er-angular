@@ -144,6 +144,7 @@ export class AudioService {
                 if (this.tapeScriptProcessor) {
                     this.tapeScriptProcessor.connect(this.tapeFilter);
                     this.tapeFilter.connect(this.audioContext.destination);
+                    this.tapeScriptProcessor.connect(this.mediaStreamDestination);
                 }
             } else if (!enabled && this.enabled) {
                 if (this.psgScriptProcessor) {
