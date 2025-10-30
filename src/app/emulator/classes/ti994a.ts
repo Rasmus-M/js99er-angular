@@ -123,7 +123,7 @@ export class TI994A implements Console, Stateful {
         this.tape = new Tape();
         this.setVDP();
         this.setPSG();
-        this.speech = new TMS5200(this.settings.isSpeechEnabled());
+        this.speech = new TMS5200(this.settings.isSpeechEnabled(), this.cpu);
         this.speech.isReady().subscribe(
             (ready) => {
                 this.cpu.setSuspended(!ready);

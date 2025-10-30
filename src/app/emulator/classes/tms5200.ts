@@ -3,6 +3,7 @@ import {Speech} from '../interfaces/speech';
 import {System} from './system';
 import {Util} from '../../classes/util';
 import {firstValueFrom, Observable, Subject} from "rxjs";
+import {CPU} from "../interfaces/cpu";
 
 /**********************************************************************************************
 
@@ -378,6 +379,7 @@ export class TMS5200 implements Speech {
     };
 
     private enabled: boolean;
+    private cpu: CPU;
 
     private m_coeff: any = TMS5200.coeff;
     private m_speak_external: boolean;
@@ -432,8 +434,9 @@ export class TMS5200 implements Speech {
 
     private log: Log = Log.getLog();
 
-    constructor(enabled: boolean) {
+    constructor(enabled: boolean, cpu: CPU) {
         this.enabled = enabled;
+        this.cpu = cpu;
     }
 
     /**********************************************************************************************
@@ -1202,7 +1205,7 @@ export class TMS5200 implements Speech {
             const bitsLeft = this.m_fifo_count * 8 - this.m_fifo_bits_taken;
             // console.log("Frame requires", requiredBits, ". Bits left=", bitsLeft);
             if (requiredBits > 4 && requiredBits >= bitsLeft || requiredBits === 4 && requiredBits > bitsLeft) {
-                this.log.warn("Frame requires " + requiredBits + ". Bits left=" + bitsLeft);
+                this.log.warn("Frame requires " + requiredBits + ". Bits left=" + bitsLeft + " at PC = " + Util.toHexWord(this.cpu.getPc()));
                 this.parse_frame_attempts++;
                 if (this.parse_frame_attempts > 8) {
                     this.m_talk_status = false;
@@ -1316,7 +1319,7 @@ export class TMS5200 implements Speech {
     }
 
     private ranout(pos: number) {
-        this.log.warn("Ran out of bits on a parse ('" + pos + "')");
+        this.log.warn("Ran out of bits on a parse ('" + pos + "') at PC = " + Util.toHexWord(this.cpu.getPc()));
         return 0;
     }
 
