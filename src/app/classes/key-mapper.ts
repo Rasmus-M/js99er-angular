@@ -158,7 +158,7 @@ export class KeyMapper {
         "ArrowUp": {code: "ArrowUp", keyCode: 38, tiKeys: [TIKey.J1Up]},
         "Numpad2": {code: "Numpad2", keyCode: 98, tiKeys: [TIKey.J2Down]},
         "Numpad4": {code: "Numpad4", keyCode: 100, tiKeys: [TIKey.J2Left]},
-        "Numpad6": {code: "Numpad6", keyCode: 102, tiKeys: [TIKey.J1Right]},
+        "Numpad6": {code: "Numpad6", keyCode: 102, tiKeys: [TIKey.J2Right]},
         "Numpad8": {code: "Numpad8", keyCode: 104, tiKeys: [TIKey.J2Up]},
         "Escape": {code: "Escape", keyCode: 27, tiKeys: [TIKey.Fctn, TIKey.Digit9]},
         "Backspace": {code: "Backspace", keyCode: 8, tiKeys: [TIKey.Fctn, TIKey.KeyS]},
