@@ -288,6 +288,11 @@
                     "type": "ITEM",
                     "name": "Atic Atac",
                     "url": "software/aticatac8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Crazy Climber (beta)",
+                    "url": "software/crazy-climber-beta.rpk"
                 }
             ]
         },        {
