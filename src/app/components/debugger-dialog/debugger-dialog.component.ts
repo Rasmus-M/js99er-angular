@@ -12,7 +12,8 @@ export interface DebuggerDialogData {
 
 @Component({
     templateUrl: 'debugger-dialog.component.html',
-    styleUrls: ['debugger-dialog.component.css']
+    styleUrls: ['debugger-dialog.component.css'],
+    standalone: false
 })
 export class DebuggerDialogComponent {
 

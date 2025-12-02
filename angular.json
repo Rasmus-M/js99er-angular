@@ -9,14 +9,17 @@
       "projectType": "application",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular-devkit/build-angular:application",
           "options": {
             "aot": true,
-            "outputPath": "dist",
+            "outputPath": {
+              "base": "dist"
+            },
             "index": "src/index.html",
-            "main": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
-            "polyfills": "zone.js",
+            "polyfills": [
+              "zone.js"
+            ],
             "assets": [
               "src/assets",
               "src/favicon.ico"
@@ -28,7 +31,8 @@
               "file-saver",
               "jquery",
               "image-map-resizer"
-            ]
+            ],
+            "browser": "src/main.ts"
           },
           "configurations": {
             "production": {
@@ -44,8 +48,6 @@
               "namedChunks": false,
               "aot": true,
               "extractLicenses": false,
-              "vendorChunk": false,
-              "buildOptimizer": true,
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
@@ -54,9 +56,7 @@
               ]
             },
             "development": {
-              "buildOptimizer": false,
               "optimization": false,
-              "vendorChunk": true,
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true

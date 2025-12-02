@@ -6,9 +6,10 @@ export interface ErrorDialogData {
 }
 
 @Component({
-  selector: 'app-new-dialog',
-  templateUrl: './error-dialog.component.html',
-  styleUrls: ['./error-dialog.component.css']
+    selector: 'app-new-dialog',
+    templateUrl: './error-dialog.component.html',
+    styleUrls: ['./error-dialog.component.css'],
+    standalone: false
 })
 export class ErrorDialogComponent {
 

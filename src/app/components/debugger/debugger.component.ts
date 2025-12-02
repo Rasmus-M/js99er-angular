@@ -32,7 +32,8 @@ enum MemoryType {
 @Component({
     selector: 'debugger',
     templateUrl: './debugger.component.html',
-    styleUrls: ['./debugger.component.css']
+    styleUrls: ['./debugger.component.css'],
+    standalone: false
 })
 export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
 

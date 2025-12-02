@@ -23,7 +23,8 @@ import {Breakpoint} from "../../classes/breakpoint";
 @Component({
     selector: 'app-console',
     templateUrl: './console.component.html',
-    styleUrls: ['./console.component.css']
+    styleUrls: ['./console.component.css'],
+    standalone: false
 })
 export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
 

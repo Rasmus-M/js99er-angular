@@ -13,7 +13,8 @@ import {DiskService} from "../../services/disk.service";
 @Component({
     selector: 'app-software-menu',
     templateUrl: './software-menu.component.html',
-    styleUrls: ['./software-menu.component.css']
+    styleUrls: ['./software-menu.component.css'],
+    standalone: false
 })
 export class SoftwareMenuComponent implements OnInit {
 

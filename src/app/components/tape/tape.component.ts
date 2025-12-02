@@ -12,7 +12,8 @@ import { faUpload, faDownload, faCircle, faPlay, faBackward, faStop } from '@for
 @Component({
     selector: 'tape',
     templateUrl: './tape.component.html',
-    styleUrls: ['./tape.component.css']
+    styleUrls: ['./tape.component.css'],
+    standalone: false
 })
 export class TapeComponent implements OnInit, OnDestroy {
 

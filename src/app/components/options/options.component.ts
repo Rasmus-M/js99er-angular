@@ -8,7 +8,8 @@ import {EventDispatcherService} from "../../services/event-dispatcher.service";
 @Component({
     selector: 'options',
     templateUrl: './options.component.html',
-    styleUrls: ['./options.component.css']
+    styleUrls: ['./options.component.css'],
+    standalone: false
 })
 export class OptionsComponent implements OnInit {
 

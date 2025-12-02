@@ -8,7 +8,8 @@ import {Software} from '../../classes/software';
 @Component({
     selector: 'app-more-software',
     templateUrl: './more-software.component.html',
-    styleUrls: ['./more-software.component.css']
+    styleUrls: ['./more-software.component.css'],
+    standalone: false
 })
 export class MoreSoftwareComponent implements OnInit {
 

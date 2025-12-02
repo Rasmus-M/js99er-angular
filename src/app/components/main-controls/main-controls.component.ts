@@ -28,6 +28,7 @@ import {Util} from "../../classes/util";
     selector: 'app-main-controls',
     templateUrl: './main-controls.component.html',
     styleUrls: ['./main-controls.component.css'],
+    standalone: false
 })
 export class MainControlsComponent implements OnInit, OnDestroy {
 

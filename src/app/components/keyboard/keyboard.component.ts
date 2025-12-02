@@ -5,7 +5,8 @@ import {CommandDispatcherService} from '../../services/command-dispatcher.servic
 @Component({
     selector: 'keyboard',
     templateUrl: './keyboard.component.html',
-    styleUrls: ['./keyboard.component.css']
+    styleUrls: ['./keyboard.component.css'],
+    standalone: false
 })
 export class KeyboardComponent implements OnChanges {
 

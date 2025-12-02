@@ -5,7 +5,8 @@ import {CommandDispatcherService} from "../../services/command-dispatcher.servic
 @Component({
     selector: 'hex-input-field',
     templateUrl: 'hex-input-field.component.html',
-    styleUrls: ['hex-input-field.component.css']
+    styleUrls: ['hex-input-field.component.css'],
+    standalone: false
 })
 export class HexInputFieldComponent implements OnChanges {
 

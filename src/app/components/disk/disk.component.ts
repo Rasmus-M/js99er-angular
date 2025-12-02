@@ -14,7 +14,8 @@ import {FileType} from "../../emulator/classes/disk";
 @Component({
     selector: 'disk',
     templateUrl: './disk.component.html',
-    styleUrls: ['./disk.component.css']
+    styleUrls: ['./disk.component.css'],
+    standalone: false
 })
 export class DiskComponent implements OnInit, OnDestroy {
 

@@ -9,7 +9,8 @@ import { faDownload } from '@fortawesome/free-solid-svg-icons';
 @Component({
     selector: 'graphics',
     templateUrl: './graphics.component.html',
-    styleUrls: ['./graphics.component.css']
+    styleUrls: ['./graphics.component.css'],
+    standalone: false
 })
 export class GraphicsComponent implements OnInit, AfterViewInit, OnChanges {
 

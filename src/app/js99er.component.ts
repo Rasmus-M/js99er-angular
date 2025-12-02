@@ -13,8 +13,9 @@ export const customTooltipDefaults: MatTooltipDefaultOptions = {
     templateUrl: './js99er.component.html',
     styleUrls: ['./js99er.component.css'],
     providers: [
-        {provide: MAT_TOOLTIP_DEFAULT_OPTIONS, useValue: customTooltipDefaults}
-    ]
+        { provide: MAT_TOOLTIP_DEFAULT_OPTIONS, useValue: customTooltipDefaults }
+    ],
+    standalone: false
 })
 export class Js99erComponent implements OnInit {
 
