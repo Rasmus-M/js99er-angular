@@ -43,10 +43,10 @@ mat-tab-group, .mat-tab-body-wrapper, mat-tab {
     --mat-form-field-container-text-size: 14px;
     --mat-option-label-text-size: 14px;
     --mat-form-field-subscript-text-size: 11px;
-    --mdc-filled-text-field-label-text-size: 13px;
-    --mdc-protected-button-label-text-tracking: 0;
+    --mat-form-field-filled-label-text-size: 13px;
+    --mat-button-protected-label-text-tracking: 0;
 }
 
 .mat-mdc-tab-header {
-    --mat-tab-header-label-text-tracking: 0;
+    --mat-tab-label-text-tracking: 0;
 }
