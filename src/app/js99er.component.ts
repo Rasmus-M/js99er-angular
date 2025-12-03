@@ -17,7 +17,8 @@ export const customTooltipDefaults: MatTooltipDefaultOptions = {
     ],
     standalone: false
 })
-export class Js99erComponent implements OnInit {
+export class Js99erComponent implements OnInit
+{
 
     static readonly TITLE = "JS99'er";
     static readonly VERSION = "15.3.1";

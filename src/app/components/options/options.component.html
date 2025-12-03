@@ -1,92 +1,94 @@
 <div class="options">
+  <mat-form-field class="dropdown-setting">
+    <mat-label>Video (VDP)</mat-label>
+    <mat-select [(ngModel)]="vdp" (ngModelChange)="onVDPChanged($event)">
+      <mat-option [value]="'TMS9918A'">TMS9918A</mat-option>
+      <mat-option [value]="'F18A'">F18A</mat-option>
+      <mat-option [value]="'V9938'">V9938</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <br>
     <mat-form-field class="dropdown-setting">
-        <mat-label>Video (VDP)</mat-label>
-        <mat-select [(ngModel)]="vdp" (ngModelChange)="onVDPChanged($event)">
-            <mat-option [value]="'TMS9918A'">TMS9918A</mat-option>
-            <mat-option [value]="'F18A'">F18A</mat-option>
-            <mat-option [value]="'V9938'">V9938</mat-option>
-        </mat-select>
+      <mat-label>RAM expansion</mat-label>
+      <mat-select [(ngModel)]="ram" (ngModelChange)="onRAMExpansionChanged($event)">
+        <mat-option [value]="'NONE'">No RAM expansion</mat-option>
+        <mat-option [value]="'32K'">32K RAM expansion</mat-option>
+        <mat-option [value]="'SAMS1M'">1M SAMS expansion</mat-option>
+        <mat-option [value]="'SAMS4M'">4M SAMS expansion</mat-option>
+        <mat-option [value]="'SAMS16M'">16M SAMS expansion</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <div class="checkbox-setting">
+      <mat-checkbox [ngModel]="enableGRAM" (ngModelChange)="onEnableGRAMChanged($event)">GRAM enabled</mat-checkbox>
+    </div>
+    <div class="checkbox-setting">
+      <mat-checkbox [ngModel]="enablePCode" (ngModelChange)="onEnablePCodeChanged($event)">P-code card enabled</mat-checkbox>
+    </div>
+    <div class="checkbox-setting">
+      <mat-checkbox [ngModel]="enableSound" (ngModelChange)="onEnableSoundChanged($event)">Sound enabled (general)</mat-checkbox>
+    </div>
+    <mat-form-field class="dropdown-setting">
+      <mat-label>PSG</mat-label>
+      <mat-select [(ngModel)]="psg" (ngModelChange)="onPSGChanged($event)">
+        <mat-option [value]="'STANDARD'">Standard (TMS9919)</mat-option>
+        <mat-option [value]="'FORTI'">FORTi sound card</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <div class="checkbox-setting">
+      <mat-checkbox [ngModel]="enableSpeech" (ngModelChange)="onEnableSpeechChanged($event)">Speech enabled</mat-checkbox>
+    </div>
+    <mat-form-field class="dropdown-setting">
+      <mat-label>Floppy disk</mat-label>
+      <mat-select [(ngModel)]="disk" (ngModelChange)="onDiskChanged($event)">
+        <mat-option [value]="'NONE'">No disk</mat-option>
+        <mat-option [value]="'GENERIC'">Generic</mat-option>
+        <mat-option [value]="'TIFDC'">TI Floppy Disk Controller</mat-option>
+        <mat-option [value]="'MYARC'">Myarc Floppy Disk Controller</mat-option>
+      </mat-select>
     </mat-form-field>
     <br>
-    <mat-form-field class="dropdown-setting">
-        <mat-label>RAM expansion</mat-label>
-        <mat-select [(ngModel)]="ram" (ngModelChange)="onRAMExpansionChanged($event)">
-            <mat-option [value]="'NONE'">No RAM expansion</mat-option>
-            <mat-option [value]="'32K'">32K RAM expansion</mat-option>
-            <mat-option [value]="'SAMS1M'">1M SAMS expansion</mat-option>
-            <mat-option [value]="'SAMS4M'">4M SAMS expansion</mat-option>
-            <mat-option [value]="'SAMS16M'">16M SAMS expansion</mat-option>
-        </mat-select>
-    </mat-form-field>
-    <div class="checkbox-setting">
-        <mat-checkbox [ngModel]="enableGRAM" (ngModelChange)="onEnableGRAMChanged($event)">GRAM enabled</mat-checkbox>
-    </div>
-    <div class="checkbox-setting">
-        <mat-checkbox [ngModel]="enablePCode" (ngModelChange)="onEnablePCodeChanged($event)">P-code card enabled</mat-checkbox>
-    </div>
-    <div class="checkbox-setting">
-        <mat-checkbox [ngModel]="enableSound" (ngModelChange)="onEnableSoundChanged($event)">Sound enabled (general)</mat-checkbox>
-    </div>
-    <mat-form-field class="dropdown-setting">
-        <mat-label>PSG</mat-label>
-        <mat-select [(ngModel)]="psg" (ngModelChange)="onPSGChanged($event)">
-            <mat-option [value]="'STANDARD'">Standard (TMS9919)</mat-option>
-            <mat-option [value]="'FORTI'">FORTi sound card</mat-option>
-        </mat-select>
-    </mat-form-field>
-    <div class="checkbox-setting">
-        <mat-checkbox [ngModel]="enableSpeech" (ngModelChange)="onEnableSpeechChanged($event)">Speech enabled</mat-checkbox>
-    </div>
-    <mat-form-field class="dropdown-setting">
-        <mat-label>Floppy disk</mat-label>
-        <mat-select [(ngModel)]="disk" (ngModelChange)="onDiskChanged($event)">
-            <mat-option [value]="'NONE'">No disk</mat-option>
-            <mat-option [value]="'GENERIC'">Generic</mat-option>
-            <mat-option [value]="'TIFDC'">TI Floppy Disk Controller</mat-option>
-            <mat-option [value]="'MYARC'">Myarc Floppy Disk Controller</mat-option>
-        </mat-select>
-    </mat-form-field>
-    <br>
-    <mat-form-field class="dropdown-setting">
+      <mat-form-field class="dropdown-setting">
         <mat-label>RAM disk</mat-label>
         <mat-select [(ngModel)]="ramDisk" (ngModelChange)="onRAMDiskChanged($event)">
-            <mat-option [value]="'NONE'">No RAM disk</mat-option>
-            <mat-option [value]="'HORIZON'">Horizon</mat-option>
+          <mat-option [value]="'NONE'">No RAM disk</mat-option>
+          <mat-option [value]="'HORIZON'">Horizon</mat-option>
         </mat-select>
-    </mat-form-field>
-    <br>
-    <mat-form-field class="dropdown-setting">
-        <mat-label>TIPI emulation</mat-label>
-        <mat-select [(ngModel)]="tipi" (ngModelChange)="onTIPIEmulationChanged($event)">
+      </mat-form-field>
+      <br>
+        <mat-form-field class="dropdown-setting">
+          <mat-label>TIPI emulation</mat-label>
+          <mat-select [(ngModel)]="tipi" (ngModelChange)="onTIPIEmulationChanged($event)">
             <mat-option [value]="'NONE'">No TIPI emulation</mat-option>
             <mat-option [value]="'MOUSE'">Mouse only</mat-option>
             <mat-option [value]="'FULL'">Full TIPI emulation</mat-option>
-        </mat-select>
-    </mat-form-field>
-    <mat-form-field class="dropdown-setting" *ngIf="tipi === 'FULL'">
-        <mat-label>RPi emulator, e.g. QEMU</mat-label>
-        <input matInput placeholder="Websocket URI" [ngModel]="tipiWebsocketURI" (ngModelChange)="onTIPIWebsocketURIChanged($event)" [ngModelOptions]="{updateOn: 'blur'}" (focus)="onTextFocus()" (blur)="onTextBlur()">
-    </mat-form-field>
-    <div class="checkbox-setting">
-        <mat-checkbox [ngModel]="enableGoogleDrive" (ngModelChange)="onEnableGoogleDriveChanged($event)">Google drives (GDR1, GDR2, GDR3) enabled</mat-checkbox>
-    </div>
-    <div class="checkbox-setting">
-        <mat-checkbox [ngModel]="enablePCKeyboard" (ngModelChange)="onEnablePCKeyboardChanged($event)">PC keyboard</mat-checkbox>
-    </div>
-    <div class="checkbox-setting">
-        <mat-checkbox [ngModel]="enableMapArrowKeys" (ngModelChange)="onEnableMapArrowKeysChanged($event)">Map arrow keys to Fctn+SDEX</mat-checkbox>
-    </div>
-    <div class="checkbox-setting">
-        <mat-checkbox [ngModel]="enablePixelated" (ngModelChange)="onEnablePixelatedChanged($event)">Pixelated image (if supported by browser)</mat-checkbox>
-    </div>
-    <div class="checkbox-setting">
-        <mat-checkbox [ngModel]="enablePauseOnFocusLost" (ngModelChange)="onEnablePauseOnFocusLostChanged($event)">Pause when window loses focus</mat-checkbox>
-    </div>
-    <div class="checkbox-setting">
-        <mat-checkbox [ngModel]="enableDebugReset" (ngModelChange)="onEnableDebugResetChanged($event)">Debug reset (fill RAM with random values)</mat-checkbox>
-    </div>
-    <div class="checkbox-setting">
-        <mat-checkbox [ngModel]="enableH264Codec" (ngModelChange)="onEnableH264CodecChanged($event)">High quality video recording</mat-checkbox>
-    </div>
-</div>
+          </mat-select>
+        </mat-form-field>
+        @if (tipi === 'FULL') {
+          <mat-form-field class="dropdown-setting">
+            <mat-label>RPi emulator, e.g. QEMU</mat-label>
+            <input matInput placeholder="Websocket URI" [ngModel]="tipiWebsocketURI" (ngModelChange)="onTIPIWebsocketURIChanged($event)" [ngModelOptions]="{updateOn: 'blur'}" (focus)="onTextFocus()" (blur)="onTextBlur()">
+          </mat-form-field>
+        }
+        <div class="checkbox-setting">
+          <mat-checkbox [ngModel]="enableGoogleDrive" (ngModelChange)="onEnableGoogleDriveChanged($event)">Google drives (GDR1, GDR2, GDR3) enabled</mat-checkbox>
+        </div>
+        <div class="checkbox-setting">
+          <mat-checkbox [ngModel]="enablePCKeyboard" (ngModelChange)="onEnablePCKeyboardChanged($event)">PC keyboard</mat-checkbox>
+        </div>
+        <div class="checkbox-setting">
+          <mat-checkbox [ngModel]="enableMapArrowKeys" (ngModelChange)="onEnableMapArrowKeysChanged($event)">Map arrow keys to Fctn+SDEX</mat-checkbox>
+        </div>
+        <div class="checkbox-setting">
+          <mat-checkbox [ngModel]="enablePixelated" (ngModelChange)="onEnablePixelatedChanged($event)">Pixelated image (if supported by browser)</mat-checkbox>
+        </div>
+        <div class="checkbox-setting">
+          <mat-checkbox [ngModel]="enablePauseOnFocusLost" (ngModelChange)="onEnablePauseOnFocusLostChanged($event)">Pause when window loses focus</mat-checkbox>
+        </div>
+        <div class="checkbox-setting">
+          <mat-checkbox [ngModel]="enableDebugReset" (ngModelChange)="onEnableDebugResetChanged($event)">Debug reset (fill RAM with random values)</mat-checkbox>
+        </div>
+        <div class="checkbox-setting">
+          <mat-checkbox [ngModel]="enableH264Codec" (ngModelChange)="onEnableH264CodecChanged($event)">High quality video recording</mat-checkbox>
+        </div>
+      </div>
 

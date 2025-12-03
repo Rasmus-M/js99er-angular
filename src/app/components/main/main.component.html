@@ -1,56 +1,60 @@
-<div *ngIf="sidePanelVisible || toolbarVisible" class="app" [ngClass]="{'hide-side-panel': !sidePanelVisible, 'hide-main-controls': !toolbarVisible}">
+@if (sidePanelVisible || toolbarVisible) {
+  <div class="app" [ngClass]="{'hide-side-panel': !sidePanelVisible, 'hide-main-controls': !toolbarVisible}">
     <div class="console-wrapper">
-        <app-console class="console" [diskImages]="diskImages"></app-console>
+      <app-console class="console" [diskImages]="diskImages"></app-console>
     </div>
     <div class="side-panel" [hidden]="!sidePanelVisible">
-        <mat-tab-group [selectedIndex]="tabIndex" (selectedTabChange)="onTabSelected($event)">
-            <mat-tab label="Log">
-                <div class="tab-content">
-                    <log [active]="tabIndex === 0"></log>
-                </div>
-            </mat-tab>
-            <mat-tab label="Disk">
-                <div class="tab-content">
-                    <disk [diskImages]="diskImages"></disk>
-                </div>
-            </mat-tab>
-            <mat-tab label="Tape">
-                <div class="tab-content">
-                    <tape></tape>
-                </div>
-            </mat-tab>
-            <mat-tab label="Keyboard">
-                <div class="tab-content">
-                    <keyboard [visible]="tabIndex === 3"></keyboard>
-                </div>
-            </mat-tab>
-            <mat-tab label="Debugger">
-                <div class="tab-content">
-                    <debugger [visible]="tabIndex === 4"></debugger>
-                </div>
-            </mat-tab>
-            <mat-tab label="Graphics">
-                <div class="tab-content">
-                    <graphics [visible]="tabIndex === 5"></graphics>
-                </div>
-            </mat-tab>
-            <mat-tab label="Options">
-                <div class="tab-content">
-                    <options></options>
-                </div>
-            </mat-tab>
-            <mat-tab label="About">
-                <div class="tab-content">
-                    <about [title]="title" [version]="version" [date]="date"></about>
-                </div>
-            </mat-tab>
-        </mat-tab-group>
+      <mat-tab-group [selectedIndex]="tabIndex" (selectedTabChange)="onTabSelected($event)">
+        <mat-tab label="Log">
+          <div class="tab-content">
+            <log [active]="tabIndex === 0"></log>
+          </div>
+        </mat-tab>
+        <mat-tab label="Disk">
+          <div class="tab-content">
+            <disk [diskImages]="diskImages"></disk>
+          </div>
+        </mat-tab>
+        <mat-tab label="Tape">
+          <div class="tab-content">
+            <tape></tape>
+          </div>
+        </mat-tab>
+        <mat-tab label="Keyboard">
+          <div class="tab-content">
+            <keyboard [visible]="tabIndex === 3"></keyboard>
+          </div>
+        </mat-tab>
+        <mat-tab label="Debugger">
+          <div class="tab-content">
+            <debugger [visible]="tabIndex === 4"></debugger>
+          </div>
+        </mat-tab>
+        <mat-tab label="Graphics">
+          <div class="tab-content">
+            <graphics [visible]="tabIndex === 5"></graphics>
+          </div>
+        </mat-tab>
+        <mat-tab label="Options">
+          <div class="tab-content">
+            <options></options>
+          </div>
+        </mat-tab>
+        <mat-tab label="About">
+          <div class="tab-content">
+            <about [title]="title" [version]="version" [date]="date"></about>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
     </div>
     <div class="main-controls" [hidden]="!toolbarVisible">
-        <app-main-controls></app-main-controls>
+      <app-main-controls></app-main-controls>
     </div>
-</div>
+  </div>
+}
 
-<div *ngIf="!sidePanelVisible && !toolbarVisible" class="console-wrapper">
+@if (!sidePanelVisible && !toolbarVisible) {
+  <div class="console-wrapper">
     <app-console class="console" [diskImages]="diskImages"></app-console>
-</div>
+  </div>
+}
