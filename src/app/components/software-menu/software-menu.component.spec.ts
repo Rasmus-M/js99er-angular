@@ -7,6 +7,9 @@ import { MatMenuModule } from "@angular/material/menu";
 import {ModuleService} from "../../services/module.service";
 import {HttpClient, HttpHandler} from "@angular/common/http";
 import {CommandDispatcherService} from "../../services/command-dispatcher.service";
+import {DiskService} from "../../services/disk.service";
+import {ObjectLoaderService} from "../../services/object-loader.service";
+import {SettingsService} from "../../services/settings.service";
 
 describe('SoftwareMenuComponent', () => {
     let component: SoftwareMenuComponent;
@@ -17,7 +20,7 @@ describe('SoftwareMenuComponent', () => {
             schemas: [NO_ERRORS_SCHEMA],
             declarations: [SoftwareMenuComponent],
             imports: [MatMenuModule, MatDialogModule],
-            providers: [ModuleService, HttpClient, HttpHandler, CommandDispatcherService]
+            providers: [ModuleService, HttpClient, HttpHandler, CommandDispatcherService, DiskService, ObjectLoaderService, SettingsService]
         }).compileComponents();
     }));
 

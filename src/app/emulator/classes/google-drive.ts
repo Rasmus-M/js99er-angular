@@ -130,7 +130,7 @@ export class GoogleDrive {
         });
    }
 
-    insertOrUpdateFile(fileName: string, parent: string, fileData: Uint8Array, callback: (file: any) => void) {
+    insertOrUpdateFile(fileName: string, parent: string, fileData: Uint8Array<ArrayBuffer>, callback: (file: any) => void) {
         this.findFile(fileName, parent, (fileId) => {
             if (fileId === null) {
                 this.insertFile(fileName, parent, fileData, callback);
@@ -140,7 +140,7 @@ export class GoogleDrive {
         });
    }
 
-    insertFile(fileName: string, parent: string, fileData: Uint8Array, callback: (file: any) => void) {
+    insertFile(fileName: string, parent: string, fileData: Uint8Array<ArrayBuffer>, callback: (file: any) => void) {
         const boundary = '-------314159265358979323846';
         const delimiter = "\r\n--" + boundary + "\r\n";
         const close_delim = "\r\n--" + boundary + "--";
@@ -179,7 +179,7 @@ export class GoogleDrive {
         };
    }
 
-    updateFile(fileId: string, fileData: Uint8Array, callback: (file: any) => void) {
+    updateFile(fileId: string, fileData: Uint8Array<ArrayBuffer>, callback: (file: any) => void) {
         const boundary = '-------314159265358979323846';
         const delimiter = "\r\n--" + boundary + "\r\n";
         const close_delim = "\r\n--" + boundary + "--";

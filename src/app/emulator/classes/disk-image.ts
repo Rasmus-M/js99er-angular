@@ -40,7 +40,7 @@ export class DiskImage implements Stateful {
     private name: string;
     private files: {[name: string]: DiskFile};
     private physicalProperties: PhysicalProperties;
-    private binaryImage: Uint8Array | null;
+    private binaryImage: Uint8Array<ArrayBuffer> | null;
     private eventHandler: null | ((event: DiskImageEvent) => void);
     private timeout: number;
     private log: Log;
@@ -270,7 +270,7 @@ export class DiskImage implements Stateful {
         return null;
     }
 
-    createTIFile(fileName: string): Uint8Array | null {
+    createTIFile(fileName: string): Uint8Array<ArrayBuffer> | null {
         const file = this.getFile(fileName);
         if (file) {
             const data: number[] = [];
@@ -337,7 +337,7 @@ export class DiskImage implements Stateful {
         }, 2000);
     }
 
-    getBinaryImage(): Uint8Array {
+    getBinaryImage(): Uint8Array<ArrayBuffer> {
         if (this.binaryImage == null) {
             this.binaryImage = this.createBinaryImage();
         }
@@ -348,7 +348,7 @@ export class DiskImage implements Stateful {
         this.binaryImage = null;
     }
 
-    loadBinaryImage(fileBuffer: Uint8Array) {
+    loadBinaryImage(fileBuffer: Uint8Array<ArrayBuffer>) {
         let volumeName = "";
         for (let i = 0; i < 10; i++) {
             const ch = fileBuffer[i];
@@ -418,7 +418,7 @@ export class DiskImage implements Stateful {
         this.fireEvent(new DiskImageEvent('PHYSICAL_PROPERTIES_CHANGED', '', this));
     }
 
-    private createBinaryImage(): Uint8Array {
+    private createBinaryImage(): Uint8Array<ArrayBuffer> {
         const totalSectors = this.physicalProperties.totalSectors;
         const sectorsPerAU = this.getSectorsPerAllocationUnit();
         // this.log.info("Sectors per AU: " + sectorsPerAU);

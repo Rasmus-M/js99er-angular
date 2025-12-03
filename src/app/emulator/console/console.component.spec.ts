@@ -71,7 +71,7 @@ class ConsoleMock implements Console {
     }
 
     getSpeech(): Speech {
-        return new TMS5200(true);
+        return new TMS5200(true, new TMS9900(this));
     }
 
     getTape(): Tape {

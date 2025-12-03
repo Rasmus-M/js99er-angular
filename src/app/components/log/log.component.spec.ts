@@ -1,6 +1,7 @@
 import {waitForAsync, ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {LogComponent} from './log.component';
+import {NO_ERRORS_SCHEMA} from "@angular/core";
 
 describe('LogComponent', () => {
     let component: LogComponent;
@@ -8,7 +9,8 @@ describe('LogComponent', () => {
 
     beforeEach(waitForAsync(() => {
         TestBed.configureTestingModule({
-            declarations: [LogComponent]
+            declarations: [LogComponent],
+            schemas: [NO_ERRORS_SCHEMA]
         }).compileComponents();
     }));
 

@@ -23,7 +23,7 @@ export class DiskDrive implements Stateful {
         this.diskImage = diskImage;
     }
 
-    loadBinaryImage(dskFileName: string, fileBuffer: Uint8Array, eventHandler: (event: DiskImageEvent) => void): DiskImage {
+    loadBinaryImage(dskFileName: string, fileBuffer: Uint8Array<ArrayBuffer>, eventHandler: (event: DiskImageEvent) => void): DiskImage {
         const diskImage = new DiskImage(dskFileName, eventHandler);
         diskImage.loadBinaryImage(fileBuffer);
         this.setDiskImage(diskImage);
