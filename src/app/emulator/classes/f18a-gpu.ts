@@ -320,10 +320,11 @@ export class F18AGPU extends CPUCommon implements CPU {
             case 0xA000:
                 return this.f18a.getVersion();
             case 0xB000:
+                // 7 least significant bits, goes to an enhanced status register for the host CPU to read
             case 0xC000:
             case 0xD000:
-                return 0;
             case 0xE000:
+                return 0;
             // GPU register
             case 0xF000:
                 return vdpRAM[addr];
