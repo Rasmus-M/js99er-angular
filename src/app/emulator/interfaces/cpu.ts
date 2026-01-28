@@ -15,7 +15,7 @@ export interface CPU extends Stateful {
     setSuspended(suspended: boolean): void;
     isIdle(): boolean;
     isStoppedAtBreakpoint(): boolean;
-    setBreakpoints(breakpoint: Breakpoint[]): void;
+    setBreakpoints(breakpoints: Breakpoint[]): void;
     breakAfterNext(): void;
     getInternalRegsString(detailed: boolean): string;
     getRegsStringFormatted(detailed: boolean): string;

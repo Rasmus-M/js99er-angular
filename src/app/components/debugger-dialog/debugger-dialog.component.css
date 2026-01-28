@@ -1,6 +1,11 @@
-hex-input-field {
+.address-field {
     display: inline-block;
     width: 45%;
+    padding-right: 8px;
+}
+
+.breakpoint-type-field {
+    width: 40%;
     padding-right: 8px;
 }
 

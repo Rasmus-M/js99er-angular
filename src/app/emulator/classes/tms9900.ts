@@ -6,6 +6,7 @@ import {Opcode} from "../../classes/opcode";
 import {Disassembler} from "../../classes/disassembler";
 import {CPUCommon} from "./cpu-common";
 import {Console} from "../interfaces/console";
+import {BreakpointType} from "../../classes/breakpoint";
 
 export class TMS9900 extends CPUCommon implements CPU {
 
@@ -25,7 +26,7 @@ export class TMS9900 extends CPUCommon implements CPU {
     private disassembler: Disassembler;
 
     constructor(console: Console) {
-        super();
+        super(BreakpointType.INSTRUCTION);
         this.console = console;
         this.disassembler = new Disassembler();
         this.addSpecialInstructions();
@@ -72,16 +73,15 @@ export class TMS9900 extends CPUCommon implements CPU {
         const startCycles = this.cycles;
         const countStartPC = this.cycleCountStart;
         const countEndPC = this.cycleCountEnd;
-        while (this.cycles - startCycles < cyclesToRun && !this.suspended) {
-            const atBreakpoint = this.atBreakpoint() && !skipBreakpoint;
-            if (atBreakpoint) {
+        while (this.cycles - startCycles < cyclesToRun && !this.suspended && !this.stoppedAtBreakpoint) {
+            if (this.atInstructionBreakpoint() && !skipBreakpoint) {
                 // Handle breakpoint
                 this.log.info("At breakpoint " + Util.toHexWord(this.pc));
                 if (this.pc === this.auxBreakpoint) {
                     this.auxBreakpoint = null;
                 }
                 this.stoppedAtBreakpoint = true;
-                cyclesToRun = -1;
+                // cyclesToRun = -1;
             } else {
                 // Execute instruction
                 this.instructionSubject.next(this.pc);
@@ -139,6 +139,11 @@ export class TMS9900 extends CPUCommon implements CPU {
     }
 
     writeMemoryWord(addr: number, w: number) {
+        for (const breakpoint of this.breakpoints) {
+            if (breakpoint.type === BreakpointType.CPU_MEMORY_WRITE && addr === breakpoint.addr) {
+                this.stoppedAtBreakpoint = true;
+            }
+        }
         this.memory.writeWord(addr, w, this);
     }
 
@@ -148,6 +153,11 @@ export class TMS9900 extends CPUCommon implements CPU {
     }
 
     readMemoryWord(addr: number): number {
+        for (const breakpoint of this.breakpoints) {
+            if (breakpoint.type === BreakpointType.CPU_MEMORY_READ && addr === breakpoint.addr) {
+                this.stoppedAtBreakpoint = true;
+            }
+        }
         return this.memory.readWord(addr, this);
     }
 

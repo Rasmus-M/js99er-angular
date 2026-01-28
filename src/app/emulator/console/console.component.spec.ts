@@ -28,8 +28,6 @@ import {TMS9900} from "../classes/tms9900";
 import {TMS5200} from "../classes/tms5200";
 import {TMS9918A} from "../classes/tms9918a";
 import {WasmService} from "../../services/wasm.service";
-import {TiFDC} from "../classes/ti-fdc";
-import {GoogleDrive} from "../classes/google-drive";
 import {GenericFdc} from "../classes/generic-fdc";
 import {GoogleDriveFDC} from "../classes/google-drive-fdc";
 import {FDC} from "../interfaces/fdc";
@@ -63,7 +61,7 @@ class ConsoleMock implements Console {
     }
 
     getMemory(): Memory {
-        return new Memory(this, this.settings);
+        return new Memory(this, this.settings, () => {});
     }
 
     getPSG(): PSG {
@@ -158,7 +156,7 @@ class ConsoleMock implements Console {
 }
 
 class ConsoleFactoryMock {
-    create(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: DiskImage[], settings: Settings, onBreakpoint: (cpu: CPU) => void): Console {
+    create(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: DiskImage[], settings: Settings, onBreakpoint: () => void): Console {
         return new ConsoleMock();
     }
 }

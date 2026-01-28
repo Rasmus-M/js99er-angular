@@ -324,9 +324,9 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             const breakpoint = this.breakpoints.find(bp => bp.addr === line.addr);
             if (!breakpoint) {
                 let found = false;
-                for (const breakpoint of this.breakpoints) {
-                    if (isNaN(breakpoint.addr)) {
-                        breakpoint.addr = lineAddr;
+                for (const bp of this.breakpoints) {
+                    if (isNaN(bp.addr)) {
+                        bp.addr = lineAddr;
                         found = true;
                         break;
                     }
@@ -398,6 +398,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             (value) => {
                 if (value) {
                     this.ti994A.getCPU().setCycleCount(value.cycleCountStart, value.cycleCountEnd);
+                    this.onBreakpointAddressChanged();
                     this.updateDebugger(true);
                 }
             }

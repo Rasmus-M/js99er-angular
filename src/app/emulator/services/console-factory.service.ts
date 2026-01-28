@@ -19,7 +19,7 @@ export class ConsoleFactoryService {
       private databaseService: DatabaseService
   ) { }
 
-  create(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: DiskImage[], onBreakpoint: (cpu: CPU) => void): Console {
+  create(document: HTMLDocument, canvas: HTMLCanvasElement, diskImages: DiskImage[], onBreakpoint: () => void): Console {
      const ti994A = new TI994A(document, canvas, diskImages, this.settingsService.getSettings(), this.databaseService, this.wasmService, onBreakpoint);
      ti994A.reset(false);
      return ti994A;

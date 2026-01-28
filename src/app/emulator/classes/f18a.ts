@@ -1024,6 +1024,10 @@ export class F18A implements VDP {
         return i;
     }
 
+    getRAMAddress() {
+        return this.addressRegister;
+    }
+
     getRAM() {
         return this.ram;
     }

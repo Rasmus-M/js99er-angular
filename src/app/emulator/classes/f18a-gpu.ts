@@ -4,6 +4,7 @@ import {F18AFlash} from './f18a-flash';
 import {Util} from '../../classes/util';
 import {Opcode} from "../../classes/opcode";
 import {CPUCommon} from "./cpu-common";
+import {BreakpointType} from "../../classes/breakpoint";
 
 export class F18AGPU extends CPUCommon implements CPU {
 
@@ -30,7 +31,7 @@ export class F18AGPU extends CPUCommon implements CPU {
     private cpuIdle: boolean;
 
     constructor(f18a: F18A) {
-        super();
+        super(BreakpointType.GPU_INSTRUCTION);
         this.f18a = f18a;
         this.addSpecialInstructions();
     }
@@ -101,8 +102,7 @@ export class F18AGPU extends CPUCommon implements CPU {
         this.stoppedAtBreakpoint = false;
         const startCycles = this.cycles;
         while (!this.cpuIdle && this.cycles - startCycles < cyclesToRun) {
-            const atBreakpoint = this.atBreakpoint() && !skipBreakpoint;
-            if (atBreakpoint) {
+            if (this.atInstructionBreakpoint() && !skipBreakpoint) {
                 // Handle breakpoint
                 this.auxBreakpoint = null;
                 this.stoppedAtBreakpoint = true;

@@ -20,6 +20,7 @@ import {Cartridge} from "./cartridge";
 import {Software} from "../../classes/software";
 import {RAM32K} from "./ram-32k";
 import {Horizon} from "./horizon";
+import {Breakpoint, BreakpointType} from "../../classes/breakpoint";
 
 export class Memory implements Stateful, MemoryDevice {
 
@@ -63,11 +64,15 @@ export class Memory implements Stateful, MemoryDevice {
 
     private memoryMap: Function[][];
 
+    private breakpoints: Breakpoint[] = [];
+    private onBreakpoint: () => void;
+
     private log: Log = Log.getLog();
 
-    constructor(console: Console, settings: Settings) {
+    constructor(console: Console, settings: Settings, onBreakpoint: () => void) {
         this.console = console;
         this.settings = settings;
+        this.onBreakpoint = onBreakpoint;
     }
 
     public registerPeripheralCard(card: PeripheralCard) {
@@ -388,17 +393,25 @@ export class Memory implements Stateful, MemoryDevice {
     }
 
     private readVDP(addr: number, cpu: CPU): number {
+        const vdpAddr = this.vdp.getRAMAddress();
         cpu.addCycles(4);
         addr = addr & 0x8802;
+        let value = 0;
         if (addr === Memory.VDPRD) {
-            return this.vdp.readData() << 8;
+            value = this.vdp.readData() << 8;
         } else if (addr === Memory.VDPSTA) {
-            return this.vdp.readStatus() << 8;
+            value = this.vdp.readStatus() << 8;
         }
-        return 0;
+        for (const breakpoint of this.breakpoints) {
+            if (breakpoint.type === BreakpointType.VDP_MEMORY_READ && breakpoint.addr === vdpAddr) {
+                this.onBreakpoint();
+            }
+        }
+        return value;
     }
 
     private writeVDP(addr: number, w: number, cpu: CPU) {
+        const vdpAddr = this.vdp.getRAMAddress();
         cpu.addCycles(4);
         switch (addr & 0x8C06) {
             case Memory.VDPWD:
@@ -413,6 +426,11 @@ export class Memory implements Stateful, MemoryDevice {
             case Memory.VDPWC:
                 this.vdp.writeRegisterIndirect(w >> 8);
                 break;
+        }
+        for (const breakpoint of this.breakpoints) {
+            if (breakpoint.type === BreakpointType.VDP_MEMORY_WRITE && breakpoint.addr === vdpAddr) {
+                this.onBreakpoint();
+            }
         }
     }
 
@@ -580,6 +598,10 @@ export class Memory implements Stateful, MemoryDevice {
 
     public getMemorySize(): number {
         return 0x10000;
+    }
+
+    setBreakpoints(breakpoints: Breakpoint[]): void {
+        this.breakpoints = breakpoints;
     }
 
     setRAMAt0000(enabled: boolean) {

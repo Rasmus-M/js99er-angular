@@ -16,6 +16,7 @@ export interface VDP extends Stateful, MemoryDevice {
     writeRegisterIndirect(i: number): void;
     readStatus(): number;
     readData(): number;
+    getRAMAddress(): number;
     getRAM(): Uint8Array;
     getRegister(r: number): number;
     getRegsString(detailed: boolean): string;

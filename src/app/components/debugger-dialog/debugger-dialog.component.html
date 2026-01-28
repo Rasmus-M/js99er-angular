@@ -1,13 +1,24 @@
 <h1 mat-dialog-title>Debugger properties</h1>
 <div mat-dialog-content>
     <div class="row">
-        <hex-input-field [(model)]="data.cycleCountStart" [placeholder]="'Cycle count start address'"></hex-input-field>
-        <hex-input-field [(model)]="data.cycleCountEnd" [placeholder]="'Cycle count end address'"></hex-input-field>
+        <hex-input-field class="address-field" [(model)]="data.cycleCountStart" [placeholder]="'Cycle count start address'"></hex-input-field>
+        <hex-input-field class="address-field" [(model)]="data.cycleCountEnd" [placeholder]="'Cycle count end address'"></hex-input-field>
     </div>
     <mat-divider></mat-divider>
     @for (breakpoint of data.breakpoints; track $index) {
         <div class="row">
             <hex-input-field class="address-field" [digits]="4" [(model)]="breakpoint.addr" [placeholder]="'Breakpoint ' + ($index + 1)"></hex-input-field>
+            <mat-form-field class="breakpoint-type-field">
+                <mat-label>Break on</mat-label>
+                <mat-select [(ngModel)]="breakpoint.type" [disabled]="$index === 0">
+                    <mat-option [value]="BreakpointType.INSTRUCTION">Instruction</mat-option>
+                    <mat-option [value]="BreakpointType.GPU_INSTRUCTION">GPU instruction</mat-option>
+                    <mat-option [value]="BreakpointType.CPU_MEMORY_READ">CPU memory read</mat-option>
+                    <mat-option [value]="BreakpointType.CPU_MEMORY_WRITE">CPU memory write</mat-option>
+                    <mat-option [value]="BreakpointType.VDP_MEMORY_READ">VDP memory read</mat-option>
+                    <mat-option [value]="BreakpointType.VDP_MEMORY_WRITE">VDP memory write</mat-option>
+                </mat-select>
+            </mat-form-field>
             @if ($index > 0) {
                 <button mat-mini-fab color="warn" class="delete-button" (click)="deleteBreakpoint(breakpoint)"><fa-icon [icon]="deleteIcon"></fa-icon></button>
             }

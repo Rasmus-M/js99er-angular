@@ -355,6 +355,10 @@ export class TMS9918A implements VDP {
         return i;
     }
 
+    getRAMAddress() {
+        return this.addressRegister;
+    }
+
     getRAM(): Uint8Array {
         return this.ram;
     }

@@ -776,6 +776,10 @@ export class V9938 implements VDP {
         return this.vram_r();
     }
 
+    getRAMAddress() {
+        return (this.cont_reg[14] << 8) | this.address_latch;
+    }
+
     getRAM(): Uint8Array {
         return this.vram_space;
     }

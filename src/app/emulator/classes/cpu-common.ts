@@ -122,6 +122,7 @@ export abstract class CPUCommon implements CPU {
     };
 
     // Misc
+    protected breakpointType: BreakpointType;
     protected breakpoints: Breakpoint[];
     protected auxBreakpoint: number | null;
     protected stoppedAtBreakpoint: boolean;
@@ -129,7 +130,8 @@ export abstract class CPUCommon implements CPU {
     protected instructionSubject = new Subject<number>();
     protected log = Log.getLog();
 
-    constructor() {
+    constructor(breakpointType: BreakpointType) {
+        this.breakpointType = breakpointType;
         this.breakpoints = [];
     }
 
@@ -1449,9 +1451,9 @@ export abstract class CPUCommon implements CPU {
         return this.stoppedAtBreakpoint;
     }
 
-    atBreakpoint(): boolean {
+    atInstructionBreakpoint(): boolean {
         for (const breakpoint of this.breakpoints) {
-            if ((this.pc & breakpoint.mask) === breakpoint.addr) {
+            if (breakpoint.type === this.breakpointType && (this.pc & breakpoint.mask) === breakpoint.addr) {
                 return true;
             }
         }

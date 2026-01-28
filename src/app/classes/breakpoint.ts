@@ -1,5 +1,6 @@
 export enum BreakpointType {
     INSTRUCTION,
+    GPU_INSTRUCTION,
     CPU_MEMORY_READ,
     CPU_MEMORY_WRITE,
     VDP_MEMORY_READ,

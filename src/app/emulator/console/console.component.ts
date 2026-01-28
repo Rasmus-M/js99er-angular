@@ -9,7 +9,6 @@ import {Log} from '../../classes/log';
 import {DiskService} from '../../services/disk.service';
 import {SettingsService} from '../../services/settings.service';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
-import {CPU} from '../interfaces/cpu';
 import {DiskDrive} from '../classes/disk-drive';
 import {Tape} from '../classes/tape';
 import {Software} from '../../classes/software';
@@ -286,6 +285,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                 if (gpu) {
                     gpu.setBreakpoints(breakpoints);
                 }
+                this.ti994A.getMemory().setBreakpoints(breakpoints);
                 break;
             case CommandType.INSERT_DISK: {
                     const diskDrive: DiskDrive = this.ti994A.getDiskDrives()[command.data.driveIndex];
@@ -431,7 +431,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
-    onBreakpoint(cpu: CPU) {
+    onBreakpoint() {
         this.stop();
     }
 
