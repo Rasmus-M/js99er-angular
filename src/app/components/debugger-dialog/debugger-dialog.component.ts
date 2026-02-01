@@ -26,7 +26,7 @@ export class DebuggerDialogComponent {
     ) {}
 
     addBreakpoint() {
-        this.data.breakpoints.push(new Breakpoint(BreakpointType.INSTRUCTION, NaN, 0xffff));
+        this.data.breakpoints.push(new Breakpoint(BreakpointType.INSTRUCTION, NaN));
     }
 
     deleteBreakpoint(breakpoint: Breakpoint) {

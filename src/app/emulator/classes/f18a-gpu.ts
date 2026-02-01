@@ -101,12 +101,12 @@ export class F18AGPU extends CPUCommon implements CPU {
     run(cyclesToRun: number, skipBreakpoint?: boolean): number {
         this.stoppedAtBreakpoint = false;
         const startCycles = this.cycles;
-        while (!this.cpuIdle && this.cycles - startCycles < cyclesToRun) {
+        while (this.cycles - startCycles < cyclesToRun && !this.cpuIdle && !this.stoppedAtBreakpoint) {
             if (this.atInstructionBreakpoint() && !skipBreakpoint) {
                 // Handle breakpoint
+                this.log.info("At breakpoint " + Util.toHexWord(this.pc));
                 this.auxBreakpoint = null;
                 this.stoppedAtBreakpoint = true;
-                cyclesToRun = -1;
             } else {
                 // Execute instruction
                 const tmpPC = this.getPc();
@@ -152,6 +152,11 @@ export class F18AGPU extends CPUCommon implements CPU {
 
     writeMemoryWord(addr: number, w: number) {
         addr &= 0xFFFE;
+        // for (const breakpoint of this.breakpoints) {
+        //     if (breakpoint.type === BreakpointType.CPU_MEMORY_WRITE && this.pc === breakpoint.addr) {
+        //         this.stoppedAtBreakpoint = true;
+        //     }
+        // }
         this.writeMemoryByte(addr, (w & 0xFF00) >> 8);
         this.writeMemoryByte(addr + 1, w & 0x00FF);
     }
@@ -264,6 +269,11 @@ export class F18AGPU extends CPUCommon implements CPU {
     }
 
     readMemoryWord(addr: number): number {
+        // for (const breakpoint of this.breakpoints) {
+        //     if (breakpoint.type === BreakpointType.CPU_MEMORY_READ && this.pc === breakpoint.addr) {
+        //         this.stoppedAtBreakpoint = true;
+        //     }
+        // }
         return (this.readMemoryByte(addr) << 8) | this.readMemoryByte(addr + 1);
     }
 

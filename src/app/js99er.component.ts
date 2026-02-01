@@ -21,8 +21,8 @@ export class Js99erComponent implements OnInit
 {
 
     static readonly TITLE = "JS99'er";
-    static readonly VERSION = "16.0.0";
-    static readonly DATE = "December 3, 2025";
+    static readonly VERSION = "16.1.0";
+    static readonly DATE = "January 30, 2025";
 
     constructor(
         private elm: ElementRef,

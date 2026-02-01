@@ -84,7 +84,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         this.eventSubscription = this.eventDispatcherService.subscribe((event) => {
             this.onEvent(event);
         });
-        this.breakpoint = new Breakpoint(BreakpointType.INSTRUCTION, NaN, 0xffff);
+        this.breakpoint = new Breakpoint(BreakpointType.INSTRUCTION, NaN);
         this.breakpoints.push(this.breakpoint);
     }
 
@@ -321,23 +321,25 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             const lineNo = Math.floor(($memory.prop('scrollTop') + event.offsetY) / lineHeight);
             const line = this.memoryView.lines[lineNo];
             const lineAddr = line.addr !== null ? line.addr : NaN;
-            const breakpoint = this.breakpoints.find(bp => bp.addr === line.addr);
-            if (!breakpoint) {
-                let found = false;
-                for (const bp of this.breakpoints) {
-                    if (isNaN(bp.addr)) {
-                        bp.addr = lineAddr;
-                        found = true;
-                        break;
+            const existingBreakpoint = this.breakpoints.find(bp => bp.addr === line.addr);
+            if (!existingBreakpoint || existingBreakpoint.type === BreakpointType.INSTRUCTION) {
+                if (!existingBreakpoint) {
+                    let found = false;
+                    for (const bp of this.breakpoints) {
+                        if (isNaN(bp.addr)) {
+                            bp.addr = lineAddr;
+                            found = true;
+                            break;
+                        }
                     }
-                }
-                if (!found) {
-                    this.breakpoints.push(new Breakpoint(BreakpointType.INSTRUCTION, lineAddr , 0xffff));
-                }
-            } else {
-                breakpoint.addr = NaN;
-                while (this.breakpoints.length > 1 && isNaN(this.breakpoints[this.breakpoints.length - 1].addr)) {
-                    this.breakpoints.pop();
+                    if (!found) {
+                        this.breakpoints.push(new Breakpoint(BreakpointType.INSTRUCTION, lineAddr));
+                    }
+                } else {
+                    existingBreakpoint.addr = NaN;
+                    while (this.breakpoints.length > 1 && isNaN(this.breakpoints[this.breakpoints.length - 1].addr)) {
+                        this.breakpoints.pop();
+                    }
                 }
             }
             this.onBreakpointAddressChanged();
