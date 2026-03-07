@@ -190,7 +190,8 @@ export class TI994A implements Console, Stateful {
                 this.vdp = new TMS9918A(this.canvas, this, this.wasmService);
                 break;
             case 'F18A':
-                this.vdp = new F18A(this.canvas, this, this.wasmService);
+            case 'PICO9918':
+                this.vdp = new F18A(this.canvas, this, this.wasmService, this.settings.getVDP());
                 break;
             case 'V9938':
                 this.vdp = new V9938(this.canvas, this);
@@ -335,13 +336,19 @@ export class TI994A implements Console, Stateful {
     frame(skipBreakpoint?: boolean) {
         const cpuSpeed = this.cpuSpeed;
         let cyclesToRun = TMS9900.CYCLES_PER_FRAME * cpuSpeed;
-        const cyclesPerScanline = TMS9900.CYCLES_PER_SCANLINE * cpuSpeed;
-        const f18ACyclesPerScanline = F18AGPU.CYCLES_PER_SCANLINE;
+        let cyclesPerScanline = TMS9900.CYCLES_PER_SCANLINE * cpuSpeed;
+        let f18ACyclesPerScanline = F18AGPU.CYCLES_PER_SCANLINE;
+        let maxVisibleScanlines = 240;
+        if (this.settings.getVDP() === 'PICO9918') {
+            cyclesPerScanline /= 2;
+            f18ACyclesPerScanline /= 2;
+            maxVisibleScanlines *= 2;
+        }
         let extraCycles = 0;
         let y = 0;
         this.vdp.initFrame();
         while (cyclesToRun > 0) {
-            if (y < 240) {
+            if (y < maxVisibleScanlines) {
                 this.vdp.drawScanline(y);
             } else {
                 this.vdp.drawInvisibleScanline(y);

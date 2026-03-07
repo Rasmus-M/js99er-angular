@@ -23,7 +23,7 @@ export type PSGType = 'STANDARD' | 'FORTI';
 
 export type RAMType = 'NONE' | '32K' | 'SAMS1M' | 'SAMS4M' | 'SAMS16M';
 
-export type VDPType = 'TMS9918A' | 'F18A' | 'V9938';
+export type VDPType = 'TMS9918A' | 'F18A' | 'PICO9918' | 'V9938';
 
 export type TIPIType = 'NONE' | 'MOUSE' | 'FULL';
 

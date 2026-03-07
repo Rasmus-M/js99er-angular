@@ -78,9 +78,10 @@ export function drawScanline(
     patternTableMask: i32,
     colorTableMask: i32,
     fgColor: i32,
-    statusRegister: u8
+    statusRegister: u8,
+    duplicateScanline: bool
 ): u8 {
-    let pixelOffset: i32 = (y * width) << (screenMode === MODE_TEXT_80 ? 1 : 0);
+    let pixelOffset: i32 = (y * width) << (duplicateScanline ? 1 : 0);
     if (displayOn && y >= topBorder && y < topBorder + drawHeight) {
         y -= topBorder;
         // Prepare sprites
@@ -311,7 +312,7 @@ export function drawScanline(
             setImageData(pixelOffset2++, dimmedRgbColor);
         }
     }
-    if (screenMode === MODE_TEXT_80) {
+    if (duplicateScanline) {
         duplicateLastScanline(pixelOffset, width);
     }
     return statusRegister;

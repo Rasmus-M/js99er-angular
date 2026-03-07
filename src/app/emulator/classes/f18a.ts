@@ -108,6 +108,7 @@ export class F18A implements VDP {
     private psg: PSG;
     private cru: CRU;
     private wasmService: WasmService;
+    private vdpType: VDPType;
 
     // Allocate full 64K, but actually only using 16K VDP RAM + 2K VDP GRAM
     // + 32 bytes for GPU registers
@@ -156,6 +157,7 @@ export class F18A implements VDP {
     private tileLayer1Enabled: boolean;
     private tileLayer2Enabled: boolean;
     private row30Enabled: boolean;
+    private halfHeightCharactersEnabled: boolean;
     private spriteLinkingEnabled: boolean;
     private hScroll1: number;
     private vScroll1: number;
@@ -208,10 +210,11 @@ export class F18A implements VDP {
 
     private log: Log = Log.getLog();
 
-    constructor(canvas: HTMLCanvasElement, console: TI994A, wasmService: WasmService) {
+    constructor(canvas: HTMLCanvasElement, console: TI994A, wasmService: WasmService, vdpType: VDPType) {
         this.canvas = canvas;
         this.console = console;
         this.wasmService = wasmService;
+        this.vdpType = vdpType;
         const canvasContext = canvas.getContext('2d');
         if (canvasContext) {
             this.canvasContext = canvasContext;
@@ -298,6 +301,7 @@ export class F18A implements VDP {
         this.tileLayer1Enabled = true;
         this.tileLayer2Enabled = false;
         this.row30Enabled = false;
+        this.halfHeightCharactersEnabled = false;
         this.spriteLinkingEnabled = false;
         this.hScroll1 = 0;
         this.vScroll1 = 0;
@@ -338,7 +342,7 @@ export class F18A implements VDP {
         this.lastTime = 0;
 
         if (!this.gpu) {
-            this.gpu = new F18AGPU(this);
+            this.gpu = new F18AGPU(this, this.vdpType);
         }
         this.gpu.reset();
 
@@ -411,9 +415,9 @@ export class F18A implements VDP {
             this.canvasHeight = this.canvas.height = newCanvasHeight;
         }
         this.drawWidth = this.screenMode === F18A.MODE_TEXT_80 ? 512 : 256;
-        this.drawHeight = this.row30Enabled ? 240 : 192;
+        this.drawHeight = (this.row30Enabled ? 240 : 192) << (this.halfHeightCharactersEnabled ? 1 : 0);
         this.leftBorder = Math.floor((this.canvasWidth - this.drawWidth) >> 1);
-        this.topBorder = Math.floor(((this.canvasHeight >> (this.screenMode === F18A.MODE_TEXT_80 ? 1 : 0)) - this.drawHeight) >> 1);
+        this.topBorder = Math.floor(((this.canvasHeight >> (this.screenMode === F18A.MODE_TEXT_80 && !this.halfHeightCharactersEnabled ? 1 : 0)) - this.drawHeight) >> 1);
         if (newDimensions) {
             this.fillCanvas(this.bgColor);
             this.imageData = new ImageData(new Uint8ClampedArray(this.wasmService.getMemoryBuffer(), imageDataAddr, (this.canvasWidth * this.canvasHeight) << 2), this.canvasWidth, this.canvasHeight);
@@ -431,7 +435,9 @@ export class F18A implements VDP {
     drawScanline(y: number) {
         this.currentScanline = y >= this.topBorder ? y - this.topBorder : 255;
         this.blanking = (y < this.topBorder || y >= this.topBorder + this.drawHeight) ? 1 : 0;
-
+        if (this.vdpType === 'PICO9918' && !this.halfHeightCharactersEnabled) {
+            y >>= 1;
+        }
         this.statusRegister = this.wasmService.getExports().drawScanlineF18a(
             y,
             this.canvasWidth,
@@ -490,7 +496,8 @@ export class F18A implements VDP {
             this.patternTableMask,
             this.colorTableMask,
             this.fgColor,
-            this.statusRegister
+            this.statusRegister,
+            this.screenMode === F18A.MODE_TEXT_80 && !this.halfHeightCharactersEnabled
         );
 
         this.blanking = 1; // GPU code after scanline may depend on this
@@ -868,6 +875,7 @@ export class F18A implements VDP {
 
     updateMode(reg0: number, reg1: number) {
         const oldMode = this.screenMode;
+        this.halfHeightCharactersEnabled = false;
         // Check bitmap mode bit, not text or multicolor
         if ((reg0 & 0x2) !== 0 && (reg1 & 0x18) === 0) {
             // Bitmap mode
@@ -893,6 +901,10 @@ export class F18A implements VDP {
                     } else {
                         this.screenMode = F18A.MODE_TEXT_80;
                         this.log.info("Text 80 mode selected");
+                        this.halfHeightCharactersEnabled = this.vdpType === 'PICO9918' && (reg0 & 0x08) !== 0;
+                        if (this.halfHeightCharactersEnabled) {
+                            this.log.info("Half height characters enabled");
+                        }
                     }
                     break;
             }
@@ -975,7 +987,7 @@ export class F18A implements VDP {
                 return i;
             case 1:
                 // ID
-                return 0xe0;
+                return this.vdpType === 'F18A' ? 0xe0 : 0xe8;
             case 2:
                 // GPU status
                 return (this.gpu.isIdle() ? 0 : 0x80) | (this.ram[0xb000] & 0x7f);
@@ -1208,7 +1220,7 @@ export class F18A implements VDP {
             pixelOffset: number,
             color: number,
             rgbColor: number[],
-            imageDataAddr = 0;
+            imgDataAddr = 0;
         for (let y = 0; y < baseHeight; y++) {
             rowNameOffset = (y >> 3) << 5;
             lineOffset = y & 7;
@@ -1267,6 +1279,7 @@ export class F18A implements VDP {
                         color = (patternByte & (0x80 >> (x & 7))) !== 0 ? (colorByte & 0xF0) >> 4 : colorByte & 0x0F;
                         break;
                     case F18A.MODE_TEXT:
+                    case F18A.MODE_TEXT_80:
                         name = rowNameOffset + (x >> 3);
                         patternByte = ram[charPatternTable + (name << 3) + lineOffset];
                         if (pixelOffset < 6) {
@@ -1277,16 +1290,16 @@ export class F18A implements VDP {
                         break;
                 }
                 rgbColor = palette[color];
-                imageDataData[imageDataAddr++] = rgbColor[0]; // R
-                imageDataData[imageDataAddr++] = rgbColor[1]; // G
-                imageDataData[imageDataAddr++] = rgbColor[2]; // B
-                imageDataData[imageDataAddr++] = 255; // Alpha
+                imageDataData[imgDataAddr++] = rgbColor[0]; // R
+                imageDataData[imgDataAddr++] = rgbColor[1]; // G
+                imageDataData[imgDataAddr++] = rgbColor[2]; // B
+                imageDataData[imgDataAddr++] = 255; // Alpha
                 if (gap && pixelOffset === 7) {
-                    imageDataAddr += 4;
+                    imgDataAddr += 4;
                 }
             }
             if (gap && lineOffset === 7) {
-                imageDataAddr += width * 4;
+                imgDataAddr += width * 4;
             }
         }
         canvasContext.putImageData(imageData, 0, 0);
@@ -1333,7 +1346,7 @@ export class F18A implements VDP {
             pixelOn: boolean,
             colorMapEntry: {paletteBaseIndex: number, baseColor: number},
             rgbColor: number[],
-            imageDataAddr = 0;
+            imgDataAddr = 0;
         for (let i = 0; (row30 || ram[spriteAttributeTable + i] !== 0xd0) && i < maxSpriteAttrAddr; i += 4) {
             if (ram[spriteAttributeTable + i] < drawHeight) {
                 baseColor = ram[spriteAttributeTable + i + 3] & 0x0f;
@@ -1402,16 +1415,16 @@ export class F18A implements VDP {
                 } else {
                    rgbColor = [224, 224, 255];
                 }
-                imageDataData[imageDataAddr++] = rgbColor[0]; // R
-                imageDataData[imageDataAddr++] = rgbColor[1]; // G
-                imageDataData[imageDataAddr++] = rgbColor[2]; // B
-                imageDataData[imageDataAddr++] = 255; // Alpha
+                imageDataData[imgDataAddr++] = rgbColor[0]; // R
+                imageDataData[imgDataAddr++] = rgbColor[1]; // G
+                imageDataData[imgDataAddr++] = rgbColor[2]; // B
+                imageDataData[imgDataAddr++] = 255; // Alpha
                 if (gap && pixelOffset === 7 && (x & 8) === 8) {
-                    imageDataAddr += 4;
+                    imgDataAddr += 4;
                 }
             }
             if (gap && lineOffset === 7 && (y & 8) === 8) {
-                imageDataAddr += width * 4;
+                imgDataAddr += width * 4;
             }
         }
         canvasContext.putImageData(imageData, 0, 0);
