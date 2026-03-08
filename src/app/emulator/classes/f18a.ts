@@ -433,11 +433,11 @@ export class F18A implements VDP {
     }
 
     drawScanline(y: number) {
-        this.currentScanline = y >= this.topBorder ? y - this.topBorder : 255;
-        this.blanking = (y < this.topBorder || y >= this.topBorder + this.drawHeight) ? 1 : 0;
         if (this.vdpType === 'PICO9918' && !this.halfHeightCharactersEnabled) {
             y >>= 1;
         }
+        this.currentScanline = y >= this.topBorder ? y - this.topBorder : 255;
+        this.blanking = (y < this.topBorder || y >= this.topBorder + this.drawHeight) ? 1 : 0;
         this.statusRegister = this.wasmService.getExports().drawScanlineF18a(
             y,
             this.canvasWidth,
