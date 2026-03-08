@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit, signal} from '@angular/core';
 import {saveAs} from 'file-saver';
 import {TI994A} from '../../emulator/classes/ti994a';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
@@ -17,10 +17,10 @@ import { faUpload, faDownload, faCircle, faPlay, faBackward, faStop } from '@for
 })
 export class TapeComponent implements OnInit, OnDestroy {
 
-    canRecord = true;
-    canPlay = false;
-    canRewind = false;
-    canStop = false;
+    canRecord = signal(true);
+    canPlay = signal(false);
+    canRewind = signal(false);
+    canStop = signal(false);
 
     private subscription: Subscription;
     private tape: Tape;
@@ -40,7 +40,9 @@ export class TapeComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        this.subscription = this.eventDispatcherService.subscribe(this.onEvent.bind(this));
+        this.subscription = this.eventDispatcherService.subscribe((event: ConsoleEvent) => {
+            this.onEvent(event);
+        });
     }
 
     onEvent(event: ConsoleEvent) {
@@ -50,34 +52,34 @@ export class TapeComponent implements OnInit, OnDestroy {
                 this.tape = ti994A.getTape();
                 break;
             case ConsoleEventType.TAPE_OPENED:
-                this.canRecord = true;
-                this.canPlay = event.data;
-                this.canRewind = false;
-                this.canStop = false;
+                this.canRecord.set(true);
+                this.canPlay.set(!!event.data);
+                this.canRewind.set(false);
+                this.canStop.set(false);
                 break;
             case ConsoleEventType.TAPE_RECORDING:
-                this.canRecord = false;
-                this.canPlay = false;
-                this.canRewind = false;
-                this.canStop = true;
+                this.canRecord.set(false);
+                this.canPlay.set(false);
+                this.canRewind.set(false);
+                this.canStop.set(true);
                 break;
             case ConsoleEventType.TAPE_PLAYING:
-                this.canRecord = false;
-                this.canPlay = false;
-                this.canRewind = false;
-                this.canStop = true;
+                this.canRecord.set(false);
+                this.canPlay.set(false);
+                this.canRewind.set(false);
+                this.canStop.set(true);
                 break;
             case ConsoleEventType.TAPE_STOPPED:
-                this.canRecord = true;
-                this.canPlay = event.data.playEnabled;
-                this.canRewind = event.data.rewindEnabled;
-                this.canStop = false;
+                this.canRecord.set(true);
+                this.canPlay.set(event.data.playEnabled);
+                this.canRewind.set(event.data.rewindEnabled);
+                this.canStop.set(false);
                 break;
             case ConsoleEventType.TAPE_REWOUND:
-                this.canRecord = true;
-                this.canPlay = true;
-                this.canRewind = false;
-                this.canStop = false;
+                this.canRecord.set(true);
+                this.canPlay.set(true);
+                this.canRewind.set(false);
+                this.canStop.set(false);
                 break;
         }
     }

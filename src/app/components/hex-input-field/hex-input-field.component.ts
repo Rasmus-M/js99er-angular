@@ -1,6 +1,7 @@
-import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from "@angular/core";
+import {Component, computed, effect, input, output, signal} from "@angular/core";
 import {Util} from "../../classes/util";
 import {CommandDispatcherService} from "../../services/command-dispatcher.service";
+import {toObservable} from "@angular/core/rxjs-interop";
 
 @Component({
     selector: 'hex-input-field',
@@ -8,32 +9,28 @@ import {CommandDispatcherService} from "../../services/command-dispatcher.servic
     styleUrls: ['hex-input-field.component.css'],
     standalone: false
 })
-export class HexInputFieldComponent implements OnChanges {
+export class HexInputFieldComponent {
 
-    @Input() model: number;
-    @Input() placeholder: string;
-    @Input() digits: number;
-    @Output() modelChange = new EventEmitter<number>();
+    model = input(0);
+    placeholder = input('');
+    digits = input(4);
+    modelChange = output<number>();
 
-    protected value: string;
-    protected maxLength = 5;
+    protected value = signal('');
+    protected maxLength = computed(() => this.digits() + 1);
 
     constructor(
         private commandDispatcherService: CommandDispatcherService
-    ) {}
-
-    ngOnChanges(changes: SimpleChanges): void {
-        if (changes['model']) {
-            this.value = isNaN(this.model) ? '' : Util.toHexWordShort(this.model);
-        }
-        if (changes['digits']) {
-            this.maxLength = this.digits + 1;
-        }
+    ) {
+        toObservable(this.model).subscribe(
+            value => {
+                this.value.set(isNaN(value) ? '' : Util.toHexWordShort(value));
+            }
+        );
     }
 
-    onChange(value: any) {
-        this.model = Util.parseHexNumber(value);
-        this.modelChange.emit(this.model);
+    onChange() {
+        this.modelChange.emit(Util.parseHexNumber(this.value()));
     }
 
     onFocus() {

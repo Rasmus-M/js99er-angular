@@ -1,4 +1,4 @@
-import {Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
+import {Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges} from '@angular/core';
 import {Subscription} from 'rxjs';
 import $ from 'jquery';
 import {TI994A} from '../../emulator/classes/ti994a';
@@ -39,16 +39,16 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
 
     @Input() visible: boolean;
 
-    memoryViewType: MemoryViewType = MemoryViewType.SPLIT;
-    memoryType: MemoryType = MemoryType.CPU;
-    viewAddress: number;
-    breakpoint: Breakpoint;
-    addressDigits = 4;
-    statusString: string;
-    memoryString: string;
-    memoryString2: string;
-    memoryView: MemoryView;
-    expandStatus = false;
+    memoryViewType = signal(MemoryViewType.SPLIT);
+    memoryType = signal(MemoryType.CPU);
+    viewAddress = signal(NaN);
+    breakpoint = signal(new Breakpoint(BreakpointType.INSTRUCTION, NaN));
+    addressDigits = signal(4);
+    statusString = signal('');
+    memoryString = signal('');
+    memoryString2 = signal('');
+    memoryView = signal(null as MemoryView | null);
+    expandStatus = signal(false);
 
     protected readonly faCogs = faCogs;
 
@@ -84,8 +84,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         this.eventSubscription = this.eventDispatcherService.subscribe((event) => {
             this.onEvent(event);
         });
-        this.breakpoint = new Breakpoint(BreakpointType.INSTRUCTION, NaN);
-        this.breakpoints.push(this.breakpoint);
+        this.breakpoints.push(this.breakpoint());
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -135,30 +134,30 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
 
     private updateDebugger(force: boolean) {
         if (this.visible && this.ti994A) {
-            this.statusString = this.ti994A.getStatusString(this.expandStatus);
+            this.statusString.set(this.ti994A.getStatusString(this.expandStatus()));
             let memoryView: MemoryView;
-            switch (this.memoryViewType) {
+            switch (this.memoryViewType()) {
                 case MemoryViewType.DISASSEMBLY:
-                    memoryView = this.getDisassemblyView(this.memoryType);
+                    memoryView = this.getDisassemblyView(this.memoryType());
                     break;
                 case MemoryViewType.HEX:
-                    memoryView = this.getHexView(this.memoryType, false);
+                    memoryView = this.getHexView(this.memoryType(), false);
                     break;
                 case MemoryViewType.SPLIT:
                     memoryView = this.getDisassemblyView(this.ti994A.isGPUActive() ? MemoryType.VDP : MemoryType.CPU);
-                    const memoryView2 = this.getHexView(this.memoryType, true);
-                    this.memoryString2 = memoryView2.lines.map(l => l.text).join("\n");
+                    const memoryView2 = this.getHexView(this.memoryType(), true);
+                    this.memoryString2.set(memoryView2.lines.map(l => l.text).join("\n"));
                     this.scrollToAnchorLine(memoryView2, "memory2");
                     break;
                 case MemoryViewType.LIST:
-                    memoryView = this.getListView(this.memoryType);
+                    memoryView = this.getListView(this.memoryType());
                     break;
             }
-            if (force || this.memoryViewType !== MemoryViewType.LIST) {
-                this.memoryString = memoryView.lines.map(l => l.text).join("\n");
+            if (force || this.memoryViewType() !== MemoryViewType.LIST) {
+                this.memoryString.set(memoryView.lines.map(l => l.text).join("\n"));
             }
             this.scrollToAnchorLine(memoryView, this.getAssemblyViewId());
-            this.memoryView = memoryView;
+            this.memoryView.set(memoryView);
         }
     }
 
@@ -190,7 +189,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             memoryView = this.disassemblerService.disassemble(pc, null, 32, pc, this.breakpoints);
         } else {
             // Stopped
-            const viewAddress = this.memoryViewType === MemoryViewType.SPLIT ? pc : this.getViewAddress(pc);
+            const viewAddress = this.memoryViewType() === MemoryViewType.SPLIT ? pc : this.getViewAddress(pc);
             this.disassemblerService.setMemory(memoryDevice);
             memoryView = this.disassemblerService.disassemble(Math.max(viewAddress - 0x800, 0), 0x1000, null, viewAddress, this.breakpoints);
             if (memoryType === MemoryType.CPU) {
@@ -274,52 +273,55 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
         }
     }
 
-    private getViewAddress(defaultValue: number) {
-        return isNaN(this.viewAddress) ? defaultValue : this.viewAddress;
+    private getViewAddress(defaultValue: number): number {
+        return isNaN(this.viewAddress()) ? defaultValue : this.viewAddress();
     }
 
-    protected onViewAddressChanged() {
+    protected onViewAddressChanged(value: number) {
+        this.viewAddress.set(value);
         this.updateDebugger(true);
     }
 
-    protected onBreakpointAddressChanged() {
+    protected onBreakpointAddressChanged(value?: number) {
+        if (value !== undefined) {
+            this.breakpoint().addr = value;
+        }
         this.commandDispatcherService.setBreakpoints(this.breakpoints);
         this.updateDebugger(true);
     }
 
-    protected onMemoryViewChanged(memoryViewType: MemoryViewType) {
-        this.memoryViewType = memoryViewType;
+    protected onMemoryViewChanged() {
         this.updateDebugger(true);
     }
 
-    protected onMemoryTypeChanged(memoryType: MemoryType) {
-        this.memoryType = memoryType;
-        switch (memoryType) {
+    protected onMemoryTypeChanged() {
+        switch (this.memoryType()) {
             case MemoryType.CPU:
-                this.addressDigits = 4;
+                this.addressDigits.set(4);
                 break;
             case MemoryType.VDP:
-                this.addressDigits = 4;
+                this.addressDigits.set(4);
                 break;
             case MemoryType.SAMS:
-                this.addressDigits = 5;
+                this.addressDigits.set(5);
                 break;
             case MemoryType.CART:
-                this.addressDigits = 5;
+                this.addressDigits.set(5);
                 break;
             case MemoryType.GROM:
-                this.addressDigits = 4;
+                this.addressDigits.set(4);
                 break;
         }
         this.updateDebugger(true);
     }
 
     protected onMemoryViewClicked(event: MouseEvent) {
-        if (this.memoryViewType !== MemoryViewType.HEX && !this.ti994A.isRunning() && this.memoryView && event.offsetX < 64) {
+        if (this.memoryViewType() !== MemoryViewType.HEX && !this.ti994A.isRunning() && this.memoryView() && event.offsetX < 64) {
             const $memory = $(this.element.nativeElement).find("#" + this.getAssemblyViewId());
-            const lineHeight = $memory.prop('scrollHeight') / this.memoryView.lines.length;
+            const lines = this.memoryView()!.lines;
+            const lineHeight = $memory.prop('scrollHeight') / lines.length;
             const lineNo = Math.floor(($memory.prop('scrollTop') + event.offsetY) / lineHeight);
-            const line = this.memoryView.lines[lineNo];
+            const line = lines[lineNo];
             const lineAddr = line.addr !== null ? line.addr : NaN;
             const existingBreakpoint = this.breakpoints.find(bp => bp.addr === line.addr);
             if (!existingBreakpoint || existingBreakpoint.type === BreakpointType.INSTRUCTION) {
@@ -347,7 +349,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     private getAssemblyViewId() {
-        return this.memoryViewType !== MemoryViewType.SPLIT ? "memory" : "memory1";
+        return this.memoryViewType() !== MemoryViewType.SPLIT ? "memory" : "memory1";
     }
 
     protected openListFile(fileInput: HTMLInputElement) {
@@ -376,7 +378,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
                     breakpointLines: [],
                     anchorLine: null
                 };
-                this.memoryString = '';
+                this.memoryString.set('');
                 this.updateDebugger(true);
             };
             reader.readAsText(file);
@@ -385,7 +387,7 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     protected toggleExpandStatus() {
-        this.expandStatus = !this.expandStatus;
+        this.expandStatus.set(!this.expandStatus());
         this.updateDebugger(false);
     }
 
