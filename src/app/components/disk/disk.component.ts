@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {Component, input, OnDestroy, OnInit, signal, computed} from '@angular/core';
 import {Subscription} from 'rxjs';
 import {DiskImage} from '../../emulator/classes/disk-image';
 import {DiskFile} from '../../emulator/classes/disk-file';
@@ -8,7 +8,7 @@ import {TI994A} from '../../emulator/classes/ti994a';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {DiskDrive} from '../../emulator/classes/disk-drive';
 import {SelectionModel} from '@angular/cdk/collections';
-import {faBan, faCaretUp, faDownload, faHdd, faPlus, faSave, faTrash} from '@fortawesome/free-solid-svg-icons';
+import {faBan, faDownload, faHdd, faPlus, faSave, faTrash} from '@fortawesome/free-solid-svg-icons';
 import {FileType} from "../../emulator/classes/disk";
 
 @Component({
@@ -19,15 +19,17 @@ import {FileType} from "../../emulator/classes/disk";
 })
 export class DiskComponent implements OnInit, OnDestroy {
 
-    @Input() diskImages: DiskImage[];
+    diskImages = input.required<DiskImage[]>();
 
     protected readonly FileType = FileType;
 
-    diskDrives: DiskDrive[];
-    diskImageDrives: string[] = [];
-    driveIndex = 0;
-    diskImageIndex = 0;
-    diskFiles: DiskFile[];
+    diskDrives = signal<DiskDrive[]>([]);
+    diskImageDrives = signal<string[]>([]);
+    driveIndex = signal(0);
+    diskImageIndex = signal(0);
+    diskFiles = signal<DiskFile[]>([]);
+    diskImage = computed(() => this.diskImages()[this.diskImageIndex()]);
+
     displayedColumns = ['select', 'fileName', 'fileType', 'dataType', 'recordType', 'recordLength', 'fileSize'];
     selection: SelectionModel<DiskFile>;
 
@@ -37,7 +39,6 @@ export class DiskComponent implements OnInit, OnDestroy {
     addDiskIcon = faPlus;
     deleteIcon = faTrash;
     saveDiskIcon = faDownload;
-    insertDiskIcon = faCaretUp;
 
     private subscription: Subscription;
     private deletingDisk = false;
@@ -57,12 +58,12 @@ export class DiskComponent implements OnInit, OnDestroy {
         switch (event.type) {
             case ConsoleEventType.READY:
                 const ti994A: TI994A = event.data;
-                this.diskDrives = ti994A.getDiskDrives();
-                this.onDiskImageChanged(this.diskImageIndex);
+                this.diskDrives.set(ti994A.getDiskDrives());
+                this.onDiskImageChanged(this.diskImageIndex());
                 break;
             case ConsoleEventType.DISK_MODIFIED: {
                     const diskImage = event.data;
-                    const index = this.diskImages.indexOf(diskImage);
+                    const index = this.diskImages().indexOf(diskImage);
                     if (index !== -1) {
                         this.onDiskImageChanged(index);
                     }
@@ -70,7 +71,7 @@ export class DiskComponent implements OnInit, OnDestroy {
                 }
                 break;
             case ConsoleEventType.DISK_INSERTED: {
-                    const index = this.diskImages.indexOf(event.data.diskImage);
+                    const index = this.diskImages().indexOf(event.data.diskImage);
                     if (index !== -1) {
                         this.onDiskImageChanged(index);
                     }
@@ -82,35 +83,35 @@ export class DiskComponent implements OnInit, OnDestroy {
                 break;
             case ConsoleEventType.DISK_REMOVED:
                 if (this.deletingDisk) {
-                    this.commandDispatcherService.deleteDisk(this.diskImages[this.diskImageIndex]);
+                    this.commandDispatcherService.deleteDisk(this.diskImage());
                 }
                 this.onDiskImageChanged(-1);
                 break;
             case ConsoleEventType.DISK_DELETED:
                 this.updateAllDiskImageDrives();
-                this.diskImageIndex = -1;
+                this.diskImageIndex.set(-1);
                 break;
             case ConsoleEventType.DISK_DRIVE_CHANGED: {
                     // Self-generated
-                    const diskDrive: DiskDrive = this.diskDrives[event.data];
+                    const diskDrive: DiskDrive = this.diskDrives()[event.data];
                     const diskImage: DiskImage = diskDrive.getDiskImage()!;
-                    this.onDiskImageChanged(this.diskImages.indexOf(diskImage));
+                    this.onDiskImageChanged(this.diskImages().indexOf(diskImage));
                 }
                 break;
             case ConsoleEventType.STATE_RESTORED:
-                this.onDriveIndexChanged(this.driveIndex);
+                this.onDriveIndexChanged(this.driveIndex());
                 break;
         }
     }
 
     onDriveIndexChanged(index: number) {
-        this.driveIndex = index;
-        this.eventDispatcherService.diskDriveChanged(this.driveIndex);
+        this.driveIndex.set(index);
+        this.eventDispatcherService.diskDriveChanged(this.driveIndex());
     }
 
     onDiskImageChanged(index: number) {
-        this.diskImageIndex = index;
-        this.diskFiles = index >= 0 ? this.diskImages[index].getFilesArray() : [];
+        this.diskImageIndex.set(index);
+        this.diskFiles.set(index >= 0 ? this.diskImages()[index].getFilesArray() : []);
         this.updateAllDiskImageDrives();
     }
 
@@ -123,48 +124,46 @@ export class DiskComponent implements OnInit, OnDestroy {
     }
 
     insertDiskIndex(index: number) {
-        this.diskImageIndex = index;
+        this.diskImageIndex.set(index);
         this.insertDisk();
     }
 
     insertDisk() {
-        const index = this.diskImageIndex;
+        const index = this.diskImageIndex();
         if (index >= 0) {
-            this.commandDispatcherService.insertDisk(this.driveIndex, this.diskImages[index]);
+            this.commandDispatcherService.insertDisk(this.driveIndex(), this.diskImages()[index]);
         } else {
-            this.commandDispatcherService.removeDisk(this.driveIndex);
+            this.commandDispatcherService.removeDisk(this.driveIndex());
         }
     }
 
     deleteDisk() {
         this.deletingDisk = true;
-        this.commandDispatcherService.removeDisk(this.driveIndex);
+        this.commandDispatcherService.removeDisk(this.driveIndex());
     }
 
     deleteFiles() {
-        this.commandDispatcherService.deleteDiskFiles(this.diskImages[this.diskImageIndex], this.selection.selected);
+        this.commandDispatcherService.deleteDiskFiles(this.diskImage(), this.selection.selected);
     }
 
     saveDiskFiles() {
-        this.commandDispatcherService.saveDiskFiles(this.diskImages[this.diskImageIndex], this.selection.selected);
+        this.commandDispatcherService.saveDiskFiles(this.diskImage(), this.selection.selected);
     }
 
     saveDisk() {
-        this.commandDispatcherService.saveDisk(this.diskImages[this.diskImageIndex]);
+        this.commandDispatcherService.saveDisk(this.diskImage());
     }
 
-    /** Whether the number of selected elements matches the total number of rows. */
     isAllSelected() {
         const numSelected = this.selection.selected.length;
-        const numRows = this.diskFiles.length;
+        const numRows = this.diskFiles().length;
         return numSelected === numRows;
     }
 
-    /** Selects all rows if they are not all selected; otherwise clear selection. */
     masterToggle() {
         this.isAllSelected() ?
             this.selection.clear() :
-            this.diskFiles.forEach(row => this.selection.select(row));
+            this.diskFiles().forEach(row => this.selection.select(row));
     }
 
     ngOnDestroy() {
@@ -172,15 +171,15 @@ export class DiskComponent implements OnInit, OnDestroy {
     }
 
     private updateAllDiskImageDrives() {
-        for (let i = 0; i < this.diskImages.length; i++) {
-            this.diskImageDrives[i] = this.updateDiskImageDrives(this.diskImages[i]);
+        for (let i = 0; i < this.diskImages().length; i++) {
+            this.diskImageDrives()[i] = this.updateDiskImageDrives(this.diskImages()[i]);
         }
     }
 
     private updateDiskImageDrives(diskImage: DiskImage): string {
         let s = "";
-        if (this.diskDrives) {
-            this.diskDrives.forEach((diskDrive) => {
+        if (this.diskDrives()) {
+            this.diskDrives().forEach((diskDrive) => {
                 if (diskDrive.getDiskImage() === diskImage) {
                     s += (s.length > 0 ? ", " : "") + diskDrive.getName();
                 }
