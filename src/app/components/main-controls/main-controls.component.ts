@@ -1,4 +1,4 @@
-import {Component, ElementRef, OnDestroy, OnInit} from '@angular/core';
+import {Component, ElementRef, OnDestroy, OnInit, signal} from '@angular/core';
 import {CommandDispatcherService} from '../../services/command-dispatcher.service';
 import {EventDispatcherService} from '../../services/event-dispatcher.service';
 import {Subscription} from 'rxjs';
@@ -32,11 +32,11 @@ import {Util} from "../../classes/util";
 })
 export class MainControlsComponent implements OnInit, OnDestroy {
 
-    running = false;
-    runningFast = false;
-    recording = false;
-    sidePanelVisible = true;
-    pointerLocked = false;
+    running = signal(false);
+    runningFast = signal(false);
+    recording = signal(false);
+    sidePanelVisible = signal(true);
+    pointerLocked = signal(false);
 
     driveIndex = 0;
 
@@ -92,7 +92,7 @@ export class MainControlsComponent implements OnInit, OnDestroy {
 
     stop() {
         this.commandDispatcherService.stop();
-        if (this.recording) {
+        if (this.recording()) {
             this.commandDispatcherService.stopRecording();
         }
     }
@@ -134,8 +134,8 @@ export class MainControlsComponent implements OnInit, OnDestroy {
     }
 
     toggleSidePanel() {
-        this.sidePanelVisible = !this.sidePanelVisible;
-        this.commandDispatcherService.toggleSidePanel(this.sidePanelVisible);
+        this.sidePanelVisible.set(!this.sidePanelVisible());
+        this.commandDispatcherService.toggleSidePanel(this.sidePanelVisible());
     }
 
     togglePointerLock() {
@@ -145,11 +145,11 @@ export class MainControlsComponent implements OnInit, OnDestroy {
     onEvent(event: ConsoleEvent) {
         switch (event.type) {
             case ConsoleEventType.STARTED:
-                this.running = true;
-                this.runningFast = event.data;
+                this.running.set(true);
+                this.runningFast.set(event.data);
                 break;
             case ConsoleEventType.STOPPED:
-                this.running = false;
+                this.running.set(false);
                 break;
             case ConsoleEventType.SCREENSHOT_TAKEN:
                 this.download(event.data, "js99er-" + this.getDateTime() + ".png");
@@ -158,10 +158,10 @@ export class MainControlsComponent implements OnInit, OnDestroy {
                 this.driveIndex = event.data;
                 break;
             case ConsoleEventType.RECORDING_STARTED:
-                this.recording = true;
+                this.recording.set(true);
                 break;
             case ConsoleEventType.RECORDING_STOPPED:
-                this.recording = false;
+                this.recording.set(false);
                 const recordings: Blob[] = event.data;
                 const blob = new Blob(recordings, {
                     type: 'video/webm'
@@ -170,10 +170,10 @@ export class MainControlsComponent implements OnInit, OnDestroy {
                 this.download(url, "js99er-" + this.getDateTime() + ".webm");
                 break;
             case ConsoleEventType.POINTER_LOCKED:
-                this.pointerLocked = true;
+                this.pointerLocked.set(true);
                 break;
             case ConsoleEventType.POINTER_UNLOCKED:
-                this.pointerLocked = false;
+                this.pointerLocked.set(false);
                 break;
         }
     }

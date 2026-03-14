@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit, signal} from '@angular/core';
 import {DiskImage} from "../../emulator/classes/disk-image";
 import {TI994A} from "../../emulator/classes/ti994a";
 import {firstValueFrom, Subscription} from "rxjs";
@@ -38,7 +38,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
     static DEFAULT_CART_NAME = 'software/extended_basic.rpk';
 
-    diskImages: DiskImage[] = [];
+    diskImages = signal<DiskImage[]>([]);
     ti994A: TI994A;
     tabIndex: number;
 
@@ -78,7 +78,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     ngOnInit() {
         this.dialogService.init();
         this.configure();
-        this.diskImages = this.diskService.createDefaultDiskImages();
+        this.diskImages.set(this.diskService.createDefaultDiskImages());
         this.commandSubscription = this.commandDispatcherService.subscribe((command) => {
             this.onCommand(command);
         });
@@ -304,7 +304,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                     (value) => {
                         const bytes = new Uint8Array(value);
                         if (Util.isDiskImage(bytes)) {
-                            const diskImage = this.diskImages[0];
+                            const diskImage = this.diskImages()[0];
                             diskImage.loadBinaryImage(bytes);
                             this.eventDispatcherService.diskAdded(diskImage);
                         }
@@ -411,7 +411,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     saveState() {
         if (this.databaseService.isSupported()) {
             this.databaseService.deleteAllDiskImages().pipe(
-                map(() => this.diskService.saveDiskImages(this.diskImages))
+                map(() => this.diskService.saveDiskImages(this.diskImages()))
             ).pipe(
                 map(() => {
                     this.log.info('Disk images saved OK.');
@@ -447,7 +447,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         this.databaseService.getDiskImages().pipe(
             map((diskImages: DiskImage[]) => {
-                this.diskImages = diskImages;
+                this.diskImages.set(diskImages);
                 this.log.info("Disk images restored OK.");
                 const diskDrives = this.ti994A.getDiskDrives();
                 return this.diskService.restoreDiskDrives(diskDrives, diskImages);
