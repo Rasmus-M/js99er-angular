@@ -1,10 +1,10 @@
 <mat-toolbar class="toolbar">
-    <button mat-raised-button color="warn" class="toolbar-button" (click)="record()" [disabled]="recording || !running" matTooltip="Record video"><fa-icon [icon]="recIcon"></fa-icon><span class="button-text"> Rec</span></button>
-    <button mat-raised-button color="primary" class="toolbar-button" (click)="start()" [disabled]="running && !runningFast" matTooltip="Start TI-99/4A"><fa-icon [icon]="startIcon"></fa-icon><span class="button-text"> Start</span></button>
-    <button mat-raised-button class="toolbar-button" (click)="fast()" [disabled]="running && runningFast" matTooltip="Run faster"><fa-icon [icon]="fastIcon"></fa-icon><span class="button-text"> Fast</span></button>
-    <button mat-raised-button class="toolbar-button" (click)="frame()" [disabled]="running" matTooltip="Run to next vsync"><fa-icon [icon]="frameIcon"></fa-icon><span class="button-text"> Frame</span></button>
-    <button mat-raised-button class="toolbar-button" (click)="step($event)" [disabled]="running" matTooltip="Single step. Shift to step over"><fa-icon [icon]="stepIcon"></fa-icon><span class="button-text"> Step</span></button>
-    <button mat-raised-button class="toolbar-button" (click)="stop()" [disabled]="!running" matTooltip="Stop TI-99/4A"><fa-icon [icon]="stopIcon"></fa-icon><span class="button-text"> Stop</span></button>
+    <button mat-raised-button color="warn" class="toolbar-button" (click)="record()" [disabled]="recording() || !running()" matTooltip="Record video"><fa-icon [icon]="recIcon"></fa-icon><span class="button-text"> Rec</span></button>
+    <button mat-raised-button color="primary" class="toolbar-button" (click)="start()" [disabled]="running() && !runningFast()" matTooltip="Start TI-99/4A"><fa-icon [icon]="startIcon"></fa-icon><span class="button-text"> Start</span></button>
+    <button mat-raised-button class="toolbar-button" (click)="fast()" [disabled]="running() && runningFast()" matTooltip="Run faster"><fa-icon [icon]="fastIcon"></fa-icon><span class="button-text"> Fast</span></button>
+    <button mat-raised-button class="toolbar-button" (click)="frame()" [disabled]="running()" matTooltip="Run to next vsync"><fa-icon [icon]="frameIcon"></fa-icon><span class="button-text"> Frame</span></button>
+    <button mat-raised-button class="toolbar-button" (click)="step($event)" [disabled]="running()" matTooltip="Single step. Shift to step over"><fa-icon [icon]="stepIcon"></fa-icon><span class="button-text"> Step</span></button>
+    <button mat-raised-button class="toolbar-button" (click)="stop()" [disabled]="!running()" matTooltip="Stop TI-99/4A"><fa-icon [icon]="stopIcon"></fa-icon><span class="button-text"> Stop</span></button>
     <button mat-raised-button color="warn" class="toolbar-button" (click)="reset()" matTooltip="Reset TI-99/4A"><fa-icon [icon]="resetIcon"></fa-icon><span class="button-text"> Reset</span></button>
     <span class="margin-right"></span>
     <button mat-raised-button class="toolbar-button" (click)="fileInputModule.click()" matTooltip="Load cartridge file">
@@ -20,7 +20,7 @@
     <button mat-raised-button class="toolbar-button" (click)="saveState()" matTooltip="Save TI-99/4A state"><fa-icon [icon]="saveStateIcon"></fa-icon><span class="button-text"> Save state</span></button>
     <button mat-raised-button class="toolbar-button" (click)="restoreState()" matTooltip="Restore saved state"><fa-icon [icon]="restoreStateIcon"></fa-icon><span class="button-text"> Restore state</span></button>
     <span class="margin-right"></span>
-    <button mat-raised-button class="toolbar-button" (click)="toggleSidePanel()" matTooltip="Toggle tabbed panel"><fa-icon [icon]="sidePanelVisible ? hideSidePanelIcon : showSidePanelIcon"></fa-icon><span class="button-text"> {{sidePanelVisible ? 'Hide panel' : 'Show panel'}}</span></button>
-    <button mat-raised-button class="toolbar-button" (click)="togglePointerLock()" matTooltip="Toggle pointer lock"><fa-icon [icon]="pointerLocked ? pointerUnlockIcon : pointerLockIcon"></fa-icon>&nbsp;<fa-icon [icon]="mousePointerIcon"></fa-icon></button>
+    <button mat-raised-button class="toolbar-button" (click)="toggleSidePanel()" matTooltip="Toggle tabbed panel"><fa-icon [icon]="sidePanelVisible() ? hideSidePanelIcon : showSidePanelIcon"></fa-icon><span class="button-text"> {{ sidePanelVisible() ? 'Hide panel' : 'Show panel' }}</span></button>
+    <button mat-raised-button class="toolbar-button" (click)="togglePointerLock()" matTooltip="Toggle pointer lock"><fa-icon [icon]="pointerLocked() ? pointerUnlockIcon : pointerLockIcon"></fa-icon>&nbsp;<fa-icon [icon]="mousePointerIcon"></fa-icon></button>
 </mat-toolbar>
 <a id="download-link" style="display: none"></a>

@@ -2,24 +2,24 @@
   <div class="disk-selects">
     <mat-form-field>
       <mat-label>Disk drive</mat-label>
-      <mat-select placeholder="Drive" [value]="driveIndex" (selectionChange)="onDriveIndexChanged($event.value)">
-        @for (diskDrive of diskDrives; track diskDrive; let i = $index) {
+      <mat-select placeholder="Drive" [value]="driveIndex()" (selectionChange)="onDriveIndexChanged($event.value)">
+        @for (diskDrive of diskDrives(); track diskDrive; let i = $index) {
           <mat-option [value]="i"><fa-icon [icon]="driveIcon"></fa-icon> {{diskDrive.getName()}}</mat-option>
         }
       </mat-select>
     </mat-form-field>
     <mat-form-field>
       <mat-label>Disk image</mat-label>
-      <mat-select placeholder="Image" [value]="diskImageIndex" (selectionChange)="insertDiskIndex($event.value)">
+      <mat-select placeholder="Image" [value]="diskImageIndex()" (selectionChange)="insertDiskIndex($event.value)">
         <mat-option [value]="-1"><fa-icon [icon]="emptyIcon"></fa-icon> None</mat-option>
-        @for (diskImage of diskImages; track diskImage; let i = $index) {
-          <mat-option [value]="i"><fa-icon [icon]="diskIcon"></fa-icon> {{diskImage.getName()}} {{diskImageDrives[i]}}</mat-option>
+        @for (diskImage of diskImages(); track diskImage; let i = $index) {
+          <mat-option [value]="i"><fa-icon [icon]="diskIcon"></fa-icon> {{diskImage.getName()}} {{ diskImageDrives()[i] }}</mat-option>
         }
       </mat-select>
     </mat-form-field>
   </div>
   <div class="files-table">
-    <table mat-table [dataSource]="diskFiles" class="mat-elevation-z1">
+    <table mat-table [dataSource]="diskFiles()" class="mat-elevation-z1">
       <ng-container matColumnDef="select">
         <th mat-header-cell *matHeaderCellDef>
           <mat-checkbox (change)="$event ? masterToggle() : null"
@@ -66,10 +66,10 @@
   <mat-toolbar class="disk-toolbar">
     <button mat-raised-button (click)="addDisk()"><fa-icon [icon]="addDiskIcon"></fa-icon> New disk</button>
     <span class="margin-right"></span>
-    <button mat-raised-button color="warn" (click)="deleteDisk()" [disabled]="!this.diskImages[this.diskImageIndex]"><fa-icon [icon]="deleteIcon"></fa-icon> Delete disk</button>
+    <button mat-raised-button color="warn" (click)="deleteDisk()" [disabled]="!this.diskImage()"><fa-icon [icon]="deleteIcon"></fa-icon> Delete disk</button>
     <button mat-raised-button color="warn" (click)="deleteFiles()" [disabled]="!selection.selected.length"><fa-icon [icon]="deleteIcon"></fa-icon> Delete files</button>
     <span class="margin-right"></span>
-    <button mat-raised-button color="primary" (click)="saveDisk()" [disabled]="!this.diskImages[this.diskImageIndex]"><fa-icon [icon]="saveDiskIcon"></fa-icon> Save DSK</button>
+    <button mat-raised-button color="primary" (click)="saveDisk()" [disabled]="!this.diskImage()"><fa-icon [icon]="saveDiskIcon"></fa-icon> Save DSK</button>
     <button mat-raised-button color="primary" (click)="saveDiskFiles()" [disabled]="!selection.selected.length"><fa-icon [icon]="saveDiskIcon"></fa-icon> Save TI file(s)</button>
   </mat-toolbar>
 </div>

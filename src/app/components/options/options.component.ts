@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, signal, inject} from '@angular/core';
 import {SettingsService} from '../../services/settings.service';
 import {ConsoleEvent, ConsoleEventType} from '../../classes/console-event';
 import {CommandDispatcherService} from "../../services/command-dispatcher.service";
@@ -13,58 +13,54 @@ import {EventDispatcherService} from "../../services/event-dispatcher.service";
 })
 export class OptionsComponent implements OnInit {
 
-    vdp: VDPType;
-    ram: RAMType;
-    tipi: TIPIType;
-    psg: PSGType;
-    enableSound: boolean;
-    enableSpeech: boolean;
-    enablePCKeyboard: boolean;
-    enableMapArrowKeys: boolean;
-    enableGoogleDrive: boolean;
-    enableGRAM: boolean;
-    enablePixelated: boolean;
-    enablePauseOnFocusLost: boolean;
-    tipiWebsocketURI: string;
-    enableDebugReset: boolean;
-    enableH264Codec: boolean;
-    disk: DiskType;
-    enablePCode: boolean;
-    ramDisk: RAMDiskType;
+    private settingsService = inject(SettingsService);
+    private commandDispatcherService = inject(CommandDispatcherService);
+    private eventDispatcherService = inject(EventDispatcherService);
 
-    constructor(
-        private settingsService: SettingsService,
-        private commandDispatcherService: CommandDispatcherService,
-        private eventDispatherService: EventDispatcherService
-    ) {
-    }
+    vdp = signal(this.settingsService.getVDP());
+    ram = signal(this.settingsService.getRAM());
+    tipi = signal(this.settingsService.getTIPI());
+    psg = signal(this.settingsService.getPSG());
+    enableSound = signal(this.settingsService.isSoundEnabled());
+    enableSpeech = signal(this.settingsService.isSpeechEnabled());
+    enablePCKeyboard = signal(this.settingsService.isPCKeyboardEnabled());
+    enableMapArrowKeys = signal(this.settingsService.isMapArrowKeysToFctnSDEXEnabled());
+    enableGoogleDrive = signal(this.settingsService.isGoogleDriveEnabled());
+    enableGRAM = signal(this.settingsService.isGRAMEnabled());
+    enablePixelated = signal(this.settingsService.isPixelatedEnabled());
+    enablePauseOnFocusLost = signal(this.settingsService.isPauseOnFocusLostEnabled());
+    tipiWebsocketURI = signal(this.settingsService.getTIPIWebsocketURI() || '');
+    enableDebugReset = signal(this.settingsService.isDebugResetEnabled());
+    enableH264Codec = signal(this.settingsService.isH264CodecEnabled());
+    disk = signal<DiskType>(this.settingsService.getDisk());
+    enablePCode = signal(this.settingsService.isPCodeEnabled());
+    ramDisk = signal(this.settingsService.getRAMDisk());
 
     ngOnInit() {
-        this.readSettings();
-        this.eventDispatherService.subscribe((event) => {
+        this.eventDispatcherService.subscribe((event) => {
             this.onEvent(event);
         });
     }
 
     readSettings() {
-        this.vdp = this.settingsService.getVDP();
-        this.ram = this.settingsService.getRAM();
-        this.tipi = this.settingsService.getTIPI();
-        this.psg = this.settingsService.getPSG();
-        this.enableSound = this.settingsService.isSoundEnabled();
-        this.enableSpeech = this.settingsService.isSpeechEnabled();
-        this.enablePCKeyboard = this.settingsService.isPCKeyboardEnabled();
-        this.enableMapArrowKeys = this.settingsService.isMapArrowKeysToFctnSDEXEnabled();
-        this.enableGoogleDrive = this.settingsService.isGoogleDriveEnabled();
-        this.enableGRAM = this.settingsService.isGRAMEnabled();
-        this.enablePixelated = this.settingsService.isPixelatedEnabled();
-        this.enablePauseOnFocusLost = this.settingsService.isPauseOnFocusLostEnabled();
-        this.tipiWebsocketURI = this.settingsService.getTIPIWebsocketURI() || '';
-        this.enableDebugReset = this.settingsService.isDebugResetEnabled();
-        this.enableH264Codec = this.settingsService.isH264CodecEnabled();
-        this.disk = this.settingsService.getDisk();
-        this.enablePCode = this.settingsService.isPCodeEnabled();
-        this.ramDisk = this.settingsService.getRAMDisk();
+        this.vdp.set(this.settingsService.getVDP());
+        this.ram.set(this.settingsService.getRAM());
+        this.tipi.set(this.settingsService.getTIPI());
+        this.psg.set(this.settingsService.getPSG());
+        this.enableSound.set(this.settingsService.isSoundEnabled());
+        this.enableSpeech.set(this.settingsService.isSpeechEnabled());
+        this.enablePCKeyboard.set(this.settingsService.isPCKeyboardEnabled());
+        this.enableMapArrowKeys.set(this.settingsService.isMapArrowKeysToFctnSDEXEnabled());
+        this.enableGoogleDrive.set(this.settingsService.isGoogleDriveEnabled());
+        this.enableGRAM.set(this.settingsService.isGRAMEnabled());
+        this.enablePixelated.set(this.settingsService.isPixelatedEnabled());
+        this.enablePauseOnFocusLost.set(this.settingsService.isPauseOnFocusLostEnabled());
+        this.tipiWebsocketURI.set(this.settingsService.getTIPIWebsocketURI() || '');
+        this.enableDebugReset.set(this.settingsService.isDebugResetEnabled());
+        this.enableH264Codec.set(this.settingsService.isH264CodecEnabled());
+        this.disk.set(this.settingsService.getDisk());
+        this.enablePCode.set(this.settingsService.isPCodeEnabled());
+        this.ramDisk.set(this.settingsService.getRAMDisk());
     }
 
     onEvent(event: ConsoleEvent) {

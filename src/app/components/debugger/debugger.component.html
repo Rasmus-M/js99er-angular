@@ -1,16 +1,16 @@
 <div class="debugger">
-  <pre class="status mat-elevation-z1">{{statusString}}<a (click)="toggleExpandStatus()">{{expandStatus ? ' < less' : ' more >'}}</a></pre>
+  <pre class="status mat-elevation-z1">{{statusString()}}<a (click)="toggleExpandStatus()">{{expandStatus() ? ' < less' : ' more >'}}</a></pre>
   <div class="debugger-toolbar">
     <mat-form-field class="memory-select">
       <mat-label>Memory view</mat-label>
-      <mat-select placeholder="Memory View" [value]="memoryViewType" (selectionChange)="onMemoryViewChanged($event.value)">
+      <mat-select placeholder="Memory View" [(ngModel)]="memoryViewType" (ngModelChange)="onMemoryViewChanged()">
         <mat-option [value]="0">Disassembly</mat-option>
         <mat-option [value]="1">Hex view</mat-option>
         <mat-option [value]="2">Split view</mat-option>
         <mat-option [value]="3">List view</mat-option>
       </mat-select>
     </mat-form-field>
-    @if (memoryViewType===3) {
+    @if (memoryViewType() === 3) {
       <button mat-raised-button class="toolbar-button" (click)="fileInputList.click()" matTooltip="Load list file">
         <span class="button-text">Load</span><input #fileInputList type="file" (change)="openListFile(fileInputList)" accept=".lst" [hidden]="true"/>
       </button>
@@ -18,7 +18,7 @@
     <span class="margin-right"></span>
     <mat-form-field class="memory-select">
       <mat-label>Memory type</mat-label>
-      <mat-select placeholder="Memory Type" [value]="memoryType" (selectionChange)="onMemoryTypeChanged($event.value)">
+      <mat-select placeholder="Memory Type" [(ngModel)]="memoryType" (ngModelChange)="onMemoryTypeChanged()">
         <mat-option [value]="0">CPU</mat-option>
         <mat-option [value]="1">VDP</mat-option>
         <mat-option [value]="2">SAMS</mat-option>
@@ -26,12 +26,12 @@
         <mat-option [value]="4">GROM</mat-option>
       </mat-select>
     </mat-form-field>
-    <hex-input-field class="address-field" [digits]="addressDigits" [(model)]="viewAddress" [placeholder]="'View Address'" (modelChange)="onViewAddressChanged()"></hex-input-field>
-    <hex-input-field class="address-field" [digits]="addressDigits" [(model)]="breakpoint.addr" [placeholder]="'Breakpoint'" (modelChange)="onBreakpointAddressChanged()"></hex-input-field>
+    <hex-input-field class="address-field" [digits]="addressDigits()" [model]="viewAddress()" [placeholder]="'View Address'" (modelChange)="onViewAddressChanged($event)"></hex-input-field>
+    <hex-input-field class="address-field" [digits]="addressDigits()" [model]="breakpoint().addr" [placeholder]="'Breakpoint'" (modelChange)="onBreakpointAddressChanged($event)"></hex-input-field>
     <button mat-mini-fab color="default" (click)="openDialog()"><fa-icon [icon]="faCogs"></fa-icon></button>
   </div>
-  <pre [hidden]="memoryViewType===2" class="memory-view mat-elevation-z1" id="memory" (click)="onMemoryViewClicked($event)">{{memoryString}}</pre>
-  <pre [hidden]="memoryViewType!==2" class="memory-view-1 mat-elevation-z1" id="memory1" (click)="onMemoryViewClicked($event)">{{memoryString}}</pre>
-  <pre [hidden]="memoryViewType!==2" class="memory-view-2 mat-elevation-z1" id="memory2">{{memoryString2}}</pre>
+  <pre [hidden]="memoryViewType() === 2" class="memory-view mat-elevation-z1" id="memory" (click)="onMemoryViewClicked($event)">{{ memoryString() }}</pre>
+  <pre [hidden]="memoryViewType() !== 2" class="memory-view-1 mat-elevation-z1" id="memory1" (click)="onMemoryViewClicked($event)">{{ memoryString() }}</pre>
+  <pre [hidden]="memoryViewType() !== 2" class="memory-view-2 mat-elevation-z1" id="memory2">{{ memoryString2() }}</pre>
 </div>
 0
