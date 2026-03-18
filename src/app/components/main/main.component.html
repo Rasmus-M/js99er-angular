@@ -1,7 +1,7 @@
 @if (sidePanelVisible || toolbarVisible) {
   <div class="app" [ngClass]="{'hide-side-panel': !sidePanelVisible, 'hide-main-controls': !toolbarVisible}">
     <div class="console-wrapper">
-      <app-console class="console" [diskImages]="diskImages"></app-console>
+      <app-console class="console" [diskImages]="diskImages()"></app-console>
     </div>
     <div class="side-panel" [hidden]="!sidePanelVisible">
       <mat-tab-group [selectedIndex]="tabIndex" (selectedTabChange)="onTabSelected($event)">
@@ -12,7 +12,7 @@
         </mat-tab>
         <mat-tab label="Disk">
           <div class="tab-content">
-            <disk [diskImages]="diskImages"></disk>
+            <disk [diskImages]="diskImages()"></disk>
           </div>
         </mat-tab>
         <mat-tab label="Tape">
@@ -55,6 +55,6 @@
 
 @if (!sidePanelVisible && !toolbarVisible) {
   <div class="console-wrapper">
-    <app-console class="console" [diskImages]="diskImages"></app-console>
+    <app-console class="console" [diskImages]="diskImages()"></app-console>
   </div>
 }
