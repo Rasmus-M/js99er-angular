@@ -433,11 +433,35 @@ export class F18A implements VDP {
     }
 
     drawScanline(y: number) {
-        if (this.vdpType === 'PICO9918' && !this.halfHeightCharactersEnabled) {
-            y >>= 1;
+        if (this.halfHeightCharactersEnabled) {
+            y <<= 1;
         }
         this.currentScanline = y >= this.topBorder ? y - this.topBorder : 255;
         this.blanking = (y < this.topBorder || y >= this.topBorder + this.drawHeight) ? 1 : 0;
+        this.callDrawScanline(y);
+        if (this.halfHeightCharactersEnabled) {
+            this.callDrawScanline(y + 1);
+        }
+        this.blanking = 1; // GPU code after scanline may depend on this
+        if (this.reportMax) {
+            this.statusRegister = (this.statusRegister & 0xe0) | this.registers[30];
+        }
+        if (this.gpuHsyncTrigger && this.gpu.isIdle()) {
+            this.gpu.setIdle(false);
+        }
+        if (y === this.topBorder + this.drawHeight - (this.halfHeightCharactersEnabled ? 2 : 1)) {
+            this.statusRegister |= 0x80;
+            if (this.interruptsOn) {
+                this.cru.setVDPInterrupt(true);
+            }
+            if (this.gpuVsyncTrigger && this.gpu.isIdle()) {
+                this.gpu.setIdle(false);
+            }
+            this.frameCounter++;
+        }
+    }
+
+    callDrawScanline(y: number) {
         this.statusRegister = this.wasmService.getExports().drawScanlineF18a(
             y,
             this.canvasWidth,
@@ -499,26 +523,6 @@ export class F18A implements VDP {
             this.statusRegister,
             this.screenMode === F18A.MODE_TEXT_80 && !this.halfHeightCharactersEnabled
         );
-
-        this.blanking = 1; // GPU code after scanline may depend on this
-
-        if (this.reportMax) {
-            this.statusRegister = (this.statusRegister & 0xe0) | this.registers[30];
-        }
-
-        if (this.gpuHsyncTrigger && this.gpu.isIdle()) {
-            this.gpu.setIdle(false);
-        }
-        if (y === this.topBorder + this.drawHeight - 1) {
-            this.statusRegister |= 0x80;
-            if (this.interruptsOn) {
-                this.cru.setVDPInterrupt(true);
-            }
-            if (this.gpuVsyncTrigger && this.gpu.isIdle()) {
-                this.gpu.setIdle(false);
-            }
-            this.frameCounter++;
-        }
     }
 
     drawInvisibleScanline(y: number): void {
@@ -530,7 +534,7 @@ export class F18A implements VDP {
 
     updateCanvas() {
         this.canvasContext.putImageData(this.imageData, 0, 0);
-        if (this.splashImage && this.frameCounter < 300) {
+        if (this.vdpType === 'F18A' && this.splashImage && this.frameCounter < 300) {
             this.canvasContext.drawImage(this.splashImage, 0, 0);
         }
     }

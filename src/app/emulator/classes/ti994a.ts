@@ -336,14 +336,9 @@ export class TI994A implements Console, Stateful {
     frame(skipBreakpoint?: boolean) {
         const cpuSpeed = this.cpuSpeed;
         let cyclesToRun = TMS9900.CYCLES_PER_FRAME * cpuSpeed;
-        let cyclesPerScanline = TMS9900.CYCLES_PER_SCANLINE * cpuSpeed;
-        let f18ACyclesPerScanline = F18AGPU.CYCLES_PER_SCANLINE;
-        let maxVisibleScanlines = 240;
-        if (this.settings.getVDP() === 'PICO9918') {
-            cyclesPerScanline /= 2;
-            f18ACyclesPerScanline /= 2;
-            maxVisibleScanlines *= 2;
-        }
+        const cyclesPerScanline = TMS9900.CYCLES_PER_SCANLINE * cpuSpeed;
+        const f18ACyclesPerScanline = F18AGPU.CYCLES_PER_SCANLINE;
+        const maxVisibleScanlines = 240;
         let extraCycles = 0;
         let y = 0;
         this.vdp.initFrame();
