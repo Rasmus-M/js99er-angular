@@ -41,7 +41,7 @@ The settings object may contain the following properties, shown here with the de
     "psg": "STANDARD",              // "STANDARD" | "FORTI"
     "enableSpeech": true,
     "ram": "32K",                   // "NONE" | "32K" | "SAMS1M" | "SAMS4M" | "SAMS16M"
-    "vdp": "TMS9918A",              // "TMS9918A" | "F18A" | "V9938"
+    "vdp": "TMS9918A",              // "TMS9918A" | "F18A" | "PICO9918"  | "V9938"
     "enablePCKeyboard": false,
     "enableMapArrowKeys": false,
     "enableGoogleDrive": false,
