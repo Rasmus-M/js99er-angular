@@ -1022,6 +1022,9 @@ export class F18A implements VDP {
             case 11:
                 // Counter seconds MSB
                 return ((this.counterSnap / 1000) & 0xff00) >> 8;
+            case 12:
+                // PICO9918 version
+                return this.vdpType === 'PICO9918' ? 0x11 : 0x00;
             case 14:
                 // Version
                 return this.getVersion();
