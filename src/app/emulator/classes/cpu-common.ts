@@ -1451,6 +1451,10 @@ export abstract class CPUCommon implements CPU {
         return this.stoppedAtBreakpoint;
     }
 
+    setStoppedAtBreakpoint(stopped: boolean): void {
+        this.stoppedAtBreakpoint = stopped;
+    }
+
     atInstructionBreakpoint(): boolean {
         for (const breakpoint of this.breakpoints) {
             if (breakpoint.type === this.breakpointType && this.pc === breakpoint.addr) {

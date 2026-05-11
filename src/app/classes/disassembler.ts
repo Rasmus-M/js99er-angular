@@ -3,7 +3,7 @@ import {Util} from "./util";
 import {MemoryDevice} from "../emulator/interfaces/memory-device";
 import {Opcode} from "./opcode";
 import {MemoryLine, MemoryView} from "./memory-view";
-import {Breakpoint} from "./breakpoint";
+import {Breakpoint, BreakpointType} from "./breakpoint";
 
 export class Disassembler {
 
@@ -63,7 +63,7 @@ export class Disassembler {
                 linePrefix = '\u25ba' + linePrefix.charAt(1);
                 anchorLine = i;
             }
-            if (breakpoints.some(breakpoint => breakpoint.addr === instrAddr)) {
+            if (breakpoints.some(breakpoint => breakpoint.addr === instrAddr && breakpoint.type === BreakpointType.INSTRUCTION)) {
                 linePrefix = linePrefix.charAt(0) + '\u25cf';
                 breakpointLines.push(i);
             }

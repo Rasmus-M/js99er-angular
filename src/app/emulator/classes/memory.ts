@@ -404,6 +404,7 @@ export class Memory implements Stateful, MemoryDevice {
         }
         for (const breakpoint of this.breakpoints) {
             if (breakpoint.type === BreakpointType.VDP_MEMORY_READ && breakpoint.addr === vdpAddr) {
+                cpu.setStoppedAtBreakpoint(true);
                 this.onBreakpoint();
             }
         }
@@ -429,6 +430,7 @@ export class Memory implements Stateful, MemoryDevice {
         }
         for (const breakpoint of this.breakpoints) {
             if (breakpoint.type === BreakpointType.VDP_MEMORY_WRITE && breakpoint.addr === vdpAddr) {
+                cpu.setStoppedAtBreakpoint(true);
                 this.onBreakpoint();
             }
         }

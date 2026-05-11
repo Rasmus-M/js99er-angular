@@ -121,8 +121,8 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
         this.zone.runOutsideAngular(
             () => {
                 this.ti994A.stop();
-                }
-            );
+            }
+        );
         this.eventDispatcherService.stopped();
     }
 

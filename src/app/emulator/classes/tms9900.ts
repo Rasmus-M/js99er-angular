@@ -139,7 +139,7 @@ export class TMS9900 extends CPUCommon implements CPU {
 
     writeMemoryWord(addr: number, w: number) {
         for (const breakpoint of this.breakpoints) {
-            if (breakpoint.type === BreakpointType.CPU_MEMORY_WRITE && this.pc === breakpoint.addr) {
+            if (breakpoint.type === BreakpointType.CPU_MEMORY_WRITE && addr === breakpoint.addr) {
                 this.stoppedAtBreakpoint = true;
             }
         }
@@ -153,7 +153,7 @@ export class TMS9900 extends CPUCommon implements CPU {
 
     readMemoryWord(addr: number): number {
         for (const breakpoint of this.breakpoints) {
-            if (breakpoint.type === BreakpointType.CPU_MEMORY_READ && this.pc === breakpoint.addr) {
+            if (breakpoint.type === BreakpointType.CPU_MEMORY_READ && addr === breakpoint.addr) {
                 this.stoppedAtBreakpoint = true;
             }
         }

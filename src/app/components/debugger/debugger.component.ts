@@ -243,10 +243,12 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             }
             this.listView.anchorLine = this.lastAnchorLine?.index || null;
             for (const breakpoint of this.breakpoints) {
-                const breakpointLine = this.listViewMap.get(breakpoint.addr);
-                if (breakpointLine) {
-                    breakpointLine.text = breakpointLine.text.charAt(0) + '\u25cf' + breakpointLine.text.substring(2);
-                    this.lastBreakpointLines.push(breakpointLine);
+                if (breakpoint.type === BreakpointType.INSTRUCTION) {
+                    const breakpointLine = this.listViewMap.get(breakpoint.addr);
+                    if (breakpointLine) {
+                        breakpointLine.text = breakpointLine.text.charAt(0) + '\u25cf' + breakpointLine.text.substring(2);
+                        this.lastBreakpointLines.push(breakpointLine);
+                    }
                 }
             }
             return this.listView;
@@ -323,25 +325,20 @@ export class DebuggerComponent implements OnInit, OnChanges, OnDestroy {
             const lineNo = Math.floor(($memory.prop('scrollTop') + event.offsetY) / lineHeight);
             const line = lines[lineNo];
             const lineAddr = line.addr !== null ? line.addr : NaN;
-            const existingBreakpoint = this.breakpoints.find(bp => bp.addr === line.addr);
-            if (!existingBreakpoint || existingBreakpoint.type === BreakpointType.INSTRUCTION) {
-                if (!existingBreakpoint) {
-                    let found = false;
-                    for (const bp of this.breakpoints) {
-                        if (isNaN(bp.addr)) {
-                            bp.addr = lineAddr;
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found) {
-                        this.breakpoints.push(new Breakpoint(BreakpointType.INSTRUCTION, lineAddr));
-                    }
+            const existingBreakpoint = this.breakpoints.find(bp => bp.addr === line.addr && bp.type === BreakpointType.INSTRUCTION);
+            if (existingBreakpoint) {
+                const index = this.breakpoints.indexOf(existingBreakpoint);
+                if (index > 0) {
+                    this.breakpoints.splice(index, 1);
                 } else {
                     existingBreakpoint.addr = NaN;
-                    while (this.breakpoints.length > 1 && isNaN(this.breakpoints[this.breakpoints.length - 1].addr)) {
-                        this.breakpoints.pop();
-                    }
+                }
+            } else {
+                const unusedBreakpoint = this.breakpoints.find(bp => isNaN(bp.addr));
+                if (unusedBreakpoint) {
+                    unusedBreakpoint.addr = lineAddr;
+                } else {
+                    this.breakpoints.push(new Breakpoint(BreakpointType.INSTRUCTION, lineAddr));
                 }
             }
             this.onBreakpointAddressChanged();
