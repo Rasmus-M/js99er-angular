@@ -267,7 +267,7 @@ export abstract class CPUCommon implements CPU {
                 this.dest = (instr & 0x03c0) >> 6;
                 this.ts = (instr & 0x0030) >> 4;
                 this.source = (instr & 0x000f);
-                this.byte = (this.dest > 8 ? 0 : 1);
+                this.byte = (this.dest > 8 ? 0 : 1); // TODO LDCR, STCR with dest=0
                 cycles += this.fixSource();
                 break;
             case 5:

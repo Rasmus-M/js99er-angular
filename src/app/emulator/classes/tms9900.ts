@@ -52,7 +52,7 @@ export class TMS9900 extends CPUCommon implements CPU {
         this.source = 0;
         this.byte = 0;
         this.cycles = 0;
-        this.countStart = 0;
+        this.countStart = -1;
         this.maxCount = 0;
         this.illegalCount = 0;
         this.profile = new Uint32Array(0x10000);
@@ -103,12 +103,13 @@ export class TMS9900 extends CPUCommon implements CPU {
             }
             if (this.pc === countStartPC) {
                 this.countStart = this.cycles;
-            } else if (this.pc === countEndPC) {
+            } else if (this.pc === countEndPC && this.countStart !== -1) {
                 const count = this.cycles - this.countStart;
                 if (!this.maxCount || count > this.maxCount) {
                     this.maxCount = count;
                 }
                 this.log.info("Cycle count: " + count + " max: " + this.maxCount);
+                this.countStart = -1;
             }
         }
         return (this.cycles - startCycles) - cyclesToRun;
@@ -276,7 +277,7 @@ export class TMS9900 extends CPUCommon implements CPU {
         return 20 + 2 * this.dest;
     }
 
-    // STore CRU: STC6R src, dst
+    // STore CRU: STCR src, dst
     // Stores dst bits from the CRU into src
     stcr(): number {
         if (this.dest === 0) { this.dest = 16; }
