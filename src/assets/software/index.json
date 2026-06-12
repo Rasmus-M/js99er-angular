@@ -293,6 +293,11 @@
                     "type": "ITEM",
                     "name": "Crazy Climber",
                     "url": "software/crazy-climber.rpk"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Gyruss",
+                    "url": "software/gyruss8.bin"
                 }
             ]
         },        {
