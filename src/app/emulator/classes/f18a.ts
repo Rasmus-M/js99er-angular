@@ -982,6 +982,8 @@ export class F18A implements VDP {
     }
 
     readStatus(): number {
+        this.dataPortMode = false;
+        this.latch = false; // TODO: According to Matthew
         switch (this.statusRegisterNo) {
             case 0:
                 // Normal status
@@ -1032,7 +1034,6 @@ export class F18A implements VDP {
                 // Status register number
                 return this.registers[15];
         }
-        this.latch = false; // TODO: According to Matthew
         return 0;
     }
 
