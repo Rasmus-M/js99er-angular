@@ -119,7 +119,7 @@ constructor(software: Software, private settings: Settings) {
 
     public readGROM(addr: number): number {
         let value = 0;
-        if (this.gromBases.length) {
+        if (this.gromBases.length > 0) {
             const base = this.gromBases.length === 1 ? 0 : (addr & 0x003C) >> 2;
             addr = addr & 0x9802;
             if (addr === Memory.GRMRD) {
@@ -148,7 +148,7 @@ constructor(software: Software, private settings: Settings) {
     }
 
     public writeGROM(addr: number, w: number) {
-        if (this.gromBases.length) {
+        if (this.gromBases.length > 0) {
             addr = addr & 0x9C02;
             if (addr === Memory.GRMWD) {
                 if (this.settings.isGRAMEnabled()) {
@@ -215,7 +215,7 @@ constructor(software: Software, private settings: Settings) {
     }
 
     isExtendedBasic() {
-        if (this.gromBases.length === 0) {
+        if (this.gromBases.length > 0) {
             const grom = this.gromBases[0];
             return grom.getByte(0x6343) === 0x45 && grom.getByte(0x6344) === 0x58 && grom.getByte(0x6345) === 0x54;
         }
