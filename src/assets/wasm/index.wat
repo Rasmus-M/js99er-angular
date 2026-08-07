@@ -2313,8 +2313,10 @@
          local.get $ecmPositionAttributes
          if (result i32)
           local.get $nameTableAddr
-          local.get $nameTableCanonicalBase
-          i32.sub
+          i32.const 4095
+          i32.and
+          i32.const 16383
+          i32.and
          else
           local.get $charNo
          end
@@ -2734,8 +2736,10 @@
        local.get $ecmPositionAttributes
        if (result i32)
         local.get $nameTableAddr
-        local.get $nameTableCanonicalBase
-        i32.sub
+        i32.const 4095
+        i32.and
+        i32.const 16383
+        i32.and
        else
         local.get $charNo
        end
@@ -2844,9 +2848,11 @@
           block $assembly/f18a/getRAMByte|inlined.25 (result i32)
            local.get $colorTable
            local.get $nameTableAddr
+           i32.const 4095
+           i32.and
+           i32.const 16383
+           i32.and
            i32.add
-           local.get $nameTableCanonicalBase
-           i32.sub
            local.set $addr|58
            global.get $assembly/f18a/vdpRAMAddr
            local.get $addr|58
