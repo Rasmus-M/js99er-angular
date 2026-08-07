@@ -376,7 +376,9 @@ function drawTileLayer(
             bitShift = x1 & 7;
             lineOffset1 = lineOffset;
             if (tileColorMode !== COLOR_MODE_NORMAL) {
-                tileAttributeByte = getRAMByte(colorTable + (ecmPositionAttributes ? nameTableAddr - nameTableCanonicalBase : charNo));
+                // Position based attributes always pick up the name table page bits, even on a 1x1 page layout,
+                // and they are added to the color table base so carries propagate into the upper address bits.
+                tileAttributeByte = getRAMByte(ecmPositionAttributes ? (colorTable + (nameTableAddr & 0xfff)) & 0x3fff : colorTable + charNo);
                 tilePriority = (tileAttributeByte & 0x80) !== 0;
                 if ((tileAttributeByte & 0x40) !== 0) {
                     // Flip X
