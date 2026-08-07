@@ -4,7 +4,7 @@
  (type $2 (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
  (type $3 (func (param i32)))
  (type $4 (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
- (type $5 (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32)))
+ (type $5 (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32)))
  (type $6 (func (param i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32 i32) (result i32)))
  (import "env" "memory" (memory $0 2))
  (global $assembly/tms9918a/MODE_GRAPHICS i32 (i32.const 0))
@@ -2163,7 +2163,7 @@
   local.get $statusRegister
   return
  )
- (func $assembly/f18a/drawTileLayer (param $x i32) (param $y i32) (param $y1 i32) (param $rowOffset i32) (param $lineOffset i32) (param $nameTableCanonicalBase i32) (param $nameTableBaseAddr i32) (param $colorTable i32) (param $borderWidth i32) (param $scrollWidth i32) (param $hScroll i32) (param $hPageSize i32) (param $tilePaletteSelect i32) (param $screenMode i32) (param $tileColorMode i32) (param $unlocked i32) (param $ecmPositionAttributes i32) (param $charPatternTable i32) (param $tilePlaneOffset i32) (param $patternTableMask i32) (param $colorTableMask i32) (param $drawWidth i32) (param $fgColor i32) (param $bgColor i32)
+ (func $assembly/f18a/drawTileLayer (param $x i32) (param $y i32) (param $y1 i32) (param $rowOffset i32) (param $lineOffset i32) (param $nameTableBaseAddr i32) (param $colorTable i32) (param $borderWidth i32) (param $scrollWidth i32) (param $hScroll i32) (param $hPageSize i32) (param $tilePaletteSelect i32) (param $screenMode i32) (param $tileColorMode i32) (param $unlocked i32) (param $ecmPositionAttributes i32) (param $charPatternTable i32) (param $tilePlaneOffset i32) (param $patternTableMask i32) (param $colorTableMask i32) (param $drawWidth i32) (param $fgColor i32) (param $bgColor i32)
   (local $tilePriority i32)
   (local $transparentColor0 i32)
   (local $tileColor i32)
@@ -2179,31 +2179,31 @@
   (local $tileAttributeByte i32)
   (local $tilePaletteBaseIndex i32)
   (local $lineOffset1 i32)
-  (local $39 i32)
+  (local $38 i32)
   (local $addr i32)
+  (local $addr|40 i32)
   (local $addr|41 i32)
-  (local $addr|42 i32)
-  (local $43 i32)
-  (local $addr|44 i32)
+  (local $42 i32)
+  (local $addr|43 i32)
   (local $colorSet i32)
+  (local $addr|45 i32)
   (local $addr|46 i32)
   (local $addr|47 i32)
   (local $addr|48 i32)
-  (local $addr|49 i32)
   (local $charSetOffset i32)
-  (local $addr|51 i32)
+  (local $addr|50 i32)
   (local $colorAddr i32)
+  (local $addr|52 i32)
   (local $addr|53 i32)
   (local $addr|54 i32)
   (local $addr|55 i32)
-  (local $addr|56 i32)
-  (local $57 i32)
+  (local $56 i32)
+  (local $addr|57 i32)
   (local $addr|58 i32)
   (local $addr|59 i32)
   (local $addr|60 i32)
   (local $addr|61 i32)
   (local $addr|62 i32)
-  (local $addr|63 i32)
   i32.const 0
   local.set $tilePriority
   i32.const 0
@@ -2255,24 +2255,24 @@
       block $case1|0
        block $case0|0
         local.get $screenMode
-        local.set $39
-        local.get $39
+        local.set $38
+        local.get $38
         global.get $assembly/f18a/MODE_GRAPHICS
         i32.eq
         br_if $case0|0
-        local.get $39
+        local.get $38
         global.get $assembly/f18a/MODE_BITMAP
         i32.eq
         br_if $case1|0
-        local.get $39
+        local.get $38
         global.get $assembly/f18a/MODE_TEXT
         i32.eq
         br_if $case2|0
-        local.get $39
+        local.get $38
         global.get $assembly/f18a/MODE_TEXT_80
         i32.eq
         br_if $case3|0
-        local.get $39
+        local.get $38
         global.get $assembly/f18a/MODE_MULTICOLOR
         i32.eq
         br_if $case4|0
@@ -2309,21 +2309,23 @@
        i32.ne
        if
         block $assembly/f18a/getRAMByte|inlined.13 (result i32)
-         local.get $colorTable
          local.get $ecmPositionAttributes
          if (result i32)
+          local.get $colorTable
           local.get $nameTableAddr
           i32.const 4095
           i32.and
+          i32.add
           i32.const 16383
           i32.and
          else
+          local.get $colorTable
           local.get $charNo
+          i32.add
          end
-         i32.add
-         local.set $addr|41
+         local.set $addr|40
          global.get $assembly/f18a/vdpRAMAddr
-         local.get $addr|41
+         local.get $addr|40
          i32.add
          i32.load8_u
          br $assembly/f18a/getRAMByte|inlined.13
@@ -2380,9 +2382,9 @@
        local.set $patternAddr
        block $assembly/f18a/getRAMByte|inlined.14 (result i32)
         local.get $patternAddr
-        local.set $addr|42
+        local.set $addr|41
         global.get $assembly/f18a/vdpRAMAddr
-        local.get $addr|42
+        local.get $addr|41
         i32.add
         i32.load8_u
         br $assembly/f18a/getRAMByte|inlined.14
@@ -2396,20 +2398,20 @@
           block $case1|1
            block $case0|1
             local.get $tileColorMode
-            local.set $43
-            local.get $43
+            local.set $42
+            local.get $42
             global.get $assembly/f18a/COLOR_MODE_NORMAL
             i32.eq
             br_if $case0|1
-            local.get $43
+            local.get $42
             global.get $assembly/f18a/COLOR_MODE_ECM_1
             i32.eq
             br_if $case1|1
-            local.get $43
+            local.get $42
             global.get $assembly/f18a/COLOR_MODE_ECM_2
             i32.eq
             br_if $case2|1
-            local.get $43
+            local.get $42
             global.get $assembly/f18a/COLOR_MODE_ECM_3
             i32.eq
             br_if $case3|1
@@ -2421,9 +2423,9 @@
             i32.const 3
             i32.shr_s
             i32.add
-            local.set $addr|44
+            local.set $addr|43
             global.get $assembly/f18a/vdpRAMAddr
-            local.get $addr|44
+            local.get $addr|43
             i32.add
             i32.load8_u
             br $assembly/f18a/getRAMByte|inlined.15
@@ -2489,9 +2491,9 @@
           i32.add
           i32.const 16383
           i32.and
-          local.set $addr|46
+          local.set $addr|45
           global.get $assembly/f18a/vdpRAMAddr
-          local.get $addr|46
+          local.get $addr|45
           i32.add
           i32.load8_u
           br $assembly/f18a/getRAMByte|inlined.16
@@ -2529,9 +2531,9 @@
          i32.add
          i32.const 16383
          i32.and
-         local.set $addr|47
+         local.set $addr|46
          global.get $assembly/f18a/vdpRAMAddr
-         local.get $addr|47
+         local.get $addr|46
          i32.add
          i32.load8_u
          br $assembly/f18a/getRAMByte|inlined.17
@@ -2555,9 +2557,9 @@
          i32.add
          i32.const 16383
          i32.and
-         local.set $addr|48
+         local.set $addr|47
          global.get $assembly/f18a/vdpRAMAddr
-         local.get $addr|48
+         local.get $addr|47
          i32.add
          i32.load8_u
          br $assembly/f18a/getRAMByte|inlined.18
@@ -2594,9 +2596,9 @@
        i32.add
        local.get $rowOffset
        i32.add
-       local.set $addr|49
+       local.set $addr|48
        global.get $assembly/f18a/vdpRAMAddr
-       local.get $addr|49
+       local.get $addr|48
        i32.add
        i32.load8_u
        br $assembly/f18a/getRAMByte|inlined.19
@@ -2630,9 +2632,9 @@
        i32.add
        local.get $lineOffset
        i32.add
-       local.set $addr|51
+       local.set $addr|50
        global.get $assembly/f18a/vdpRAMAddr
-       local.get $addr|51
+       local.get $addr|50
        i32.add
        i32.load8_u
        br $assembly/f18a/getRAMByte|inlined.20
@@ -2654,9 +2656,9 @@
       local.set $colorAddr
       block $assembly/f18a/getRAMByte|inlined.21 (result i32)
        local.get $colorAddr
-       local.set $addr|53
+       local.set $addr|52
        global.get $assembly/f18a/vdpRAMAddr
-       local.get $addr|53
+       local.get $addr|52
        i32.add
        i32.load8_u
        br $assembly/f18a/getRAMByte|inlined.21
@@ -2711,9 +2713,9 @@
      local.set $nameTableAddr
      block $assembly/f18a/getRAMByte|inlined.22 (result i32)
       local.get $nameTableAddr
-      local.set $addr|54
+      local.set $addr|53
       global.get $assembly/f18a/vdpRAMAddr
-      local.get $addr|54
+      local.get $addr|53
       i32.add
       i32.load8_u
       br $assembly/f18a/getRAMByte|inlined.22
@@ -2732,21 +2734,23 @@
      i32.ne
      if
       block $assembly/f18a/getRAMByte|inlined.23 (result i32)
-       local.get $colorTable
        local.get $ecmPositionAttributes
        if (result i32)
+        local.get $colorTable
         local.get $nameTableAddr
         i32.const 4095
         i32.and
+        i32.add
         i32.const 16383
         i32.and
        else
+        local.get $colorTable
         local.get $charNo
+        i32.add
        end
-       i32.add
-       local.set $addr|55
+       local.set $addr|54
        global.get $assembly/f18a/vdpRAMAddr
-       local.get $addr|55
+       local.get $addr|54
        i32.add
        i32.load8_u
        br $assembly/f18a/getRAMByte|inlined.23
@@ -2803,9 +2807,9 @@
      local.set $patternAddr
      block $assembly/f18a/getRAMByte|inlined.24 (result i32)
       local.get $patternAddr
-      local.set $addr|56
+      local.set $addr|55
       global.get $assembly/f18a/vdpRAMAddr
-      local.get $addr|56
+      local.get $addr|55
       i32.add
       i32.load8_u
       br $assembly/f18a/getRAMByte|inlined.24
@@ -2819,20 +2823,20 @@
         block $case1|2
          block $case0|2
           local.get $tileColorMode
-          local.set $57
-          local.get $57
+          local.set $56
+          local.get $56
           global.get $assembly/f18a/COLOR_MODE_NORMAL
           i32.eq
           br_if $case0|2
-          local.get $57
+          local.get $56
           global.get $assembly/f18a/COLOR_MODE_ECM_1
           i32.eq
           br_if $case1|2
-          local.get $57
+          local.get $56
           global.get $assembly/f18a/COLOR_MODE_ECM_2
           i32.eq
           br_if $case2|2
-          local.get $57
+          local.get $56
           global.get $assembly/f18a/COLOR_MODE_ECM_3
           i32.eq
           br_if $case3|2
@@ -2850,12 +2854,12 @@
            local.get $nameTableAddr
            i32.const 4095
            i32.and
+           i32.add
            i32.const 16383
            i32.and
-           i32.add
-           local.set $addr|58
+           local.set $addr|57
            global.get $assembly/f18a/vdpRAMAddr
-           local.get $addr|58
+           local.get $addr|57
            i32.add
            i32.load8_u
            br $assembly/f18a/getRAMByte|inlined.25
@@ -2932,9 +2936,9 @@
         i32.add
         i32.const 16383
         i32.and
-        local.set $addr|59
+        local.set $addr|58
         global.get $assembly/f18a/vdpRAMAddr
-        local.get $addr|59
+        local.get $addr|58
         i32.add
         i32.load8_u
         br $assembly/f18a/getRAMByte|inlined.26
@@ -2972,9 +2976,9 @@
        i32.add
        i32.const 16383
        i32.and
-       local.set $addr|60
+       local.set $addr|59
        global.get $assembly/f18a/vdpRAMAddr
-       local.get $addr|60
+       local.get $addr|59
        i32.add
        i32.load8_u
        br $assembly/f18a/getRAMByte|inlined.27
@@ -2998,9 +3002,9 @@
        i32.add
        i32.const 16383
        i32.and
-       local.set $addr|61
+       local.set $addr|60
        global.get $assembly/f18a/vdpRAMAddr
-       local.get $addr|61
+       local.get $addr|60
        i32.add
        i32.load8_u
        br $assembly/f18a/getRAMByte|inlined.28
@@ -3039,9 +3043,9 @@
     i32.add
     local.get $rowOffset
     i32.add
-    local.set $addr|62
+    local.set $addr|61
     global.get $assembly/f18a/vdpRAMAddr
-    local.get $addr|62
+    local.get $addr|61
     i32.add
     i32.load8_u
     br $assembly/f18a/getRAMByte|inlined.29
@@ -3061,9 +3065,9 @@
     i32.const 2
     i32.shr_s
     i32.add
-    local.set $addr|63
+    local.set $addr|62
     global.get $assembly/f18a/vdpRAMAddr
-    local.get $addr|63
+    local.get $addr|62
     i32.add
     i32.load8_u
     br $assembly/f18a/getRAMByte|inlined.30
@@ -3108,18 +3112,16 @@
   (local $scrollWidth i32)
   (local $scrollHeight i32)
   (local $borderWidth i32)
-  (local $nameTableCanonicalBase i32)
   (local $nameTableBaseAddr i32)
   (local $y1 i32)
   (local $rowOffset i32)
-  (local $67 i32)
+  (local $66 i32)
   (local $lineOffset i32)
   (local $rowOffset2 i32)
-  (local $nameTableCanonicalBase2 i32)
   (local $nameTableBaseAddr2 i32)
   (local $lineOffset2 i32)
   (local $y12 i32)
-  (local $74 i32)
+  (local $72 i32)
   (local $bitmapX2 i32)
   (local $bitmapY1 i32)
   (local $bitmapY2 i32)
@@ -3140,31 +3142,31 @@
   (local $bitmapColor i32)
   (local $offset i32)
   (local $spriteColor i32)
-  (local $offset|95 i32)
+  (local $offset|93 i32)
   (local $i i32)
   (local $rgbColor i32)
-  (local $98 i32)
-  (local $pixelOffset|99 i32)
+  (local $96 i32)
+  (local $pixelOffset|97 i32)
   (local $value i32)
-  (local $i|101 i32)
-  (local $rgbColor|102 i32)
-  (local $xc|103 i32)
-  (local $104 i32)
-  (local $pixelOffset|105 i32)
-  (local $value|106 i32)
+  (local $i|99 i32)
+  (local $rgbColor|100 i32)
+  (local $xc|101 i32)
+  (local $102 i32)
+  (local $pixelOffset|103 i32)
+  (local $value|104 i32)
   (local $pixelOffset2 i32)
-  (local $xc|108 i32)
-  (local $pixelOffset|109 i32)
-  (local $rgbColor|110 i32)
+  (local $xc|106 i32)
+  (local $pixelOffset|107 i32)
+  (local $rgbColor|108 i32)
   (local $colorComponent i32)
-  (local $colorComponent|112 i32)
-  (local $colorComponent|113 i32)
+  (local $colorComponent|110 i32)
+  (local $colorComponent|111 i32)
   (local $dimmedRgbColor i32)
-  (local $115 i32)
+  (local $113 i32)
+  (local $pixelOffset|114 i32)
+  (local $value|115 i32)
   (local $pixelOffset|116 i32)
-  (local $value|117 i32)
-  (local $pixelOffset|118 i32)
-  (local $width|119 i32)
+  (local $width|117 i32)
   local.get $y
   local.get $width
   i32.mul
@@ -3260,22 +3262,6 @@
    i32.shl
    i32.sub
    local.set $scrollWidth
-   local.get $vPageSize1
-   if (result i32)
-    local.get $nameTable
-    i32.const 12288
-    i32.and
-   else
-    local.get $hPageSize1
-    if (result i32)
-     local.get $nameTable
-     i32.const 14336
-     i32.and
-    else
-     local.get $nameTable
-    end
-   end
-   local.set $nameTableCanonicalBase
    local.get $nameTable
    local.set $nameTableBaseAddr
    local.get $y
@@ -3304,24 +3290,24 @@
        block $case1|0
         block $case0|0
          local.get $screenMode
-         local.set $67
-         local.get $67
+         local.set $66
+         local.get $66
          global.get $assembly/f18a/MODE_GRAPHICS
          i32.eq
          br_if $case0|0
-         local.get $67
+         local.get $66
          global.get $assembly/f18a/MODE_BITMAP
          i32.eq
          br_if $case1|0
-         local.get $67
+         local.get $66
          global.get $assembly/f18a/MODE_MULTICOLOR
          i32.eq
          br_if $case2|0
-         local.get $67
+         local.get $66
          global.get $assembly/f18a/MODE_TEXT
          i32.eq
          br_if $case3|0
-         local.get $67
+         local.get $66
          global.get $assembly/f18a/MODE_TEXT_80
          i32.eq
          br_if $case4|0
@@ -3360,8 +3346,6 @@
    i32.const 0
    local.set $rowOffset2
    i32.const 0
-   local.set $nameTableCanonicalBase2
-   i32.const 0
    local.set $nameTableBaseAddr2
    i32.const 0
    local.set $lineOffset2
@@ -3369,22 +3353,6 @@
    local.set $y12
    local.get $tileLayer2Enabled
    if
-    local.get $vPageSize2
-    if (result i32)
-     local.get $nameTable2
-     i32.const 12288
-     i32.and
-    else
-     local.get $hPageSize2
-     if (result i32)
-      local.get $nameTable2
-      i32.const 14336
-      i32.and
-     else
-      local.get $nameTable2
-     end
-    end
-    local.set $nameTableCanonicalBase2
     local.get $nameTable2
     local.set $nameTableBaseAddr2
     local.get $y
@@ -3411,24 +3379,24 @@
         block $case1|1
          block $case0|1
           local.get $screenMode
-          local.set $74
-          local.get $74
+          local.set $72
+          local.get $72
           global.get $assembly/f18a/MODE_GRAPHICS
           i32.eq
           br_if $case0|1
-          local.get $74
+          local.get $72
           global.get $assembly/f18a/MODE_BITMAP
           i32.eq
           br_if $case1|1
-          local.get $74
+          local.get $72
           global.get $assembly/f18a/MODE_MULTICOLOR
           i32.eq
           br_if $case2|1
-          local.get $74
+          local.get $72
           global.get $assembly/f18a/MODE_TEXT
           i32.eq
           br_if $case3|1
-          local.get $74
+          local.get $72
           global.get $assembly/f18a/MODE_TEXT_80
           i32.eq
           br_if $case4|1
@@ -3547,7 +3515,6 @@
        local.get $y1
        local.get $rowOffset
        local.get $lineOffset
-       local.get $nameTableCanonicalBase
        local.get $nameTableBaseAddr
        local.get $colorTable
        local.get $borderWidth
@@ -3724,7 +3691,6 @@
        local.get $y1
        local.get $rowOffset2
        local.get $lineOffset2
-       local.get $nameTableCanonicalBase2
        local.get $nameTableBaseAddr2
        local.get $colorTable2
        local.get $borderWidth
@@ -3804,9 +3770,9 @@
         local.set $color
         block $assembly/f18a/getSpritePaletteBaseIndexBuffer|inlined.1 (result i32)
          local.get $x
-         local.set $offset|95
+         local.set $offset|93
          global.get $assembly/f18a/spritePaletteBaseIndexBufferAddr
-         local.get $offset|95
+         local.get $offset|93
          i32.const 2
          i32.shl
          i32.add
@@ -3832,16 +3798,16 @@
      end
      local.set $rgbColor
      local.get $pixelOffset
-     local.tee $98
+     local.tee $96
      i32.const 1
      i32.add
      local.set $pixelOffset
-     local.get $98
-     local.set $pixelOffset|99
+     local.get $96
+     local.set $pixelOffset|97
      local.get $rgbColor
      local.set $value
      global.get $assembly/f18a/imageDataAddr
-     local.get $pixelOffset|99
+     local.get $pixelOffset|97
      i32.const 2
      i32.shl
      i32.add
@@ -3857,43 +3823,43 @@
   else
    block $assembly/f18a/getColor|inlined.1 (result i32)
     local.get $bgColor
-    local.set $i|101
+    local.set $i|99
     global.get $assembly/f18a/paletteAddr
-    local.get $i|101
+    local.get $i|99
     i32.const 2
     i32.shl
     i32.add
     i32.load
     br $assembly/f18a/getColor|inlined.1
    end
-   local.set $rgbColor|102
+   local.set $rgbColor|100
    i32.const 0
-   local.set $xc|103
+   local.set $xc|101
    loop $for-loop|3
-    local.get $xc|103
+    local.get $xc|101
     local.get $width
     i32.lt_s
     if
      local.get $pixelOffset
-     local.tee $104
+     local.tee $102
      i32.const 1
      i32.add
      local.set $pixelOffset
-     local.get $104
-     local.set $pixelOffset|105
-     local.get $rgbColor|102
-     local.set $value|106
+     local.get $102
+     local.set $pixelOffset|103
+     local.get $rgbColor|100
+     local.set $value|104
      global.get $assembly/f18a/imageDataAddr
-     local.get $pixelOffset|105
+     local.get $pixelOffset|103
      i32.const 2
      i32.shl
      i32.add
-     local.get $value|106
+     local.get $value|104
      i32.store
-     local.get $xc|103
+     local.get $xc|101
      i32.const 1
      i32.add
-     local.set $xc|103
+     local.set $xc|101
      br $for-loop|3
     end
    end
@@ -3914,27 +3880,27 @@
    i32.sub
    local.set $pixelOffset2
    i32.const 0
-   local.set $xc|108
+   local.set $xc|106
    loop $for-loop|4
-    local.get $xc|108
+    local.get $xc|106
     local.get $width
     i32.lt_s
     if
      block $assembly/f18a/getImageData|inlined.0 (result i32)
       local.get $pixelOffset2
-      local.set $pixelOffset|109
+      local.set $pixelOffset|107
       global.get $assembly/f18a/imageDataAddr
-      local.get $pixelOffset|109
+      local.get $pixelOffset|107
       i32.const 2
       i32.shl
       i32.add
       i32.load
       br $assembly/f18a/getImageData|inlined.0
      end
-     local.set $rgbColor|110
+     local.set $rgbColor|108
      i32.const -16777216
      block $assembly/f18a/dim|inlined.0 (result i32)
-      local.get $rgbColor|110
+      local.get $rgbColor|108
       i32.const 16
       i32.shr_u
       i32.const 255
@@ -3953,16 +3919,16 @@
      i32.shl
      i32.or
      block $assembly/f18a/dim|inlined.1 (result i32)
-      local.get $rgbColor|110
+      local.get $rgbColor|108
       i32.const 8
       i32.shr_u
       i32.const 255
       i32.and
-      local.set $colorComponent|112
-      local.get $colorComponent|112
+      local.set $colorComponent|110
+      local.get $colorComponent|110
       i32.const 1
       i32.shr_u
-      local.get $colorComponent|112
+      local.get $colorComponent|110
       i32.const 2
       i32.shr_u
       i32.add
@@ -3972,14 +3938,14 @@
      i32.shl
      i32.or
      block $assembly/f18a/dim|inlined.2 (result i32)
-      local.get $rgbColor|110
+      local.get $rgbColor|108
       i32.const 255
       i32.and
-      local.set $colorComponent|113
-      local.get $colorComponent|113
+      local.set $colorComponent|111
+      local.get $colorComponent|111
       i32.const 1
       i32.shr_u
-      local.get $colorComponent|113
+      local.get $colorComponent|111
       i32.const 2
       i32.shr_u
       i32.add
@@ -3988,25 +3954,25 @@
      i32.or
      local.set $dimmedRgbColor
      local.get $pixelOffset2
-     local.tee $115
+     local.tee $113
      i32.const 1
      i32.add
      local.set $pixelOffset2
-     local.get $115
-     local.set $pixelOffset|116
+     local.get $113
+     local.set $pixelOffset|114
      local.get $dimmedRgbColor
-     local.set $value|117
+     local.set $value|115
      global.get $assembly/f18a/imageDataAddr
-     local.get $pixelOffset|116
+     local.get $pixelOffset|114
      i32.const 2
      i32.shl
      i32.add
-     local.get $value|117
+     local.get $value|115
      i32.store
-     local.get $xc|108
+     local.get $xc|106
      i32.const 1
      i32.add
-     local.set $xc|108
+     local.set $xc|106
      br $for-loop|4
     end
    end
@@ -4014,22 +3980,22 @@
   local.get $duplicateScanline
   if
    local.get $pixelOffset
-   local.set $pixelOffset|118
+   local.set $pixelOffset|116
    local.get $width
-   local.set $width|119
+   local.set $width|117
    global.get $assembly/f18a/imageDataAddr
-   local.get $pixelOffset|118
+   local.get $pixelOffset|116
    i32.const 2
    i32.shl
    i32.add
    global.get $assembly/f18a/imageDataAddr
-   local.get $pixelOffset|118
-   local.get $width|119
+   local.get $pixelOffset|116
+   local.get $width|117
    i32.sub
    i32.const 2
    i32.shl
    i32.add
-   local.get $width|119
+   local.get $width|117
    i32.const 2
    i32.shl
    memory.copy

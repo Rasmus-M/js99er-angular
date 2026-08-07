@@ -370,7 +370,7 @@ function drawTileLayer(
             bitShift = x1 & 7;
             lineOffset1 = lineOffset;
             if (tileColorMode !== COLOR_MODE_NORMAL) {
-                tileAttributeByte = getRAMByte(colorTable + (ecmPositionAttributes ? ((nameTableAddr & 0xfff) & 0x3fff) : charNo));
+                tileAttributeByte = getRAMByte((ecmPositionAttributes ? (colorTable + (nameTableAddr & 0xfff)) & 0x3fff : colorTable + charNo));
                 tilePriority = (tileAttributeByte & 0x80) !== 0;
                 if ((tileAttributeByte & 0x40) !== 0) {
                     // Flip X
@@ -433,7 +433,7 @@ function drawTileLayer(
                 bitShift = x1 % 6;
                 lineOffset1 = lineOffset;
                 if (tileColorMode !== COLOR_MODE_NORMAL) {
-                    tileAttributeByte = getRAMByte(colorTable + (ecmPositionAttributes ? ((nameTableAddr & 0xfff) & 0x3fff) : charNo));
+                    tileAttributeByte = getRAMByte((ecmPositionAttributes ? (colorTable + (nameTableAddr & 0xfff)) & 0x3fff : colorTable + charNo));
                     tilePriority = (tileAttributeByte & 0x80) !== 0;
                     if ((tileAttributeByte & 0x40) !== 0) {
                         // Flip X
@@ -451,7 +451,7 @@ function drawTileLayer(
                 switch (tileColorMode) {
                     case COLOR_MODE_NORMAL:
                         if (unlocked && ecmPositionAttributes) {
-                            tileAttributeByte = getRAMByte(colorTable + ((nameTableAddr & 0xfff) & 0x3fff));
+                            tileAttributeByte = getRAMByte((colorTable + (nameTableAddr & 0xfff)) & 0x3fff);
                             tileColor = (patternByte & bit) !== 0 ? tileAttributeByte >> 4 : tileAttributeByte & 0xF;
                         } else {
                             tileColor = (patternByte & bit) !== 0 ? fgColor : bgColor;
