@@ -2194,16 +2194,17 @@
   (local $addr|50 i32)
   (local $colorAddr i32)
   (local $addr|52 i32)
-  (local $addr|53 i32)
+  (local $textPos i32)
   (local $addr|54 i32)
   (local $addr|55 i32)
-  (local $56 i32)
-  (local $addr|57 i32)
+  (local $addr|56 i32)
+  (local $57 i32)
   (local $addr|58 i32)
   (local $addr|59 i32)
   (local $addr|60 i32)
   (local $addr|61 i32)
   (local $addr|62 i32)
+  (local $addr|63 i32)
   i32.const 0
   local.set $tilePriority
   i32.const 0
@@ -2703,19 +2704,21 @@
      i32.const 0
     end
     if
-     local.get $nameTableAddr
      local.get $x1
      i32.const 6
      i32.div_s
      local.get $rowOffset
      i32.add
+     local.set $textPos
+     local.get $nameTableAddr
+     local.get $textPos
      i32.add
      local.set $nameTableAddr
      block $assembly/f18a/getRAMByte|inlined.22 (result i32)
       local.get $nameTableAddr
-      local.set $addr|53
+      local.set $addr|54
       global.get $assembly/f18a/vdpRAMAddr
-      local.get $addr|53
+      local.get $addr|54
       i32.add
       i32.load8_u
       br $assembly/f18a/getRAMByte|inlined.22
@@ -2737,9 +2740,7 @@
        local.get $ecmPositionAttributes
        if (result i32)
         local.get $colorTable
-        local.get $nameTableAddr
-        i32.const 4095
-        i32.and
+        local.get $textPos
         i32.add
         i32.const 16383
         i32.and
@@ -2748,9 +2749,9 @@
         local.get $charNo
         i32.add
        end
-       local.set $addr|54
+       local.set $addr|55
        global.get $assembly/f18a/vdpRAMAddr
-       local.get $addr|54
+       local.get $addr|55
        i32.add
        i32.load8_u
        br $assembly/f18a/getRAMByte|inlined.23
@@ -2807,9 +2808,9 @@
      local.set $patternAddr
      block $assembly/f18a/getRAMByte|inlined.24 (result i32)
       local.get $patternAddr
-      local.set $addr|55
+      local.set $addr|56
       global.get $assembly/f18a/vdpRAMAddr
-      local.get $addr|55
+      local.get $addr|56
       i32.add
       i32.load8_u
       br $assembly/f18a/getRAMByte|inlined.24
@@ -2823,20 +2824,20 @@
         block $case1|2
          block $case0|2
           local.get $tileColorMode
-          local.set $56
-          local.get $56
+          local.set $57
+          local.get $57
           global.get $assembly/f18a/COLOR_MODE_NORMAL
           i32.eq
           br_if $case0|2
-          local.get $56
+          local.get $57
           global.get $assembly/f18a/COLOR_MODE_ECM_1
           i32.eq
           br_if $case1|2
-          local.get $56
+          local.get $57
           global.get $assembly/f18a/COLOR_MODE_ECM_2
           i32.eq
           br_if $case2|2
-          local.get $56
+          local.get $57
           global.get $assembly/f18a/COLOR_MODE_ECM_3
           i32.eq
           br_if $case3|2
@@ -2851,15 +2852,13 @@
          if
           block $assembly/f18a/getRAMByte|inlined.25 (result i32)
            local.get $colorTable
-           local.get $nameTableAddr
-           i32.const 4095
-           i32.and
+           local.get $textPos
            i32.add
            i32.const 16383
            i32.and
-           local.set $addr|57
+           local.set $addr|58
            global.get $assembly/f18a/vdpRAMAddr
-           local.get $addr|57
+           local.get $addr|58
            i32.add
            i32.load8_u
            br $assembly/f18a/getRAMByte|inlined.25
@@ -2936,9 +2935,9 @@
         i32.add
         i32.const 16383
         i32.and
-        local.set $addr|58
+        local.set $addr|59
         global.get $assembly/f18a/vdpRAMAddr
-        local.get $addr|58
+        local.get $addr|59
         i32.add
         i32.load8_u
         br $assembly/f18a/getRAMByte|inlined.26
@@ -2976,9 +2975,9 @@
        i32.add
        i32.const 16383
        i32.and
-       local.set $addr|59
+       local.set $addr|60
        global.get $assembly/f18a/vdpRAMAddr
-       local.get $addr|59
+       local.get $addr|60
        i32.add
        i32.load8_u
        br $assembly/f18a/getRAMByte|inlined.27
@@ -3002,9 +3001,9 @@
        i32.add
        i32.const 16383
        i32.and
-       local.set $addr|60
+       local.set $addr|61
        global.get $assembly/f18a/vdpRAMAddr
-       local.get $addr|60
+       local.get $addr|61
        i32.add
        i32.load8_u
        br $assembly/f18a/getRAMByte|inlined.28
@@ -3043,9 +3042,9 @@
     i32.add
     local.get $rowOffset
     i32.add
-    local.set $addr|61
+    local.set $addr|62
     global.get $assembly/f18a/vdpRAMAddr
-    local.get $addr|61
+    local.get $addr|62
     i32.add
     i32.load8_u
     br $assembly/f18a/getRAMByte|inlined.29
@@ -3065,9 +3064,9 @@
     i32.const 2
     i32.shr_s
     i32.add
-    local.set $addr|62
+    local.set $addr|63
     global.get $assembly/f18a/vdpRAMAddr
-    local.get $addr|62
+    local.get $addr|63
     i32.add
     i32.load8_u
     br $assembly/f18a/getRAMByte|inlined.30
