@@ -298,6 +298,11 @@
                     "type": "ITEM",
                     "name": "Gyruss",
                     "url": "software/gyruss8.bin"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "Galaxian",
+                    "url": "software/galaxian8.bin"
                 }
             ]
         },        {
@@ -570,6 +575,11 @@
                     "type": "ITEM",
                     "name": "Position attributes demo",
                     "url": "software/posattr.json"
+                },
+                {
+                    "type": "ITEM",
+                    "name": "WIMP demo",
+                    "url": "software/WIMP8.bin"
                 },
                 {
                     "type": "ITEM",
