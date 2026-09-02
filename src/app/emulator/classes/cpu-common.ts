@@ -332,7 +332,7 @@ export abstract class CPUCommon implements CPU {
             case 2:
                 if (this.source !== 0) {
                     // indexed (@>1000(R1))	Address is the contents of the argument plus the contents of the register
-                    this.source = this.readMemoryWord(this.pc) + this.readMemoryWord(this.wp + (this.source << 1));
+                    this.source = (this.readMemoryWord(this.pc) + this.readMemoryWord(this.wp + (this.source << 1))) & 0xFFFF;
                 } else {
                     // symbolic	 (@>1000) Address is the contents of the argument
                     this.source = this.readMemoryWord(this.pc);
@@ -372,7 +372,7 @@ export abstract class CPUCommon implements CPU {
             case 2:
                 if (this.dest !== 0) {
                     // indexed
-                    this.dest = this.readMemoryWord(this.pc) + this.readMemoryWord(this.wp + (this.dest << 1));
+                    this.dest = (this.readMemoryWord(this.pc) + this.readMemoryWord(this.wp + (this.dest << 1))) & 0xFFFF;
                 } else {
                     // symbolic
                     this.dest = this.readMemoryWord(this.pc);
