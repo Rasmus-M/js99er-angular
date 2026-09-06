@@ -221,42 +221,41 @@ export class F18AGPU extends CPUCommon implements CPU {
                         // Trigger DMA
                         let src = (vdpRAM[0x8000] << 8) | vdpRAM[0x8001];
                         let dst = (vdpRAM[0x8002] << 8) | vdpRAM[0x8003];
-                        const width = vdpRAM[0x8004];
-                        // if (width === 0) {
-                        //     width = 0x100;
-                        // }
-                        const height = vdpRAM[0x8005];
-                        // if (height === 0) {
-                        //     height = 0x100;
-                        // }
+                        // Zero is 256 in both: the register is loaded into a counter that stops at one
+                        const width = vdpRAM[0x8004] || 0x100;
+                        const height = vdpRAM[0x8005] || 0x100;
                         const stride = vdpRAM[0x8006];
-                        // if (stride === 0) {
-                        //     stride = 0x100;
-                        // }
                         const dir = (vdpRAM[0x8007] & 0x02) === 0 ? 1 : -1;
-                        const diff = dir * (stride - width);
+                        const wm1 = width - 1;
+                        // In place of the last step of a row the engine adds one 8-bit signed
+                        // difference, so a stride that overflows it walks the rows backwards
+                        const diff = ((((dir === 1 ? stride - wm1 : wm1 - stride) & 0xFF) << 24) >> 24);
+                        const pitch = wm1 * dir + diff;
                         const copy = (vdpRAM[0x8007] & 0x01) === 0;
                         const srcByte = vdpRAM[src];
-                        this.log.debug("DMA triggered src=" + Util.toHexWord(src) + " dst=" + Util.toHexWord(dst) + " width=" + Util.toHexByte(width) +
-                            " height=" + Util.toHexByte(height) + " stride=" + stride + " copy=" + copy + " dir=" + dir + " srcByte=" + srcByte);
+                        this.log.debug("DMA triggered src=" + Util.toHexWord(src) + " dst=" + Util.toHexWord(dst) + " width=" + width +
+                            " height=" + height + " stride=" + stride + " pitch=" + pitch + " copy=" + copy + " dir=" + dir + " srcByte=" + srcByte);
                         let x, y;
                         if (copy) {
                             for (y = 0; y < height; y++) {
+                                let s = src, d = dst;
                                 for (x = 0; x < width; x++) {
-                                    vdpRAM[dst] = vdpRAM[src];
-                                    src += dir;
-                                    dst += dir;
+                                    // The address registers are 16 bits, so a transfer running off an end comes back at the other
+                                    vdpRAM[d & 0xFFFF] = vdpRAM[s & 0xFFFF];
+                                    s += dir;
+                                    d += dir;
                                 }
-                                src += diff;
-                                dst += diff;
+                                src += pitch;
+                                dst += pitch;
                             }
                         } else {
                             for (y = 0; y < height; y++) {
+                                let d = dst;
                                 for (x = 0; x < width; x++) {
-                                    vdpRAM[dst] = srcByte;
-                                    dst += dir;
+                                    vdpRAM[d & 0xFFFF] = srcByte;
+                                    d += dir;
                                 }
-                                dst += diff;
+                                dst += pitch;
                             }
                         }
                         this.addCycles(width * height); // ?
