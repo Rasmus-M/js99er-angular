@@ -13,6 +13,7 @@ export class Cartridge implements MemoryDevice, CRUDevice, Stateful  {
     private gromBases: GROMArray[];
     private inverted = false;
     private cruBankSwitched = false;
+    private gigacart = false;
     private bankCount = 0;
     private currentBank = 0;
     private addrOffset = -0x6000;
@@ -29,6 +30,12 @@ constructor(software: Software, private settings: Settings) {
     private init(software: Software) {
         this.cartImage = software.rom;
         this.bankCount = this.cartImage ? Math.floor(this.cartImage.length / 0x2000) : 0;
+        this.gigacart = software.gigacart;
+        if (this.gigacart && (this.bankCount < 1 || this.bankCount > 0x4000 ||
+            (this.bankCount & (this.bankCount - 1)) !== 0 || this.cartImage!.length !== this.bankCount * 0x2000 ||
+            software.inverted || software.cruBankSwitched || software.ramFG99Paged || software.ramAt6000 || software.ramAt7000)) {
+            throw new Error('Gigacart requires a power-of-two ROM of 8 KiB to 128 MiB and no other banking or cartridge RAM mode.');
+        }
         this.inverted = software.inverted;
         this.setCurrentCartBank(!this.inverted ? 0 : this.bankCount - 1);
         this.cruBankSwitched = software.cruBankSwitched;
@@ -39,6 +46,17 @@ constructor(software: Software, private settings: Settings) {
         for (const data of software.grom ? [software.grom] : software.groms || []) {
             const gromBase = new GROMArray();
             gromBase.setData(data, 0x6000);
+            this.gromBases.push(gromBase);
+        }
+        if (this.gigacart && this.gromBases.length === 0) {
+            // The runtime CPLD exposes the final 256 flash bytes at GROM >8000,
+            // mirrored through >9FFF (an 8-bit address counter). This is the
+            // actual menu/boot GPL in Dragon's Lair, not a fabricated ROM header.
+            const gromBase = new GROMArray();
+            const boot = this.cartImage!.subarray(this.cartImage!.length - 0x100);
+            for (let addr = 0x8000; addr < 0xa000; addr += 0x100) {
+                gromBase.setData(boot, addr);
+            }
             this.gromBases.push(gromBase);
         }
     }
@@ -87,6 +105,16 @@ constructor(software: Software, private settings: Settings) {
     }
 
     private writeROM(addr: number, w: number) {
+        if (this.gigacart) {
+            // CPLD latch(11..0) = TI A3..A14; A15 is ignored. TI D6 ->
+            // latch(13), D7 -> latch(12). js99er passes a complete CPU word:
+            // the TI mux writes its low byte first, high byte last, leaving
+            // word bits 9 and 8 latched. SELBNK emits (bank >> 4) & >0F00.
+            const low12 = (addr >> 1) & 0x0fff;
+            const high2 = (w >> 8) & 3;
+            this.setCurrentCartBank(((high2 << 12) | low12) & (this.bankCount - 1));
+            return;
+        }
         if (!this.cruBankSwitched) {
             let bank = (addr >> 1) & (this.bankCount - 1);
             if (!this.ramFG99Paged || addr < 0x6800) {
@@ -151,7 +179,7 @@ constructor(software: Software, private settings: Settings) {
         if (this.gromBases.length > 0) {
             addr = addr & 0x9C02;
             if (addr === Memory.GRMWD) {
-                if (this.settings.isGRAMEnabled()) {
+                if (!this.gigacart && this.settings.isGRAMEnabled()) {
                     // Write data to GROM
                     this.gromBases.forEach((grom, i) => {
                         if (grom) {
@@ -228,6 +256,7 @@ constructor(software: Software, private settings: Settings) {
             gromBases: this.gromBases.map(gb => gb.getState()),
             inverted: this.inverted,
             cruBankSwitched: this.cruBankSwitched,
+            gigacart: this.gigacart,
             bankCount: this.bankCount,
             currentBank: this.currentBank,
             addrOffset: this.addrOffset,
@@ -248,6 +277,7 @@ constructor(software: Software, private settings: Settings) {
         });
         this.inverted = state.inverted;
         this.cruBankSwitched = state.cruBankSwitched;
+        this.gigacart = !!state.gigacart;
         this.bankCount = state.bankCount;
         this.currentBank = state.currentBank;
         this.addrOffset = state.addrOffset;

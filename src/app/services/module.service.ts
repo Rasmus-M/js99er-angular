@@ -143,6 +143,7 @@ export class ModuleService {
                     module: Software = new Software(),
                     observables = [];
                 module.inverted = pcbType === 'paged379i';
+                module.gigacart = pcbType === 'gigacart';
                 module.cruBankSwitched = pcbType === 'pagedcru' || pcbType === 'super';
                 module.ramAt7000 = pcbType === 'minimem';
                 for (let i = 0; i < roms.length; i++) {
@@ -258,13 +259,18 @@ export class ModuleService {
                     // reader.result contains the contents of blob as a typed array
                     const result: ArrayBuffer = reader.result as ArrayBuffer;
                     const byteArray = new Uint8Array(result);
-                    const ramFG99Paged = (byteArray[3] === 0x52);
+                    const gigacart = !grom && byteArray.length === 0x08000000;
+                    const ramFG99Paged = !gigacart && (byteArray[3] === 0x52);
                     software.ramAt7000 = ramFG99Paged;
                     software.ramFG99Paged = ramFG99Paged;
                     if (grom) {
                         software.grom = byteArray;
                     } else {
                         software.rom = byteArray;
+                        software.gigacart = gigacart;
+                        if (gigacart) {
+                            software.inverted = false;
+                        }
                     }
                     subject.next(software);
                     subject.complete();
@@ -290,15 +296,18 @@ export class ModuleService {
         reader.onload = () => {
             const byteArray = new Uint8Array(reader.result as ArrayBuffer);
             const module: Software = new Software();
-            const ramFG99Paged = (byteArray[3] === 0x52);
+            const gigacart = !grom && byteArray.length === 0x08000000;
+            const ramFG99Paged = !gigacart && (byteArray[3] === 0x52);
             module.ramAt7000 = ramFG99Paged;
             module.ramFG99Paged = ramFG99Paged;
             if (grom) {
                 module.grom = byteArray;
             } else {
-                module.inverted = inverted;
+                module.inverted = inverted && !gigacart;
                 module.rom = ModuleService.padROM(byteArray);
-                module.secondBank = secondBank;
+                // Address-only banking cannot address a 128 MiB raw image.
+                module.gigacart = gigacart;
+                module.secondBank = secondBank && !gigacart;
             }
             subject.next(module);
             subject.complete();
@@ -318,8 +327,9 @@ export class ModuleService {
             next: (data: ArrayBuffer) => {
                 const byteArray = new Uint8Array(data);
                 const module = new Software();
-                module.inverted = inverted;
+                module.inverted = inverted && byteArray.length !== 0x08000000;
                 module.rom = ModuleService.padROM(byteArray);
+                module.gigacart = byteArray.length === 0x08000000;
                 subject.next(module);
                 subject.complete();
             },
@@ -357,6 +367,7 @@ export class ModuleService {
                         if (!software.secondBank) {
                             module.rom = ModuleService.padROM(software.rom);
                             module.inverted = software.inverted;
+                            module.gigacart = software.gigacart;
                         } else {
                             // 2nd bank
                             if (!module.rom) {

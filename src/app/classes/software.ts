@@ -32,6 +32,7 @@ export class Software {
     private _name: string;
     private _inverted: boolean;
     private _cruBankSwitched: boolean;
+    private _gigacart = false;
     private _url: string;
     private _rom: Uint8Array;
     private _grom: Uint8Array;
@@ -56,6 +57,7 @@ export class Software {
     parseData(data: any) {
         this.inverted = !!data.inverted;
         this.cruBankSwitched = !!data.cruBankSwitched;
+        this.gigacart = !!data.gigacart;
         if (data.startAddress) {
             this.startAddress = Util.parseNumber(data.startAddress);
         }
@@ -113,6 +115,14 @@ export class Software {
 
     get url(): string {
         return this._url;
+    }
+
+    get gigacart(): boolean {
+        return this._gigacart;
+    }
+
+    set gigacart(value: boolean) {
+        this._gigacart = value;
     }
 
     set url(value: string) {
