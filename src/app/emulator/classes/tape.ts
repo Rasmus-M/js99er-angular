@@ -45,6 +45,9 @@ export class Tape implements Stateful {
     private audioGateBufferStart = 0;
     private audioGateBufferEnd = 0;
     private lastAudioGateChange = -1;
+    private audioGateSampleRemainder = 0;
+    private audioGateValue = 0;
+    private audioGateOutput = 0;
     private zero: number[];
     private one: number[];
 
@@ -72,6 +75,7 @@ export class Tape implements Stateful {
         this.playDelay = 0;
         this.paused = false;
         this.resetSampleBuffer();
+        this.resetAudioGate();
     }
 
     resetSampleBuffer() {
@@ -152,15 +156,36 @@ export class Tape implements Stateful {
         this.playing = this.playPressed;
     }
 
+    private resetAudioGate() {
+        this.audioGateBufferStart = this.audioGateBufferEnd = 0;
+        this.lastAudioGateChange = -1;
+        this.audioGateSampleRemainder = 0;
+        this.audioGateValue = this.audioGateOutput = 0;
+    }
+
     setAudioGate(value: boolean | number, time: number) {
-        if (this.lastAudioGateChange !== -1 && Math.abs(time - this.lastAudioGateChange) < 1000) {
-            const audioGate = typeof value === 'boolean' ? (value ? 0.75 : -0.75) : value;
-            const timePassed = Math.min(((time - this.lastAudioGateChange) >> 6), 8);
-            for (let i = 0; i < timePassed; i++) {
-                this.audioGateBuffer[this.audioGateBufferEnd] = audioGate;
-                this.audioGateBufferEnd = (this.audioGateBufferEnd + 1) % Tape.AUDIO_GATE_BUFFER_LENGTH;
-            }
+        if (time < this.lastAudioGateChange) {
+            this.resetAudioGate();
         }
+        const elapsed = time - this.lastAudioGateChange;
+        if (this.lastAudioGateChange !== -1 && elapsed < 1000) {
+            // CPU timestamps are 3 MHz cycles. Keep fractional output samples:
+            // truncating each 224-cycle write to three samples raises PCM pitch.
+            const scaled = this.audioGateSampleRemainder + elapsed * this.sampleRate;
+            const samples = Math.floor(scaled / 3000000);
+            this.audioGateSampleRemainder = scaled % 3000000;
+            for (let i = 0; i < samples; i++) {
+                this.audioGateBuffer[this.audioGateBufferEnd] = this.audioGateValue;
+                const next = (this.audioGateBufferEnd + 1) % Tape.AUDIO_GATE_BUFFER_LENGTH;
+                if (next === this.audioGateBufferStart) {
+                    this.audioGateBufferStart = (this.audioGateBufferStart + 1) % Tape.AUDIO_GATE_BUFFER_LENGTH;
+                }
+                this.audioGateBufferEnd = next;
+            }
+        } else {
+            this.audioGateSampleRemainder = 0;
+        }
+        this.audioGateValue = typeof value === 'boolean' ? (value ? 0.75 : -0.75) : value;
         this.lastAudioGateChange = time;
     }
 
@@ -185,10 +210,11 @@ export class Tape implements Stateful {
             }
         }
         for (let i = 0; i < buffer.length; i++) {
-            buffer[i] = this.audioGateBuffer[this.audioGateBufferStart];
             if (this.audioGateBufferStart !== this.audioGateBufferEnd) {
+                this.audioGateOutput = this.audioGateBuffer[this.audioGateBufferStart];
                 this.audioGateBufferStart = (this.audioGateBufferStart + 1) % Tape.AUDIO_GATE_BUFFER_LENGTH;
             }
+            buffer[i] = this.audioGateOutput;
         }
     }
 
@@ -339,6 +365,7 @@ export class Tape implements Stateful {
     }
 
     restoreState(state: any) {
+        this.resetAudioGate();
         this.recordPressed = state.recordPressed;
         this.playPressed = state.playPressed;
         this.motorOn = state.motorOn;
