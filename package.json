@@ -7,6 +7,7 @@
     "serve": "ng serve --configuration development",
     "build": "yarn asbuild:release && ng build --configuration production",
     "test": "ng test",
+    "test:gigacart": "node tools/gigacart-test.cjs",
     "lint": "ng lint",
     "e2e": "ng e2e",
     "asbuild:debug": "asc assembly/index.ts --target debug --importMemory --memoryBase 98304 --runtime stub",
