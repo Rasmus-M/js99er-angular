@@ -143,7 +143,7 @@ export class ModuleService {
                     module: Software = new Software(),
                     observables = [];
                 module.inverted = pcbType === 'paged379i';
-                module.gigacart = pcbType === 'gigacart';
+                module.gigacart = pcbType?.indexOf('gigacart') !== -1 || false;
                 module.cruBankSwitched = pcbType === 'pagedcru' || pcbType === 'super';
                 module.ramAt7000 = pcbType === 'minimem';
                 for (let i = 0; i < roms.length; i++) {
