@@ -375,7 +375,7 @@ export class TI994A implements Console, Stateful {
                     this.activeCPU = cpu;
                 }
             }
-            this.cyclesSubject.next(cyclesPerScanline);
+            this.cyclesSubject.next(TMS9900.CYCLES_PER_SCANLINE);
             cyclesToRun -= cyclesPerScanline;
             skipBreakpoint = false;
         }
