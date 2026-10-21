@@ -8,6 +8,7 @@ require('ts-node/register/transpile-only');
 const {Cartridge} = require('../src/app/emulator/classes/cartridge.ts');
 const {Software} = require('../src/app/classes/software.ts');
 const {Settings} = require('../src/app/classes/settings.ts');
+const {gigacartOptions} = require('../src/app/classes/gigacart.ts');
 
 function cartFor(rom, options = {gigacart: true}, settings = new Settings()) {
     const software = new Software(options);
@@ -17,7 +18,7 @@ function cartFor(rom, options = {gigacart: true}, settings = new Settings()) {
 
 function select(cart, bank) {
     // Drive the address lines and the high byte of the CPU write word.
-    cart.write(0x6000 + ((bank & 0xfff) << 1), (bank >> 4) & 0x0300);
+    cart.write(0x6000 + ((bank & 0xfff) << 1), (bank >> 4) & 0xff00);
 }
 
 function setGROMAddress(cart, addr) {
@@ -80,6 +81,43 @@ test('wraps smaller virtual cartridges and rejects invalid configurations', () =
     }
 });
 
+test('all data widths map the complete window without signed 32-bit offsets', () => {
+    // Sparse ROM stand-in: exercise real address arithmetic without allocating
+    // eight GiB. Actual cartridge loading/playback is a separate integration test.
+    for (let bits = 1; bits <= 8; bits++) {
+        const length = 0x02000000 * 2 ** bits;
+        const sparse = new Proxy({length, subarray: () => new Uint8Array(256)}, {
+            get(target, key) {
+                if (key in target) return target[key];
+                const n = Number(key);
+                return Number.isInteger(n) && n >= 0 && n < length
+                    ? ((Math.floor(n / 8192) ^ n) & 255) : undefined;
+            }
+        });
+        const cart = cartFor(sparse);
+        for (let block = 0; block < 2 ** bits; block++) {
+            for (const low of [0, 1, 0xfff]) {
+                const bank = block * 4096 + low;
+                select(cart, bank);
+                for (const addr of [0x6000, 0x7000, 0x7ffe]) {
+                    const off = bank * 8192 + addr - 0x6000;
+                    assert.equal(cart.read(addr), (sparse[off] << 8) | sparse[off + 1]);
+                }
+            }
+        }
+    }
+});
+
+test('raw size detection distinguishes address-only ROMs from larger Gigacarts', () => {
+    const {ModuleService} = require('../src/app/services/module.service.ts');
+    for (const n of [0, 8192, 0x800000, 0x2000000, 0x6000000, 0x400000000]) {
+        assert.equal(ModuleService.isGigacartSize(n), false);
+    }
+    for (const n of [0x4000000, 0x8000000, 0x20000000, 0x80000000, 0x200000000]) {
+        assert.equal(ModuleService.isGigacartSize(n), true);
+    }
+});
+
 test('mirrors the final 256 ROM bytes through GROM, wraps, and remains read-only', () => {
     const bootROM = Buffer.alloc(8192);
     for (let i = 0; i < 256; i++) bootROM[8192 - 256 + i] = (i * 73 + 19) & 255;
@@ -112,6 +150,86 @@ test('preserves explicitly supplied GROM data', () => {
     setGROMAddress(cart, 0x6000);
     assert.equal(cart.readGROM(0x9800), 0x1200);
     assert.equal(cart.readGROM(0x9800), 0x3400);
+});
+
+test('RPK boot hardware and declared initial bank survive selection, reset and saved state', () => {
+    const image = Buffer.alloc(32768);
+    for (let bank = 0; bank < 4; bank++) image.writeUInt16BE(bank, bank * 8192);
+    for (const initial of ['first', 'last', '8193']) {
+        const options = gigacartOptions('gigacart-rom', '2', initial, image.length);
+        const cart = cartFor(image, {gigacart: true, gigacartOptions: options});
+        assert.equal(cart.hasGROM(), false, 'ROM-only must not fabricate a CPLD GROM');
+        const expected = initial === 'first' ? 0 : initial === 'last' ? 3 : 1;
+        assert.equal(cart.read(0x6000), expected);
+        select(cart, 2);
+        const restored = cartFor(Buffer.alloc(8192), {});
+        restored.restoreState(cart.getState());
+        assert.equal(restored.read(0x6000), 2);
+        restored.reset();
+        assert.equal(restored.read(0x6000), expected);
+    }
+    const sw = new Software({gigacart: true});
+    sw.rom = image;
+    sw.grom = Buffer.alloc(8192, 0x5a);
+    sw.gigacartOptions = gigacartOptions('gigacart-grom', '2', null, image.length, sw.grom.length);
+    const grom = new Cartridge(sw, new Settings());
+    setGROMAddress(grom, 0x6000);
+    assert.equal(grom.readGROM(0x9800), 0x5a00);
+    setGROMAddress(grom, 0x8000);
+    assert.equal(grom.readGROM(0x9800), 0, 'separate GROM has no CPLD mirror');
+});
+
+test('explicit RPK declarations reject mismatches instead of silently padding or ignoring settings', () => {
+    for (const width of [null, '', '0', '9', '02', '2junk']) {
+        assert.throws(() => gigacartOptions('gigacart-cpld', width, null, 8192), /bank_data_bits/);
+    }
+    for (let bits = 1; bits <= 8; bits++) {
+        const bytes = 2 ** (25 + bits), banks = bytes / 8192;
+        assert.equal(gigacartOptions('gigacart-cpld', String(bits), 'last', bytes).initialBank, banks - 1);
+        assert.throws(() => gigacartOptions('gigacart-rom', String(bits), String(banks), 8192), /initial_bank/);
+        assert.throws(() => gigacartOptions('gigacart-rom', String(bits), null, bytes * 2), /capacity/);
+    }
+    for (const initial of ['', '-1', '0x10', '1.5', 'first ', '99999999999999999999']) {
+        assert.throws(() => gigacartOptions('gigacart-rom', '2', initial, 8192), /initial_bank/);
+    }
+    for (const size of [0, 8191, 8193, 24576]) {
+        assert.throws(() => gigacartOptions('gigacart-rom', '2', null, size), /whole 8 KiB/);
+    }
+    assert.throws(() => gigacartOptions('gigacart-wrong', '2', null, 8192), /Unknown/);
+    assert.throws(() => gigacartOptions('gigacart-grom', '2', null, 8192), /GROM socket/);
+    for (const size of [1, 8193, 49152]) {
+        assert.throws(() => gigacartOptions('gigacart-grom', '2', null, 8192, size), /GROM socket/);
+    }
+    for (const type of ['gigacart-rom', 'gigacart-cpld']) {
+        assert.throws(() => gigacartOptions(type, '2', null, 8192, 8192), /GROM socket/);
+    }
+    assert.equal(gigacartOptions('gigacart', null, null, 0x20000000).dataBits, 4);
+    assert.equal(gigacartOptions('gigacart', null, null, 0x800000).boot, 'cpld');
+});
+
+test('Gigacart RPK loader reads sockets without changing image length and reports missing resources', async () => {
+    const {ModuleService} = require('../src/app/services/module.service.ts');
+    const service = Object.create(ModuleService.prototype);
+    // DOM-shaped fixtures isolate archive/resource resolution from XML parsing.
+    const element = a => ({getAttribute: key => a[key] ?? null});
+    const sockets = [element({id: 'rom_socket', uses: 'rom'})];
+    const resources = [element({id: 'rom', file: 'cart.bin'})];
+    const pcb = {...element({type: 'gigacart-rom', bank_data_bits: '2', initial_bank: 'last'}),
+        getElementsByTagName: () => sockets, ownerDocument: {getElementsByTagName: () => resources}};
+    const entries = [{filename: 'cart.bin', getData: async () => new Blob([Buffer.alloc(32768)])}];
+    const sw = await service.loadGigacartRPK(pcb, entries);
+    assert.equal(sw.rom.length, 32768);
+    assert.deepEqual(sw.gigacartOptions, {boot: 'rom', dataBits: 2, initialBank: 16383});
+    assert.equal(new Cartridge(sw, new Settings()).hasGROM(), false);
+    await assert.rejects(service.loadGigacartRPK(pcb, []), /Missing/);
+    await assert.rejects(service.loadGigacartRPK(pcb, [...entries, entries[0]]), /duplicate/);
+    await assert.rejects(service.loadGigacartRPK(pcb,
+        [{filename: 'cart.bin', getData: async () => new Blob([Buffer.alloc(8193)])}]), /whole 8 KiB/);
+    sockets.push(sockets[0]);
+    await assert.rejects(service.loadGigacartRPK(pcb, entries), /duplicate.*socket/);
+    sockets.pop();
+    sockets.push(element({id: 'ram_socket', uses: 'ram'}));
+    await assert.rejects(service.loadGigacartRPK(pcb, entries), /one ROM socket/);
 });
 
 test('preserves ordinary, inverted, CRU, paged RAM and legacy saved-state behavior', () => {

@@ -1,4 +1,5 @@
 import {Software} from '../classes/software';
+import {gigacartOptions} from '../classes/gigacart';
 import {Log} from '../classes/log';
 import {HttpClient} from '@angular/common/http';
 import {Injectable} from '@angular/core';
@@ -14,6 +15,13 @@ export class ModuleService {
     constructor(
         private httpClient: HttpClient
     ) {}
+
+    // Address-only banking ends at 32 MiB. Smaller Gigacarts must identify
+    // their mapper explicitly in an RPK; larger raw images are unambiguous.
+    static isGigacartSize(length: number): boolean {
+        return length > 0x02000000 && length <= 0x200000000 &&
+            Number.isInteger(Math.log2(length));
+    }
 
     private static insertROM(romArray: number[], rom: Uint8Array, offset: number) {
         if (romArray.length < offset) {
@@ -142,8 +150,14 @@ export class ModuleService {
                     sockets = xmlDoc.getElementsByTagName('socket'),
                     module: Software = new Software(),
                     observables = [];
+                if (pcbType?.startsWith('gigacart')) {
+                    this.loadGigacartRPK(pcb, entries).then(loaded => {
+                        subject.next(loaded);
+                        subject.complete();
+                    }).catch(error => subject.error(error));
+                    return;
+                }
                 module.inverted = pcbType === 'paged379i';
-                module.gigacart = pcbType?.indexOf('gigacart') !== -1 || false;
                 module.cruBankSwitched = pcbType === 'pagedcru' || pcbType === 'super';
                 module.ramAt7000 = pcbType === 'minimem';
                 for (let i = 0; i < roms.length; i++) {
@@ -172,6 +186,16 @@ export class ModuleService {
                 }
                 forkJoin(observables).subscribe({
                     next: (softwares: Software[]) => {
+                        const roms = softwares.filter(s => s.rom);
+                        // Keep large single-ROM images in a typed array. Expanding
+                        // a 512 MiB image into a number[] exhausts browser memory.
+                        if (roms.length === 1 && roms[0].socketId !== 'rom2_socket') {
+                            module.rom = ModuleService.padROM(roms[0].rom);
+                            module.grom = softwares.find(s => s.grom)?.grom!;
+                            subject.next(module);
+                            subject.complete();
+                            return;
+                        }
                         const romArray: number[] = [];
                         softwares.forEach((software: Software) => {
                             if (software.grom) {
@@ -197,6 +221,33 @@ export class ModuleService {
                 subject.error(error);
             }
         );
+    }
+
+    private async loadGigacartRPK(pcb: Element, entries: Entry[]): Promise<Software> {
+        const sockets = Array.from(pcb.getElementsByTagName('socket'));
+        const resources = Array.from(pcb.ownerDocument.getElementsByTagName('rom'));
+        if (sockets.some(s => !['rom_socket', 'grom_socket'].includes(s.getAttribute('id') || ''))) {
+            throw new Error('Gigacart supports one ROM socket and an optional GROM socket only.');
+        }
+        const read = async (id: string, required: boolean): Promise<Uint8Array | undefined> => {
+            const matches = sockets.filter(s => s.getAttribute('id') === id);
+            if (!required && matches.length === 0) return undefined;
+            if (matches.length !== 1) throw new Error('Missing or duplicate Gigacart socket: ' + id);
+            const roms = resources.filter(r => r.getAttribute('id') === matches[0].getAttribute('uses'));
+            if (roms.length !== 1) throw new Error('Missing or duplicate Gigacart ROM resource: ' + id);
+            const files = entries.filter(e => !e.directory && e.filename === roms[0].getAttribute('file'));
+            if (files.length !== 1) throw new Error('Missing or duplicate Gigacart image: ' + id);
+            const blob = await files[0].getData!(new BlobWriter());
+            return new Uint8Array(await blob.arrayBuffer());
+        };
+        const module = new Software();
+        module.gigacart = true;
+        module.rom = (await read('rom_socket', true))!;
+        module.grom = (await read('grom_socket', false))!;
+        module.gigacartOptions = gigacartOptions(pcb.getAttribute('type')!.toLowerCase(),
+            pcb.getAttribute('bank_data_bits'), pcb.getAttribute('initial_bank'),
+            module.rom.length, module.grom?.length);
+        return module;
     }
 
     private loadRPKEntry(entry: Entry, filename: string, romId: string, socketId: string): Observable<Software> {
@@ -259,7 +310,7 @@ export class ModuleService {
                     // reader.result contains the contents of blob as a typed array
                     const result: ArrayBuffer = reader.result as ArrayBuffer;
                     const byteArray = new Uint8Array(result);
-                    const gigacart = !grom && byteArray.length === 0x08000000;
+                    const gigacart = !grom && ModuleService.isGigacartSize(byteArray.length);
                     const ramFG99Paged = !gigacart && (byteArray[3] === 0x52);
                     software.ramAt7000 = ramFG99Paged;
                     software.ramFG99Paged = ramFG99Paged;
@@ -296,7 +347,7 @@ export class ModuleService {
         reader.onload = () => {
             const byteArray = new Uint8Array(reader.result as ArrayBuffer);
             const module: Software = new Software();
-            const gigacart = !grom && byteArray.length === 0x08000000;
+            const gigacart = !grom && ModuleService.isGigacartSize(byteArray.length);
             const ramFG99Paged = !gigacart && (byteArray[3] === 0x52);
             module.ramAt7000 = ramFG99Paged;
             module.ramFG99Paged = ramFG99Paged;
@@ -305,7 +356,7 @@ export class ModuleService {
             } else {
                 module.inverted = inverted && !gigacart;
                 module.rom = ModuleService.padROM(byteArray);
-                // Address-only banking cannot address a 128 MiB raw image.
+                // Address-only banking cannot address more than 32 MiB.
                 module.gigacart = gigacart;
                 module.secondBank = secondBank && !gigacart;
             }
@@ -327,9 +378,9 @@ export class ModuleService {
             next: (data: ArrayBuffer) => {
                 const byteArray = new Uint8Array(data);
                 const module = new Software();
-                module.inverted = inverted && byteArray.length !== 0x08000000;
+                module.inverted = inverted && !ModuleService.isGigacartSize(byteArray.length);
                 module.rom = ModuleService.padROM(byteArray);
-                module.gigacart = byteArray.length === 0x08000000;
+                module.gigacart = ModuleService.isGigacartSize(byteArray.length);
                 subject.next(module);
                 subject.complete();
             },

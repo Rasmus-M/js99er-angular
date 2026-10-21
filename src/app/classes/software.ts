@@ -1,4 +1,5 @@
 import {Util} from "./util";
+import {GigacartOptions} from "./gigacart";
 
 export class MemoryBlock {
 
@@ -29,6 +30,8 @@ export class MemoryBlock {
 
 export class Software {
 
+    gigacartOptions?: GigacartOptions;
+
     private _name: string;
     private _inverted: boolean;
     private _cruBankSwitched: boolean;
@@ -58,6 +61,7 @@ export class Software {
         this.inverted = !!data.inverted;
         this.cruBankSwitched = !!data.cruBankSwitched;
         this.gigacart = !!data.gigacart;
+        this.gigacartOptions = data.gigacartOptions;
         if (data.startAddress) {
             this.startAddress = Util.parseNumber(data.startAddress);
         }

@@ -4,6 +4,12 @@ This is the 'new' version of js99er.net developed using Angular and TypeScript. 
 
 This project was originally generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.7.3 (currently 18.2.7).
 
+## Gigacart cartridges
+
+This update adds larger Gigacart images and explicit ROM-only, separate-GROM
+and CPLD boot settings. See [Gigacart loading and test results](docs/gigacart.md)
+for supported files, bank selection and the limits of testing.
+
 ## Setting up the development environment
 
 * Clone the repository to a folder on your computer
