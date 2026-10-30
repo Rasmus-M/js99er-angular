@@ -13,7 +13,7 @@ const {CRU} = require('../src/app/emulator/classes/cru.ts');
 const {Settings} = require('../src/app/classes/settings.ts');
 
 const SAMPLE_RATE = 48000;
-const cpu = {addCycles() {}};
+const cpu = {addCycles() {}, getCycles: () => 0};
 
 function write(sid, reg, value) {
     // MOVB to an even address: read-modify-write, the read returns 0
@@ -174,4 +174,123 @@ test('changing the sample rate keeps the registers and the pitch', () => {
     }
     const expected = 0x2000 * SIDMaster.CLOCK / 16777216;
     assert.ok(Math.abs(crossings - expected) <= 2, `${crossings} Hz, expected ${expected.toFixed(1)} Hz`);
+});
+
+// ---- Timing: writes are rendered at their CPU cycle time
+
+const CYCLES_PER_SAMPLE = SIDMaster.CPU_CLOCK / SAMPLE_RATE;
+
+function timedWrite(sid, reg, value, cycles) {
+    sid.writeMemoryMapped(0x5800 + (reg << 1), value * 0x101, cycles);
+}
+
+function setupVoice(sid, cycles) {
+    timedWrite(sid, 0x18, 0x0f, cycles);
+    timedWrite(sid, 0x01, 0x20, cycles);
+    timedWrite(sid, 0x05, 0x00, cycles);
+    timedWrite(sid, 0x06, 0xf0, cycles);
+}
+
+function range(buffer, from, to) {
+    let min = Infinity, max = -Infinity;
+    for (let i = from; i < to; i++) {
+        min = Math.min(min, buffer[i]);
+        max = Math.max(max, buffer[i]);
+    }
+    return max - min;
+}
+
+test('a gate write starts the note at the sample matching its CPU time', () => {
+    const sid = new SIDMaster(SAMPLE_RATE);
+    setupVoice(sid, 0);
+    const onAt = 30000; // 10 ms
+    timedWrite(sid, 0x04, 0x21, onAt);
+    sid.renderTo(150000);
+    const buffer = new Float32Array(2400);
+    sid.update(buffer, buffer.length);
+    const onSample = Math.round(onAt / CYCLES_PER_SAMPLE);
+    assert.ok(range(buffer, 0, onSample - 1) < 1e-6, 'silent before the gate');
+    assert.ok(range(buffer, onSample + 1, onSample + 200) > 0.05, 'sounding after the gate');
+});
+
+test('a note shorter than one audio buffer is still heard', () => {
+    const sid = new SIDMaster(SAMPLE_RATE);
+    setupVoice(sid, 0);
+    timedWrite(sid, 0x04, 0x21, 0);
+    timedWrite(sid, 0x04, 0x20, 50000); // gate off after one frame (~16.7 ms)
+    sid.renderTo(100000);
+    const buffer = new Float32Array(1024); // one audio callback covers both writes
+    sid.update(buffer, buffer.length);
+    const offSample = Math.round(50000 / CYCLES_PER_SAMPLE);
+    assert.ok(range(buffer, 0, offSample) > 0.1, 'the note sounds during the frame it was on');
+});
+
+test('keeps the spacing between writes exact across audio buffers', () => {
+    const sid = new SIDMaster(SAMPLE_RATE);
+    setupVoice(sid, 0);
+    // Gate on every 3 frames, off one frame later, rendered at each frame end
+    const onsets = [];
+    for (let f = 0; f < 6; f++) {
+        if (f % 3 === 0) {
+            timedWrite(sid, 0x04, 0x21, f * 50000);
+            onsets.push(Math.round(f * 50000 / CYCLES_PER_SAMPLE));
+        } else if (f % 3 === 1) {
+            timedWrite(sid, 0x04, 0x20, f * 50000);
+        }
+        sid.renderTo((f + 1) * 50000);
+    }
+    const total = Math.round(6 * 50000 / CYCLES_PER_SAMPLE);
+    assert.equal(sid.getBuffered(), total);
+    const buffer = new Float32Array(total);
+    for (let i = 0; i < total; i += 1024) {
+        const chunk = buffer.subarray(i, Math.min(i + 1024, total));
+        sid.update(chunk, chunk.length);
+    }
+    for (const onset of onsets.slice(1)) {
+        assert.ok(range(buffer, onset - 40, onset - 1) < 1e-6, `silent before sample ${onset}`);
+        assert.ok(range(buffer, onset + 1, onset + 60) > 0.02, `attack at sample ${onset}`);
+    }
+});
+
+test('rate control absorbs an emulator running 2% slow', () => {
+    const sid = new SIDMaster(SAMPLE_RATE);
+    setupVoice(sid, 0);
+    timedWrite(sid, 0x04, 0x21, 0);
+    const out = new Float32Array(1024);
+    let frameTime = 0, audioTime = 0, underruns = 0;
+    for (let f = 1; f <= 3000; f++) {
+        sid.renderTo(f * 50000);
+        frameTime += 17; // setInterval(17): 58.8 frames per second
+        while (audioTime + 1024 / 48 <= frameTime) {
+            if (f > 300 && sid.getBuffered() < 1024) {
+                underruns++;
+            }
+            sid.update(out, 1024);
+            audioTime += 1024 / 48;
+        }
+    }
+    assert.equal(underruns, 0);
+    assert.ok(sid.getBuffered() < 4096);
+});
+
+test('limits buffered audio when the audio callback falls behind', () => {
+    const sid = new SIDMaster(SAMPLE_RATE);
+    sid.renderTo(0);
+    for (let f = 1; f <= 600; f++) {
+        sid.renderTo(f * 150000); // fast mode: 3x the cycles per frame
+    }
+    assert.ok(sid.getBuffered() <= SAMPLE_RATE * 0.1);
+});
+
+test('keeps playing when the buffer runs dry, and resyncs when the cycle counter goes back', () => {
+    const sid = new SIDMaster(SAMPLE_RATE);
+    setupVoice(sid, 1000000);
+    timedWrite(sid, 0x04, 0x21, 1000000);
+    const buffer = new Float32Array(2048);
+    sid.update(buffer, buffer.length); // nothing rendered yet: generated on the fly
+    assert.ok(range(buffer, 100, 2048) > 0.05);
+    timedWrite(sid, 0x04, 0x20, 0); // e.g. state restore reset the counter
+    assert.equal(sid.getBuffered(), 0);
+    sid.renderTo(48000 * CYCLES_PER_SAMPLE / 100);
+    assert.ok(Math.abs(sid.getBuffered() - 480) <= 24, 'about 480 samples, within the 5% rate control');
 });

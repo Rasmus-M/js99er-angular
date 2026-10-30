@@ -400,6 +400,9 @@ export class TI994A implements Console, Stateful {
         this.fpsFrameCount++;
         this.frameCount++;
         this.vdp.updateCanvas();
+        if (this.sidMaster) {
+            this.sidMaster.renderTo(this.cpu.getCycles());
+        }
     }
 
     step() {

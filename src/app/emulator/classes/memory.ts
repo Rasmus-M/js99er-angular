@@ -355,7 +355,7 @@ export class Memory implements Stateful, MemoryDevice {
         cpu.addCycles(4);
         // The SID Master has no DSR and listens alongside any active card
         if (this.sidMaster) {
-            this.sidMaster.writeMemoryMapped(addr, w);
+            this.sidMaster.writeMemoryMapped(addr, w, cpu.getCycles());
         }
         const activeCard = this.peripheralCards.find(dsrDevice => dsrDevice.isEnabled());
         if (activeCard && this.isMemoryMappedCard(activeCard)) {

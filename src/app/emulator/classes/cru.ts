@@ -83,7 +83,7 @@ export class CRU implements Stateful {
 
     readBit(addr: number): boolean {
         if (this.sidMaster) {
-            this.sidMaster.cruAccess(addr << 1);
+            this.sidMaster.cruAccess(addr << 1, this.cpu ? this.cpu.getCycles() : undefined);
         }
         if (addr < 0x400) {
             // TMS9901
@@ -115,7 +115,7 @@ export class CRU implements Stateful {
 
     writeBit(addr: number, value: boolean) {
         if (this.sidMaster) {
-            this.sidMaster.cruAccess(addr << 1);
+            this.sidMaster.cruAccess(addr << 1, this.cpu ? this.cpu.getCycles() : undefined);
         }
         if (addr < 0x400) {
             // TMS9901
