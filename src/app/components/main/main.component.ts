@@ -219,7 +219,17 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.audioService.setSoundEnabled(value);
                 } else if (setting === Setting.PSG) {
                     this.ti994A.setPSG();
-                    this.audioService.init(this.settingsService.isSoundEnabled(), this.ti994A.getPSG(), this.ti994A.getSpeech(), this.ti994A.getTape());                }
+                    this.initAudio();
+                } else if (setting === Setting.SID_MASTER) {
+                    this.ti994A.setSIDMaster();
+                    this.initAudio();
+                }
+                break;
+            case CommandType.CHANGE_SETTINGS:
+                if (this.ti994A) {
+                    this.ti994A.setSIDMaster();
+                    this.initAudio();
+                }
                 break;
             case CommandType.SAVE_STATE:
                 this.saveState();
@@ -238,7 +248,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         switch (event.type) {
             case ConsoleEventType.READY:
                 this.ti994A = event.data;
-                this.audioService.init(this.settingsService.isSoundEnabled(), this.ti994A.getPSG(), this.ti994A.getSpeech(), this.ti994A.getTape());
+                this.initAudio();
                 this.loadDefaultDisk().then(
                     () => {
                         return this.loadDefaultCartridge();
@@ -269,6 +279,16 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.audioService.setSoundEnabled(false);
                 break;
         }
+    }
+
+    initAudio() {
+        this.audioService.init(
+            this.settingsService.isSoundEnabled(),
+            this.ti994A.getPSG(),
+            this.ti994A.getSpeech(),
+            this.ti994A.getTape(),
+            this.ti994A.getSIDMaster()
+        );
     }
 
     loadDefaultDisk() {

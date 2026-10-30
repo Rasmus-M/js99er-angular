@@ -16,7 +16,8 @@ export enum Setting {
     H264_CODEC,
     DISK,
     PCODE,
-    RAM_DISK
+    RAM_DISK,
+    SID_MASTER
 }
 
 export type PSGType = 'STANDARD' | 'FORTI';
@@ -51,6 +52,7 @@ export class Settings {
     private disk: DiskType;
     private enablePCode: boolean;
     private ramDisk: RAMDiskType;
+    private enableSIDMaster: boolean;
 
     constructor() {
         this.enableSound = true;
@@ -71,6 +73,7 @@ export class Settings {
         this.disk = 'GENERIC';
         this.enablePCode = false;
         this.ramDisk = 'NONE';
+        this.enableSIDMaster = false;
     }
 
     isSoundEnabled(): boolean {
@@ -217,6 +220,14 @@ export class Settings {
         this.ramDisk = ramDisk;
     }
 
+    isSIDMasterEnabled(): boolean {
+        return this.enableSIDMaster;
+    }
+
+    setSIDMasterEnabled(enabled: boolean) {
+        this.enableSIDMaster = enabled;
+    }
+
     copyFrom(otherSettings: any) {
         if (otherSettings.enableSound !== undefined) {
             this.enableSound = otherSettings.enableSound;
@@ -271,6 +282,9 @@ export class Settings {
         }
         if (otherSettings.ramDisk !== undefined) {
             this.ramDisk = otherSettings.ramDisk;
+        }
+        if (otherSettings.enableSIDMaster !== undefined) {
+            this.enableSIDMaster = otherSettings.enableSIDMaster;
         }
     }
 }

@@ -257,6 +257,10 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                         this.ti994A.setRAMDisk();
                         resetRequired = true;
                         break;
+                    case Setting.SID_MASTER:
+                        // Created by main component
+                        resetRequired = true;
+                        break;
                 }
                 if (resetRequired) {
                     this.reset();
@@ -269,6 +273,7 @@ export class ConsoleComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.ti994A.setFDC();
                 this.ti994A.setTIPI();
                 this.ti994A.setGoogleDrive();
+                this.ti994A.setSIDMaster();
                 this.ti994A.getKeyboard().setPCKeyboardEnabled(settings.isPCKeyboardEnabled());
                 this.ti994A.getKeyboard().setMapArrowKeysToFctnSDEXEnabled(settings.isMapArrowKeysEnabled());
                 break;

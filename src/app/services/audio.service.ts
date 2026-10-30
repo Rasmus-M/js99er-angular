@@ -4,6 +4,7 @@ import {TMS5200} from '../emulator/classes/tms5200';
 import {PSG} from '../emulator/interfaces/psg';
 import {Speech} from '../emulator/interfaces/speech';
 import {Log} from '../classes/log';
+import {SIDMaster} from '../emulator/classes/sid-master';
 
 @Injectable()
 export class AudioService {
@@ -15,6 +16,7 @@ export class AudioService {
     private psg: PSG;
     private speech: Speech;
     private tape: Tape;
+    private sid: SIDMaster | null = null;
     private sampleRate: number;
     private bufferSize: number;
     private psgSampleBuffer: Int8Array;
@@ -25,6 +27,7 @@ export class AudioService {
     private speechFilter: BiquadFilterNode;
     private tapeScriptProcessor: ScriptProcessorNode;
     private tapeFilter: BiquadFilterNode;
+    private sidScriptProcessor: ScriptProcessorNode;
     private mediaStreamDestination: MediaStreamAudioDestinationNode;
 
     private log: Log = Log.getLog();
@@ -45,10 +48,11 @@ export class AudioService {
         }
     }
 
-    init(enabled: boolean, psg: PSG, speech: Speech, tape: Tape) {
+    init(enabled: boolean, psg: PSG, speech: Speech, tape: Tape, sid: SIDMaster | null) {
         this.psg = psg;
         this.speech = speech;
         this.tape = tape;
+        this.sid = sid;
         if (!this.audioContext && AudioContext) {
             this.audioContext = new AudioContext();
         }
@@ -81,7 +85,18 @@ export class AudioService {
                 this.tapeFilter.type = "lowpass";
                 this.tapeFilter.frequency.value = 4000;
             }
-            this.mediaStreamDestination = this.audioContext.createMediaStreamDestination();
+            if (sid) {
+                sid.setSampleRate(this.sampleRate);
+            }
+            // Created once, since it is only connected when sound is switched on.
+            // Outputs silence when there is no SID.
+            if (!this.sidScriptProcessor) {
+                this.sidScriptProcessor = this.audioContext.createScriptProcessor(this.bufferSize, 0, 1);
+                this.sidScriptProcessor.addEventListener("audioprocess", function (event) { that.onSIDAudioProcess(event); });
+            }
+            if (!this.mediaStreamDestination) {
+                this.mediaStreamDestination = this.audioContext.createMediaStreamDestination();
+            }
             this.setSoundEnabled(enabled);
         } else {
             this.log.warn("Web Audio API not supported by this browser.");
@@ -123,6 +138,15 @@ export class AudioService {
         }
     }
 
+    onSIDAudioProcess(event: AudioProcessingEvent) {
+        const out = event.outputBuffer.getChannelData(0);
+        if (this.sid) {
+            this.sid.update(out, out.length);
+        } else {
+            out.fill(0);
+        }
+    }
+
     onTapeAudioProcess(event: AudioProcessingEvent) {
         const out = event.outputBuffer.getChannelData(0);
         this.tape.updateSoundBuffer(out);
@@ -146,6 +170,10 @@ export class AudioService {
                     this.tapeFilter.connect(this.audioContext.destination);
                     this.tapeScriptProcessor.connect(this.mediaStreamDestination);
                 }
+                if (this.sidScriptProcessor) {
+                    this.sidScriptProcessor.connect(this.audioContext.destination);
+                    this.sidScriptProcessor.connect(this.mediaStreamDestination);
+                }
             } else if (!enabled && this.enabled) {
                 if (this.psgScriptProcessor) {
                     this.psgScriptProcessor.disconnect();
@@ -156,6 +184,9 @@ export class AudioService {
                 }
                 if (this.tapeScriptProcessor) {
                     this.tapeScriptProcessor.disconnect();
+                }
+                if (this.sidScriptProcessor) {
+                    this.sidScriptProcessor.disconnect();
                 }
             }
         }

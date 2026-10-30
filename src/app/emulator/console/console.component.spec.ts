@@ -36,6 +36,7 @@ import {PeripheralCard} from "../interfaces/peripheral-card";
 import {RAMDisk} from "../interfaces/ram-disk";
 import {Horizon} from "../classes/horizon";
 import {DatabaseService} from "../../services/database.service";
+import {SIDMaster} from "../classes/sid-master";
 
 class ConsoleMock implements Console {
 
@@ -100,6 +101,13 @@ class ConsoleMock implements Console {
     }
 
     setPSG() {
+    }
+
+    getSIDMaster(): SIDMaster | null {
+        return null;
+    }
+
+    setSIDMaster() {
     }
 
     start(fast: boolean, skipBreakpoint?: boolean) {

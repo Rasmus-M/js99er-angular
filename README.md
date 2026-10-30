@@ -39,6 +39,7 @@ The settings object may contain the following properties, shown here with the de
 "settings": {
     "enableSound": true,
     "psg": "STANDARD",              // "STANDARD" | "FORTI"
+    "enableSIDMaster": false,       // SID Master 99 sound card
     "enableSpeech": true,
     "ram": "32K",                   // "NONE" | "32K" | "SAMS1M" | "SAMS4M" | "SAMS16M"
     "vdp": "TMS9918A",              // "TMS9918A" | "F18A" | "PICO9918"  | "V9938"

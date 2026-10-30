@@ -75,6 +75,9 @@ export class SettingsService {
             if (storage.getItem('ramDisk') != null) {
                 this.settings.setRAMDisk(storage.getItem('ramDisk') as RAMDiskType);
             }
+            if (storage.getItem('enableSIDMaster') != null) {
+                this.settings.setSIDMasterEnabled(storage.getItem('enableSIDMaster') === 'true');
+            }
             this.storage = storage;
         }
     }
@@ -98,6 +101,20 @@ export class SettingsService {
                 this.storage.setItem('psg', psg);
             }
             this.commandDispatcherService.changeSetting(Setting.PSG, psg);
+        }
+    }
+
+    isSIDMasterEnabled() {
+        return this.settings.isSIDMasterEnabled();
+    }
+
+    setSIDMasterEnabled(enabled: boolean) {
+        if (enabled !== this.settings.isSIDMasterEnabled()) {
+            this.settings.setSIDMasterEnabled(enabled);
+            if (this.persistent && this.storage) {
+                this.storage.setItem('enableSIDMaster', enabled ? 'true' : 'false');
+            }
+            this.commandDispatcherService.changeSetting(Setting.SID_MASTER, enabled);
         }
     }
 

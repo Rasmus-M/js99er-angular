@@ -12,7 +12,7 @@ JS99'er is a TI-99/4A home computer emulator (https://js99er.net) written in Typ
 - `npm run build` — release build: compiles AssemblyScript to `dist/assets/wasm/` then runs `ng build --configuration production` into `dist/`
 - `npm run asbuild:debug` — rebuild the WASM into `src/assets/wasm/` (these outputs are committed; rebuild after editing anything in `assembly/`, since `ng serve` serves the committed `index.wasm`)
 - `npm test` — Karma/Jasmine unit tests (`*.spec.ts` under `src/`, needs Chrome). Run a single spec file with `ng test --include src/app/emulator/classes/f18a-gpu.spec.ts`
-- `npm run test:gigacart` — Node test runner script (`tools/gigacart-test.cjs`) that loads TS sources directly via `ts-node/register/transpile-only`, no browser needed. `tools/audio-gate-test.cjs` follows the same pattern (run with `node tools/audio-gate-test.cjs`). This is the quickest way to unit-test emulator classes that don't need the DOM.
+- `npm run test:gigacart` / `npm run test:sidmaster` — Node test runner scripts (`tools/*-test.cjs`) that load TS sources directly via `ts-node/register/transpile-only`, no browser needed. `tools/audio-gate-test.cjs` follows the same pattern (run with `node tools/audio-gate-test.cjs`). This is the quickest way to unit-test emulator classes that don't need the DOM.
 - `npm run lint` / `npm run e2e` — legacy TSLint/Protractor configs from older Angular versions; may not work with the current Angular CLI.
 
 ## Architecture

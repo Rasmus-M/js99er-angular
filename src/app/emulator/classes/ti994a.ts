@@ -37,6 +37,7 @@ import {RAMDisk} from "../interfaces/ram-disk";
 import {Horizon} from "./horizon";
 import {DatabaseService} from "../../services/database.service";
 import {MyarcFDC} from "./myarc-fdc";
+import {SIDMaster} from "./sid-master";
 
 export class TI994A implements Console, Stateful {
 
@@ -64,6 +65,7 @@ export class TI994A implements Console, Stateful {
     private googleDrives: GoogleDrive[];
     private tipi: TIPI | null;
     private ramDisk: RAMDisk | null;
+    private sidMaster: SIDMaster | null = null;
 
     private running: boolean;
     private cpuSpeed: number;
@@ -139,6 +141,7 @@ export class TI994A implements Console, Stateful {
         this.setGoogleDrive();
         this.setTIPI();
         this.setRAMDisk();
+        this.setSIDMaster();
     }
 
     private attachListeners() {
@@ -179,6 +182,9 @@ export class TI994A implements Console, Stateful {
         if (this.tipi) {
             this.tipi.reset();
         }
+        if (this.sidMaster) {
+            this.sidMaster.reset();
+        }
         // Other
         this.resetFps();
         this.cpuSpeed = 1;
@@ -208,6 +214,18 @@ export class TI994A implements Console, Stateful {
                 this.psg = new Forti(this.cpu, this.tape);
                 break;
         }
+    }
+
+    public setSIDMaster() {
+        if (this.settings.isSIDMasterEnabled()) {
+            if (!this.sidMaster) {
+                this.sidMaster = new SIDMaster();
+            }
+        } else {
+            this.sidMaster = null;
+        }
+        this.memory.setSIDMaster(this.sidMaster);
+        this.cru.setSIDMaster(this.sidMaster);
     }
 
     public setFDC() {
@@ -438,6 +456,10 @@ export class TI994A implements Console, Stateful {
         return this.psg;
     }
 
+    getSIDMaster(): SIDMaster | null {
+        return this.sidMaster;
+    }
+
     getSpeech(): Speech {
         return this.speech;
     }
@@ -557,7 +579,8 @@ export class TI994A implements Console, Stateful {
             speech: this.speech.getState(),
             tape: this.tape.getState(),
             fdc: this.fdc ? this.fdc.getState() : null,
-            ramDisk: this.ramDisk ? this.ramDisk.getState() : null
+            ramDisk: this.ramDisk ? this.ramDisk.getState() : null,
+            sidMaster: this.sidMaster ? this.sidMaster.getState() : null
         };
     }
 
@@ -591,6 +614,9 @@ export class TI994A implements Console, Stateful {
         }
         if (state.ramDisk && this.ramDisk) {
             this.ramDisk.restoreState(state.ramDisk);
+        }
+        if (state.sidMaster && this.sidMaster) {
+            this.sidMaster.restoreState(state.sidMaster);
         }
     }
 

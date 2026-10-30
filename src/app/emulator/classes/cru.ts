@@ -6,6 +6,7 @@ import {Util} from '../../classes/util';
 import {CPU} from '../interfaces/cpu';
 import {Console} from '../interfaces/console';
 import {CRUDevice} from "../interfaces/cru-device";
+import {SIDMaster} from "./sid-master";
 
 export class CRU implements Stateful {
 
@@ -25,6 +26,7 @@ export class CRU implements Stateful {
     private timerInterrupt: boolean;
     private timerInterruptCount: number;
     private cruDevices: CRUDevice[] = [];
+    private sidMaster: SIDMaster | null = null;
 
     private log: Log = Log.getLog();
 
@@ -54,6 +56,10 @@ export class CRU implements Stateful {
         }
     }
 
+    public setSIDMaster(sidMaster: SIDMaster | null) {
+        this.sidMaster = sidMaster;
+    }
+
     public reset() {
         this.keyboard = this.console.getKeyboard();
         this.tape = this.console.getTape();
@@ -76,6 +82,9 @@ export class CRU implements Stateful {
     }
 
     readBit(addr: number): boolean {
+        if (this.sidMaster) {
+            this.sidMaster.cruAccess(addr << 1);
+        }
         if (addr < 0x400) {
             // TMS9901
             if (this.timerMode && addr < 16) {
@@ -105,6 +114,9 @@ export class CRU implements Stateful {
     }
 
     writeBit(addr: number, value: boolean) {
+        if (this.sidMaster) {
+            this.sidMaster.cruAccess(addr << 1);
+        }
         if (addr < 0x400) {
             // TMS9901
             if (this.timerMode && this.writeBitTimerMode(addr, value)) {

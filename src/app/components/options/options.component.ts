@@ -21,6 +21,7 @@ export class OptionsComponent implements OnInit {
     ram = signal(this.settingsService.getRAM());
     tipi = signal(this.settingsService.getTIPI());
     psg = signal(this.settingsService.getPSG());
+    enableSIDMaster = signal(this.settingsService.isSIDMasterEnabled());
     enableSound = signal(this.settingsService.isSoundEnabled());
     enableSpeech = signal(this.settingsService.isSpeechEnabled());
     enablePCKeyboard = signal(this.settingsService.isPCKeyboardEnabled());
@@ -47,6 +48,7 @@ export class OptionsComponent implements OnInit {
         this.ram.set(this.settingsService.getRAM());
         this.tipi.set(this.settingsService.getTIPI());
         this.psg.set(this.settingsService.getPSG());
+        this.enableSIDMaster.set(this.settingsService.isSIDMasterEnabled());
         this.enableSound.set(this.settingsService.isSoundEnabled());
         this.enableSpeech.set(this.settingsService.isSpeechEnabled());
         this.enablePCKeyboard.set(this.settingsService.isPCKeyboardEnabled());
@@ -77,6 +79,10 @@ export class OptionsComponent implements OnInit {
 
     onPSGChanged(value: PSGType) {
         this.settingsService.setPSG(value);
+    }
+
+    onEnableSIDMasterChanged(value: boolean) {
+        this.settingsService.setSIDMasterEnabled(value);
     }
 
     onEnableSpeechChanged(value: boolean) {

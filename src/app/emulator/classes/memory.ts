@@ -16,6 +16,7 @@ import {GROMArray} from "./grom-array";
 import {DSRCard} from "../interfaces/dsr-card";
 import {PeripheralCard} from "../interfaces/peripheral-card";
 import {MemoryMappedCard} from "../interfaces/memory-mapped-card";
+import {SIDMaster} from "./sid-master";
 import {Cartridge} from "./cartridge";
 import {Software} from "../../classes/software";
 import {RAM32K} from "./ram-32k";
@@ -61,6 +62,7 @@ export class Memory implements Stateful, MemoryDevice {
     private peripheralCards: PeripheralCard[] = [];
     private pCodeCard: PCodeCard | null;
     private horizonCard: Horizon | null = null;
+    private sidMaster: SIDMaster | null = null;
 
     private memoryMap: Function[][];
 
@@ -94,6 +96,10 @@ export class Memory implements Stateful, MemoryDevice {
         if (card instanceof Horizon) {
             this.horizonCard = null;
         }
+    }
+
+    public setSIDMaster(sidMaster: SIDMaster | null) {
+        this.sidMaster = sidMaster;
     }
 
     public getCartridge() {
@@ -347,6 +353,10 @@ export class Memory implements Stateful, MemoryDevice {
 
     private writePeripheralCard(addr: number, w: number, cpu: CPU) {
         cpu.addCycles(4);
+        // The SID Master has no DSR and listens alongside any active card
+        if (this.sidMaster) {
+            this.sidMaster.writeMemoryMapped(addr, w);
+        }
         const activeCard = this.peripheralCards.find(dsrDevice => dsrDevice.isEnabled());
         if (activeCard && this.isMemoryMappedCard(activeCard)) {
             activeCard.writeMemoryMapped(addr, w, cpu);

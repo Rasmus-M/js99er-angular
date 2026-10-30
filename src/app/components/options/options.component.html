@@ -36,6 +36,9 @@
       </mat-select>
     </mat-form-field>
     <div class="checkbox-setting">
+      <mat-checkbox [(ngModel)]="enableSIDMaster" (ngModelChange)="onEnableSIDMasterChanged($event)">SID Master 99 sound card</mat-checkbox>
+    </div>
+    <div class="checkbox-setting">
       <mat-checkbox [(ngModel)]="enableSpeech" (ngModelChange)="onEnableSpeechChanged($event)">Speech enabled</mat-checkbox>
     </div>
     <mat-form-field class="dropdown-setting">

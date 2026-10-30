@@ -19,6 +19,7 @@ import {RAMDiskType} from "../../classes/settings";
 import {RAMDisk} from "./ram-disk";
 import {DiskImage} from "../classes/disk-image";
 import {DatabaseService} from "../../services/database.service";
+import {SIDMaster} from "../classes/sid-master";
 
 export interface Console {
     start(fast: boolean, skipBreakpoint?: boolean): void;
@@ -48,6 +49,8 @@ export interface Console {
     setTIPI(): void;
     setVDP(): void;
     setPSG(): void;
+    getSIDMaster(): SIDMaster | null;
+    setSIDMaster(): void;
     isRunning(): void;
     cyclesPassed(): Observable<number>;
     getCardById(id: string): PeripheralCard | null;
