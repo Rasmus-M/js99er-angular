@@ -6,6 +6,7 @@ import {Memory} from "./memory";
 import {Settings} from "../../classes/settings";
 import {CRUDevice} from "../interfaces/cru-device";
 import {Stateful} from "../interfaces/stateful";
+import {gigacartOptions} from "../../classes/gigacart";
 
 export class Cartridge implements MemoryDevice, CRUDevice, Stateful  {
 
@@ -14,6 +15,7 @@ export class Cartridge implements MemoryDevice, CRUDevice, Stateful  {
     private inverted = false;
     private cruBankSwitched = false;
     private gigacart = false;
+    private initialBank = 0;
     private bankCount = 0;
     private currentBank = 0;
     private addrOffset = -0x6000;
@@ -31,13 +33,23 @@ constructor(software: Software, private settings: Settings) {
         this.cartImage = software.rom;
         this.bankCount = this.cartImage ? Math.floor(this.cartImage.length / 0x2000) : 0;
         this.gigacart = software.gigacart;
-        if (this.gigacart && (this.bankCount < 1 || this.bankCount > 0x4000 ||
+        if (this.gigacart && (this.bankCount < 1 || this.bankCount > 0x100000 ||
             (this.bankCount & (this.bankCount - 1)) !== 0 || this.cartImage!.length !== this.bankCount * 0x2000 ||
             software.inverted || software.cruBankSwitched || software.ramFG99Paged || software.ramAt6000 || software.ramAt7000)) {
-            throw new Error('Gigacart requires a power-of-two ROM of 8 KiB to 128 MiB and no other banking or cartridge RAM mode.');
+            throw new Error('Gigacart requires a power-of-two ROM of 8 KiB to 8 GiB and no other banking or cartridge RAM mode.');
+        }
+        let gigacartBoot = software.grom || software.groms?.length ? 'grom' : 'cpld';
+        if (this.gigacart && software.gigacartOptions) {
+            const options = software.gigacartOptions;
+            const checked = gigacartOptions('gigacart-' + options.boot, String(options.dataBits),
+                String(options.initialBank), this.cartImage!.length,
+                software.grom?.length || software.groms?.reduce((n, g) => n + g.length, 0) || 0);
+            gigacartBoot = checked.boot;
+            // A smaller installed ROM mirrors within the declared selector range.
+            this.initialBank = checked.initialBank & (this.bankCount - 1);
         }
         this.inverted = software.inverted;
-        this.setCurrentCartBank(!this.inverted ? 0 : this.bankCount - 1);
+        this.setCurrentCartBank(this.inverted ? this.bankCount - 1 : this.initialBank);
         this.cruBankSwitched = software.cruBankSwitched;
         this.ramFG99Paged = software.ramFG99Paged;
         this.ramAt6000 = software.ramAt6000;
@@ -48,7 +60,7 @@ constructor(software: Software, private settings: Settings) {
             gromBase.setData(data, 0x6000);
             this.gromBases.push(gromBase);
         }
-        if (this.gigacart && this.gromBases.length === 0) {
+        if (this.gigacart && gigacartBoot === 'cpld') {
             // The runtime CPLD exposes the final 256 flash bytes at GROM >8000,
             // mirrored through >9FFF (an 8-bit address counter). This is the
             // actual menu/boot GPL in Dragon's Lair, not a fabricated ROM header.
@@ -62,7 +74,7 @@ constructor(software: Software, private settings: Settings) {
     }
 
     public reset() {
-        this.setCurrentCartBank(!this.inverted ? 0 : this.bankCount - 1);
+        this.setCurrentCartBank(this.inverted ? this.bankCount - 1 : this.initialBank);
     }
 
     public read(addr: number): number {
@@ -111,8 +123,11 @@ constructor(software: Software, private settings: Settings) {
             // the TI mux writes its low byte first, high byte last, leaving
             // word bits 9 and 8 latched. SELBNK emits (bank >> 4) & >0F00.
             const low12 = (addr >> 1) & 0x0fff;
-            const high2 = (w >> 8) & 3;
-            this.setCurrentCartBank(((high2 << 12) | low12) & (this.bankCount - 1));
+            // Each low data bit adds a 32 MiB block selector. Dragon's Lair
+            // uses two; the 512 MiB Lion King image uses four. The ROM size
+            // masks unconnected bits, up to the eight-bit expansion allowance.
+            const block = (w >> 8) & 0xff;
+            this.setCurrentCartBank(((block << 12) | low12) & (this.bankCount - 1));
             return;
         }
         if (!this.cruBankSwitched) {
@@ -207,7 +222,7 @@ constructor(software: Software, private settings: Settings) {
 
     private setCurrentCartBank(bank: number) {
         this.currentBank = bank;
-        this.addrOffset = (this.currentBank << 13) - 0x6000;
+        this.addrOffset = this.currentBank * 0x2000 - 0x6000;
         if (!this.ramFG99Paged) {
             this.setCurrentCartRAMBank(bank);
         }
@@ -216,7 +231,7 @@ constructor(software: Software, private settings: Settings) {
 
     private setCurrentCartRAMBank(bank: number) {
         this.currentRAMBank = bank;
-        this.addrRAMOffset = (this.currentRAMBank << 13) - 0x6000;
+        this.addrRAMOffset = this.currentRAMBank * 0x2000 - 0x6000;
         // this.log.info("Cartridge RAM bank selected: " + this.currentCartRAMBank);
     }
 
@@ -257,6 +272,7 @@ constructor(software: Software, private settings: Settings) {
             inverted: this.inverted,
             cruBankSwitched: this.cruBankSwitched,
             gigacart: this.gigacart,
+            initialBank: this.initialBank,
             bankCount: this.bankCount,
             currentBank: this.currentBank,
             addrOffset: this.addrOffset,
@@ -278,6 +294,7 @@ constructor(software: Software, private settings: Settings) {
         this.inverted = state.inverted;
         this.cruBankSwitched = state.cruBankSwitched;
         this.gigacart = !!state.gigacart;
+        this.initialBank = state.initialBank ?? 0;
         this.bankCount = state.bankCount;
         this.currentBank = state.currentBank;
         this.addrOffset = state.addrOffset;
